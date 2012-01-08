@@ -26,9 +26,9 @@
 
         <div id="main">
             <ul class="nav">
-            <li class="left">  <img src="img/prv.png"></img><a href="high-order-function.htm">高階函數</a></li>
+            <li class="left">  <img src="img/prv.png"></img><a href="high-order-function-.htm">高階函數</a></li>
             <li class="center"><a href="chapters.htm">Index</a></li>
-            <li class="right"> <a href="make-types-and-classes-for-ourselves.htm">構造我們自己的類型和類型類</a><img src="img/nxt.png"></img></li>
+            <li class="right"> <a href="make-types-and-classes-for-ourselves-.htm">構造我們自己的類型和類型類</a><img src="img/nxt.png"></img></li>
             </ul>
 
             <a name="模組"></a><h1>模組</h1><a name="裝載模組"></a><h2>裝載模組</h2><img src="img/modules.png" style="float:right"></img><p>haskell中的模組是含有一組相關的函數，類型和類型類的組合。而haskell程序的本質便是從主模組中引用其它模組並調用其中的函數來執行操作。這樣可以把代碼分成多塊，只要一個模組足夠的獨立，它裡面的函數便可以被不同的程序反覆重用。這就讓不同的代碼各司其職，提高了代碼的健壯性。</p><p>haskell的標準庫就是一組模組，每個模組都含有一組功能相近或相關的函數和類型。有處理List的模組，有處理並發的模組，也有處理複數的模組，等等。目前為止我們談及的所有函數,類型以及類型類都是Prelude模組的一部分，它預設自動裝載。在本章，我們看一下幾個常用的模組，在開始瀏覽其中的函數之前，我們先得知道如何裝載模組.</p><p>在haskell中，裝載模組的語法為<i>import</i>，這必須得在函數的定義之前，所以一般都是將它置於代碼的頂部。無疑，一段代碼中可以裝載很多模組，只要將import語句分行寫開即可。裝載Data.List試下，它裡面有很多實用的List處理函數.</p><p>執行<code>import Data.List</code>，這樣一來<code>Data.List</code>中包含的所有函數就都進入了全局命名空間。也就是說，你可以在代碼的任意位置調用這些函數.<code>Data.List</code>模組中有個<code>nub</code>函數，它可以篩掉一個List中的所有重複元素。用點號將<code>length</code>和<code>nub</code>組合:<code>length 。nub</code>，即可得到一個與<code>(\xs -> length (nub xs))</code>等價的函數。</p><pre class="code">import Data.List  
@@ -380,9 +380,9 @@ import qualified Geometry.Cuboid as Cuboid
 import qualified Geometry.Cube as Cube</pre><p>然後就可以調用<code>Sphere.area</code>，<code>Sphere.volume</code>，<code>Cuboid.area</code>了，而每個函數都只計算其對應物體的面積和體積.</p><p>以後你若發現自己的代碼體積龐大且函數眾多，就應該試着找找目的相近的函數能否裝入各自的模組，也方便日後的重用.</p>
 
             <ul class="nav">
-            <li class="left">  <img src="img/prv.png"></img><a href="high-order-function.htm">高階函數</a></li>
+            <li class="left">  <img src="img/prv.png"></img><a href="high-order-function-.htm">高階函數</a></li>
             <li class="center"><a href="chapters.htm">Index</a></li>
-            <li class="right"> <a href="make-types-and-classes-for-ourselves.htm">構造我們自己的類型和類型類</a><img src="img/nxt.png"></img></li>
+            <li class="right"> <a href="make-types-and-classes-for-ourselves-.htm">構造我們自己的類型和類型類</a><img src="img/nxt.png"></img></li>
             </ul>
         </div>
 

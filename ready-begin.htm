@@ -26,9 +26,9 @@
 
         <div id="main">
             <ul class="nav">
-            <li class="left">  <img src="img/prv.png"></img><a href="introduction.htm">簡介</a></li>
+            <li class="left">  <img src="img/prv.png"></img><a href="introduction-.htm">簡介</a></li>
             <li class="center"><a href="chapters.htm">Index</a></li>
-            <li class="right"> <a href="types-and-type-classes.htm">類型和類型類</a><img src="img/nxt.png"></img></li>
+            <li class="right"> <a href="types-and-type-classes-.htm">類型和類型類</a><img src="img/nxt.png"></img></li>
             </ul>
 
             <a name="入門"></a><h1>入門</h1><a name="各就各位，預備！"></a><h2>各就各位，預備！</h2><img src="img/startingout.png" style="float:right"></img><p>好的，出發！如果你就是那種從不看說明書的不良人士，我推薦你還是回頭看一下簡介的最後一節。那裡面講了這個教程中你需要用到的工具及基本用法。我們首先要做的就是進入ghc的交互模式，接着就可以調幾個函數小體驗一把haskell了。打開控制台，輸入ghci，你會看到如下歡迎信息</p><pre class="code">GHCi, version 6.8.2: http://www.haskell.org/ghc/  
@@ -163,7 +163,7 @@ ghci> take 12 (cycle "LOL ")  
 [5,5,5,5,5,5,5,5,5,5] </pre><p>其實，你若只是想得到包含相同元素的List，使用replicate會更簡單，如<code>replicate 3 10</code>，得<code>[10,10,10]</code>。</p><a name="我是List Comprehension"></a><h2>我是List Comprehension</h2><img src="img/kermit.png" style="float:right"></img><p>學過數學的你對集合的comprehension（Set Comprehension）概念一定不會陌生。通過它，可以從既有的集合中按照規則產生一個新集合。前十個偶數的set comprehension可以表示為<img src="img/setnotation.png"></img>，豎綫左端的部分是輸出函數，x是變數，N是輸入集合。在haskell下，我們可以通過類似<code>take 10 [2,4..]</code>的代碼來實現。但若是把簡單的乘2改成更複雜的函數操作該怎麼辦呢？用list comprehension，它與set comprehension十分的相似，用它取前十個偶數輕而易舉。這個list comprehension可以表示為：</p><pre class="code">ghci> [x*2 | x <- [1..10]]  
 [2,4,6,8,10,12,14,16,18,20]</pre><p>如你所見，結果正確。給這個comprehension再添個限制條件（predicate），它與前面的條件由一個逗號分隔。在這裡，我們要求只取乘以2後大於等於12的元素。</p><pre class="code">ghci> [x*2 | x <- [1..10], x*2 >= 12]  
 [12,14,16,18,20] </pre><p>cool，靈了。若是取50到100間所有除7的餘數為3的元素該怎麼辦？簡單：</p><pre class="code">ghci> [ x | x <- [50..100], x `mod` 7 == 3]  
-[52,59,66,73,80,87,94]  </pre><p>成功！從一個List中篩選出符合特定限制條件的操作也可以稱為過濾（flitering）。即取一組數並且按照一定的限制條件過濾它們。再舉個例子 吧，假如我們想要一個comprehension，它能夠使list中所有大於10的奇數變為“BANG”，小於10的奇數變為“BOOM”，其他則統統 扔掉。方便重用起見，我們將這個comprehension置於一個函數之中。</p><pre class="code">boomBangs xs = [ if x 10 then "BOOM!" else "BANG!" | x <- xs, odd x]  </pre><p>這個comprehension的最後部分就是限制條件，使用odd函數判斷是否為奇數：返回True，就是奇數，該List中的元素才被包含。</p><pre class="code">ghci> boomBangs [7..13]  
+[52,59,66,73,80,87,94]  </pre><p>成功！從一個List中篩選出符合特定限制條件的操作也可以稱為過濾（flitering）。即取一組數並且按照一定的限制條件過濾它們。再舉個例子 吧，假如我們想要一個comprehension，它能夠使list中所有大於10的奇數變為“BANG”，小於10的奇數變為“BOOM”，其他則統統 扔掉。方便重用起見，我們將這個comprehension置於一個函數之中。</p><pre class="code">boomBangs xs = [ if x < 10 then "BOOM!" else "BANG!" | x <- xs, odd x]  </pre><p>這個comprehension的最後部分就是限制條件，使用odd函數判斷是否為奇數：返回True，就是奇數，該List中的元素才被包含。</p><pre class="code">ghci> boomBangs [7..13]  
 ["BOOM!","BOOM!","BANG!","BANG!"]  </pre><p>也可以加多個限制條件。若要達到10到20間所有不等於13，15或19的數，可以這樣：</p><pre class="code">ghci> [ x | x <- [10..20], x /= 13, x /= 15, x /= 19]  
 [10,11,12,14,16,17,18,20] </pre><p>除了多個限制條件之外，從多個List中取元素也是可以的。這樣的話comprehension會把所有的元素組合交付給我們的輸出函數。在不過濾的前提 下，取自兩個長度為4的集合的comprehension會產生一個長度為16的List。假設有兩個List，<code>[2,5,10]</code>和<code>[8,10,11]</code>， 要取它們所有組合的積，可以這樣：</p><pre class="code">ghci> [ x*y | x <- [2,5,10], y <- [8,10,11]]  
 [16,20,22,40,50,55,80,100,110]  </pre><p>意料之中，得到的新List長度為9。若只取乘積為50的結果該如何？</p><pre class="code">ghci> [ x*y | x <-[2,5,10], y <- [8,10,11], x*y > 50]  
@@ -196,9 +196,9 @@ ghci> rightTriangles'
 [(6,8,10)]</pre><p>得到正確結果！這便是函數式編程的一般思路：先取一個初始的集合併將其變形，執行過濾條件，最終取得正確的結果。</p>
 
             <ul class="nav">
-            <li class="left">  <img src="img/prv.png"></img><a href="introduction.htm">簡介</a></li>
+            <li class="left">  <img src="img/prv.png"></img><a href="introduction-.htm">簡介</a></li>
             <li class="center"><a href="chapters.htm">Index</a></li>
-            <li class="right"> <a href="types-and-type-classes.htm">類型和類型類</a><img src="img/nxt.png"></img></li>
+            <li class="right"> <a href="types-and-type-classes-.htm">類型和類型類</a><img src="img/nxt.png"></img></li>
             </ul>
         </div>
 
