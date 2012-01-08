@@ -1,0 +1,34 @@
+ol {
+    margin: 20px 0 40px 0;
+    padding-left: 40px;
+}
+ol li{
+    font: 30px normal arial;
+    color: #408156;
+}
+ol li a {
+    color: #333;
+    text-decoration: none;
+    border-bottom: 1px solid #DDDDDD;
+    display: block;
+}
+ol ul {
+    margin: 20px;
+}
+ol ul li {
+    font: 15px normal arial;
+    margin: 0 0 0 0;
+    padding: 0;
+    border:none;
+}
+ol ul li a {
+    border: none;
+    line-height: 30px;
+    padding: 0 20px 0 0;
+    color: #000;
+    text-decoration: underline;
+    display: inline;
+}
+li a:hover {
+    color: #BD2A33;
+}

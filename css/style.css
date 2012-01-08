@@ -1,0 +1,109 @@
+* { margin: 0; padding: 0; }
+
+body {
+    font: normal 14px Arial,serif,Courier New,黑体;
+}
+
+h1 {
+    font: normal 80px georgia,Arial,serif,Courier New;
+    line-height: 95px;
+    margin-top: 30px;
+}
+
+h2 {
+    font: bold 40px Arial,serif;
+    margin-top: 40px;
+}
+
+p {
+    font: normal 14px Arial,serif;
+    line-height: 25px;
+    margin: 13px 0 13px 0;
+}
+
+p code {
+    background: #eee;
+    font: normal 15px "Courier New",Arial,serif; 
+    overflow: auto;
+    padding: 0 3px 0 3px;
+}
+
+p strong {
+    background: #c00;
+    color: #fff;
+    font: normal 15px "Courier New", Arial,serif;
+    padding: 2px 3px 2px 3px;
+    margin: 0 3px 3px 0;
+}
+p img {
+     vertical-align:middle;
+}
+
+img {
+    padding: 20px;
+}
+
+pre.code{
+    background: #000;
+    font-family: "Courier New", "Consolas", monospace;
+    font-size: 14px;
+    
+    color: #fff;
+    padding: 10px;
+    margin-bottom: 25px;
+    overflow: auto;
+}
+
+blockquote {
+    background: #ffffcc url(../img/note.jpg);
+
+    padding: 10px;
+    margin-bottom: 25px;
+    overflow: auto;
+}
+blockquote p {
+    margin: 0px;
+}
+
+/**************************************************************/
+ul.nav {
+    list-style-type: disc;
+    list-style-position: outside;
+
+    width: 800px;
+    height: 30px;
+    margin: 25px auto 25px auto;
+}
+ul.nav li { display: block; width: 250px; height: 30px; font-size:17px; }
+ul.nav img { height: 17px; width: 20px; padding: 0; margin: 0;}
+
+ul.nav .left { left: 10px; float: left; text-align: left; }
+ul.nav .center { text-align: center; float: left; }
+ul.nav .right { right: 10px; float: right; text-align: right; }
+
+/**************************************************************/
+div#header {
+    margin: 0 auto;
+
+    background: url(../img/bg.png);
+    height: 50px;
+}
+
+div#header #beta {
+    right: 15px;
+    top: 10px;
+    position: absolute;
+    padding: 10px 30px 0 0;
+}
+
+div#main {
+    width: 810px;
+    margin: 10px auto 0 auto;
+}
+
+div#footer {
+    margin: 0 auto;
+
+    background: url(../img/bg.png);
+    height: 70px;
+}

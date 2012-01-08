@@ -1,0 +1,48 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+        <style>
+            @import url(css/style.css);
+        </style>
+
+        <script src="js/jquery.js"></script>
+        <script src="js/jquery.chili-2.2.js"></script>
+        <script src="js/script.js"></script>
+        <script>
+             ChiliBook.recipeFolder = "js/chili/";  
+             ChiliBook.automaticSelector = "pre";
+        </script>
+
+        <title>简介</title>
+    </head>
+
+    <body>
+        <div id="header">
+            <img id="beta" alt="beta" src="img/beta.png" />
+        </div>
+
+        <div id="main">
+            <ul class="nav">
+            <li class="left"> </li>
+            <li class="center"><a href="chapters.htm">Index</a></li>
+            <li class="right"> <a href="ready-begin.htm">入门</a><img src="img/nxt.png"></img></li>
+            </ul>
+
+            <a name="简介"></a><h1>简介</h1><a name="关于这个教程"></a><h2>关于这个教程</h2><p>欢迎来到<b>haskell趣学指南</b>！阅读此文表明你正要学haskell。很好，来对地方了，先容我简单介绍一下这个教程。</p><p>编写这个教程,一方面是为了巩固我自己对haskell的理解，另一方面也是希望能够分享我的经验，给初学者提供一定帮助。网上现有的haskell教程已经汗牛充栋，在我学习的时候就曾参阅过许多教程与文章，它们讲解问题的思路各不相同，综合的阅读使得我最终能够整理起知识的碎片并正确地理解。所以说，编写这个教程也是创造另一个学习资源的尝试，给读者增加一个选择的余地。</p><img src="img/bird.png" style="float:left"></img><p>本教程主要是面向已经有命令式编程经验(C, C++, Java, Python …) 、却未曾接触过函数式编程 (Haskell, ML, OCaml …)的读者。还没有编程基础？没关系，像你这样的聪明小伙一定能够学会haskell！</p><p>若在学习中遇到什么地方不明白，freenode上的#haskell频道是提问的绝佳去处。那儿的人们友善，耐心且照顾新人。</p><p>在我掌握haskell之前的学习曾经失败过两次，它看起来太不可思议，难以理解。不过随后突然灵光一闪，马上就开窍了，往后的学习也就变得游刃有余。我想说的就是：haskell很棒，如果你喜欢编程，那就得好好学学--尽管在咋一看它可能会显得很别扭--它迫使你换个脑筋思考，很有趣！</p><p>好，下一节。。。</p><a name="那么，haskell是啥？"></a><h2>那么，haskell是啥？</h2><img src="img/fx.png" style="float:right"></img><p>haskell是一门<b>纯函数式编程语言</b>。在命令式语言中执行操作需要给电脑安排一组命令，随着命令的执行，状态就会随之发生改变。例如你给变量a赋值为5，而随后做了其它一些事情之后a就可能变成的其它值。有控制流程，你就可以重复执行操作。然而在函数式编程语言中，你不是像命令式语言那样命令电脑“要做什么”，而是通过用函数来描述出问题“是什么”，如“<i>阶乘是指从1到某数间所有数字的乘积</i>”。变量一旦赋值，就不可以更改了，你已经说了a就是5，就不能再另说a是别的什么数。做人不能食言，对不？所以说，函数式编程语言中的函数能做的唯一事情就是求值，因而没有副作用。一开始会觉得这很受限，不过好处也正源于此：若以同样的参数调用同一函数两次，得到的结果总是相同。这被称作“<i>引用透明</i>”。如此一来编译器就可以理解程序的行为，你也很容易就能验证一个函数的正确性，继而可以将一些简单的函数组合成更复杂的函数。</p><img src="img/lazy.png" style="float:left"></img><p>haskell是<b>惰性</b>的。也就是说若非特殊指明，函数在真正需要结果以前不会被求值。再加上引用透明，你就可以把程序仅看作是数据的一系列变形。如此一来就有了很多有趣的特性，如无限长度的数据结构。假设你有一个List:<code>xs = [1,2,3,4,5,6,7,8]</code>，还有一个函数<code>doubleMe</code>，它可以将一个List中的所有元素都乘以二，返回一个新的List。若是在命令式语言中，把一个List乘以8，执行<code>doubleMe(doubleMe(doubleMe(xs)))</code>，得遍历三遍xs才会得到结果。而在惰性语言中，调用doubleMe时并不会立即求值，它会说“嗯嗯，待会儿再做！”。不过一旦要看结果，第一个doubleMe就会对第二个说“给我结果，快！”第二个doubleMe就会把同样的话传给第三个doubleMe，第三个doubleMe只能将1乘以2得2后交给第二个，第二个再乘以2得4交给第一个，最终得到第一个元素8。也就是说，这一切只需要遍历一次list即可，而且仅在你真正需要结果时才会执行。惰性语言中的计算只是一组初始数据和变换公式。</p><img src="img/boat.png" style="float:right"></img><p>haskell 是<b>静态类型</b>的。当你编译程序时，编译器需要明确哪个是数字，哪个是字符串。这就意味着很大一部分错误都可以在编译时被发现，若试图将一个数字和字符串相加，编译器就会报错。haskell拥有一套强大的类型系统，支持自动类型推导。这一来你就不需要在每段代码上都标明它的类型，像计算a=5+4，你就不需另告诉编译器“a是一个数值”，它可以自己推导出来。类型推导可以让你的程序更加简练。假设有个二元函数是将两个数值相加，你就无需声明其类型，这个函数可以对一切可以相加的值进行计算。</p><p>haskell采纳了很多高级概念，因而它的代码<b>优雅且简练</b>。与同层次的命令式语言相比，haskell的代码往往会更短，更短就意味着更容易理解，bug也就更少。</p><p>haskell的研发工作始于1987年，当时是一个学会的精英分子（很多PhD哦）聚到一块儿，商量着要设计一门牛X的语言。03年，《 Haskell Report 》发布，标志着稳定版本的最终确定。</p><a name="你需要..."></a><h2>你需要...</h2><p>一个编辑器和一个编译器。你可能已经安装了最喜欢的编辑器，在此不加赘述。如今最常用的haskell编译器是GHC和hugs，在本教程中我们将使用ghc。安装的细节就不消多说了，在windows下只要下载一个installer然后一路next最后重启一下（貌似不需要重启，译者注）即可；在基于debain的linux系统下一个<code>apt-get install ghc6 libghc6-mtl-dev</code>看着玩就是了；我没mac电脑，不过听说你如果安装了macPort，就可以通过<code>sudo port install ghc</code>来获得ghc。嗯，应该可以用那古怪的单键鼠标搞haskell吧，我拿不准。</p><p>GHC既可以解释执行haskell脚本（通常是以.hs作为后缀），也可以编译。它还有个交互模式，你可以在里面调用脚本里定义的函数，即时得到结果。 对于学习而言，这可比每次修改都编译执行要方便的多。想进入交互模式，只要打开控制台输入ghci即可。假设你在myfunctions.hs里定义了一些函数，在ghci中输入<code>:l myfunctions.hs</code>}载后就可以调用了。一旦修改了这个.hs文件的内容，再次执行<code>:l myfunctions.hs</code>或者与之等价的:r，都可以重新装载该文件。我本人通常就是在.hs文件中定义几个函数，再到ghci装载，调试，再修改再装载。这也正是我们往后的基本流程。</p>
+
+            <ul class="nav">
+            <li class="left"> </li>
+            <li class="center"><a href="chapters.htm">Index</a></li>
+            <li class="right"> <a href="ready-begin.htm">入门</a><img src="img/nxt.png"></img></li>
+            </ul>
+        </div>
+
+        <div id="footer">
+        </div>
+
+    </body>
+</html>
+
