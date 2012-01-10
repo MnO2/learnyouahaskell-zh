@@ -1,0 +1,48 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+        <style>
+            @import url(css/style.css);
+            @import url(css/chapters.css);
+        </style>
+
+        <script src="js/jquery.js"></script>
+        <script src="js/jquery.chili-2.2.js"></script>
+        <script src="js/script.js"></script>
+        <script>
+             ChiliBook.recipeFolder = "js/chili/";  
+             ChiliBook.automaticSelector = "pre";
+        </script>
+
+        <title> Haskell趣學指南 </title>
+    </head>
+
+    <body>
+        <div id="header">
+            <img id="beta" alt="beta" src="img/beta.png" />
+        </div>
+
+        <div id="main">
+
+            <h1>Haskell趣學指南</h1>
+
+            <%= c.to_html %>
+
+            <p> 本作品受 <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/3.0/">創用CC BY-NC-SA 3.0</a>保護。</p>
+
+            <br/>
+            <br/>
+            <br/>
+
+        </div>
+
+        <div id="footer">
+        </div>
+
+    </body>
+</html>
+
+

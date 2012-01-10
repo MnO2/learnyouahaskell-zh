@@ -1,0 +1,7 @@
+=函子、函子、么半群 #functors-applicative-functors-and-monoids
+
+==溫習函子
+
+==關鍵字 newtype
+
+==么半群
