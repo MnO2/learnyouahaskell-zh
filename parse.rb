@@ -4,13 +4,13 @@ require 'erb'
 
 include FD
 
-source_dir = 'source'
+source_dir = 'source/_posts'
 public_dir = 'public'
 
 
 Dir.chdir(source_dir) 
 files=Dir.glob('*.txt').sort.select{|fn| fn=~/^\d.*.txt/}.map{|fn| open(fn) }
-Dir.chdir('..')
+Dir.chdir('../../')
 
 c=nil; p=nil; n=nil; docs=[];
 tpl=ERB.new( open('_page.erb').read )
