@@ -1,6 +1,6 @@
-=構造我們自己的類型和類型類 #make-types-and-classes-for-ourselves
+=構造我們自己的Types和Typeclasses #make-types-and-classes-for-ourselves
 
-==數據類型入門
+==Algebraic data types入門
 
 在前面的章節中，我們談了一些Haskell內置的類型和類型類。而在本章，我們將學習構造類型和類型類的方法。
 
@@ -259,7 +259,7 @@ Car {company = "Ford", model = "Mustang", year = 1967}
 
 
 
-==類型參數
+== Type parameters
 
 值構造子可以取幾個參數產生一個新值，如Car的構造子是取三個參數返回一個Car。與之相似，類型構造子可以取類型作參數，產生新的類型。這咋一聽貌似有點深奧，不過實際上並不複雜。如果你對C++的模板有瞭解，就會看到很多相似的地方。我們看一個熟悉的類型，好對類型參數有個大致印象：
 
@@ -390,11 +390,7 @@ Vector 148 666 222
 }}
 
 
-
-
-
-
-==派生實例
+== Derived instances
 
 在typeclass 101那節裡面，我們瞭解了typeclass的基礎內容。裡面提到，類型類就是定義了某些行為的介面。例如，Int類型是Eq類型類的一個實例，Eq類就定義了判定相等性的行為。Int值可以判斷相等性，所以Int就是Eq類型類的成員。它的真正威力體現在作為Eq介面的函數中，即==和/=。只要一個類型是Eq類型類的成員，我們就可以使用==函數來處理這一類型。這便是為何``4==4``和``"foo"/="bar"``這樣的表達式都需要作類型檢查。
 
@@ -577,8 +573,7 @@ ghci> [minBound .. maxBound] :: [Day]
 那是相當的棒。
 
 
-==類型別名
-
+==Type synonyms
 
 在前面我們提到在寫類型名的時候，``[Char]``和``String``等價，可以互換。這就是由類型別名實現的。類型別名實際上什麼也沒做，只是給類型提供了不同的名字，讓我們的代碼更容易理解。這就是``[Char]``的別名``String``的由來。
 
@@ -736,3 +731,14 @@ Right "QOTSA"
 }}
 
 我們完全可以用``Maybe a``來表示它的結果，但這樣一來我們就對得不到密碼的原因不得而知了。而在這裡，我們的新類型可以告訴我們失敗的原因。
+
+
+== Recursive data structures (遞迴地定義資料結構)
+
+== Typeclasses的第二堂課
+
+== yes-no typeclass
+
+== Functor typeclass
+
+== Kind

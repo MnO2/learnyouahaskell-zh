@@ -8,6 +8,7 @@ deploy_branch  = "master"
 public_dir      = "public"    # compiled site directory
 source_dir      = "source"    # source file directory
 deploy_dir      = "_deploy"   # deploy directory (for Github pages deployment)
+server_port     = "5000"      # port for preview server eg. localhost:4000
 
 desc "Generate site"
 task :generate do
@@ -18,7 +19,7 @@ task :generate do
   cp_r "#{source_dir}/css", public_dir
   cp_r "#{source_dir}/js", public_dir
   cp "#{source_dir}/CNAME", "#{public_dir}/CNAME"
-  cp "#{source_dir}/index.htm", "#{public_dir}/index.htm"
+  cp "#{source_dir}/index.html", "#{public_dir}/index.html"
 end
 
 ##############
@@ -59,6 +60,21 @@ multitask :push do
     puts "\n## Github Pages deploy complete"
   end
 end
+
+desc "preview the site in a web browser"
+task :preview do
+  raise "### You haven't set anything up yet. First run `rake install` to set up an Octopress theme." unless File.directory?(source_dir)
+  puts "Starting Rack on port #{server_port}"
+  rackupPid = Process.spawn("rackup --port #{server_port}")
+
+  trap("INT") {
+    [rackupPid].each { |pid| Process.kill(9, pid) rescue Errno::ESRCH }
+    exit 0
+  }
+
+  [rackupPid].each { |pid| Process.wait(pid) }
+end
+
 
 desc "list tasks"
 task :list do

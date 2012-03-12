@@ -1,6 +1,6 @@
-=類型和類型類 #types-and-type-classes
+=Types and Typeclasses #types-and-type-classes
 
-==相信類型
+==Type
 
 [^img/cow.png]
 
@@ -95,7 +95,7 @@ ghci> circumference' 4.0
 Tuple的類型取決於它的長度及其中項的類型。注意，空Tuple同樣也是個類型，它只有一種值：``()``。
 
 
-==類型變數
+==Type variables
 
 你覺得head函數的類型是啥？它可以取任意類型的List的首項，是怎麼做到的呢？我們查一下！
 
@@ -120,7 +120,7 @@ fst :: (a, b) -> a
 可以看到fst取一個包含兩個類型的Tuple作參數，並以第一個項的類型作為返回值。這便是fst可以處理一個含有兩種類型項的pair的原因。注意，a和b是不同的類型變數，但它們不一定非得是不同的類型，它只是標明了首項的類型與返回值的類型相同。
 
 
-==類型類101
+==Typeclasses入門
 
 [$img/classes.png]
 

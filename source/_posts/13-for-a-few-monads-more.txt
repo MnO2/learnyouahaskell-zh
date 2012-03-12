@@ -1,13 +1,13 @@
-=再來看看更多單子 #for-a-few-monads-more
+=再來看看更多Monad #for-a-few-monads-more
 
-==你所不知道的Writer單子
+==你所不知道的Writer Monad
 
-==Reader單子
+==Reader Monad
 
-==State單子
+==State Monad
 
-==Error單子
+==Error Monad
 
-==一些實用的單子函數
+==一些實用的Moandic functions
 
-==定義自己的單子
+==定義自己的Monad

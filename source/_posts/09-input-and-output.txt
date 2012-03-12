@@ -180,10 +180,512 @@ main = do
 所以``putStrLn "BLAH"``可以寫成``_ <- putStrLn "BLAH"``。
 但這沒什麼實際的意義，所以我們寧願寫成``putStrLn something``。
 
+初學者有時候會想錯
+{{ 
+    name = getLine    
+}}
+以為這行會讀取輸入並給他榜定一個名字叫``name``
+但其實只是把``getLine``這個I/O action指定一個名字叫``name``罷了
+記住，要從一個I/O action中取出值，你必須要在另一個I/O action中將他用``<-``綁定給一個名字。
 
+I/O actions只會在綁定給``main``的時候或是在另一個用do串起來的I/O action才會執行。
+你可以用do來串接I/O actions，再用do來串接這些串接起來的I/O actions。
+不過只有最外面的I/O action被指定給main才會觸發執行。
+
+喔對，其實還有另外一個情況。就是在GHCi中輸入一個I/O action並按下Enter鍵，那也會被執行
+{{
+ghci> putStrLn "HEEY"
+HEEY
+}}
+就算我們只是在GHCi中打幾個數字或是呼叫一個函數，按下Enter就會計算他並呼叫``show``，他會用``putStrLn``將字串印出的終端上。
+
+還記得let binding嗎? 
+如果不記得，回去溫習一下這個章節。
+他們的形式是``let bindings in expression``，其中``bindings``是expression中的名字、``expression``則是被運用到這些名字的算式。
+我們也提到了list comprehensions中，``in``不是必須的。
+你能夠在do blocks中使用let bindings就像是你在list comprehensions中使用他們一樣，像這樣:
+{{
+import Data.Char
+
+main = do
+    putStrLn "What's your first name?"
+    firstName <- getLine
+    putStrLn "What's your last name?"
+    lastName <- getLine
+    let bigFirstName = map toUpper firstName
+        bigLastName = map toUpper lastName
+    putStrLn $ "hey " ++ bigFirstName ++ " " ++ bigLastName ++ ", how are you?"
+}}
+
+注意我們是怎麼編排在do block中的I/O actions，
+也注意到我們是怎麼編排let跟其中的名字的，
+由於對齊在Haskell中並不會被無視，
+這麼編排才是好的習慣。
+我們的程式用``map toUpper firstName``將``"John"``轉成大寫的``"JOHN"``，
+並將大寫的結果綁定到一個名字上，
+之後在輸出的時候參考到了這個名字。
+
+你也許會問究竟什麼時候要用``<-``什麼時候用let bindings?
+記住，``<-``是用來運算I/O actions並將他的結果綁定到名稱。
+而``map toUpper firstName``並不是一個I/O action。
+他只是一個純粹的expression。
+所以總結來說，當你要綁定I/O actions的結果時用``<-``，
+而對於純粹的expression使用let bindings。
+對於錯誤的``let firstName = getLine``，
+我們只不過是把``getLine``這個I/O actions給了一個不同的名字罷了。
+最後還是要用``<-``將結果取出。
+
+現在我們來寫一個不斷讀取一行輸入並將這行輸入的字反過來輸出到螢幕上。
+程式會在輸入空白行的時候停止。
+{{
+main = do
+    line <- getLine
+    if null line
+        then return ()
+        else do
+            putStrLn $ revverseWords line
+            main
+
+reverseWords :: String -> String
+reverseWords = unwords . map reverse . words
+}}
+你可以執行看看來得到些感覺。
+
+首先，我們來看一下``reverseWords``。
+他不過是一個普通的函數，
+假如接受了個字串``"hey there man"``，
+他會先呼叫``words``來產生一個字的串列``["hey", "there", "man"]``。
+然後用``reverse``來map整個串列，得到``["yeh", "ereht", "nam"]``，
+接著用``unwords``來得到最終的結果``"yeh ereht nam"``。
+這些用函數合成來簡潔的表達。
+如果沒有用函數合成，
+那就會寫成醜醜的樣子``reverseWords st = unwords (map reverse (words st))``
+
+那``main``又是怎麼一回事呢?
+首先，我們用``getLine``從終端讀取了一行，並把這行輸入取名叫``line``。
+然後接著一個條件式expression。
+記住，在Haskell中if永遠要伴隨一個else，這樣每個expression才會有值。
+當if的條件是true (也就是輸入了一個空白行)，我們便執行一個I/O action，
+如果if的條件是false，那else底下的I/O action被執行。
+這也就是說當if在一個I/O do block中的時候，
+長的樣子是``if condition then I/O action else I/O action``
+
+我們首先來看一下在else中發生了什麼事。
+由於我們在else中只能有一個I/O action，
+所以我們用do來將兩個I/O actions綁成一個，
+你可以寫成這樣
+{{
+else (do
+    putStrLn $ reverseWords line
+    main)    
+}}
+
+這樣可以明顯看到整個do block可以看作一個I/O action，只是比較醜。
+但總之，在do block裡面，我們依序呼叫了``getLine``以及``reverseWords``，
+在那之後，我們遞迴呼叫了``main``。
+由於main也是一個I/O action，所以這不會造成任何問題。
+呼叫``main``也就代表我們回到程式的起點。
+
+那假如``null line``的結果是true呢?
+也就是說then的區塊被執行。
+我們看一下區塊裡面有``then return ()``。
+如果你是從C, Java或Python過來的，
+你可能會想``return``不過是作一樣的事情便跳過這一段。
+但很重要的: ``return``在Hakell裡面的意義跟其他語言的``return``完全不同！
+他們有相同的樣貌，造成了許多人搞錯，但確實他們是不一樣的。
+在命令式語言中，``return``通常結束method或subroutine的執行，
+並且回傳某個值給呼叫者。
+在Haskell中，他的意義則是利用某個pure value造出I/O action。
+用之前盒子的比喻來說，
+就是將一個value裝進箱子裡面。
+產生出的I/O action並沒有作任何事，只不過將value包起來而已。
+所以在I/O的情況下來說，``return "haha"``的型態是``IO String``。
+將pure value包成I/O action有什麼實質意義呢？
+為什麼要弄成``IO``包起來的值？
+這是因為我們一定要在else中擺上某些I/O action，
+所以我們才用``return ()``做了一個沒作什麼事情的I/O action。
+
+在I/O do block中放一個``return``並不會結束執行。
+像下面這個程式會執行到底。
+{{
+main = do
+    return ()
+    return "HAHAHA"
+    line <- getLine
+    return "BLAH BLAH BLAH"
+    return 4
+    putStrLn line
+}}
+
+所有在程式中的``return``都是將value包成I/O actions，
+而且由於我們沒有將他們綁定名稱，所以這些結果都被忽略。
+我們能用``<-``與``return``來達到綁定名稱的目的。
+{{
+main = do
+    a <- return "hell"
+    b <- return "yeah!"
+    putStrLn $ a ++ " " ++ b
+}}
+可以看到``return``與``<-``作用相反。
+``return``把value裝進盒子中，
+而``<-``將value從盒子拿出來，並綁定一個名稱。
+不過這麼作是有些多餘，因為你可以用let bindings來綁定
+{{
+main = do
+    let a = "hell"
+        b = "yeah"
+    putStrLn $ a ++ " " ++ b
+}}
+
+在I/O do block中需要``return``的原因大致上有兩個，
+一個是我們需要一個什麼事都不做的I/O action，
+或是我們不希望這個do block形成的I/O action的結果值是這個block中的最後一個I/O action，
+我們希望有一個不同的結果值，
+所以我們用``return``來作一個I/O action包了我們想要的結果放在do block的最後。
+
+在我們接下去講檔案之前，讓我們來看看有哪些實用的函數可以處理I/O。
+
+``putStr``跟``putStrLn``幾乎一模一樣，都是接受一個字串當作參數，
+並回傳一個I/O action印出字串到終端上，只差在``putStrLn``會換行而``putStr``不會罷了。
+{{
+main = do putStr "Hey, "
+          putStr "I'm "
+          putStrLn "Andy!"
+}}
+
+{{
+$ runhaskell putstr_test.hs
+Hey, I'm Andy!
+}}
+
+他的type signature是``putStr :: String -> IO ()``，
+所以是一個包在I/O action中的unit。
+也就是空值，沒有辦法綁定他。
+
+``putChar``接受一個字元，並回傳一個I/O action將他印到終端上。
+{{
+main = do putChar 't'    
+          putChar 'e'
+          putChar 'h'
+}}
+
+{{
+$ runhaskell putchar_test.hs
+teh
+}}
+
+``putStr``實際上就是``putChar``遞迴定義出來的。
+``putStr``的邊界條件是空字串，
+所以假設我們印一個空字串，
+那他只是回傳一個什麼都不做的I/O action，像``return ()``。
+如果印的不是空字串，
+那就先用``putChar``印出字串的第一個字元，然後再用``putStr``印出字串剩下部份。
+{{
+putStr :: String -> IO ()
+putStr [] = return ()
+putStr (x:xs) = do
+    putChar x
+    putStr xs
+}}
+看看我們如何在I/O中使用遞迴，就像我們在pure code中所做的一樣。
+先定義一個邊界條件，然後再思考剩下如何作。
+
+``print``接受任何是``Show`` typeclass的instance的型態的值，
+這代表我們知道如何用字串表示他，
+呼叫``show``來將值變成字串然後將其輸出到終端上。
+基本上，他就是``putStrLn . show``。
+首先呼叫``show``然後把結果餵給``putStrLn``，回傳一個I/O action印出我們的值。
+{{
+main = do print True
+          print 2
+          print "haha"
+          print 3.2
+          print [3,4,3]
+}}
+
+{{
+$ runhaskell print_test.hs
+True
+2
+"haha"
+3.2
+[3,4,3]
+}}
+
+就像你看到的，這是個很方便的函數。
+還記得我們提到I/O actions只有在``main``中才會被執行以及在GHCI中運算的事情嗎？
+當我們用鍵盤打了些值，像``3``或``[1,2,3]``並按下Enter，
+GHCI實際上就是用了``print``來將這些值輸出到終端。
+{{
+ghci> 3
+3
+ghci> print 3
+3
+ghci> map (++"!") ["hey","ho","woo"]
+["hey!","ho!","woo!"]
+ghci> print (map (++"!") ["hey", "ho", "woo"])
+["hey!","ho!","woo!"]
+}}
+
+當我們需要印出字串，我們會用``putStrLn``，因為我們不想要周圍有括號，
+但對於輸出值來說，``print``才是最常用的。
+
+``getChar``是一個從輸入讀進一個字元的I/O action，
+因此他的type signature是``getChar :: IO Char``，代表一個I/O action的結果是``Char``。
+注意由於緩衝區的關係，
+只有當Enter被按下的時候才會觸發讀取字元的行為。
+{{
+main = do
+    c <- getChar
+    if c /= ' '
+        then do
+            putChar c
+            main
+        else return ()
+}}
+這程式看起來像是讀取一個字元並檢查他是否為一個空白。
+如果是的話便停止，如果不是的話便印到終端上並重複之前的行為。
+在某種程度上來說也不能說錯，只是結果不如你預期而已。
+來看看結果吧。
+{{
+$ runhaskell getchar_test.hs
+hello sir
+hello
+}}
+上面的第二行是輸入。
+我們輸入了``hello sir``並按下了Enter。
+由於緩衝區的關係，
+程式是在我們按了Enter後才執行而不是在某個輸入字元的時候。
+一旦我們按下了Enter，那他就把我們直到目前輸入的一次做完。
+
+``when``這函數可以在``Control.Monad``中找到他 
+(你必須``import Contorl.Monad``才能使用他)。
+他在一個do block中看起來就像一個控制流程的statement，
+但實際上他的確是一個普通的函數。
+他接受一個boolean值跟一個I/O action。
+如果boolean值是``True``，便回傳我們傳給他的I/O action。
+如果boolean值是``False``，便回傳``return ()``，即什麼都不做的I/O action。
+我們接下來用``when``來改寫我們之前的程式。
+
+{{
+import Control.Monad
+
+main = do
+    c <- getChar
+    when (c /= ' ') $ do
+        putChar c
+        main
+}}
+
+就像你看到的，
+他可以將``if something then do some I/O action else return ()``這樣的模式封裝起來。
+
+``sequence``接受一串I/O action，並回傳一個會依序執行他們的I/O action。
+運算的結果是包在一個I/O action的一連串I/O action的運算結果。
+他的type signature是``sequence :: [IO a] -> IO [a]``
+
+{{
+main = do
+    a <- getLine
+    b <- getLine
+    c <- getLine
+    print [a,b,c]
+}}
+
+其實可以寫成
+
+{{
+main = do
+    rs <- sequence [getLine, getLine, getLine]
+    print rs
+}}
+
+所以``sequence [getLine, getLine, getLine]``作成了一個執行``getLine``三次的I/O action。
+如果我們對他綁定一個名字，結果便是這串結果的串列。
+也就是說，三個使用者輸入的東西組成的串列。
+
+一個常見的使用方式是我們將``print``或``putStrLn``之類的函數map到串列上。
+``map print [1,2,3,4]``這個動作並不會產生一個I/O action，而是一串I/O action，
+就像是``[print 1, print 2, print 3, print 4]``。
+如果我們將一串I/O action變成一個I/O action，我們必須用``sequence``
+
+{{
+ghci> sequence (map print [1,2,3,4,5])    
+1
+2
+3
+4
+5
+[(),(),(),(),()]
+}}
+
+那``[(),(),(),(),()]``是怎麼回事？
+當我們在GHCI中運算I/O action，
+他會被執行並把結果印出來，
+唯一例外是結果是``()``的時候不會被印出。
+這也是為什麼``putStrLn "hehe"``在GHCI中只會印出``hehe``
+(因為``putStrLn "hehe"``的結果是``()``)。
+但當我們使用``getLine``時，
+由於``getLine``的型態是``IO String``，所以結果會被印出來。
+
+由於對一個串列map一個回傳I/O action的函數，然後再sequence他這個動作太常用了。
+所以有一些函數在函式庫中``mapM``跟``mapM_``。
+``mapM``接受一個函數跟一個串列，
+將對串列用函數map然後sequence結果。
+``mapM_``也作同樣的事，只是他把運算的結果丟掉而已。
+在我們不關心I/O action結果的情況下，``mapM_``是最常被使用的。
+
+{{
+ghci> mapM print [1,2,3]    
+1
+2
+3
+[(),(),()]
+ghci> mapM_ print [1,2,3]
+1
+2
+3
+}}
+
+``forever``接受一個I/O action並回傳一個永遠作同一件事的I/O action。
+你可以在``Control.Monad``中找到他。
+下面的程式會不斷地要使用者輸入些東西，並把輸入的東西轉成大寫輸出到螢幕上。
+
+{{
+import Control.Monad
+import Data.Char
+
+main = forever $ do
+    putStr "Give me some input: "
+    l <- getLine
+    putStrLn $ map toUpper l
+}}
+
+在``Control.Monad``中的``forM``跟``mapM``的作用一樣，
+只是參數的順序相反而已。
+第一個參數是串列，而第二個則是函數。
+這有什麼用？
+在一些有趣的情況下還是有用的：
+{{
+import Control.Monad
+
+main = do 
+    colors <- forM [1,2,3,4] (\a -> do
+        putStrLn $ "Which color do you associate with the number " ++ show a ++ "?"
+        color <- getLine
+        return color)
+    putStrLn "The colors that you associate with 1, 2, 3 and 4 are: "
+    mapM putStrLn colors
+}}
+
+``(\a -> do ...)``是接受一個數字並回傳一個I/O action的函數。
+我們必須用括號括住他，不然lambda會貪心match的策略會把最後兩個I/O action也算進去。
+注意我們在do block裡面``return color``。
+我們那麼作是讓do block的結果是我們選的顏色。
+實際上我們並不需那麼作，
+因為``getLine``已經達到我們的目的。
+先``color <- getLine``再``return color``只不過是把值取出再包起來，
+其實是跟``getLine``效果相當。
+``forM``產生一個I/O action，我們把結果綁定到``colors``這名稱。
+``colors``是一個普通包含字串的串列。
+最後，我們用``mapM putStrLn colors``印出所有顏色。
+
+
+你可以把``forM``的意思想成將串列中的每個元素作成一個I/O action。
+至於每個I/O action實際作什麼就要看原本的元素是什麼。
+然後，執行這些I/O action並將結果綁定到某個名稱上。
+或是直接將結果忽略掉。
+{{
+$ runhaskell from_test.hs
+Which color do you associate with the number 1?  
+white  
+Which color do you associate with the number 2?  
+blue  
+Which color do you associate with the number 3?  
+red  
+Which color do you associate with the number 4?  
+orange  
+The colors that you associate with 1, 2, 3 and 4 are:  
+white  
+blue  
+red  
+orange 
+}}
+
+其實我們也不是一定要用到``forM``，只是用了``forM``程式會比較容易理解。
+正常來講是我們需要在map跟sequence的時候定義I/O action的時候使用``forM``，
+同樣地，
+我們也可以將最後一行寫成``forM colors putStrLn``
+
+在這一節，我們學會了輸入與輸出的基礎。
+我們也了解了什麼是I/O action，
+他們是如何幫助我們達成輸入與輸出的目的。
+這邊重複一遍，
+I/O action跟其他Haskell中的value沒有兩樣。
+我們能夠把他當參數傳給函式，或是函式回傳I/O action。
+他們特別之處在於當他們是寫在``main``裡面或GHCI裡面的時候，
+他們會被執行，也就是實際輸出到你螢幕或輸出音效的時候。
+每個I/O action也能包著一個從真實世界拿回來的值。
+
+不要把像是``putStrLn``的函式想成接受字串並輸出到螢幕。
+要想成一個函式接受字串並回傳一個I/O action。
+當I/O action被執行的時候，
+會漂亮地印出你想要的東西。
 
 
 ==檔案與字符流
+
+``getChar``是一個讀取單一字元的I/O action。
+``getLine``是一個讀取一行的I/O action。
+這是兩個非常直覺的函式，多數程式語言也有類似這兩個函式的statement或function。
+但現在我們來看看*getContents*。
+``getContents``是一個從標準輸入讀取直到end-of-file字元的I/O action。
+他的型態是``getContents :: IO String``。
+最酷的是``getContents``是惰性I/O (Lazy I/O)。
+當我們寫了``foo <- getContents``，
+他並不會馬上讀取所有輸入，將他們存在memory裡面。
+他只有當你真的需要輸入資料的時候才會讀取。
+
+當我們需要重導一個程式的輸出到另一個程式的輸入時，``getContents``非常有用。
+假設我們有下面一個文字檔。
+{{
+I'm a lil' teapot  
+What's with that airplane food, huh?  
+It's so small, tasteless  
+}}
+
+還記得我們介紹``forever``時寫的小程式嗎？
+會把所有輸入的東西轉成大寫的那一個。
+為了防止你忘記了，這邊再重複一遍。
+{{
+import Control.Monad  
+import Data.Char  
+  
+main = forever $ do  
+    putStr "Give me some input: "  
+    l <- getLine  
+    putStrLn $ map toUpper l
+}}
+
+將我們的程式存成``capslocker.hs``然後編譯他。
+然後用Unix的Pipe將文字檔餵給我們的程式。
+我們使用的是GNU的cat，會將指定的檔案輸出到螢幕。
+
+{{
+$ ghc --make capslocker   
+[1 of 1] Compiling Main             ( capslocker.hs, capslocker.o )  
+Linking capslocker ...  
+$ cat haiku.txt  
+I'm a lil' teapot  
+What's with that airplane food, huh?  
+It's so small, tasteless  
+$ cat haiku.txt | ./capslocker  
+I'M A LIL' TEAPOT  
+WHAT'S WITH THAT AIRPLANE FOOD, HUH?  
+IT'S SO SMALL, TASTELESS  
+capslocker <stdin>: hGetLine: end of file
+}}
+
 
 ==命令列引數
 
@@ -191,5 +693,5 @@ main = do
 
 ==Bytestrings
 
-==例外
+==Exceptions (例外)
 

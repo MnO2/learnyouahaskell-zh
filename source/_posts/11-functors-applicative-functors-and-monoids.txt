@@ -1,7 +1,9 @@
-=函子、函子、么半群 #functors-applicative-functors-and-monoids
+=Functors, Applicative Functors與Monoids #functors-applicative-functors-and-monoids
 
-==溫習函子
+==溫習Functors
 
-==關鍵字 newtype
+==Applicative functors
 
-==么半群
+==關鍵字"newtype"
+
+==Monoids

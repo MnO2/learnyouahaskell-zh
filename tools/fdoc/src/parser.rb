@@ -90,7 +90,7 @@ module FD
                     rest=$'
                     rank=$1.length
                     title=$2.strip
-                    anchor=$3.gsub(/[\t\s ]/, '-').strip rescue title
+                    anchor=$3.strip.gsub(/[\t\s ]/, '-') rescue title
                     return [H.new(rank, title, anchor)] + do_parse(rest)
                 end
 

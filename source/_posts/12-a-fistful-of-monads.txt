@@ -1,11 +1,13 @@
-=來看看幾種單子 #a-fistful-of-monads
+=來看看幾種Moand #a-fistful-of-monads
 
-==動手做做看: Maybe單子
+==動手做做看: Maybe Monad
 
-==單子形態類別
+==Monad type class
+
+==走鋼索
 
 ==do表示法
 
-==列單子
+==List Monad
 
-==單子律
+==Monad laws (單子律)

@@ -22,7 +22,7 @@ for i in 0..files.length-1
 
     html=tpl.result(binding)
 
-    fn="#{c.anchor.chomp('-')}.htm"
+    fn="#{c.anchor.chomp('-')}.html"
     open("#{public_dir}/"+fn,'w'){|f| 
         f.write( html ) 
     }
@@ -31,7 +31,7 @@ for i in 0..files.length-1
 end
 
 #parse faq
-fn="faq.htm"
+fn="faq.html"
 c=FDoc.parse( open("#{source_dir}/faq.txt").read )
 tpl=ERB.new( open('_faq.erb').read )
 html=tpl.result(binding)
@@ -45,10 +45,10 @@ c=Node.new {
   olist{
     docs.each do |d|
       li { 
-        a "#{d.anchor.chomp('-')}.htm", d.title 
+        a "#{d.anchor.chomp('-')}.html", d.title 
         list {
           d.h2.each do |s|
-            li { a "#{d.anchor.chomp('-')}.htm\##{s.anchor.chomp('-')}", s.title } 
+            li { a "#{d.anchor.chomp('-')}.html\##{s.anchor.chomp('-')}", s.title } 
           end
         }
       }
@@ -59,7 +59,7 @@ c=Node.new {
 tpl=ERB.new( open('_chapters.erb').read )
 html=tpl.result(binding)
 
-f=open("#{public_dir}/chapters.htm", 'w')
+f=open("#{public_dir}/chapters.html", 'w')
 f.write(html)
 f.close
-puts "#{public_dir}/content.htm"
+puts "#{public_dir}/content.html"
