@@ -3,11 +3,9 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-
         <style>
             @import url(css/style.css);
         </style>
-
         <script src="js/jquery.js"></script>
         <script src="js/jquery.chili-2.2.js"></script>
         <script src="js/script.js"></script>
@@ -15,10 +13,8 @@
              ChiliBook.recipeFolder = "js/chili/";  
              ChiliBook.automaticSelector = "pre";
         </script>
-
-        <title>模組</title>
+        <title>模組(Modules)</title>
     </head>
-
     <body>
         <div id="header">
             <img id="beta" alt="beta" src="img/beta.png" />
@@ -26,12 +22,11 @@
 
         <div id="main">
             <ul class="nav">
-            <li class="left">  <img src="img/prv.png"></img><a href="high-order-function-.htm">高階函數</a></li>
-            <li class="center"><a href="chapters.htm">Index</a></li>
-            <li class="right"> <a href="make-types-and-classes-for-ourselves-.htm">構造我們自己的類型和類型類</a><img src="img/nxt.png"></img></li>
+                <li class="left">  <img src="img/prv.png"></img><a href="high-order-function.html">高階函數</a></li>
+                <li class="center"><a href="chapters.html">Index</a></li>
+                <li class="right"> <a href="make-types-and-classes-for-ourselves.html">構造我們自己的Types和Typeclasses</a><img src="img/nxt.png"></img></li>
             </ul>
-
-            <a name="模組"></a><h1>模組</h1><a name="裝載模組"></a><h2>裝載模組</h2><img src="img/modules.png" style="float:right"></img><p>haskell中的模組是含有一組相關的函數，類型和類型類的組合。而haskell程序的本質便是從主模組中引用其它模組並調用其中的函數來執行操作。這樣可以把代碼分成多塊，只要一個模組足夠的獨立，它裡面的函數便可以被不同的程序反覆重用。這就讓不同的代碼各司其職，提高了代碼的健壯性。</p><p>haskell的標準庫就是一組模組，每個模組都含有一組功能相近或相關的函數和類型。有處理List的模組，有處理並發的模組，也有處理複數的模組，等等。目前為止我們談及的所有函數,類型以及類型類都是Prelude模組的一部分，它預設自動裝載。在本章，我們看一下幾個常用的模組，在開始瀏覽其中的函數之前，我們先得知道如何裝載模組.</p><p>在haskell中，裝載模組的語法為<i>import</i>，這必須得在函數的定義之前，所以一般都是將它置於代碼的頂部。無疑，一段代碼中可以裝載很多模組，只要將import語句分行寫開即可。裝載Data.List試下，它裡面有很多實用的List處理函數.</p><p>執行<code>import Data.List</code>，這樣一來<code>Data.List</code>中包含的所有函數就都進入了全局命名空間。也就是說，你可以在代碼的任意位置調用這些函數.<code>Data.List</code>模組中有個<code>nub</code>函數，它可以篩掉一個List中的所有重複元素。用點號將<code>length</code>和<code>nub</code>組合:<code>length 。nub</code>，即可得到一個與<code>(\xs -> length (nub xs))</code>等價的函數。</p><pre class="code">import Data.List  
+            <a name="模組(Modules)"></a><h1>模組(Modules)</h1><a name="裝載模組"></a><h2>裝載模組</h2><img src="img/modules.png" style="float:right"></img><p>haskell中的模組是含有一組相關的函數，類型和類型類的組合。而haskell程序的本質便是從主模組中引用其它模組並調用其中的函數來執行操作。這樣可以把代碼分成多塊，只要一個模組足夠的獨立，它裡面的函數便可以被不同的程序反覆重用。這就讓不同的代碼各司其職，提高了代碼的健壯性。</p><p>haskell的標準庫就是一組模組，每個模組都含有一組功能相近或相關的函數和類型。有處理List的模組，有處理並發的模組，也有處理複數的模組，等等。目前為止我們談及的所有函數,類型以及類型類都是Prelude模組的一部分，它預設自動裝載。在本章，我們看一下幾個常用的模組，在開始瀏覽其中的函數之前，我們先得知道如何裝載模組.</p><p>在haskell中，裝載模組的語法為<i>import</i>，這必須得在函數的定義之前，所以一般都是將它置於代碼的頂部。無疑，一段代碼中可以裝載很多模組，只要將import語句分行寫開即可。裝載Data.List試下，它裡面有很多實用的List處理函數.</p><p>執行<code>import Data.List</code>，這樣一來<code>Data.List</code>中包含的所有函數就都進入了全局命名空間。也就是說，你可以在代碼的任意位置調用這些函數.<code>Data.List</code>模組中有個<code>nub</code>函數，它可以篩掉一個List中的所有重複元素。用點號將<code>length</code>和<code>nub</code>組合:<code>length 。nub</code>，即可得到一個與<code>(\xs -> length (nub xs))</code>等價的函數。</p><pre class="code">import Data.List  
   
 numUniques :: (Eq a) => [a] -> Int  
 numUniques = length 。nub</pre><p>你也可以在GHCi中裝載模組，若要調用<code>Data.List</code>中的函數，就這樣:</p><pre class="code">ghci> :m Data.List</pre><p>若要在GHci中裝載多個模組，不必多次<code>:m</code>命令，一下就可以全部搞定:</p><pre class="code">ghci> :m Data.List Data.Map Data.Set</pre><p>而你的程序中若已經有包含的代碼，就不必再用<code>:m</code>了.</p><p>如果你只用得到某模組的兩個函數，大可僅包含它倆。若僅裝載<code>Data.List</code>模組<code>nub</code>和<code>sort</code>，就這樣:</p><pre class="code">import Data.List (nub，sort)</pre><p>也可以只包含除去某函數之外的其它函數，這在避免多個模組中函數的命名衝突很有用。假設我們的代碼中已經有了一個叫做<code>nub</code>的函數，而裝入<code>Data.List</code>模組時就要把它裡面的nub除掉.</p><pre class="code">import Data.List hiding (nub)</pre><p>避免命名衝突還有個方法，便是<code>qualified import</code>，<code>Data.Map</code>模組提供一了一個按鍵索值的資料結構，它裡面有幾個和Prelude模組重名的函數。如<code>filter</code>和<code>null</code>，裝入Data.Map模組之後再調用filter，haskell就不知道它究竟是哪個函數。如下便是解決的方法:</p><pre class="code">import qualified Data.Map</pre><p>這樣一來，再調用<code>Data.Map</code>中的<code>filter</code>函數，就必須得<code>Data.Map.filter</code>，而<code>filter</code>依然是為我們熟悉喜愛的樣子。但是要在每個函數前面都加<code>個Data.Map</code>實在是太煩人了! 那就給它起個別名，讓它短些:</p><pre class="code">import qualified Data.Map as M</pre><p>好，再調用<code>Data.Map</code>模組的<code>filter</code>函數的話僅需<code>M.filter</code>就行了</p><p>要瀏覽所有的標準庫模組，參考這個手冊。翻閲標準庫中的模組和函數是提升個人haskell水平的重要途徑。你也可以各個模組的原始碼，這對haskell的深入學習及掌握都是大有好處的.</p><p>檢索函數或搜尋函數位置就用<a href="http://www.haskell.org/hoogle/">Hoogle</a>，相當了不起的Haskell搜索引擎! 你可以用函數名，模組名甚至類型聲明來作為檢索的條件.</p><a name="Data.List"></a><h2>Data.List</h2><p>顯而易見，Data.List是關於List操作的模組，它提供了一組非常有用的List處理函數。在前面我們已經見過了其中的幾個函數(如map和filter)，這是Prelude模組出於方便起見，導出了幾個Data.List裡的函數。因為這幾個函數是直接引用自Data.List，所以就無需使用qulified import。在下面，我們來看看幾個以前沒見過的函數:</p><p><strong>intersperse</strong>取一個元素與List作參數，並將該元素置於List中每對元素的中間。如下是個例子:</p><pre class="code">ghci> intersperse '.' "MONKEY"  
@@ -308,7 +303,7 @@ ghci> Set.fromList [2,3,4,8] `Set.isSubsetOf` Set.fromList [1,2,3,4,5]
 False</pre><p>集合有一常見用途，那就是先<code>fromList</code>刪掉重複元素後再<code>toList</code>轉回去。儘管Data.List模組的<code>nub</code>函數完全可以完成這一工作，但在對付大List時則會明顯的力不從心。使用集合則會快很多，<code>nub</code>函數只需List中的元素屬於Eq類型類就行了，而若要使用集合，它必須得屬於Ord類型類</p><pre class="code">ghci> Set.filter odd $ Set.fromList [3,4,5,6,7,2,3,4]  
 fromList [3,5,7]  
 ghci> Set.map (+1) $ Set.fromList [3,4,5,6,7,2,3,4]  
-fromList [3,4,5,6,7,8]</pre><p>在處理較大的List時，<code>setNub</code>要比<code>nub</code>快，但也可以從中看出，<code>nub</code>保留了List中元素的原有順序，而<code>setNub</code>不。</p><a name="構造自己的模組"></a><h2>構造自己的模組</h2><p>我們已經見識過了幾個很酷的模組，但怎樣才能構造自己的模組呢? 几乎所有的編程語言都允許你將代碼分成多個檔案，haskell也不例外。在編程時，將功能相近的函數和類型至于同一模組中會是個很好的習慣。這樣一來，你就可以輕鬆地一個import來重用其中的函數.</p><p>接下來我們將構造一個由計算機幾何圖形體積和麵積組成的模組，先從新建一個<code>Geometry.hs</code>的檔案開始.</p><p>在模組的開頭定義模組的名稱，如果檔案名叫做<code>Geometry.hs</code>那它的名字就得是<i>Geometry</i>。在聲明出它含有的函數名之後就可以編寫函數的實現啦，就這樣寫:</p><pre class="code">module Geometry  
+fromList [3,4,5,6,7,8]</pre><p>在處理較大的List時，<code>setNub</code>要比<code>nub</code>快，但也可以從中看出，<code>nub</code>保留了List中元素的原有順序，而<code>setNub</code>不。</p><a name="建立自己的模組"></a><h2>建立自己的模組</h2><p>我們已經見識過了幾個很酷的模組，但怎樣才能構造自己的模組呢? 几乎所有的編程語言都允許你將代碼分成多個檔案，haskell也不例外。在編程時，將功能相近的函數和類型至于同一模組中會是個很好的習慣。這樣一來，你就可以輕鬆地一個import來重用其中的函數.</p><p>接下來我們將構造一個由計算機幾何圖形體積和麵積組成的模組，先從新建一個<code>Geometry.hs</code>的檔案開始.</p><p>在模組的開頭定義模組的名稱，如果檔案名叫做<code>Geometry.hs</code>那它的名字就得是<i>Geometry</i>。在聲明出它含有的函數名之後就可以編寫函數的實現啦，就這樣寫:</p><pre class="code">module Geometry  
 ( sphereVolume  
 ，sphereArea  
 ，cubeVolume  
@@ -378,17 +373,13 @@ area :: Float -> Float
 area side = Cuboid.area side side side</pre><p>好的! 先是Geometry.Sphere。注意，我們將它置於Geometry檔案夾之中並將它的名字定為Geometry.Sphere。對Cuboid也是同樣，也注意下，在三個模組中我們定義了許多名稱相同的函數，因為所在模組不同，所以不會產生命名衝突。若要在Geometry.Cube使用Geometry.Cuboid中的函數，就不能直接import Geometry.Cuboid，而必須得qualified import。因為它們中間的函數名完全相同.</p><pre class="code">import Geometry.Sphere</pre><p>然後，調用<code>area</code>和<code>volume</code>，就可以得到球體的面積和體積，而若要用到兩個或更多此類模組，就必須得<code>qualified import</code>來避免重名。所以就得這樣寫:</p><pre class="code">import qualified Geometry.Sphere as Sphere  
 import qualified Geometry.Cuboid as Cuboid  
 import qualified Geometry.Cube as Cube</pre><p>然後就可以調用<code>Sphere.area</code>，<code>Sphere.volume</code>，<code>Cuboid.area</code>了，而每個函數都只計算其對應物體的面積和體積.</p><p>以後你若發現自己的代碼體積龐大且函數眾多，就應該試着找找目的相近的函數能否裝入各自的模組，也方便日後的重用.</p>
-
             <ul class="nav">
-            <li class="left">  <img src="img/prv.png"></img><a href="high-order-function-.htm">高階函數</a></li>
-            <li class="center"><a href="chapters.htm">Index</a></li>
-            <li class="right"> <a href="make-types-and-classes-for-ourselves-.htm">構造我們自己的類型和類型類</a><img src="img/nxt.png"></img></li>
+                <li class="left">  <img src="img/prv.png"></img><a href="high-order-function.html">高階函數</a></li>
+                <li class="center"><a href="chapters.html">Index</a></li>
+                <li class="right"> <a href="make-types-and-classes-for-ourselves.html">構造我們自己的Types和Typeclasses</a><img src="img/nxt.png"></img></li>
             </ul>
         </div>
-
         <div id="footer">
         </div>
-
     </body>
 </html>
-

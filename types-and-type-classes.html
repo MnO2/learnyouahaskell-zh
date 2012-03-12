@@ -3,11 +3,9 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-
         <style>
             @import url(css/style.css);
         </style>
-
         <script src="js/jquery.js"></script>
         <script src="js/jquery.chili-2.2.js"></script>
         <script src="js/script.js"></script>
@@ -15,10 +13,8 @@
              ChiliBook.recipeFolder = "js/chili/";  
              ChiliBook.automaticSelector = "pre";
         </script>
-
-        <title>類型和類型類</title>
+        <title>Types and Typeclasses</title>
     </head>
-
     <body>
         <div id="header">
             <img id="beta" alt="beta" src="img/beta.png" />
@@ -26,12 +22,11 @@
 
         <div id="main">
             <ul class="nav">
-            <li class="left">  <img src="img/prv.png"></img><a href="ready-begin-.htm">入門</a></li>
-            <li class="center"><a href="chapters.htm">Index</a></li>
-            <li class="right"> <a href="syntax-on-function-.htm">函數的語法</a><img src="img/nxt.png"></img></li>
+                <li class="left">  <img src="img/prv.png"></img><a href="ready-begin.html">從零開始</a></li>
+                <li class="center"><a href="chapters.html">Index</a></li>
+                <li class="right"> <a href="syntax-on-function.html">函數的語法</a><img src="img/nxt.png"></img></li>
             </ul>
-
-            <a name="類型和類型類"></a><h1>類型和類型類</h1><a name="相信類型"></a><h2>相信類型</h2><img src="img/cow.png" style="float:left"></img><p>在前面我們談到Haskell是靜態類型的，在編譯時每個表達式的類型都已明確，這就提高了代碼的安全性。若代碼中讓布爾值與數字相除，就不會通過編譯。這樣的好處就是與其讓程序在運行時崩潰，不如在編譯時捕獲可能的錯誤。Haskell中萬物皆有類型，因此在執行編譯之時編譯器可以大有所為。</p><p>與java和pascal不同，haskell支持類型推導。寫下一個數字，你就沒必要另告訴haskell說“它是個數字”，它自己能推導出來。這樣我們就不必在每個函數或表達式上都標明其類型了。在前面我們只簡單涉及一下haskell的類型方面的知識，但是理解這一類型系統對於haskell 的學習是至關重要的。</p><p>類型是每個表達式都有的某種標籤，它標明了這一表達式所屬的範疇。例如，表達式True是boolean型，"hello"是個字元串，等等。</p><p>可以使用ghci來檢測表達式的類型。使用:t命令後跟任何可用的表達式，即可得到該表達式的類型，先試一下：</p><pre class="code">ghci> :t 'a'  
+            <a name="Types and Typeclasses"></a><h1>Types and Typeclasses</h1><a name="Type"></a><h2>Type</h2><img src="img/cow.png" style="float:left"></img><p>在前面我們談到Haskell是靜態類型的，在編譯時每個表達式的類型都已明確，這就提高了代碼的安全性。若代碼中讓布爾值與數字相除，就不會通過編譯。這樣的好處就是與其讓程序在運行時崩潰，不如在編譯時捕獲可能的錯誤。Haskell中萬物皆有類型，因此在執行編譯之時編譯器可以大有所為。</p><p>與java和pascal不同，haskell支持類型推導。寫下一個數字，你就沒必要另告訴haskell說“它是個數字”，它自己能推導出來。這樣我們就不必在每個函數或表達式上都標明其類型了。在前面我們只簡單涉及一下haskell的類型方面的知識，但是理解這一類型系統對於haskell 的學習是至關重要的。</p><p>類型是每個表達式都有的某種標籤，它標明了這一表達式所屬的範疇。例如，表達式True是boolean型，"hello"是個字元串，等等。</p><p>可以使用ghci來檢測表達式的類型。使用:t命令後跟任何可用的表達式，即可得到該表達式的類型，先試一下：</p><pre class="code">ghci> :t 'a'  
 'a' :: Char  
 ghci> :t True  
 True :: Bool  
@@ -48,9 +43,9 @@ factorial n = product [1..n]</pre><pre class="code">ghci> factorial 50
 circumference r = 2 * pi * r</pre><pre class="code">ghci> circumference 4.0  
 25.132742</pre><p><strong>Double</strong>表示雙精度的浮點數。</p><pre class="code">circumference' :: Double -> Double  
 circumference' r = 2 * pi * r</pre><pre class="code">ghci> circumference' 4.0  
-25.132741228718345</pre><p><strong>Bool</strong>表示布爾值，它只有兩種值：True和False。</p><p><strong>Char</strong>表示一個字元。一個字元由單引號括起，一組字元的List即為字元串。</p><p>Tuple的類型取決於它的長度及其中項的類型。注意，空Tuple同樣也是個類型，它只有一種值：<code>()</code>。</p><a name="類型變數"></a><h2>類型變數</h2><p>你覺得head函數的類型是啥？它可以取任意類型的List的首項，是怎麼做到的呢？我們查一下！</p><pre class="code">ghci> :t head  
+25.132741228718345</pre><p><strong>Bool</strong>表示布爾值，它只有兩種值：True和False。</p><p><strong>Char</strong>表示一個字元。一個字元由單引號括起，一組字元的List即為字元串。</p><p>Tuple的類型取決於它的長度及其中項的類型。注意，空Tuple同樣也是個類型，它只有一種值：<code>()</code>。</p><a name="Type variables"></a><h2>Type variables</h2><p>你覺得head函數的類型是啥？它可以取任意類型的List的首項，是怎麼做到的呢？我們查一下！</p><pre class="code">ghci> :t head  
 head :: [a] -> a</pre><img src="img/box.png" style="float:left"></img><p>嗯! a是啥？類型嗎？想想我們在前面說過，凡是類型其首字母必大寫，所以它不會是個類型。它是個類型變數，意味着a可以是任意的類型。這一點與其他語言中的泛型(generic)很相似，但在haskell中要更為強大。它可以讓我們輕而易舉地寫出類型無關的函數。使用到類型變數的函數被稱作“多態函數 ”，head函數的類型聲明裡標明了它可以取任意類型的List並返回其中的第一個元素。</p><p>在命名上，類型變數使用多個字元是合法的，不過約定俗成，通常都是使用單個字元，如a,b,c,d...</p><p>還記得fst？我們查一下它的類型：</p><pre class="code">ghci> :t fst  
-fst :: (a, b) -> a</pre><p>可以看到fst取一個包含兩個類型的Tuple作參數，並以第一個項的類型作為返回值。這便是fst可以處理一個含有兩種類型項的pair的原因。注意，a和b是不同的類型變數，但它們不一定非得是不同的類型，它只是標明了首項的類型與返回值的類型相同。</p><a name="類型類101"></a><h2>類型類101</h2><img src="img/classes.png" style="float:right"></img><p>類型定義行為的介面，如果一個類型屬於某類型類，那它必實現了該類型類所描述的行為。很多從OOP走過來的人們往往會把類型類當成面向對象語言中的類而感到疑惑，厄，它們不是一回事。易於理解起見，你可以把它看做是java中介面（interface）的類似物。</p><p>==函數的類型聲明是怎樣的？</p><pre class="code">ghci> :t (==)  
+fst :: (a, b) -> a</pre><p>可以看到fst取一個包含兩個類型的Tuple作參數，並以第一個項的類型作為返回值。這便是fst可以處理一個含有兩種類型項的pair的原因。注意，a和b是不同的類型變數，但它們不一定非得是不同的類型，它只是標明了首項的類型與返回值的類型相同。</p><a name="Typeclasses入門"></a><h2>Typeclasses入門</h2><img src="img/classes.png" style="float:right"></img><p>類型定義行為的介面，如果一個類型屬於某類型類，那它必實現了該類型類所描述的行為。很多從OOP走過來的人們往往會把類型類當成面向對象語言中的類而感到疑惑，厄，它們不是一回事。易於理解起見，你可以把它看做是java中介面（interface）的類似物。</p><p>==函數的類型聲明是怎樣的？</p><pre class="code">ghci> :t (==)  
 (==) :: (Eq a) => a -> a -> Bool</pre><blockquote><p><b>Note</b>:判斷相等的==運算符是函數，+-*/之類的運算符也是同樣。在預設條件下，它們多為中綴函數。若要檢查它的類型，就必須得用括號括起使之作為另一個函數，或者說以首碼函數的形式調用它。</p></blockquote><p>有意思。在這裡我們見到個新東西：=>符號。它左邊的部分叫做類型約束。我們可以這樣閲讀這段類型聲明：“相等函數取兩個相同類型的值作為參數並返回一個布爾值，而這兩個參數的類型同在Eq類之中（即類型約束）”</p><p><strong>Eq</strong>這一類型類提供了判斷相等性的介面，凡是可比較相等性的類型必屬於Eq類。</p><pre class="code">ghci> 5 == 5   
 True   
 ghci> 5 /= 5   
@@ -112,17 +107,13 @@ False</pre><p><code>minBound</code>和<code>maxBound</code>函數很有趣，它
 (True,2147483647,'\1114111')</pre><p><strong>Num</strong>是表示數字的類型類，它的成員類型都具有數字的特徵。檢查一個數字的類型：</p><pre class="code">ghci> :t 20  
 20 :: (Num t) => t</pre><p>看樣子所有的數字都是多態常量，它可以作為所有<code>Num</code>類型類中的成員類型。以上便是<code>Num</code>類型類中包含的所有類型，檢測*運算符的類型，可以發現它可以處理一切的數字：</p><pre class="code">ghci> :t (*)  
 (*) :: (Num a) => a -> a -> a</pre><p>它只取兩個相同類型的參數。所以<code>(5 :: Int) * (6 :: Integer)</code>會引發一個類型錯誤，而<code>5 * (6 :: Integer)</code>就不會有問題。</p><p>類型只有親近<code>Show</code>和<code>Eq</code>，才可以加入<code>Num</code>。</p><p><strong>Integral</strong>同樣是表示數字的類型類。Num包含所有的數字：實數和整數。而Intgral僅包含整數，其中的成員類型有Int和Integer。</p><p><strong>Floating</strong>僅包含浮點類型：Float和Double。</p><p>有個函數在處理數字時會非常有用，它便是<code>fromIntegral</code>。其類型聲明為：<code>fromIntegral :: (Num b, Integral a) => a -> b</code>。從中可以看出，它取一個整數做參數並返回一個更加通用的數字，這在同時處理整數和浮點時會尤為有用。舉例來說，<code>length</code>函數的類型聲明為：<code>length :: [a] -> Int</code>，而非更通用的形式，如<code>(Num b) => length :: [a] -> b</code>。這應該時歷史原因吧，反正我覺得挺蠢。如果取了一個List長度的值再給它加3.2就會報錯，因為這是將浮點數和整數相加。面對這種情況，我們就用<code>fromIntegral (length [1,2,3,4]) + 3.2</code>來解決。</p><p>注意到，<code>fromIntegral</code>的類型聲明中用到了多個類型約束。如你所見，只要將多個類型約束放到括號裡用逗號隔開即可。</p>
-
             <ul class="nav">
-            <li class="left">  <img src="img/prv.png"></img><a href="ready-begin-.htm">入門</a></li>
-            <li class="center"><a href="chapters.htm">Index</a></li>
-            <li class="right"> <a href="syntax-on-function-.htm">函數的語法</a><img src="img/nxt.png"></img></li>
+                <li class="left">  <img src="img/prv.png"></img><a href="ready-begin.html">從零開始</a></li>
+                <li class="center"><a href="chapters.html">Index</a></li>
+                <li class="right"> <a href="syntax-on-function.html">函數的語法</a><img src="img/nxt.png"></img></li>
             </ul>
         </div>
-
         <div id="footer">
         </div>
-
     </body>
 </html>
-

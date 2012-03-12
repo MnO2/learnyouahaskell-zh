@@ -3,11 +3,9 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-
         <style>
             @import url(css/style.css);
         </style>
-
         <script src="js/jquery.js"></script>
         <script src="js/jquery.chili-2.2.js"></script>
         <script src="js/script.js"></script>
@@ -15,10 +13,8 @@
              ChiliBook.recipeFolder = "js/chili/";  
              ChiliBook.automaticSelector = "pre";
         </script>
-
         <title>函數的語法</title>
     </head>
-
     <body>
         <div id="header">
             <img id="beta" alt="beta" src="img/beta.png" />
@@ -26,12 +22,11 @@
 
         <div id="main">
             <ul class="nav">
-            <li class="left">  <img src="img/prv.png"></img><a href="types-and-type-classes-.htm">類型和類型類</a></li>
-            <li class="center"><a href="chapters.htm">Index</a></li>
-            <li class="right"> <a href="recursion-.htm">遞歸</a><img src="img/nxt.png"></img></li>
+                <li class="left">  <img src="img/prv.png"></img><a href="types-and-type-classes.html">Types and Typeclasses</a></li>
+                <li class="center"><a href="chapters.html">Index</a></li>
+                <li class="right"> <a href="recursion.html">遞迴</a><img src="img/nxt.png"></img></li>
             </ul>
-
-            <a name="函數的語法"></a><h1>函數的語法</h1><a name="模式匹配"></a><h2>模式匹配</h2><img src="img/pattern.png" style="float:right"></img><p>本章講的就是haskell那套酷酷的語法結構，先從模式匹配開始。模式匹配通過檢查數據的特定結構來檢查其是否匹配，並按模式從中取得數據。</p><p>在定義函數時，你可以為不同的模式分別定義函數體，這就讓代碼更加簡潔易讀。你可以匹配一切數據類型---數字，字元，List，元組，等等。我們弄個簡單函數，讓它檢查我們傳給它的數字是不是7。</p><pre class="code">lucky :: (Integral a) => a -> String  
+            <a name="函數的語法"></a><h1>函數的語法</h1><a name="模式匹配(Pattern matching)"></a><h2>模式匹配(Pattern matching)</h2><img src="img/pattern.png" style="float:right"></img><p>本章講的就是haskell那套酷酷的語法結構，先從模式匹配開始。模式匹配通過檢查數據的特定結構來檢查其是否匹配，並按模式從中取得數據。</p><p>在定義函數時，你可以為不同的模式分別定義函數體，這就讓代碼更加簡潔易讀。你可以匹配一切數據類型---數字，字元，List，元組，等等。我們弄個簡單函數，讓它檢查我們傳給它的數字是不是7。</p><pre class="code">lucky :: (Integral a) => a -> String  
 lucky 7 = "LUCKY NUMBER SEVEN!"  
 lucky x = "Sorry, you're out of luck, pal!"   </pre><p>在調用<code>lucky</code>時，模式會從上至下進行檢查，一旦有匹配，那對應的函數體就被應用了。這個模式中的唯一匹配是參數為7，如果不是7，就轉到下一個模式，它匹配一切數值並將其綁定為x。這個函數完全可以使用if實現，不過我們若要個分辨1到5中的數字，而無視其它數的函數該怎麼辦？要是沒有模式匹配的話，那可得好大一棵if-else樹了！</p><pre class="code">sayMe :: (Integral a) => a -> String  
 sayMe 1 = "One!"  
@@ -76,7 +71,7 @@ sum' [] = 0  
 sum' (x:xs) = x + sum' xs  </pre><p>還有個東西叫做as模式，就是將一個名字和@置於模式前，可以在按模式分割什麼東西時仍保留對其整體的引用。如這個模式<code>xs@(x:y:ys)</code>，它會匹配出與<code>x:y:ys</code>對應的東西，同時你也可以方便地通過xs得到整個list，而不必在函數體中重複<code>x:y:ys</code>。看下這個quick and dirty的例子：</p><pre class="code">capital :: String -> String  
 capital "" = "Empty string, whoops!"  
 capital all@(x:xs) = "The first letter of " ++ all ++ " is " ++ [x]  </pre><pre class="code">ghci> capital "Dracula"  
-"The first letter of Dracula is D"  </pre><p>我們使用as模式通常就是為了在較大的模式中保留對整體的引用，從而減少重複性的工作。</p><p>還有——你不可以在模式匹配中使用<code>++</code>。若有個模式是<code>(xs++ys)</code>，那麼這個List該從什麼地方分開呢？不靠譜吧。而<code>(xs++[x,y,z])</code>或只一個<code>(xs++[x])</code>或許還能說的過去，不過出於list的本質，這樣寫也是不可以的。</p><a name="注意，門衛!"></a><h2>注意，門衛!</h2><p>模式用來檢查一個值是否合適並從中取值，而門衛（guard）則用來檢查一個值的某項屬性是否為真。咋一聽有點像是if語句，實際上也正是如此。不過處理多個條件分支時門衛的可讀性要高些，並且與模式匹配契合的很好。</p><img src="img/guards.png" style="float:right"></img><p>在講解它的語法前，我們先看一個用到門衛的函數。它會依據你的BMI值（body mass index，身體質量指數）來不同程度地侮辱你。BMI值即為體重除以身高的平方。如果小於18.5，就是太瘦；如果在18.5到25之間，就是正常；25到30之間，超重；如果超過30，肥胖。這就是那個函數（我們目前暫不為您計算bmi，它只是直接取一個emi值）。</p><pre class="code">bmiTell :: (RealFloat a) => a -> String  
+"The first letter of Dracula is D"  </pre><p>我們使用as模式通常就是為了在較大的模式中保留對整體的引用，從而減少重複性的工作。</p><p>還有——你不可以在模式匹配中使用<code>++</code>。若有個模式是<code>(xs++ys)</code>，那麼這個List該從什麼地方分開呢？不靠譜吧。而<code>(xs++[x,y,z])</code>或只一個<code>(xs++[x])</code>或許還能說的過去，不過出於list的本質，這樣寫也是不可以的。</p><a name="什麼是Guards"></a><h2>什麼是Guards</h2><p>模式用來檢查一個值是否合適並從中取值，而門衛（guard）則用來檢查一個值的某項屬性是否為真。咋一聽有點像是if語句，實際上也正是如此。不過處理多個條件分支時門衛的可讀性要高些，並且與模式匹配契合的很好。</p><img src="img/guards.png" style="float:right"></img><p>在講解它的語法前，我們先看一個用到門衛的函數。它會依據你的BMI值（body mass index，身體質量指數）來不同程度地侮辱你。BMI值即為體重除以身高的平方。如果小於18.5，就是太瘦；如果在18.5到25之間，就是正常；25到30之間，超重；如果超過30，肥胖。這就是那個函數（我們目前暫不為您計算bmi，它只是直接取一個emi值）。</p><pre class="code">bmiTell :: (RealFloat a) => a -> String  
 bmiTell bmi  
     | bmi <= 18.5 = "You're underweight, you emo, you!"  
     | bmi <= 25.0 = "You're supposedly normal. Pffft, I bet you're ugly!"  
@@ -96,7 +91,7 @@ a `myCompare` b  
     | a > b     = GT  
     | a == b    = EQ  
     | otherwise = LT  </pre><pre class="code">ghci> 3 `myCompare` 2  
-GT  </pre><blockquote><p><b>Note</b>：通過反單引號，我們不僅可以以中綴形式調用函數，也可以在定義函數的時候使用它。有時這樣會更易讀。</p></blockquote><a name="Where?"></a><h2>Where?</h2><p>前一節中我們寫了這個bmi計算函數：</p><pre class="code">bmiTell :: (RealFloat a) => a -> a -> String  
+GT  </pre><blockquote><p><b>Note</b>：通過反單引號，我們不僅可以以中綴形式調用函數，也可以在定義函數的時候使用它。有時這樣會更易讀。</p></blockquote><a name="關鍵字Where"></a><h2>關鍵字Where</h2><p>前一節中我們寫了這個bmi計算函數：</p><pre class="code">bmiTell :: (RealFloat a) => a -> a -> String  
 bmiTell weight height  
     | weight / height ^ 2 <= 18.5 = "You're underweight, you emo, you!"  
     | weight / height ^ 2 <= 25.0 = "You're supposedly normal. Pffft, I bet you're ugly!"  
@@ -123,7 +118,7 @@ initials firstname lastname = [f] ++ ". " ++ [l] ++ "."  
     where (f:_) = firstname  
           (l:_) = lastname  </pre><p>我們完全按可以在函數的參數上直接使用模式匹配（這樣更短更簡潔），在這裡只是為了演示在where語句中同樣可以使用模式匹配：</p><p><i>where</i>綁定可以定義名字，也可以定義函數。保持健康的編程風格，我們搞個計算一組bmi的函數：</p><pre class="code">calcBmis :: (RealFloat a) => [(a, a)] -> [a]  
 calcBmis xs = [bmi w h | (w, h) 
-    where bmi weight height = weight / height ^ 2  </pre><p>這就全了！在這裡將<code>bmi</code>搞成一個函數，是因為我們不能依據參數直接進行計算，而必須先從傳入函數的list中取出每個序對並計算對應的值。</p><p><i>where</i>綁定還可以嵌套。有個已被廣泛接受的理念，就是一個函數應該有幾個輔助函數。而每個輔助函數也可以通過where擁有各自的輔助函數。</p><a name="Let it be"></a><h2>Let it be</h2><p>let綁定與where綁定很相似。where綁定是在函數底部定義名字，對包括所有門衛在內的整個函數可見。let綁定則是個表達式，允許你在任何位置定義局部變數，而對不同的門衛不可見。正如haskell中所有賦值結構一樣，let綁定也可以使用模式匹配。看下它的實際應用！這是個依據半徑和高度求圓柱體表面積的函數：</p><pre class="code">cylinder :: (RealFloat a) => a -> a -> a  
+    where bmi weight height = weight / height ^ 2  </pre><p>這就全了！在這裡將<code>bmi</code>搞成一個函數，是因為我們不能依據參數直接進行計算，而必須先從傳入函數的list中取出每個序對並計算對應的值。</p><p><i>where</i>綁定還可以嵌套。有個已被廣泛接受的理念，就是一個函數應該有幾個輔助函數。而每個輔助函數也可以通過where擁有各自的輔助函數。</p><a name="關鍵字Let"></a><h2>關鍵字Let</h2><p>let綁定與where綁定很相似。where綁定是在函數底部定義名字，對包括所有門衛在內的整個函數可見。let綁定則是個表達式，允許你在任何位置定義局部變數，而對不同的門衛不可見。正如haskell中所有賦值結構一樣，let綁定也可以使用模式匹配。看下它的實際應用！這是個依據半徑和高度求圓柱體表面積的函數：</p><pre class="code">cylinder :: (RealFloat a) => a -> a -> a  
 cylinder r h = 
     let sideArea = 2 * pi * r * h  
         topArea = pi * r ^2  
@@ -142,7 +137,7 @@ ghci> zoot 3 9 2
 ghci> let boot x y z = x * y + z in boot 3 4 2  
 14  
 ghci> boot  
-< interactive>:1:0: Not in scope: `boot'</pre><p>你說既然<i>let</i>已經這麼好了，還要where幹嘛呢？嗯，let是個表達式，定義域限制的相當小，因此不能在多個門衛中使用。一些朋友更喜歡<i>where</i>，因為它是跟在函數體後面，把主函數體距離類型聲明近一些會更易讀。</p><a name="case表達式"></a><h2>case表達式</h2><img src="img/case.png" style="float:right"></img><p>有命令式編程(<i>C, C++, Java, etc</i>)的經驗的同學一定會有所瞭解，很多命令式語言都提供了<i>case</i>語句。就是取一個變數，按照對變數的判斷選擇對應的代碼塊。其中可能會存在一個萬能匹配以處理未預料的情況。</p><p>haskell取了這一概念融合其中。如其名，case表達式就是，嗯，一種表達式。跟<i>if..else</i>和<i>let</i>一樣的表達式。用它可以對變數的不同情況分別求值，還可以使用模式匹配。Hmm，取一個變數，對它模式匹配，執行對應的代碼塊。好像在哪兒聽過？啊，就是函數定義時參數的模式匹配！好吧，模式匹配本質上不過就是case語句的語法糖而已。這兩段代碼就是完全等價的：</p><pre class="code">head' :: [a] -> a  
+< interactive>:1:0: Not in scope: `boot'</pre><p>你說既然<i>let</i>已經這麼好了，還要where幹嘛呢？嗯，let是個表達式，定義域限制的相當小，因此不能在多個門衛中使用。一些朋友更喜歡<i>where</i>，因為它是跟在函數體後面，把主函數體距離類型聲明近一些會更易讀。</p><a name="Case expressions"></a><h2>Case expressions</h2><img src="img/case.png" style="float:right"></img><p>有命令式編程(<i>C, C++, Java, etc</i>)的經驗的同學一定會有所瞭解，很多命令式語言都提供了<i>case</i>語句。就是取一個變數，按照對變數的判斷選擇對應的代碼塊。其中可能會存在一個萬能匹配以處理未預料的情況。</p><p>haskell取了這一概念融合其中。如其名，case表達式就是，嗯，一種表達式。跟<i>if..else</i>和<i>let</i>一樣的表達式。用它可以對變數的不同情況分別求值，還可以使用模式匹配。Hmm，取一個變數，對它模式匹配，執行對應的代碼塊。好像在哪兒聽過？啊，就是函數定義時參數的模式匹配！好吧，模式匹配本質上不過就是case語句的語法糖而已。這兩段代碼就是完全等價的：</p><pre class="code">head' :: [a] -> a  
 head' [] = error "No head for empty lists!"  
 head' (x:_) = x  </pre><pre class="code">head' :: [a] -> a  
 head' xs = case xs of [] -> error "No head for empty lists!"  
@@ -157,17 +152,13 @@ describeList xs = "The list is " ++ what xs  
     where what [] = "empty."  
           what [x] = "a singleton list."  
           what xs = "a longer list."  </pre>
-
             <ul class="nav">
-            <li class="left">  <img src="img/prv.png"></img><a href="types-and-type-classes-.htm">類型和類型類</a></li>
-            <li class="center"><a href="chapters.htm">Index</a></li>
-            <li class="right"> <a href="recursion-.htm">遞歸</a><img src="img/nxt.png"></img></li>
+                <li class="left">  <img src="img/prv.png"></img><a href="types-and-type-classes.html">Types and Typeclasses</a></li>
+                <li class="center"><a href="chapters.html">Index</a></li>
+                <li class="right"> <a href="recursion.html">遞迴</a><img src="img/nxt.png"></img></li>
             </ul>
         </div>
-
         <div id="footer">
         </div>
-
     </body>
 </html>
-

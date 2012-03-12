@@ -3,11 +3,9 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-
         <style>
             @import url(css/style.css);
         </style>
-
         <script src="js/jquery.js"></script>
         <script src="js/jquery.chili-2.2.js"></script>
         <script src="js/script.js"></script>
@@ -15,10 +13,8 @@
              ChiliBook.recipeFolder = "js/chili/";  
              ChiliBook.automaticSelector = "pre";
         </script>
-
-        <title>構造我們自己的類型和類型類</title>
+        <title>構造我們自己的Types和Typeclasses</title>
     </head>
-
     <body>
         <div id="header">
             <img id="beta" alt="beta" src="img/beta.png" />
@@ -26,12 +22,11 @@
 
         <div id="main">
             <ul class="nav">
-            <li class="left">  <img src="img/prv.png"></img><a href="modules-.htm">模組</a></li>
-            <li class="center"><a href="chapters.htm">Index</a></li>
-            <li class="right"> <a href="input-and-output.htm">輸入與輸出</a><img src="img/nxt.png"></img></li>
+                <li class="left">  <img src="img/prv.png"></img><a href="modules.html">模組(Modules)</a></li>
+                <li class="center"><a href="chapters.html">Index</a></li>
+                <li class="right"> <a href="input-and-output.html">輸入與輸出</a><img src="img/nxt.png"></img></li>
             </ul>
-
-            <a name="構造我們自己的類型和類型類"></a><h1>構造我們自己的類型和類型類</h1><a name="數據類型入門"></a><h2>數據類型入門</h2><p>在前面的章節中，我們談了一些Haskell內置的類型和類型類。而在本章，我們將學習構造類型和類型類的方法。</p><p>我們以已經見識了許多數據類型，如<code>Bool</code>、<code>Int</code>、<code>Char</code>、<code>Maybe</code>等等，不過該怎樣構造自己的數據類型呢？好問題，使用data關鍵字是一種方法。我們看看<code>Bool</code>在標準庫中的定義：</p><pre class="code">data Bool = False | True</pre><p><b>data</b>表示我們要定義一個新的數據類型。=的左端標明類型的名稱即<code>Bool</code>，<code>=</code>的右端就是<b>值構造子</b>（<i>Value Constructor</i>），它們明確了該類型可能的值。<code>|</code>讀作“或”，所以可以這樣閲讀該聲明：<code>Bool</code>類型的值可以是True或False。類型名和值構造子的首字母必大寫。</p><p>相似，我們可以假想<code>Int</code>類型的聲明：</p><pre class="code">data Int = -2147483648 | -2147483647 | ... | -1 | 0 | 1 | 2 | ... | 2147483647</pre><img src="img/caveman.png" style="float:right"></img><p>首位兩個值構造子分別表示了Int類型可能的最小值和最大值，這些省略號表示我們省去了中間大段的數字。當然，真實的聲明不是這個樣子的，這樣寫只是為了便於理解。</p><p>我們想想Haskell中圖形的表示方法。表示圓可以用一個元組，如<code>(43.1,55.0,10.4)</code>，前兩項表示圓心的位置，末項表示半徑。聽著不錯，不過三維向量或其它什麼東西也可能是這種形式！更好的方法就是自己構造一個表示圖形的類型。假定圖形可以是圓（Circle）或長方形（Rectangle）：</p><pre class="code">data Shape = Circle Float Float Float | Rectangle Float Float Float Float</pre><p>這是啥，想想？<code>Circle</code>的值構造子有三個項，都是Float。可見我們在定義值構造子時，可以在後面跟幾個類型表示它包含值的類型。在這裡，前兩項表示圓心的坐標，尾項表示半徑。<code>Rectangle</code>的值構造子取四個Float項，前兩項表示其左上角的坐標，後兩項表示右下角的坐標。</p><p>談到“項”(field)，其實應為“參數”(parameters)。值構造子的本質是個函數，可以返回一個類型的值。我們看下這兩個值構造子的類型聲明：</p><pre class="code">ghci> :t Circle  
+            <a name="構造我們自己的Types和Typeclasses"></a><h1>構造我們自己的Types和Typeclasses</h1><a name="Algebraic data types入門"></a><h2>Algebraic data types入門</h2><p>在前面的章節中，我們談了一些Haskell內置的類型和類型類。而在本章，我們將學習構造類型和類型類的方法。</p><p>我們以已經見識了許多數據類型，如<code>Bool</code>、<code>Int</code>、<code>Char</code>、<code>Maybe</code>等等，不過該怎樣構造自己的數據類型呢？好問題，使用data關鍵字是一種方法。我們看看<code>Bool</code>在標準庫中的定義：</p><pre class="code">data Bool = False | True</pre><p><b>data</b>表示我們要定義一個新的數據類型。=的左端標明類型的名稱即<code>Bool</code>，<code>=</code>的右端就是<b>值構造子</b>（<i>Value Constructor</i>），它們明確了該類型可能的值。<code>|</code>讀作“或”，所以可以這樣閲讀該聲明：<code>Bool</code>類型的值可以是True或False。類型名和值構造子的首字母必大寫。</p><p>相似，我們可以假想<code>Int</code>類型的聲明：</p><pre class="code">data Int = -2147483648 | -2147483647 | ... | -1 | 0 | 1 | 2 | ... | 2147483647</pre><img src="img/caveman.png" style="float:right"></img><p>首位兩個值構造子分別表示了Int類型可能的最小值和最大值，這些省略號表示我們省去了中間大段的數字。當然，真實的聲明不是這個樣子的，這樣寫只是為了便於理解。</p><p>我們想想Haskell中圖形的表示方法。表示圓可以用一個元組，如<code>(43.1,55.0,10.4)</code>，前兩項表示圓心的位置，末項表示半徑。聽著不錯，不過三維向量或其它什麼東西也可能是這種形式！更好的方法就是自己構造一個表示圖形的類型。假定圖形可以是圓（Circle）或長方形（Rectangle）：</p><pre class="code">data Shape = Circle Float Float Float | Rectangle Float Float Float Float</pre><p>這是啥，想想？<code>Circle</code>的值構造子有三個項，都是Float。可見我們在定義值構造子時，可以在後面跟幾個類型表示它包含值的類型。在這裡，前兩項表示圓心的坐標，尾項表示半徑。<code>Rectangle</code>的值構造子取四個Float項，前兩項表示其左上角的坐標，後兩項表示右下角的坐標。</p><p>談到“項”(field)，其實應為“參數”(parameters)。值構造子的本質是個函數，可以返回一個類型的值。我們看下這兩個值構造子的類型聲明：</p><pre class="code">ghci> :t Circle  
 Circle :: Float -> Float -> Float -> Shape  
 ghci> :t Rectangle  
 Rectangle :: Float -> Float -> Float -> Float -> Shape</pre><p>Cool，這麼說值構造子就跟普通函數並無二致咯，誰想得到？我們寫個函數計算圖形面積：</p><pre class="code">surface :: Shape -> Float  
@@ -99,7 +94,7 @@ flavor :: Person -> String
 ghci> :t firstName  
 firstName :: Person -> String</pre><p>還有個好處，就是若派生(deriving)到<code>Show</code>類型類，它的顯示是不同的。假如我們有個類型表示一輛車，要包含生產商、型號以及出場年份：</p><pre class="code">data Car = Car String String Int deriving (Show)</pre><pre class="code">ghci> Car "Ford" "Mustang" 1967  
 Car "Ford" "Mustang" 1967</pre><p>若用Record Syntax，就可以得到像這樣的新車：</p><pre class="code">data Car = Car {company :: String, model :: String, year :: Int} deriving (Show)</pre><pre class="code">ghci> Car {company="Ford", model="Mustang", year=1967}  
-Car {company = "Ford", model = "Mustang", year = 1967}</pre><p>這一來在造車時我們就不必關心各項的順序了。</p><p>表示三維向量之類簡單數據，<code>Vector = Vector Int Int Int</code>就足夠明白了。但一個值構造子中若含有很多個項且不易區分，如一個人或者一輛車啥的，就應該使用Record Syntax。</p><a name="類型參數"></a><h2>類型參數</h2><p>值構造子可以取幾個參數產生一個新值，如Car的構造子是取三個參數返回一個Car。與之相似，類型構造子可以取類型作參數，產生新的類型。這咋一聽貌似有點深奧，不過實際上並不複雜。如果你對C++的模板有瞭解，就會看到很多相似的地方。我們看一個熟悉的類型，好對類型參數有個大致印象：</p><pre class="code">data Maybe a = Nothing | Just a</pre><img src="img/yeti.png" style="float:right"></img><p>這裡的a就是個類型參數。也正因為有了它，Maybe就成為了一個類型構造子。在它的值不是Nothing時，它的類型構造子可以搞出Maybe Int，Maybe String等等諸多類型。但只一個Maybe是不行的，因為它不是類型，而是類型構造子。要成為真正的類型，必須得把它需要的類型參數全部填滿。</p><p>所以，如果拿<code>Char</code>作參數交給<code>Maybe</code>，就可以得到一個<code>Maybe Char</code>的類型。如，<code>Just 'a'</code>的類型就是<code>Maybe Char</code>。</p><p>你可能並未察覺，在遇見Maybe之前我們早就接觸到類型參數了。它便是List類型。這裡面有點語法糖，List類型實際上就是取一個參數來生成一個特定類型，這類型可以是<a href="Int">Int</a>，<a href="Char">Char</a>也可以是<a href="String">String</a>，但不會跟在[]的後面。</p><p>把玩一下<code>Maybe</code>！</p><pre class="code">ghci> Just "Haha"  
+Car {company = "Ford", model = "Mustang", year = 1967}</pre><p>這一來在造車時我們就不必關心各項的順序了。</p><p>表示三維向量之類簡單數據，<code>Vector = Vector Int Int Int</code>就足夠明白了。但一個值構造子中若含有很多個項且不易區分，如一個人或者一輛車啥的，就應該使用Record Syntax。</p><a name="Type parameters"></a><h2>Type parameters</h2><p>值構造子可以取幾個參數產生一個新值，如Car的構造子是取三個參數返回一個Car。與之相似，類型構造子可以取類型作參數，產生新的類型。這咋一聽貌似有點深奧，不過實際上並不複雜。如果你對C++的模板有瞭解，就會看到很多相似的地方。我們看一個熟悉的類型，好對類型參數有個大致印象：</p><pre class="code">data Maybe a = Nothing | Just a</pre><img src="img/yeti.png" style="float:right"></img><p>這裡的a就是個類型參數。也正因為有了它，Maybe就成為了一個類型構造子。在它的值不是Nothing時，它的類型構造子可以搞出Maybe Int，Maybe String等等諸多類型。但只一個Maybe是不行的，因為它不是類型，而是類型構造子。要成為真正的類型，必須得把它需要的類型參數全部填滿。</p><p>所以，如果拿<code>Char</code>作參數交給<code>Maybe</code>，就可以得到一個<code>Maybe Char</code>的類型。如，<code>Just 'a'</code>的類型就是<code>Maybe Char</code>。</p><p>你可能並未察覺，在遇見Maybe之前我們早就接觸到類型參數了。它便是List類型。這裡面有點語法糖，List類型實際上就是取一個參數來生成一個特定類型，這類型可以是<a href="Int">Int</a>，<a href="Char">Char</a>也可以是<a href="String">String</a>，但不會跟在[]的後面。</p><p>把玩一下<code>Maybe</code>！</p><pre class="code">ghci> Just "Haha"  
 Just "Haha"  
 ghci> Just 84  
 Just 84  
@@ -141,7 +136,7 @@ Vector 30 90 70
 ghci> Vector 4 9 5 `scalarMult` Vector 9.0 2.0 4.0  
 74.0  
 ghci> Vector 2 9 3 `vectMult` (Vector 4 9 5 `scalarMult` Vector 9 2 4)  
-Vector 148 666 222</pre><a name="派生實例"></a><h2>派生實例</h2><p>在typeclass 101那節裡面，我們瞭解了typeclass的基礎內容。裡面提到，類型類就是定義了某些行為的介面。例如，Int類型是Eq類型類的一個實例，Eq類就定義了判定相等性的行為。Int值可以判斷相等性，所以Int就是Eq類型類的成員。它的真正威力體現在作為Eq介面的函數中，即==和/=。只要一個類型是Eq類型類的成員，我們就可以使用==函數來處理這一類型。這便是為何<code>4==4</code>和<code>"foo"/="bar"</code>這樣的表達式都需要作類型檢查。</p><img src="img/gob.png" style="float:right"></img><p>我們也曾提到，人們很容易把類型類與Java，python，C++等語言的類混淆。很多人對此都倍感不解，在原先那些語言中，類就像是藍圖，我們可以根據它來創造對象、保存狀態並執行操作。而類型類更像是介面，我們不是靠它構造數據，而是給既有的數據類型描述行為。什麼東西若可以判定相等性，我們就可以讓它成為Eq類型類的實例。什麼東西若可以比較大小，那就可以讓它成為Ord類型類的實例。</p><p>在下一節，我們將看一下如何手工實現類型類中定義函數來構造實例。現在呢，我們先瞭解下Haskell是如何自動生成這幾個類型類的實例，<code>Eq</code>,<code>Ord</code>,<code>Enum</code>,<code>Bounded</code>,<code>Show</code>,<code>Read</code>。只要我們在構造類型時在後面加個deriving（派生）關鍵字，Haskell就可以自動地給我們的類型加上這些行為。</p><p>看這個數據類型：</p><pre class="code">data Person = Person { firstName :: String  
+Vector 148 666 222</pre><a name="Derived instances"></a><h2>Derived instances</h2><p>在typeclass 101那節裡面，我們瞭解了typeclass的基礎內容。裡面提到，類型類就是定義了某些行為的介面。例如，Int類型是Eq類型類的一個實例，Eq類就定義了判定相等性的行為。Int值可以判斷相等性，所以Int就是Eq類型類的成員。它的真正威力體現在作為Eq介面的函數中，即==和/=。只要一個類型是Eq類型類的成員，我們就可以使用==函數來處理這一類型。這便是為何<code>4==4</code>和<code>"foo"/="bar"</code>這樣的表達式都需要作類型檢查。</p><img src="img/gob.png" style="float:right"></img><p>我們也曾提到，人們很容易把類型類與Java，python，C++等語言的類混淆。很多人對此都倍感不解，在原先那些語言中，類就像是藍圖，我們可以根據它來創造對象、保存狀態並執行操作。而類型類更像是介面，我們不是靠它構造數據，而是給既有的數據類型描述行為。什麼東西若可以判定相等性，我們就可以讓它成為Eq類型類的實例。什麼東西若可以比較大小，那就可以讓它成為Ord類型類的實例。</p><p>在下一節，我們將看一下如何手工實現類型類中定義函數來構造實例。現在呢，我們先瞭解下Haskell是如何自動生成這幾個類型類的實例，<code>Eq</code>,<code>Ord</code>,<code>Enum</code>,<code>Bounded</code>,<code>Show</code>,<code>Read</code>。只要我們在構造類型時在後面加個deriving（派生）關鍵字，Haskell就可以自動地給我們的類型加上這些行為。</p><p>看這個數據類型：</p><pre class="code">data Person = Person { firstName :: String  
                      , lastName :: String  
                      , age :: Int  
                      }</pre><p>這描述了一個人。我們先假定世界上沒有重名重姓又同齡的人存在，好，假如有兩個record，有沒有可能是描述同一個人呢？當然可能，我麼可以判定姓名年齡的相等性，來判斷它倆是否相等。這一來，讓這個類型成為Eq的成員就很靠譜了。直接derive這個實例：</p><pre class="code">data Person = Person { firstName :: String  
@@ -203,7 +198,7 @@ Friday
 ghci> [Thursday .. Sunday]  
 [Thursday,Friday,Saturday,Sunday]  
 ghci> [minBound .. maxBound] :: [Day]  
-[Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday]</pre><p>那是相當的棒。</p><a name="類型別名"></a><h2>類型別名</h2><p>在前面我們提到在寫類型名的時候，<code>[Char]</code>和<code>String</code>等價，可以互換。這就是由類型別名實現的。類型別名實際上什麼也沒做，只是給類型提供了不同的名字，讓我們的代碼更容易理解。這就是<code>[Char]</code>的別名<code>String</code>的由來。</p><pre class="code">type String = [Char]</pre><p>我們已經介紹過了type關鍵字，這個關鍵字有一定誤導性，它並不是用來創造新類（這是data關鍵字做的事情），而是給一個既有類型提供一個別名。</p><p>如果我們隨便搞個函數toUpperString或其他什麼名字，將一個字元串變成大寫，可以用這樣的類型聲明<code>toUpperString :: [Char] -> [Char]</code>， 也可以這樣<code>toUpperString :: String -> String</code>，二者在本質上是完全相同的。後者要更易讀些。</p><p>在前面Data.Map那部分，我們用了一個關聯List來表示<code>phoneBook</code>，之後才改成的Map。我們已經發現了，一個關聯List就是一組鍵值對組成的List。再看下我們phoneBook的樣子：</p><pre class="code">phoneBook :: [(String,String)]  
+[Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday]</pre><p>那是相當的棒。</p><a name="Type synonyms"></a><h2>Type synonyms</h2><p>在前面我們提到在寫類型名的時候，<code>[Char]</code>和<code>String</code>等價，可以互換。這就是由類型別名實現的。類型別名實際上什麼也沒做，只是給類型提供了不同的名字，讓我們的代碼更容易理解。這就是<code>[Char]</code>的別名<code>String</code>的由來。</p><pre class="code">type String = [Char]</pre><p>我們已經介紹過了type關鍵字，這個關鍵字有一定誤導性，它並不是用來創造新類（這是data關鍵字做的事情），而是給一個既有類型提供一個別名。</p><p>如果我們隨便搞個函數toUpperString或其他什麼名字，將一個字元串變成大寫，可以用這樣的類型聲明<code>toUpperString :: [Char] -> [Char]</code>， 也可以這樣<code>toUpperString :: String -> String</code>，二者在本質上是完全相同的。後者要更易讀些。</p><p>在前面Data.Map那部分，我們用了一個關聯List來表示<code>phoneBook</code>，之後才改成的Map。我們已經發現了，一個關聯List就是一組鍵值對組成的List。再看下我們phoneBook的樣子：</p><pre class="code">phoneBook :: [(String,String)]  
 phoneBook =      
     [("betty","555-2938")     
     ,("bonnie","452-2928")     
@@ -250,18 +245,14 @@ Left "Locker number 102 doesn't exist!"
 ghci> lockerLookup 110 lockers  
 Left "Locker 110 is already taken!"  
 ghci> lockerLookup 105 lockers  
-Right "QOTSA"</pre><p>我們完全可以用<code>Maybe a</code>來表示它的結果，但這樣一來我們就對得不到密碼的原因不得而知了。而在這裡，我們的新類型可以告訴我們失敗的原因。</p>
-
+Right "QOTSA"</pre><p>我們完全可以用<code>Maybe a</code>來表示它的結果，但這樣一來我們就對得不到密碼的原因不得而知了。而在這裡，我們的新類型可以告訴我們失敗的原因。</p><a name="Recursive data structures (遞迴地定義資料結構)"></a><h2>Recursive data structures (遞迴地定義資料結構)</h2><a name="Typeclasses的第二堂課"></a><h2>Typeclasses的第二堂課</h2><a name="yes-no typeclass"></a><h2>yes-no typeclass</h2><a name="Functor typeclass"></a><h2>Functor typeclass</h2><a name="Kind"></a><h2>Kind</h2>
             <ul class="nav">
-            <li class="left">  <img src="img/prv.png"></img><a href="modules-.htm">模組</a></li>
-            <li class="center"><a href="chapters.htm">Index</a></li>
-            <li class="right"> <a href="input-and-output.htm">輸入與輸出</a><img src="img/nxt.png"></img></li>
+                <li class="left">  <img src="img/prv.png"></img><a href="modules.html">模組(Modules)</a></li>
+                <li class="center"><a href="chapters.html">Index</a></li>
+                <li class="right"> <a href="input-and-output.html">輸入與輸出</a><img src="img/nxt.png"></img></li>
             </ul>
         </div>
-
         <div id="footer">
         </div>
-
     </body>
 </html>
-
