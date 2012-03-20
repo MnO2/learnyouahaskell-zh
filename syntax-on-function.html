@@ -34,9 +34,9 @@ sayMe 2 = "Two!"  
 sayMe 3 = "Three!"  
 sayMe 4 = "Four!"  
 sayMe 5 = "Five!"  
-sayMe x = "Not between 1 and 5"  </pre><p>注意下，如果我們把最後匹配一切的那個模式挪到最前，它的結果就全都是<code>"Not between 1 and 5"  </code>了。因為它自己匹配了一切數字，不給後面的模式留機會。</p><p>記得前面實現的那個階乘函數麼？當時是把<code>n</code>的階乘定義成了<code>product [1..n]</code>。也可以寫出像數學那樣的遞歸實現，先說明0的階乘是1，再說明每個正整數的階乘都是這個數與它前驅(predecessor)對應的階乘的積。如下便是翻譯到haskell的樣子：</p><pre class="code">factorial :: (Integral a) => a -> a  
+sayMe x = "Not between 1 and 5"  </pre><p>注意下，如果我們把最後匹配一切的那個模式挪到最前，它的結果就全都是<code>"Not between 1 and 5"  </code>了。因為它自己匹配了一切數字，不給後面的模式留機會。</p><p>記得前面實現的那個階乘函數麼？當時是把<code>n</code>的階乘定義成了<code>product [1..n]</code>。也可以寫出像數學那樣的遞迴實現，先說明0的階乘是1，再說明每個正整數的階乘都是這個數與它前驅(predecessor)對應的階乘的積。如下便是翻譯到haskell的樣子：</p><pre class="code">factorial :: (Integral a) => a -> a  
 factorial 0 = 1  
-factorial n = n * factorial (n - 1)  </pre><p>這就是我們定義的第一個遞歸函數。遞歸在haskell中十分重要，我們會在後面深入理解。如果拿一個數（如3）調用factorial函數，這就是接下來的計算步驟：先計算<code>3*factorial 2</code>，<code>factorial 2</code>等於<code>2*factorial 1</code>，也就是<code>3*(2*(factorial 1))</code>。<code>factorial 1</code>等於<code>1*factorial 0</code>，好，得<code>3*(2*(1*factorial 0))</code>，遞歸在這裡到頭了，嗯---我們在萬能匹配前面有定義，0的階乘是1.於是最終的結果等於<code>3*(2*(1*1))</code>。若是把第二個模式放在前面，它就會捕獲包括0在內的一切數字，這一來我們的計算就永遠都不會停止了。這便是為什麼說模式的順序是如此重要：它總是優先匹配最符合的那個，最後才是那個萬能的。</p><p>模式匹配也會失敗。假如這個函數：</p><pre class="code">charName :: Char -> String  
+factorial n = n * factorial (n - 1)  </pre><p>這就是我們定義的第一個遞迴函數。遞迴在haskell中十分重要，我們會在後面深入理解。如果拿一個數（如3）調用factorial函數，這就是接下來的計算步驟：先計算<code>3*factorial 2</code>，<code>factorial 2</code>等於<code>2*factorial 1</code>，也就是<code>3*(2*(factorial 1))</code>。<code>factorial 1</code>等於<code>1*factorial 0</code>，好，得<code>3*(2*(1*factorial 0))</code>，遞迴在這裡到頭了，嗯---我們在萬能匹配前面有定義，0的階乘是1.於是最終的結果等於<code>3*(2*(1*1))</code>。若是把第二個模式放在前面，它就會捕獲包括0在內的一切數字，這一來我們的計算就永遠都不會停止了。這便是為什麼說模式的順序是如此重要：它總是優先匹配最符合的那個，最後才是那個萬能的。</p><p>模式匹配也會失敗。假如這個函數：</p><pre class="code">charName :: Char -> String  
 charName 'a' = "Albert"  
 charName 'b' = "Broseph"  
 charName 'c' = "Cecil"  </pre><p>拿個它沒有考慮到的字元去調用它，你就會看到這個：</p><pre class="code">ghci> charName 'a'  
@@ -55,7 +55,7 @@ second (_, y, _) = y  
 third :: (a, b, c) -> c  
 third (_, _, z) = z  </pre><p>這裡的_就和List Comprehension中一樣。表示我們不關心這部分的具體內容。</p><p>說到List Comprehension，我想起來在List Comprehension中也能用模式匹配：</p><pre class="code">ghci> let xs = [(1,3), (4,3), (2,4), (5,3), (5,6), (3,1)]  
 ghci> [a+b | (a,b) <- xs]  
-[4,7,6,8,11,4]</pre><p>一旦模式匹配失敗，它就簡單挪到下個元素。</p><p>對list本身也可以使用模式匹配。你可以用<code>[]</code>或<code>:</code>來匹配它。因為<code>[1,2,3]</code>本質就是<code>1:2:3:[]</code>的語法糖。你也可以使用前一種形式，像<code>x:xs</code>這樣的模式可以將list的頭部綁定為x，尾部綁定為xs。如果這list只有一個元素，那麼xs就是一個空list。</p><blockquote><p><b>Note</b>：x:xs這模式的應用非常廣泛，尤其是遞歸函數。不過它只能匹配長度大於等於1的list。</p></blockquote><p>如果你要把list的前三個元素都綁定到變數中，可以使用類似<code>x:y:z:xs</code>這樣的形式。它只能匹配長度大於等於3的list。</p><p>我們已經知道了對list做模式匹配的方法，就實現個我們自己的head函數。</p><pre class="code">head' :: [a] -> a  
+[4,7,6,8,11,4]</pre><p>一旦模式匹配失敗，它就簡單挪到下個元素。</p><p>對list本身也可以使用模式匹配。你可以用<code>[]</code>或<code>:</code>來匹配它。因為<code>[1,2,3]</code>本質就是<code>1:2:3:[]</code>的語法糖。你也可以使用前一種形式，像<code>x:xs</code>這樣的模式可以將list的頭部綁定為x，尾部綁定為xs。如果這list只有一個元素，那麼xs就是一個空list。</p><blockquote><p><b>Note</b>：x:xs這模式的應用非常廣泛，尤其是遞迴函數。不過它只能匹配長度大於等於1的list。</p></blockquote><p>如果你要把list的前三個元素都綁定到變數中，可以使用類似<code>x:y:z:xs</code>這樣的形式。它只能匹配長度大於等於3的list。</p><p>我們已經知道了對list做模式匹配的方法，就實現個我們自己的head函數。</p><pre class="code">head' :: [a] -> a  
 head' [] = error "Can't call head on an empty list, dummy!"  
 head' (x:_) = x  </pre><p>看看管不管用：</p><pre class="code">ghci> head' [4,5,6]  
 4  
@@ -64,7 +64,7 @@ ghci> head' "Hello"  
 tell [] = "The list is empty"  
 tell (x:[]) = "The list has one element: " ++ show x  
 tell (x:y:[]) = "The list has two elements: " ++ show x ++ " and " ++ show y  
-tell (x:y:_) = "This list is long. The first two elements are: " ++ show x ++ " and " ++ show y  </pre><p>這個函數顧及了空list，單元素list，雙元素list以及較長的list，所以這個函數很安全。<code>(x:[])</code>與<code>(x:y:[])</code>也可以寫作<code>[x]</code>和<code>[x,y]</code>（有了語法糖，我們不必多加括號）。不過<code>(x:y:_)</code>這樣的模式就不行了，因為它匹配的list長度不固定。</p><p>我們曾用List Comprehension實現過自己的length函數，現在用模式匹配和遞歸重新實現它：</p><pre class="code">length' :: (Num b) => [a] -> b  
+tell (x:y:_) = "This list is long. The first two elements are: " ++ show x ++ " and " ++ show y  </pre><p>這個函數顧及了空list，單元素list，雙元素list以及較長的list，所以這個函數很安全。<code>(x:[])</code>與<code>(x:y:[])</code>也可以寫作<code>[x]</code>和<code>[x,y]</code>（有了語法糖，我們不必多加括號）。不過<code>(x:y:_)</code>這樣的模式就不行了，因為它匹配的list長度不固定。</p><p>我們曾用List Comprehension實現過自己的length函數，現在用模式匹配和遞迴重新實現它：</p><pre class="code">length' :: (Num b) => [a] -> b  
 length' [] = 0  
 length' (_:xs) = 1 + length' xs  </pre><p>這與先前寫的那個factorial函數很相似。先定義好未知輸入的結果---空list，這也叫作邊界條件。再在第二個模式中將這List分割為頭部和尾部。說，List的長度就是其尾部的長度加1。匹配頭部用的_，因為我們並不關心它的值。同時也應明確，我們顧及了List所有可能的模式：第一個模式匹配空list，第二個匹配任意的非空list。</p><p>看下拿<code>"ham"</code>調用<code>length'</code>會怎樣。首先它會檢查它是否為空List。顯然不是，於是進入下一模式。它匹配了第二個模式，把它分割為頭部和尾部並無視掉頭部的值，得長度就是<code>1+length' "am"</code>。ok。以此類推，<code>"am"</code>的<code>length</code>就是<code>1+length' "m"</code>。好，現在我們有了<code>1+(1+length' "m")</code>。<code>length' "m"</code>即<code>1+length ""</code>（也就是<code>1+length' []</code>）。根據定義，<code>length' []</code>等於<code>0</code>。最後得<code>1+(1+(1+0))</code>。</p><p>再實現<code>sum</code>。我們知道空list的和是0，就把它定義為一個模式。我們也知道一個list的和就是頭部加上尾部的和的和。寫下來就成了：</p><pre class="code">sum' :: (Num a) => [a] -> a  
 sum' [] = 0  
