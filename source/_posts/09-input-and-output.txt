@@ -686,6 +686,307 @@ IT'S SO SMALL, TASTELESS
 capslocker <stdin>: hGetLine: end of file
 }}
 
+就如你看到的，我們是用``|``這符號來將某個程式的輸出piping到另一個程式的輸入。
+我們做的事相當於run我們的capslocker，然後將haiku的內容用鍵盤打到終端上，
+最後再按Ctrl-D來代表end-of-file。
+這就像執行cat haiku.txt後大喊，嘿，不要把內容印到終端上，把內容塞到capslocker!
+
+我們用``forever``在做的事基本上就是將輸入經過轉換後變成輸出。
+用``getContents``的話可以讓我們的程式更加精練。
+
+{{
+import Data.Char
+
+main = do
+    contents <- getContents
+    putStr (map toUpper contents)
+}}
+
+我們將``getContents``取回的字串綁定到``contents``。
+然後用``toUpper`` map到整個字串後印到終端上。
+記住字串基本上就是一串惰性的串列(list)，同時``getContents``也是惰性I/O，
+他不會一口氣讀入內容然後將內容存在記憶體中。
+實際上，他會一行一行讀入並輸出大寫的版本，這是因為輸出才是真的需要輸入的資料的時候。
+
+{{
+$ cat haiku.txt | ./capslocker
+I'M A LIL' TEAPOT
+WHAT'S WITH THAT AIRPLAN FOOD, HUH?
+IT'S SO SMALL, TASTELESS
+}}
+
+很好，程式運作正常。
+假如我們執行capslocker然後自己打幾行字呢？
+{{
+$ ./capslocker
+hey ho
+HEY HO
+lets go
+LETS GO
+}}
+
+按下Ctrl-D來離開環境。
+就像你看到的，程式是一行一行將我們的輸入印出來。
+當``getContent``的結果被綁定到``contents``的時候，
+他不是被表示成在記憶體中的一個字串，
+反而比較像是他有一天會是字串的一個承諾。
+當我們將``toUpper`` map到``contents``的時候，
+便也是一個函數被承諾將會被map到內容上。
+最後``putStr``則要求先前的承諾說，給我一行大寫的字串吧。
+實際上還沒有任何一行被取出，所以便跟``contents``說，不如從終端那邊取出些姿串吧。
+這才是``getContents``真正從終端讀入一行並把這一行交給程式的時候。
+程式便將這一行用``toUpper``處裡並交給``putStr``，``putStr``則印出他。
+之後``putStr``再說：我需要下一行。
+整個步驟便再重複一次，直到讀到end-of-file為止。
+
+接著我們來寫個程式，讀取輸入，並只印出少於十個字元的行。
+{{
+main = do
+    contents <- getContents
+    putStr (shortLinesOnly contents)
+
+shortLinesOnly :: String -> String
+shortLinesOnly input = 
+    let allLines = lines input
+        shortLines = filter (\line -> length line < 10) allLines
+        result = unlines shortLines
+    in result
+}}
+
+我們把I/O部份的程式碼弄得很短。
+由於程式的行為是接某些輸入，作些處裡然後輸出。
+我們可以把他想成讀取輸入，呼叫一個函數，然後把函數的結果輸出。
+
+``shortLinesOnly``的行為是這樣：
+拿到一個字串，像是``"short\nlooooooooooooooong\nshort again"``。
+這字串有三行，前後兩行比較短，中間一行很常。
+他用``lines``把字串分成``["short", "looooooooooooooong", "short again"]``，
+並把結果綁定成``allLines``。
+然後過濾這些字串，只有少於十個字元的留下，
+``["short", "short again"]``，
+最後用``unlines``把這些字串用換行接起來，
+形成``"short\nshort again"``
+
+{{
+i'm short  
+so am i  
+i am a loooooooooong line!!!  
+yeah i'm long so what hahahaha!!!!!!  
+short line  
+loooooooooooooooooooooooooooong  
+short  
+}}
+
+{{
+$ ghc --make shortlinesonly  
+[1 of 1] Compiling Main             ( shortlinesonly.hs, shortlinesonly.o )  
+Linking shortlinesonly ...  
+$ cat shortlines.txt | ./shortlinesonly  
+i'm short  
+so am i  
+short  
+}}
+
+我們把shortlines.txt的內容經由pipe送給shortlinesonly，結果就如你看到，我們只有得到比較短的行。
+
+從輸入那一些字串，經由一些轉換然後輸出這樣的模式實在太常用了。
+常用到甚至建立了一個函數叫**interact**。
+``interact``接受一個``String -> String``的函數，並回傳一個I/O action。
+那個I/O action會讀取一些輸入，呼叫提供的函數，然後把函數的結果印出來。
+所以我們的程式可以改寫成這樣。
+
+{{
+main = interact shortLinesOnly
+
+shortLinesOnly :: String -> String
+shortLinesOnly input = 
+    let allLines = lines input
+        shortLines = filter (\line -> length line < 10) allLines
+        result = unlines shortLines
+    in result
+}}
+
+我們甚至可以再讓程式碼更短一些，像這樣
+{{
+main = interact $ unlines . filter ((<10) . length) . lines
+}}
+看吧，我們讓程式縮到只剩一行了，很酷吧！
+
+能應用``interact``的情況有幾種，
+像是從輸入pipe進一些內容然後丟出一些結果的程式，
+或是從使用者獲取一行一行的輸入，然後丟回根據那一行運算的結果，再拿取另一行。
+這兩者的差別主要是取決於使用者使用他們的方式。
+
+我們再來寫另一個程式，它不斷地讀取一行行並告訴我們那一行字串是不是一個回文字串(palindrome)。
+我們當然可以用``getLine``讀取一行然後再呼叫``main``作同樣的事。
+不過同樣的事情可以用``interact``更簡潔地達成。
+當使用``interact``的時候，想像你是將輸入經有某些轉換成輸出。
+在這個情況當中，我們要將每一行輸入轉換成``"palindrome"``或``"not a palindrome"``。
+所以我們必須寫一個函數將``"elephant\nABCBA\nwhatever"``轉換成``not a palindrome\npalindrome\nnot a palindrome"``。
+來動手吧！
+
+{{
+respondPalindromes contents = unlines (map \xs ->
+    if isPalindrome xs then "palindrome" else "not a palindrome") (lines contents))
+        where isPalindrome xs = xs == reverse xs
+}}
+
+再來將程式改寫成point-free的形式
+
+{{
+respondPalindromes = unlines . map (\xs ->
+    if isPalindrome xs then "palindrome" else "not a palindrome") . lines
+        where isPalindrome xs = xs == reverse xs
+}}
+
+很直覺吧！
+首先將``"elephant\nABCBA\nwhatever"``變成``["elephant", "ABCBA", "whatever"]``然後將一個lambda函數map它，
+``["not a palindrome", "palindrome", "not a palindrome"]``然後用``unlines``變成一行字串。
+接著
+
+{{
+main = interact respondPalindromes    
+}}
+
+來測試一下吧。
+
+{{
+$ runhaskell palindrome.hs
+hehe
+not a palindrome
+ABCBA
+palindrome
+cookie
+not a palindrome
+}}
+
+即使我們的程式是把一大把字串轉換成另一個，
+其實他表現得好像我們是一行一行做的。
+這是因為Haskell是惰性的，
+程式想要印出第一行結果時，他必須要先有第一行輸入。
+所以一旦我們給了第一行輸入，他便印出第一行結果。
+我們用end-of-line字元來結束程式。
+
+我們也可以用pipe的方式將輸入餵給程式。
+假設我們有這樣一個檔案。
+
+{{
+dogaroo
+radar
+rotor
+madam
+}}
+
+將他存為``words.txt``，將他餵給程式後得到的結果
+
+{{
+$ cat words.txt | runhaskell palindromes.hs
+not a palindrome
+palindrome
+palindrome
+palindrome
+}}
+
+再一次地提醒，我們得到的結果跟我們自己一個一個字打進輸入的內容是一樣的。
+我們看不到``palindrome.hs``輸入的內容是因為內容來自於檔案。
+
+你應該大致了解Lazy I/O是如何運作，並能善用他的優點。
+他可以從輸入轉換成輸出的角度方向思考。
+由於Lazy I/O，沒有輸入在被用到之前是真的被讀入。
+
+到目前為止，我們的示範都是從終端讀取某些東西或是印出某些東西到終端。
+但如果我們想要讀寫檔案呢？
+其實從某個角度來說我們已經作過這件事了。
+我們可以把讀寫終端想成讀寫檔案。
+只是把檔案命名成``stdout``跟``stdin``而已。
+他們分別代表標準輸出跟標準輸入。
+我們即將看到的讀寫檔案跟讀寫終端並沒什麼不同。
+
+首先來寫一個程式，他會開啟一個叫girlfriend.txt的檔案，
+檔案裡面有Avril Lavigne的暢銷名曲Girlfriend，並將內容印到終端上。
+接下來是girlfriend.txt的內容。
+{{
+Hey! Hey! You! You!   
+I don't like your girlfriend!   
+No way! No way!   
+I think you need a new one!  
+}}
+
+這則是我們的主程式。
+{{
+import System.IO  
+  
+main = do  
+    handle <- openFile "girlfriend.txt" ReadMode  
+    contents <- hGetContents handle  
+    putStr contents  
+    hClose handle  
+}}
+
+執行他後得到的結果。
+{{
+$ runhaskell girlfriend.hs  
+Hey! Hey! You! You!  
+I don't like your girlfriend!  
+No way! No way!  
+I think you need a new one!  
+}}
+
+
+我們來一行行看一下程式。
+我們的程式用do把好幾個I/O action綁在一起。
+在do block的第一行，
+我們注意到有一個新的函數叫**openFile**。
+他的type signature是``openFile :: FilePath -> IOMode -> IO Handle``。
+他說了``openFile``接受一個檔案路徑跟一個``IOMode``，
+並回傳一個I/O action，他會打開一個檔案並把檔案關聯到一個handle。
+
+``FilePath``不過是``String``的type synonym。
+{{
+type FilePath = String      
+}}
+
+``IOMode``則是一個定義如下的型態
+{{
+data IOMode = ReadMode | WriteMode | AppendMode | ReadWriteMode      
+}}
+
+就像我們之前定義的型態，分別代表一個星期的七天。
+這個型態代表了我們想對打開的檔案做什麼。很簡單吧。
+留意到我們的型態是``IOMode``而不是``IO Mode``。
+``IO Mode``代表的是一個I/O action包含了一個型態為``Mode``的值，
+但``IOMode``不過是一個陽春的enumeration。
+
+最後，他回傳一個I/O action會將指定的檔案用指定的模式打開。
+如果我們將I/O action綁定到某個東西，我們會得到一個``Handle``。
+型態為``Handle``的值代表我們的檔案在哪裡。
+有了handle我們才知道要從哪個檔案讀取內容。
+想讀取檔案但不將檔案綁定到handle上這樣做是很蠢的。
+所以，我們將一個handle綁定到``handle``。
+
+接著一行，我們看到一個叫**hGetContents**的函數。
+他接了一個``Handle``，所以他知道要從哪個檔案讀取內容並回傳一個``IO String``。
+一個包含了檔案內容的I/O action。
+這函數跟``getContents``差不多。
+唯一的差別是``getContents``會自動從標準輸入讀取內容（也就是終端），
+而``hGetContents``接了一個file handle，這file handle告訴他讀取哪個檔案。
+除此之外，他們都是一樣的。
+就像``getContents``，``hGetContents``不會把檔案一次都拉到記憶體中，
+而是有必要才會讀取。
+這非常酷，因為我們把``contents``當作是整個檔案般用，但他實際上不在記憶體中。
+就算這是個很大的檔案，``hGetContents``也不會塞爆你的記憶體，
+而是只有必要的時候才會讀取。
+
+
+
+{{
+import System.IO     
+    
+main = do     
+    withFile "girlfriend.txt" ReadMode (\handle -> do  
+            contents <- hGetContents handle     
+            putStr contents)  
+}}
 
 ==命令列引數
 
