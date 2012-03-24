@@ -250,12 +250,47 @@ main = do
 Hey! Hey! You! You!  
 I don't like your girlfriend!  
 No way! No way!  
-I think you need a new one!</pre><p>我們來一行行看一下程式。</p><p>我們的程式用do把好幾個I/O action綁在一起。</p><p>在do block的第一行，</p><p>我們注意到有一個新的函數叫<strong>openFile</strong>。</p><p>他的type signature是<code>openFile :: FilePath -> IOMode -> IO Handle</code>。</p><p>他說了<code>openFile</code>接受一個檔案路徑跟一個<code>IOMode</code>，</p><p>並回傳一個I/O action，他會打開一個檔案並把檔案關聯到一個handle。</p><p><code>FilePath</code>不過是<code>String</code>的type synonym。</p><pre class="code">type FilePath = String</pre><p><code>IOMode</code>則是一個定義如下的型態</p><pre class="code">data IOMode = ReadMode | WriteMode | AppendMode | ReadWriteMode</pre><p>就像我們之前定義的型態，分別代表一個星期的七天。</p><p>這個型態代表了我們想對打開的檔案做什麼。很簡單吧。</p><p>留意到我們的型態是<code>IOMode</code>而不是<code>IO Mode</code>。</p><p><code>IO Mode</code>代表的是一個I/O action包含了一個型態為<code>Mode</code>的值，</p><p>但<code>IOMode</code>不過是一個陽春的enumeration。</p><p>最後，他回傳一個I/O action會將指定的檔案用指定的模式打開。</p><p>如果我們將I/O action綁定到某個東西，我們會得到一個<code>Handle</code>。</p><p>型態為<code>Handle</code>的值代表我們的檔案在哪裡。</p><p>有了handle我們才知道要從哪個檔案讀取內容。</p><p>想讀取檔案但不將檔案綁定到handle上這樣做是很蠢的。</p><p>所以，我們將一個handle綁定到<code>handle</code>。</p><p>接著一行，我們看到一個叫<strong>hGetContents</strong>的函數。</p><p>他接了一個<code>Handle</code>，所以他知道要從哪個檔案讀取內容並回傳一個<code>IO String</code>。</p><p>一個包含了檔案內容的I/O action。</p><p>這函數跟<code>getContents</code>差不多。</p><p>唯一的差別是<code>getContents</code>會自動從標準輸入讀取內容（也就是終端），</p><p>而<code>hGetContents</code>接了一個file handle，這file handle告訴他讀取哪個檔案。</p><p>除此之外，他們都是一樣的。</p><p>就像<code>getContents</code>，<code>hGetContents</code>不會把檔案一次都拉到記憶體中，</p><p>而是有必要才會讀取。</p><p>這非常酷，因為我們把<code>contents</code>當作是整個檔案般用，但他實際上不在記憶體中。</p><p>就算這是個很大的檔案，<code>hGetContents</code>也不會塞爆你的記憶體，</p><p>而是只有必要的時候才會讀取。</p><pre class="code">import System.IO     
+I think you need a new one!</pre><p>我們來一行行看一下程式。</p><p>我們的程式用do把好幾個I/O action綁在一起。</p><p>在do block的第一行，</p><p>我們注意到有一個新的函數叫<strong>openFile</strong>。</p><p>他的type signature是<code>openFile :: FilePath -> IOMode -> IO Handle</code>。</p><p>他說了<code>openFile</code>接受一個檔案路徑跟一個<code>IOMode</code>，</p><p>並回傳一個I/O action，他會打開一個檔案並把檔案關聯到一個handle。</p><p><code>FilePath</code>不過是<code>String</code>的type synonym。</p><pre class="code">type FilePath = String</pre><p><code>IOMode</code>則是一個定義如下的型態</p><pre class="code">data IOMode = ReadMode | WriteMode | AppendMode | ReadWriteMode</pre><p>就像我們之前定義的型態，分別代表一個星期的七天。</p><p>這個型態代表了我們想對打開的檔案做什麼。很簡單吧。</p><p>留意到我們的型態是<code>IOMode</code>而不是<code>IO Mode</code>。</p><p><code>IO Mode</code>代表的是一個I/O action包含了一個型態為<code>Mode</code>的值，</p><p>但<code>IOMode</code>不過是一個陽春的enumeration。</p><p>最後，他回傳一個I/O action會將指定的檔案用指定的模式打開。</p><p>如果我們將I/O action綁定到某個東西，我們會得到一個<code>Handle</code>。</p><p>型態為<code>Handle</code>的值代表我們的檔案在哪裡。</p><p>有了handle我們才知道要從哪個檔案讀取內容。</p><p>想讀取檔案但不將檔案綁定到handle上這樣做是很蠢的。</p><p>所以，我們將一個handle綁定到<code>handle</code>。</p><p>接著一行，我們看到一個叫<strong>hGetContents</strong>的函數。</p><p>他接了一個<code>Handle</code>，所以他知道要從哪個檔案讀取內容並回傳一個<code>IO String</code>。</p><p>一個包含了檔案內容的I/O action。</p><p>這函數跟<code>getContents</code>差不多。</p><p>唯一的差別是<code>getContents</code>會自動從標準輸入讀取內容（也就是終端），</p><p>而<code>hGetContents</code>接了一個file handle，這file handle告訴他讀取哪個檔案。</p><p>除此之外，他們都是一樣的。</p><p>就像<code>getContents</code>，<code>hGetContents</code>不會把檔案一次都拉到記憶體中，</p><p>而是有必要才會讀取。</p><p>這非常酷，因為我們把<code>contents</code>當作是整個檔案般用，但他實際上不在記憶體中。</p><p>就算這是個很大的檔案，<code>hGetContents</code>也不會塞爆你的記憶體，</p><p>而是只有必要的時候才會讀取。</p><p>要留意檔案的handle還有檔案的內容兩個概念的差異，</p><p>在我們的程式中他們分別被綁訂到<code>handle</code>跟<code>contents</code>兩個名字。</p><p>handle是我們拿來區分檔案的依據。</p><p>如果你把整個檔案系統想成一本厚厚的書，每個檔案分別是其中的一個章節，</p><p>handle就像是書籤一般標記了你現在正在閱讀（或寫入）哪一個章節，</p><p>而內容則是章節本身。</p><p>我們使用<code>putStr contents</code>印出內容到標準輸出，然後我們用了<strong>hClose</strong>。</p><p>他接受一個handle然後回傳一個關掉檔案的I/O action。</p><p>在用了<code>openFile</code>之後，你必須自己把檔案關掉。</p><p>要達到我們目的的另一種方式是使用<strong>withFile</strong>，</p><p>他的type signature是<code>withFile :: FilePath -> IOMode -> (Handle -> IO a) -> IO a</code>。</p><p>他接受一個檔案路徑，一個<code>IOMode</code>以及一個函數，這函數則接受一個handle跟一個I/O action。</p><p><code>withFile</code>最後回傳一個會打開檔案，對檔案作某件事然後關掉檔案的I/O action。</p><p>處裡的結果是包在最後的I/O action中，這結果跟我們給的函數的回傳是相同的。</p><p>這聽起來有些複雜，但其實很簡單，特別是我們有lambda，</p><p>來看看我們用<code>withFile</code>改寫前面程式的一個範例：</p><pre class="code">import System.IO     
     
 main = do     
     withFile "girlfriend.txt" ReadMode (\handle -> do  
             contents <- hGetContents handle     
-            putStr contents)</pre><a name="命令列引數"></a><h2>命令列引數</h2><a name="亂數"></a><h2>亂數</h2><a name="Bytestrings"></a><h2>Bytestrings</h2><a name="Exceptions (例外)"></a><h2>Exceptions (例外)</h2>
+            putStr contents)</pre><p>正如你看到的，程式跟之前的看起來很像。</p><p><code>(\handle -> ... )</code>是一個接受handle並回傳I/O action的函數，</p><p>他通常都是用lambda來表示。</p><p>我們需要一個回傳I/O action的函數的理由而不是一個本身作處裡並關掉檔案的I/O action，</p><p>是因為這樣一來那個I/O action不會知道他是對哪個檔案在做處裡。</p><p>用<code>withFile</code>的話，<code>withFile</code>會打開檔案並把handle傳給我們給他的函數，</p><p>之後他則拿到一個I/O action，然後作成一個我們描述的I/O action，最後關上檔案。</p><p>例如我們可以這樣自己作一個<code>withFile</code>：</p><pre class="code">withFile' :: FilePath -> IOMode -> (Handle -> IO a) -> IO a  
+withFile' path mode f = do  
+    handle <- openFile path mode   
+    result <- f handle  
+    hClose handle  
+    return result</pre><p>我們知道要回傳的是一個I/O action，所以我們先放一個do。</p><p>首先我們打開檔案，得到一個handle。</p><p>然後我們apply<code>handle</code>到我們的函數，並得到一個做事的I/O action。</p><p>我們綁定那個I/O action到<code>result</code>這個名字，</p><p>關上handle並<code>return result</code>。</p><p><code>return</code>的作用把從<code>f</code>得到的結果包在I/O action中，</p><p>這樣一來I/O action中就包含了<code>f handle</code>得到的結果。</p><p>如果<code>f handle</code>回傳一個從標準輸入讀去數行並寫到檔案然後回傳讀入的行數的I/O action，</p><p>在<code>withFile'</code>的情形中，最後的I/O action就會包含讀入的行數。</p><p>就像<code>hGetContents</code>對應<code>getContents</code>一樣，只不過是針對某個檔案。</p><p>我們也有<strong>hGetLine</strong>,<strong>hPutStr</strong>,<strong>hPutStrLn</strong>,<b>hGetChar</b>*等等。</p><p>他們分別是少了h的那些函數的對應。</p><p>只不過他們他們要多拿一個handle當參數，並是針對特定檔案而不是標準輸出或標準輸入。</p><p>像是<code>putStrLn</code>是一個接受一個字串並回傳一個印出加了換行字元的字串的I/O action的函數。</p><p><code>hPutStrLn</code>接受一個handle跟一個字串，回傳一個印出加了換字元的字串到檔案的I/O action。</p><p>以此類推，<code>hGetLine</code>接受一個handle然後回傳一個從檔案讀取一行的I/O action。</p><p>讀取檔案並對他們的字串內容作些處裡實在太常見了，</p><p>常見到我們有三個函數來更進一步簡化我們的工作。</p><p><strong>readFile</strong>的type signature是<code>readFile :: FilePath -> IO String</code>。</p><p>記住，<code>FilePath</code>不過是<code>String</code>的一個別名。</p><p><code>readFile</code>接受一個檔案路徑，回傳一個惰性讀取我們檔案的I/O action。</p><p>然後將檔案的內容綁定到某個字串。</p><p>他比起先<code>openFile</code>，綁定handle，然後<code>hGetContents</code>要好用多了。</p><p>這邊是一個用<code>readFile</code>改寫之前例子的範例：</p><pre class="code">import System.IO  
+  
+main = do  
+    contents <- readFile "girlfriend.txt"  
+    putStr contents</pre><p>由於我們拿不到handle，所以我們也無法關掉他。</p><p>這件事Haskell的<code>readFile</code>在背後幫我們做了。</p><p><strong>writeFile</strong>的型態是<code>writefile :: FilePath -> String -> IO ()</code>。</p><p>他接受一個檔案路徑，以及一個要寫到檔案中的字串，並回傳一個寫入動作的I/O action。</p><p>如果這個檔案已經存在了，</p><p>他會先把檔案內容都砍了再寫入。</p><p>我們是反如何把girlfriend.txt的檔案轉成大寫然後寫入到girlfriendcaps.txt中</p><pre class="code">import System.IO     
+import Data.Char  
+    
+main = do     
+    contents <- readFile "girlfriend.txt"     
+    writeFile "girlfriendcaps.txt" (map toUpper contents)</pre><pre class="code">$ runhaskell girlfriendtocaps.hs  
+$ cat girlfriendcaps.txt  
+HEY! HEY! YOU! YOU!  
+I DON'T LIKE YOUR GIRLFRIEND!  
+NO WAY! NO WAY!  
+I THINK YOU NEED A NEW ONE!</pre><p><strong>appendFile</strong>的型態很像<code>writeFile</code>，只是<code>appendFile</code>並不會在檔案存在時把檔案內容砍掉而是接在後面。</p><p>假設我們有一個檔案叫todo.txt，裡面每一行是一件要做的事情。</p><p>現在我們寫一個程式，從標準輸入接受一行將他加到我們的to-do list中。</p><pre class="code">import System.IO     
+    
+main = do     
+    todoItem <- getLine  
+    appendFile "todo.txt" (todoItem ++ "\n")</pre><pre class="code">$ runhaskell appendtodo.hs  
+Iron the dishes  
+$ runhaskell appendtodo.hs  
+Dust the dog  
+$ runhaskell appendtodo.hs  
+Take salad out of the oven  
+$ cat todo.txt  
+Iron the dishes  
+Dust the dog  
+Take salad out of the oven</pre><p>由於<code>getLine</code>回傳的值不會有換行字元，我們需要在每一行最後加上<code>"\n"</code>。</p><p>還有一件事，我們提到<code>contents <- hGetContents handle</code>是惰性I/O，不會將檔案一次都讀到記憶體中。</p><p>所以像這樣寫的話：</p><pre class="code">main = do   
+    withFile "something.txt" ReadMode (\handle -> do  
+        contents <- hGetContents handle  
+        putStr contents)</pre><p>實際上像是用一個pipe把檔案弄到標準輸出。</p><a name="命令列引數"></a><h2>命令列引數</h2><a name="亂數"></a><h2>亂數</h2><a name="Bytestrings"></a><h2>Bytestrings</h2><a name="Exceptions (例外)"></a><h2>Exceptions (例外)</h2>
             <ul class="nav">
                 <li class="left">  <img src="img/prv.png"></img><a href="make-types-and-classes-for-ourselves.html">構造我們自己的Types和Typeclasses</a></li>
                 <li class="center"><a href="chapters.html">Index</a></li>
