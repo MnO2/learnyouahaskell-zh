@@ -4,13 +4,13 @@
 
 [$img/modules.png]
 
-haskell中的模組是含有一組相關的函數，類型和類型類的組合。而haskell程序的本質便是從主模組中引用其它模組並調用其中的函數來執行操作。這樣可以把代碼分成多塊，只要一個模組足夠的獨立，它裡面的函數便可以被不同的程序反覆重用。這就讓不同的代碼各司其職，提高了代碼的健壯性。
+haskell中的模組是含有一組相關的函數，類型和類型類的組合。而haskell程序的本質便是從主模組中引用其它模組並呼叫其中的函數來執行操作。這樣可以把程式碼分成多塊，只要一個模組足夠的獨立，它裡面的函數便可以被不同的程序反覆重用。這就讓不同的程式碼各司其職，提高了程式碼的健壯性。
 
 haskell的標準庫就是一組模組，每個模組都含有一組功能相近或相關的函數和類型。有處理List的模組，有處理並發的模組，也有處理複數的模組，等等。目前為止我們談及的所有函數,類型以及類型類都是Prelude模組的一部分，它預設自動裝載。在本章，我們看一下幾個常用的模組，在開始瀏覽其中的函數之前，我們先得知道如何裝載模組.
 
-在haskell中，裝載模組的語法為 _import_ ，這必須得在函數的定義之前，所以一般都是將它置於代碼的頂部。無疑，一段代碼中可以裝載很多模組，只要將import語句分行寫開即可。裝載Data.List試下，它裡面有很多實用的List處理函數.
+在haskell中，裝載模組的語法為 _import_ ，這必須得在函數的定義之前，所以一般都是將它置於程式碼的頂部。無疑，一段程式碼中可以裝載很多模組，只要將import語句分行寫開即可。裝載Data.List試下，它裡面有很多實用的List處理函數.
 
-執行``import Data.List``，這樣一來``Data.List``中包含的所有函數就都進入了全局命名空間。也就是說，你可以在代碼的任意位置調用這些函數.`` Data.List``模組中有個``nub``函數，它可以篩掉一個List中的所有重複元素。用點號將``length``和``nub``組合:`` length 。nub ``，即可得到一個與``(\xs -> length (nub xs))``等價的函數。
+執行``import Data.List``，這樣一來``Data.List``中包含的所有函數就都進入了全局命名空間。也就是說，你可以在程式碼的任意位置呼叫這些函數.`` Data.List``模組中有個``nub``函數，它可以篩掉一個List中的所有重複元素。用點號將``length``和``nub``組合:`` length 。nub ``，即可得到一個與``(\xs -> length (nub xs))``等價的函數。
 
 {{
 import Data.List  
@@ -19,7 +19,7 @@ numUniques :: (Eq a) => [a] -> Int
 numUniques = length 。nub  
 }}
 
-你也可以在GHCi中裝載模組，若要調用``Data.List``中的函數，就這樣:
+你也可以在GHCi中裝載模組，若要呼叫``Data.List``中的函數，就這樣:
 
 {{
 ghci> :m Data.List  
@@ -31,7 +31,7 @@ ghci> :m Data.List
 ghci> :m Data.List Data.Map Data.Set  
 }}
 
-而你的程序中若已經有包含的代碼，就不必再用``:m``了.
+而你的程序中若已經有包含的程式碼，就不必再用``:m``了.
 
 如果你只用得到某模組的兩個函數，大可僅包含它倆。若僅裝載``Data.List``模組``nub``和``sort``，就這樣:
 
@@ -39,25 +39,25 @@ ghci> :m Data.List Data.Map Data.Set
 import Data.List (nub，sort)  
 }}
 
-也可以只包含除去某函數之外的其它函數，這在避免多個模組中函數的命名衝突很有用。假設我們的代碼中已經有了一個叫做``nub``的函數，而裝入``Data.List``模組時就要把它裡面的nub除掉.
+也可以只包含除去某函數之外的其它函數，這在避免多個模組中函數的命名衝突很有用。假設我們的程式碼中已經有了一個叫做``nub``的函數，而裝入``Data.List``模組時就要把它裡面的nub除掉.
 
 {{
 import Data.List hiding (nub) 
 }}
 
-避免命名衝突還有個方法，便是``qualified import``，``Data.Map``模組提供一了一個按鍵索值的資料結構，它裡面有幾個和Prelude模組重名的函數。如``filter``和``null``，裝入Data.Map模組之後再調用filter，haskell就不知道它究竟是哪個函數。如下便是解決的方法:
+避免命名衝突還有個方法，便是``qualified import``，``Data.Map``模組提供一了一個按鍵索值的資料結構，它裡面有幾個和Prelude模組重名的函數。如``filter``和``null``，裝入Data.Map模組之後再呼叫filter，haskell就不知道它究竟是哪個函數。如下便是解決的方法:
 
 {{
 import qualified Data.Map  
 }}
 
-這樣一來，再調用``Data.Map``中的``filter``函數，就必須得``Data.Map.filter``，而``filter``依然是為我們熟悉喜愛的樣子。但是要在每個函數前面都加``個Data.Map``實在是太煩人了! 那就給它起個別名，讓它短些:
+這樣一來，再呼叫``Data.Map``中的``filter``函數，就必須得``Data.Map.filter``，而``filter``依然是為我們熟悉喜愛的樣子。但是要在每個函數前面都加``個Data.Map``實在是太煩人了! 那就給它起個別名，讓它短些:
 
 {{
 import qualified Data.Map as M  
 }}
 
-好，再調用``Data.Map``模組的``filter``函數的話僅需``M.filter``就行了 
+好，再呼叫``Data.Map``模組的``filter``函數的話僅需``M.filter``就行了 
 
 要瀏覽所有的標準庫模組，參考這個手冊。翻閲標準庫中的模組和函數是提升個人haskell水平的重要途徑。你也可以各個模組的原始碼，這對haskell的深入學習及掌握都是大有好處的.
 
@@ -160,7 +160,7 @@ ghci> any (`elem` ['A'..'Z']) "HEYGUYSwhatsup"
 True  
 }}
 
-**iterate**取一個函數和一個值作參數。它會用該值去調用該函數並用所得的結果再次調用該函數，產生一個無限的List.
+**iterate**取一個函數和一個值作參數。它會用該值去呼叫該函數並用所得的結果再次呼叫該函數，產生一個無限的List.
 
 {{
 ghci> take 10 $ iterate (*2) 1  
@@ -217,7 +217,7 @@ ghci> head (dropWhile (\(val,y,m,d) -> val < 1000) stock)
 (1001.4,2008,9,4)  
 }}
 
-**span**與``takeWhile``有點像，只是它返回兩個List。第一個List與同參數調用takeWhile所得的結果相同，第二個List就是原List中餘下的部分。
+**span**與``takeWhile``有點像，只是它返回兩個List。第一個List與同參數呼叫takeWhile所得的結果相同，第二個List就是原List中餘下的部分。
 
 {{
 ghci> let (fw，rest) = span (/=' ') "This is a sentence" in "First word:" ++ fw ++ "，the rest:" ++ rest  
@@ -258,7 +258,7 @@ ghci> map (\l@(x:xs) -> (x,length l)) 。group 。sort $ [1,1,1,1,2,2,2,2,3,3,2,
 [(1,4),(2,7),(3,2),(5,1),(6,1),(7,1)]  
 }}
 
-**inits**和**tails**與``init``和``tail``相似，只是它們會遞歸地調用自身直到什麼都不剩，看:
+**inits**和**tails**與``init``和``tail``相似，只是它們會遞歸地呼叫自身直到什麼都不剩，看:
 
 {{
 ghci> inits "w00t"  
@@ -278,7 +278,7 @@ search needle haystack =
   in foldl (\acc x -> if take nlen x == needle then True else acc) False (tails haystack)  
 }}
 
-首先，對搜索的List調用tails，然後遍歷每個List來檢查它是不是我們想要的.
+首先，對搜索的List呼叫tails，然後遍歷每個List來檢查它是不是我們想要的.
 
 {{
 ghci> "cat" `isInfixOf` "im a cat burglar"  
@@ -337,7 +337,7 @@ find :: (a -> Bool) -> [a] -> Maybe a
 
 注意一下``find``的類型，它的返回結果為``Maybe a··，這與``[a]``的寫法有點像，只是Maybe型的值只能為空或者單一元素，而List可以為空,一個元素，也可以是多個元素.
 
-想想前面那段找股票的代碼，``head (dropWhile (\(val,y,m,d) -> val < 1000) stock)`` 。但head並不安全! 如果我們的股票沒漲過$1000會怎樣? ``dropWhile``會返回一個空List，而對空List取head就會引發一個錯誤。把它改成``find (\(val,y,m,d) -> val > 1000) stock`` 就安全多啦，若存在合適的結果就得到它,像``Just (1001.4,2008,9,4)``，若不存在合適的元素(即我們的股票沒有漲到過$1000)，就會得到一個Nothing.
+想想前面那段找股票的程式碼，``head (dropWhile (\(val,y,m,d) -> val < 1000) stock)`` 。但head並不安全! 如果我們的股票沒漲過$1000會怎樣? ``dropWhile``會返回一個空List，而對空List取head就會引發一個錯誤。把它改成``find (\(val,y,m,d) -> val > 1000) stock`` 就安全多啦，若存在合適的結果就得到它,像``Just (1001.4,2008,9,4)``，若不存在合適的元素(即我們的股票沒有漲到過$1000)，就會得到一個Nothing.
 
 **elemIndex**與``elem``相似，只是它返回的不是布林值，它只是'可能'(Maybe)返回我們找的元素的索引，若這一元素不存在，就返回``Nothing``。
 
@@ -462,7 +462,7 @@ ghci> insert 3 [1,2,4,3,2,1]
 [1,2,3,4,3,2,1]  
 }}
 
-length，take，drop，splitAt和replace之類的函數有個共同點。那就是它們的參數中都有個Int值，我覺得使用Intergal或Num類型類會更好，但出於歷史原因，修改這些會破壞掉許多既有的代碼。在Data.List中包含了更通用的替代版，如:genericLength，genericTake，genericDrop，genericSplitAt，genericIndex 和 genericReplicate。length的類型聲明為`` length :: [a] -> Int``，而我們若要像這樣求它的平均值，``let xs = [1..6] in sum xs / length xs`` ，就會得到一個類型錯誤，因為``/``運算符不能對Int型使用! 而``genericLength``的類型聲明則``為genericLength :: (Num a) => [b] -> a``，Num既可以是整數又可以是浮點數，``let xs = [1..6] in sum xs / genericLength xs ``這樣再求平均數就不會有問題了.
+length，take，drop，splitAt和replace之類的函數有個共同點。那就是它們的參數中都有個Int值，我覺得使用Intergal或Num類型類會更好，但出於歷史原因，修改這些會破壞掉許多既有的程式碼。在Data.List中包含了更通用的替代版，如:genericLength，genericTake，genericDrop，genericSplitAt，genericIndex 和 genericReplicate。length的類型聲明為`` length :: [a] -> Int``，而我們若要像這樣求它的平均值，``let xs = [1..6] in sum xs / length xs`` ，就會得到一個類型錯誤，因為``/``運算符不能對Int型使用! 而``genericLength``的類型聲明則``為genericLength :: (Num a) => [b] -> a``，Num既可以是整數又可以是浮點數，``let xs = [1..6] in sum xs / genericLength xs ``這樣再求平均數就不會有問題了.
 
 ``nub``,``delete``,``union``,``intsect``和``group``函數也有各自的通用替代版``nubBy``，``deleteBy``，``unionBy``，``intersectBy``和 ``groupBy``，它們的區別就是前一組函數使用(==)來測試是否相等，而帶By的那組則取一個函數作參數來判定相等性，group就與groupBy (==)等價.
 
@@ -577,7 +577,7 @@ ghci> map generalCategory " \t\nA9?|"
 [Space,Control,Control,UppercaseLetter,DecimalNumber,OtherPunctuation,MathSymbol]
 }}
 
-由於``GeneralCategory``類型是Eq類型類的一部分，使用類似``generalCategory c == Space``的代碼也是可以的.
+由於``GeneralCategory``類型是Eq類型類的一部分，使用類似``generalCategory c == Space``的程式碼也是可以的.
 
 **toUpper**將一個字元轉為大寫字母，若該字元不是小寫字母，就按原值返回.
 **toLower**將一個字元轉為小寫字母，若該字元不是大寫字母，就按原值返回.
@@ -689,7 +689,7 @@ findKey key [] = Nothing findKey key ((k,v):xs) =
          findKey key xs
 }}
 
-看這類型聲明，它取一個可判斷相等性的鍵和一個關聯列表做參數，可能(Maybe)得到一個值。聽起來不錯.這便是個標準的處理List的遞歸函數，邊界條件，分割List，遞歸調用，都有了 -- 經典的fold模式。
+看這類型聲明，它取一個可判斷相等性的鍵和一個關聯列表做參數，可能(Maybe)得到一個值。聽起來不錯.這便是個標準的處理List的遞歸函數，邊界條件，分割List，遞歸呼叫，都有了 -- 經典的fold模式。
 看看用fold怎樣實現吧。
 
 {{
@@ -697,7 +697,7 @@ findKey :: (Eq k) => k -> [(k,v)] -> Maybe v
 findKey key = foldr (\(k,v) acc -> if key == k then Just v else acc) Nothing
 }}
 
-    *Note*: 通常，使用fold來替代類似的遞歸函數會更好些。用fold的代碼讓人一目瞭然，而看明白遞歸則得多花點腦子。
+    *Note*: 通常，使用fold來替代類似的遞歸函數會更好些。用fold的程式碼讓人一目瞭然，而看明白遞歸則得多花點腦子。
 
 {{
 ghci> findKey "penny" phoneBook 
@@ -708,7 +708,7 @@ ghci> findKey "wilma" phoneBook
 Nothing
 }}
 
-如魔咒般靈驗! 只要我們有這姑娘的號碼就Just可以得到，否則就是Nothing.方纔我們實現的函數便是Data.List模組的lookup，如果要按鍵去尋找相應的值，它就必須得遍歷整個List，直到找到為止。而``Data.Map``模組提供了更高效的方式(通過樹實現)，並提供了一組好用的函數。從現在開始，我們扔掉關聯列表，改用map.由於``Data.Map``中的一些函數與Prelude和``Data.List``模組存在命名衝突，所以我們使用``qualified import``。``import qualified Data.Map as Map``在代碼中加上這句，並load到ghci中.繼續前進，看看``Data.Map``是如何的一座寶庫! 
+如魔咒般靈驗! 只要我們有這姑娘的號碼就Just可以得到，否則就是Nothing.方纔我們實現的函數便是Data.List模組的lookup，如果要按鍵去尋找相應的值，它就必須得遍歷整個List，直到找到為止。而``Data.Map``模組提供了更高效的方式(通過樹實現)，並提供了一組好用的函數。從現在開始，我們扔掉關聯列表，改用map.由於``Data.Map``中的一些函數與Prelude和``Data.List``模組存在命名衝突，所以我們使用``qualified import``。``import qualified Data.Map as Map``在程式碼中加上這句，並load到ghci中.繼續前進，看看``Data.Map``是如何的一座寶庫! 
 如下便是其中函數的一瞥:
 
 **fromList**取一個關聯列表，返回一個與之等價的map。
@@ -867,7 +867,7 @@ fromList [(3,104),(5,103),(6,339)]
 
 由於Data.Set模組與Prelude模組和Data.List模組中存在大量的命名衝突，所以我們使用_qualified import_
 
-將import語句至于代碼之中:
+將import語句至于程式碼之中:
 
 {{
 import qualified Data.Set as Set  
@@ -978,7 +978,7 @@ fromList [3,4,5,6,7,8]
 
 == 建立自己的模組 #build-your-own-module
 
-我們已經見識過了幾個很酷的模組，但怎樣才能構造自己的模組呢? 几乎所有的編程語言都允許你將代碼分成多個檔案，haskell也不例外。在編程時，將功能相近的函數和類型至于同一模組中會是個很好的習慣。這樣一來，你就可以輕鬆地一個import來重用其中的函數.
+我們已經見識過了幾個很酷的模組，但怎樣才能構造自己的模組呢? 几乎所有的編程語言都允許你將程式碼分成多個檔案，haskell也不例外。在編程時，將功能相近的函數和類型至于同一模組中會是個很好的習慣。這樣一來，你就可以輕鬆地一個import來重用其中的函數.
 
 接下來我們將構造一個由計算機幾何圖形體積和麵積組成的模組，先從新建一個``Geometry.hs``的檔案開始.
 
@@ -1031,7 +1031,7 @@ rectangleArea a b = a * b
 
 [$img/making_modules.png]
 
-標準的幾何公式。有幾個地方需要注意一下，由於立方體只是長方體的特殊形式，所以在求它面積和體積的時候我們就將它當作是邊長相等的長方體。在這裡還定義了一個helper函數，``rectangleArea``它可以通過長方體的兩條邊計算出長方體的面積。它僅僅是簡單的相乘而已，份量不大。但請注意我們可以在這一模組中調用這個函數，而它不會被導出! 因為我們這個模組只與三維圖形打交道.
+標準的幾何公式。有幾個地方需要注意一下，由於立方體只是長方體的特殊形式，所以在求它面積和體積的時候我們就將它當作是邊長相等的長方體。在這裡還定義了一個helper函數，``rectangleArea``它可以通過長方體的兩條邊計算出長方體的面積。它僅僅是簡單的相乘而已，份量不大。但請注意我們可以在這一模組中呼叫這個函數，而它不會被導出! 因為我們這個模組只與三維圖形打交道.
 
 當構造一個模組的時 候，我們通常只會導出那些行為相近的函數，而其內部的實現則是隱蔽的。如果有人用到了Geometry模組，就不需要關心它的內部實現是如何。我們作為編寫者，完全可以隨意修改這些函數甚至將其刪掉，沒有人會注意到裡面的變動，因為我們並不把它們導出.
 
@@ -1106,7 +1106,7 @@ area side = Cuboid.area side side side
 import Geometry.Sphere  
 }}
 
-然後，調用``area``和``volume``，就可以得到球體的面積和體積，而若要用到兩個或更多此類模組，就必須得``qualified import``來避免重名。所以就得這樣寫:
+然後，呼叫``area``和``volume``，就可以得到球體的面積和體積，而若要用到兩個或更多此類模組，就必須得``qualified import``來避免重名。所以就得這樣寫:
 
 {{
 import qualified Geometry.Sphere as Sphere  
@@ -1114,6 +1114,6 @@ import qualified Geometry.Cuboid as Cuboid
 import qualified Geometry.Cube as Cube  
 }}
 
-然後就可以調用``Sphere.area``，``Sphere.volume``，``Cuboid.area``了，而每個函數都只計算其對應物體的面積和體積.
+然後就可以呼叫``Sphere.area``，``Sphere.volume``，``Cuboid.area``了，而每個函數都只計算其對應物體的面積和體積.
 
-以後你若發現自己的代碼體積龐大且函數眾多，就應該試着找找目的相近的函數能否裝入各自的模組，也方便日後的重用.
+以後你若發現自己的程式碼體積龐大且函數眾多，就應該試着找找目的相近的函數能否裝入各自的模組，也方便日後的重用.

@@ -977,7 +977,24 @@ data IOMode = ReadMode | WriteMode | AppendMode | ReadWriteMode
 就算這是個很大的檔案，``hGetContents``也不會塞爆你的記憶體，
 而是只有必要的時候才會讀取。
 
+要留意檔案的handle還有檔案的內容兩個概念的差異，
+在我們的程式中他們分別被綁訂到``handle``跟``contents``兩個名字。
+handle是我們拿來區分檔案的依據。
+如果你把整個檔案系統想成一本厚厚的書，每個檔案分別是其中的一個章節，
+handle就像是書籤一般標記了你現在正在閱讀（或寫入）哪一個章節，
+而內容則是章節本身。
 
+我們使用``putStr contents``印出內容到標準輸出，然後我們用了**hClose**。
+他接受一個handle然後回傳一個關掉檔案的I/O action。
+在用了``openFile``之後，你必須自己把檔案關掉。
+
+要達到我們目的的另一種方式是使用**withFile**，
+他的type signature是``withFile :: FilePath -> IOMode -> (Handle -> IO a) -> IO a``。
+他接受一個檔案路徑，一個``IOMode``以及一個函數，這函數則接受一個handle跟一個I/O action。
+``withFile``最後回傳一個會打開檔案，對檔案作某件事然後關掉檔案的I/O action。
+處裡的結果是包在最後的I/O action中，這結果跟我們給的函數的回傳是相同的。
+這聽起來有些複雜，但其實很簡單，特別是我們有lambda，
+來看看我們用``withFile``改寫前面程式的一個範例：
 
 {{
 import System.IO     
@@ -987,6 +1004,128 @@ main = do
             contents <- hGetContents handle     
             putStr contents)  
 }}
+
+正如你看到的，程式跟之前的看起來很像。
+``(\handle -> ... )``是一個接受handle並回傳I/O action的函數，
+他通常都是用lambda來表示。
+我們需要一個回傳I/O action的函數的理由而不是一個本身作處裡並關掉檔案的I/O action，
+是因為這樣一來那個I/O action不會知道他是對哪個檔案在做處裡。
+用``withFile``的話，``withFile``會打開檔案並把handle傳給我們給他的函數，
+之後他則拿到一個I/O action，然後作成一個我們描述的I/O action，最後關上檔案。
+例如我們可以這樣自己作一個``withFile``：
+
+{{
+withFile' :: FilePath -> IOMode -> (Handle -> IO a) -> IO a  
+withFile' path mode f = do  
+    handle <- openFile path mode   
+    result <- f handle  
+    hClose handle  
+    return result  
+}}
+
+我們知道要回傳的是一個I/O action，所以我們先放一個do。
+首先我們打開檔案，得到一個handle。
+然後我們apply ``handle``到我們的函數，並得到一個做事的I/O action。
+我們綁定那個I/O action到``result``這個名字，
+關上handle並``return result``。
+``return``的作用把從``f``得到的結果包在I/O action中，
+這樣一來I/O action中就包含了``f handle``得到的結果。
+如果``f handle``回傳一個從標準輸入讀去數行並寫到檔案然後回傳讀入的行數的I/O action，
+在``withFile'``的情形中，最後的I/O action就會包含讀入的行數。
+
+就像``hGetContents``對應``getContents``一樣，只不過是針對某個檔案。
+我們也有**hGetLine**, **hPutStr**, **hPutStrLn**, *hGetChar**等等。
+他們分別是少了h的那些函數的對應。
+只不過他們他們要多拿一個handle當參數，並是針對特定檔案而不是標準輸出或標準輸入。
+像是``putStrLn``是一個接受一個字串並回傳一個印出加了換行字元的字串的I/O action的函數。
+``hPutStrLn``接受一個handle跟一個字串，回傳一個印出加了換字元的字串到檔案的I/O action。
+以此類推，``hGetLine``接受一個handle然後回傳一個從檔案讀取一行的I/O action。
+
+讀取檔案並對他們的字串內容作些處裡實在太常見了，
+常見到我們有三個函數來更進一步簡化我們的工作。
+
+**readFile**的type signature是``readFile :: FilePath -> IO String``。
+記住，``FilePath``不過是``String``的一個別名。
+``readFile``接受一個檔案路徑，回傳一個惰性讀取我們檔案的I/O action。
+然後將檔案的內容綁定到某個字串。
+他比起先``openFile``，綁定handle，然後``hGetContents``要好用多了。
+這邊是一個用``readFile``改寫之前例子的範例：
+
+{{
+import System.IO  
+  
+main = do  
+    contents <- readFile "girlfriend.txt"  
+    putStr contents  
+}}
+
+由於我們拿不到handle，所以我們也無法關掉他。
+這件事Haskell的``readFile``在背後幫我們做了。
+
+**writeFile**的型態是``writefile :: FilePath -> String -> IO ()``。
+他接受一個檔案路徑，以及一個要寫到檔案中的字串，並回傳一個寫入動作的I/O action。
+如果這個檔案已經存在了，
+他會先把檔案內容都砍了再寫入。
+我們是反如何把girlfriend.txt的檔案轉成大寫然後寫入到girlfriendcaps.txt中
+
+{{
+import System.IO     
+import Data.Char  
+    
+main = do     
+    contents <- readFile "girlfriend.txt"     
+    writeFile "girlfriendcaps.txt" (map toUpper contents)  
+}}
+
+{{
+$ runhaskell girlfriendtocaps.hs  
+$ cat girlfriendcaps.txt  
+HEY! HEY! YOU! YOU!  
+I DON'T LIKE YOUR GIRLFRIEND!  
+NO WAY! NO WAY!  
+I THINK YOU NEED A NEW ONE!  
+}}
+
+**appendFile**的型態很像``writeFile``，只是``appendFile``並不會在檔案存在時把檔案內容砍掉而是接在後面。
+
+假設我們有一個檔案叫todo.txt``，裡面每一行是一件要做的事情。
+現在我們寫一個程式，從標準輸入接受一行將他加到我們的to-do list中。
+
+{{
+import System.IO     
+    
+main = do     
+    todoItem <- getLine  
+    appendFile "todo.txt" (todoItem ++ "\n")  
+}}
+
+{{
+$ runhaskell appendtodo.hs  
+Iron the dishes  
+$ runhaskell appendtodo.hs  
+Dust the dog  
+$ runhaskell appendtodo.hs  
+Take salad out of the oven  
+$ cat todo.txt  
+Iron the dishes  
+Dust the dog  
+Take salad out of the oven  
+}}
+
+由於``getLine``回傳的值不會有換行字元，我們需要在每一行最後加上``"\n"``。
+
+還有一件事，我們提到``contents <- hGetContents handle``是惰性I/O，不會將檔案一次都讀到記憶體中。
+所以像這樣寫的話：
+
+{{
+main = do   
+    withFile "something.txt" ReadMode (\handle -> do  
+        contents <- hGetContents handle  
+        putStr contents) 
+}}
+
+實際上像是用一個pipe把檔案弄到標準輸出。
+
 
 ==命令列引數
 
