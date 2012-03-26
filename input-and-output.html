@@ -290,7 +290,31 @@ Dust the dog
 Take salad out of the oven</pre><p>由於<code>getLine</code>回傳的值不會有換行字元，我們需要在每一行最後加上<code>"\n"</code>。</p><p>還有一件事，我們提到<code>contents <- hGetContents handle</code>是惰性I/O，不會將檔案一次都讀到記憶體中。</p><p>所以像這樣寫的話：</p><pre class="code">main = do   
     withFile "something.txt" ReadMode (\handle -> do  
         contents <- hGetContents handle  
-        putStr contents)</pre><p>實際上像是用一個pipe把檔案弄到標準輸出。</p><a name="命令列引數"></a><h2>命令列引數</h2><a name="亂數"></a><h2>亂數</h2><a name="Bytestrings"></a><h2>Bytestrings</h2><a name="Exceptions (例外)"></a><h2>Exceptions (例外)</h2>
+        putStr contents)</pre><p>實際上像是用一個pipe把檔案弄到標準輸出。</p><p>正如你可以把list想成stream一樣，你也可以把檔案想成stream。</p><p>他會每次讀一行然後印到終端上。</p><p>你也許會問這個pipe究竟一次可以塞多少東西，</p><p>讀去硬碟的頻率究竟是多少？</p><p>對於文字檔而言，預設的buffer通常是line-buffering。</p><p>這代表一次被讀進來的大小是一行。</p><p>這也是為什麼在這個case我們是一行一行處裡。</p><p>對於binary file而言，預設的buffer是block-buffering。</p><p>這代表我們是一個chunk一個chunk去讀得。</p><p>而一個chunk的大小是根據作業系統不同而不同。</p><p>你能用<code>hSetBuffering</code>來控制buffer的行為。</p><p>他接受一個handle跟一個<code>BufferMode</code>，回傳一個會設定buffer行為的I/O action。</p><p><code>BufferMode</code>是一個enumeration型態，他可能的值有：<code>NoBuffering</code>,<code>LineBuffering</code>或<code>BlockBuffering (Maybe Int)</code>。</p><p>其中<code>Maybe Int</code>是表示一個chunck有幾個byte。</p><p>如果他的值是<code>Nothing</code>，則作業系統會幫你決定chunk的大小。</p><p><code>NoBuffering</code>代表我們一次讀一個character。</p><p>一般來說<code>NoBuffering</code>的表現很差，因為他存取硬碟的頻率很高。</p><p>接下來是我們把之前的範例改寫成用2048 bytes的chunk讀取，而不是一行一行讀。</p><pre class="code">main = do   
+    withFile "something.txt" ReadMode (\handle -> do  
+        hSetBuffering handle $ BlockBuffering (Just 2048)  
+        contents <- hGetContents handle  
+        putStr contents)</pre><p>用更大的chunk來讀取對於減少存取硬碟的次數是有幫助的，特別是我們的檔案其實是透過網路來存取。</p><p>我們也可以使用<strong>hFlush</strong>，他機受一個handle並回傳一個會flush buffer到檔案的I/O action。</p><p>當我們使用line-buffering的時候，buffer在每一行都會被flush到檔案。</p><p>當我們使用block-buffering的時候，是在我們讀每一個chunk作flush的動作。</p><p>flush也會發生在關閉handle的時候。</p><p>這代表當我們碰到換行字元的時候，讀或寫的動作都會停止並回報手邊的資料。</p><p>但我們能使用<code>hFlush</code>來強迫回報所有已經在buffer中的 料。</p><p>經過flushing之後，資料也就能被其他程式看見。</p><p>把block-buffering的讀取想成這樣：</p><p>你的馬桶會在水箱有一加侖的水的時候自動沖水。</p><p>所以你不斷灌水進去直到一加侖，馬桶就會自動沖水，在水裡面的資料也就會被看到。</p><p>但你也可以手動地按下沖水鈕來沖水。</p><p>他會讓現有的水被沖走。</p><p>沖水這個動作就是<code>hFlush</code>這個名字的含意。</p><p>我們已經寫了一個將item加進to-do list裡面的程式，</p><p>現在我們想加進移除item的功能。</p><p>我先把程式碼貼上然後講解他。</p><p>我們會使用一些新面孔像是<code>System.Directory</code>以及<code>System.IO</code>裡面的函數。</p><p>來看一下我們包含移除功能的程式:</p><pre class="code">import System.IO  
+import System.Directory  
+import Data.List  
+  
+main = do        
+    handle <- openFile "todo.txt" ReadMode  
+    (tempName, tempHandle) <- openTempFile "." "temp"  
+    contents <- hGetContents handle  
+    let todoTasks = lines contents     
+    numberedTasks = zipWith (\n line -> show n ++ " - " ++ line) [0..] todoTasks     
+    putStrLn "These are your TO-DO items:"  
+    putStr $ unlines numberedTasks  
+    putStrLn "Which one do you want to delete?"     
+    numberString <- getLine     
+    let number = read numberString     
+    newTodoItems = delete (todoTasks !! number) todoTasks     
+    hPutStr tempHandle $ unlines newTodoItems  
+    hClose handle  
+    hClose tempHandle  
+    removeFile "todo.txt"  
+    renameFile tempName "todo.txt"</pre><p>一開始，我們用read mode打開todo.txt，並把他綁定到<code>handle</code>。</p><p>接著，我們使用了一個之前沒用過在<code>System.IO</code>中的函數<strong>openTempFile</strong>。</p><p>他的名字淺顯易懂。他接受一個暫存的資料夾跟一個樣板檔案名，然後打開一個暫存檔。</p><p>我們使用<code>"."</code>當作我們的暫存資料夾，因為<code>.</code>在幾乎任何作業系統中都代表了現在所在的資料夾。</p><p>我們使用<code>"temp"</code>當作我們暫存檔的樣板名，他代表站存檔的名字會是temp接上某串隨機字串。</p><p>他回傳一個創建暫存檔的I/O action，然後那個I/O action的結果是一個pair：暫存檔的名字跟一個handle。</p><p>我們當然可以隨便開啟一個todo2.txt這種名字的檔案。</p><p>但使用<code>openTempFile</code>會是比較好的作法，這樣你不會不小心覆寫任何檔案。</p><p>我們不用<code>getCurrentDirectory</code>的來拿到現在所在資料夾而用<code>"."</code>的原因是<code>.</code>在unix-like系統跟Windows中都表示現在的資料夾。</p><p>然後，我們綁定todo.txt的內容成<code>contents</code>。把字串斷成一串字串，每個字串代表一行。</p><p><code>todoTasks</code>就變成<code>["Iron the dishes", "Dust the dog", "Take salad out of the oven"]</code>。</p><p>我們用一個會把3跟<code>"hey"</code>變成<code>"3 - hey"</code>的函數，然後從0開始把這個串列zip起來。</p><p>所以<code>numberedTasks</code>就是<code>["0 - Iron the dishes", "1 - Dust the dog" ...</code>。</p><p>我們用<code>unlines</code>把這個串列變成一行，然後印到終端上。</p><p>注意我們也有另一種作法，就是用<code>mapM putStrLn numberedTasks</code>。</p><p>我們問使用者他們想要刪除哪一個並且等著他們輸入一個數字。</p><p>假設他們想要刪除1號，那代表<code>Dust the dog</code>，</p><p>所以他們輸入<code>1</code>。於是<code>numberString</code>就代表<code>"1"</code>。</p><p>由於我們想要一個數字，而不是一個字串，所以我們用對<code>1</code>使用<code>read</code>，並且綁定到<code>number</code>。</p><p>還記得在<code>Data.List</code>中的<code>delete</code>跟<code>!!</code>嗎？</p><p><code>!!</code>回傳某個index的元素，而<code>delete</code>刪除在串列中第一個發現的元素，然後回傳一個新的沒有那個元素的串列。</p><p><code>(todoTasks !! number)</code>(number代表<code>1</code>) 回傳<code>"Dust the dog"</code>。</p><p>我們把<code>todoTasks</code>去掉第一個<code>"Dust the dog"</code>後的串列綁定到<code>newTodoItems</code>，</p><p>然後用<code>unlines</code>變成一行然後寫到我們所打開的暫存檔。</p><p>舊有的檔案並沒有變動，而暫存檔包含砍掉那一行後的所有內容。</p><a name="命令列引數"></a><h2>命令列引數</h2><a name="亂數"></a><h2>亂數</h2><a name="Bytestrings"></a><h2>Bytestrings</h2><a name="Exceptions (例外)"></a><h2>Exceptions (例外)</h2>
             <ul class="nav">
                 <li class="left">  <img src="img/prv.png"></img><a href="make-types-and-classes-for-ourselves.html">構造我們自己的Types和Typeclasses</a></li>
                 <li class="center"><a href="chapters.html">Index</a></li>
