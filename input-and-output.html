@@ -314,7 +314,55 @@ main = do
     hClose handle  
     hClose tempHandle  
     removeFile "todo.txt"  
-    renameFile tempName "todo.txt"</pre><p>一開始，我們用read mode打開todo.txt，並把他綁定到<code>handle</code>。</p><p>接著，我們使用了一個之前沒用過在<code>System.IO</code>中的函數<strong>openTempFile</strong>。</p><p>他的名字淺顯易懂。他接受一個暫存的資料夾跟一個樣板檔案名，然後打開一個暫存檔。</p><p>我們使用<code>"."</code>當作我們的暫存資料夾，因為<code>.</code>在幾乎任何作業系統中都代表了現在所在的資料夾。</p><p>我們使用<code>"temp"</code>當作我們暫存檔的樣板名，他代表站存檔的名字會是temp接上某串隨機字串。</p><p>他回傳一個創建暫存檔的I/O action，然後那個I/O action的結果是一個pair：暫存檔的名字跟一個handle。</p><p>我們當然可以隨便開啟一個todo2.txt這種名字的檔案。</p><p>但使用<code>openTempFile</code>會是比較好的作法，這樣你不會不小心覆寫任何檔案。</p><p>我們不用<code>getCurrentDirectory</code>的來拿到現在所在資料夾而用<code>"."</code>的原因是<code>.</code>在unix-like系統跟Windows中都表示現在的資料夾。</p><p>然後，我們綁定todo.txt的內容成<code>contents</code>。把字串斷成一串字串，每個字串代表一行。</p><p><code>todoTasks</code>就變成<code>["Iron the dishes", "Dust the dog", "Take salad out of the oven"]</code>。</p><p>我們用一個會把3跟<code>"hey"</code>變成<code>"3 - hey"</code>的函數，然後從0開始把這個串列zip起來。</p><p>所以<code>numberedTasks</code>就是<code>["0 - Iron the dishes", "1 - Dust the dog" ...</code>。</p><p>我們用<code>unlines</code>把這個串列變成一行，然後印到終端上。</p><p>注意我們也有另一種作法，就是用<code>mapM putStrLn numberedTasks</code>。</p><p>我們問使用者他們想要刪除哪一個並且等著他們輸入一個數字。</p><p>假設他們想要刪除1號，那代表<code>Dust the dog</code>，</p><p>所以他們輸入<code>1</code>。於是<code>numberString</code>就代表<code>"1"</code>。</p><p>由於我們想要一個數字，而不是一個字串，所以我們用對<code>1</code>使用<code>read</code>，並且綁定到<code>number</code>。</p><p>還記得在<code>Data.List</code>中的<code>delete</code>跟<code>!!</code>嗎？</p><p><code>!!</code>回傳某個index的元素，而<code>delete</code>刪除在串列中第一個發現的元素，然後回傳一個新的沒有那個元素的串列。</p><p><code>(todoTasks !! number)</code>(number代表<code>1</code>) 回傳<code>"Dust the dog"</code>。</p><p>我們把<code>todoTasks</code>去掉第一個<code>"Dust the dog"</code>後的串列綁定到<code>newTodoItems</code>，</p><p>然後用<code>unlines</code>變成一行然後寫到我們所打開的暫存檔。</p><p>舊有的檔案並沒有變動，而暫存檔包含砍掉那一行後的所有內容。</p><a name="命令列引數"></a><h2>命令列引數</h2><a name="亂數"></a><h2>亂數</h2><a name="Bytestrings"></a><h2>Bytestrings</h2><a name="Exceptions (例外)"></a><h2>Exceptions (例外)</h2>
+    renameFile tempName "todo.txt"</pre><p>一開始，我們用read mode打開todo.txt，並把他綁定到<code>handle</code>。</p><p>接著，我們使用了一個之前沒用過在<code>System.IO</code>中的函數<strong>openTempFile</strong>。</p><p>他的名字淺顯易懂。他接受一個暫存的資料夾跟一個樣板檔案名，然後打開一個暫存檔。</p><p>我們使用<code>"."</code>當作我們的暫存資料夾，因為<code>.</code>在幾乎任何作業系統中都代表了現在所在的資料夾。</p><p>我們使用<code>"temp"</code>當作我們暫存檔的樣板名，他代表站存檔的名字會是temp接上某串隨機字串。</p><p>他回傳一個創建暫存檔的I/O action，然後那個I/O action的結果是一個pair：暫存檔的名字跟一個handle。</p><p>我們當然可以隨便開啟一個todo2.txt這種名字的檔案。</p><p>但使用<code>openTempFile</code>會是比較好的作法，這樣你不會不小心覆寫任何檔案。</p><p>我們不用<code>getCurrentDirectory</code>的來拿到現在所在資料夾而用<code>"."</code>的原因是<code>.</code>在unix-like系統跟Windows中都表示現在的資料夾。</p><p>然後，我們綁定todo.txt的內容成<code>contents</code>。把字串斷成一串字串，每個字串代表一行。</p><p><code>todoTasks</code>就變成<code>["Iron the dishes", "Dust the dog", "Take salad out of the oven"]</code>。</p><p>我們用一個會把3跟<code>"hey"</code>變成<code>"3 - hey"</code>的函數，然後從0開始把這個串列zip起來。</p><p>所以<code>numberedTasks</code>就是<code>["0 - Iron the dishes", "1 - Dust the dog" ...</code>。</p><p>我們用<code>unlines</code>把這個串列變成一行，然後印到終端上。</p><p>注意我們也有另一種作法，就是用<code>mapM putStrLn numberedTasks</code>。</p><p>我們問使用者他們想要刪除哪一個並且等著他們輸入一個數字。</p><p>假設他們想要刪除1號，那代表<code>Dust the dog</code>，</p><p>所以他們輸入<code>1</code>。於是<code>numberString</code>就代表<code>"1"</code>。</p><p>由於我們想要一個數字，而不是一個字串，所以我們用對<code>1</code>使用<code>read</code>，並且綁定到<code>number</code>。</p><p>還記得在<code>Data.List</code>中的<code>delete</code>跟<code>!!</code>嗎？</p><p><code>!!</code>回傳某個index的元素，而<code>delete</code>刪除在串列中第一個發現的元素，然後回傳一個新的沒有那個元素的串列。</p><p><code>(todoTasks !! number)</code>(number代表<code>1</code>) 回傳<code>"Dust the dog"</code>。</p><p>我們把<code>todoTasks</code>去掉第一個<code>"Dust the dog"</code>後的串列綁定到<code>newTodoItems</code>，</p><p>然後用<code>unlines</code>變成一行然後寫到我們所打開的暫存檔。</p><p>舊有的檔案並沒有變動，而暫存檔包含砍掉那一行後的所有內容。</p><p>在我們關掉原始檔跟暫存檔之後我們用<strong>removeFile</strong>來移除原本的檔案。</p><p>他接受一個檔案路徑並且刪除檔案。</p><p>刪除舊得todo.txt之後，我們用<strong>renameFile</strong>來將暫存檔重新命名成todo.txt。</p><p>特別留意<code>removeFile</code>跟<code>renameFile</code>(兩個都在<code>System.Directory</code>中)接受的是檔案路徑，而不是handle</p><p>這就是我們要得，實際上我們可以用更少行寫出同樣的程式，</p><p>但我們很小心地避免覆寫任何檔案，並詢問作業系統我們可以把暫存檔擺在哪？</p><p>讓我們來執行看看。</p><pre class="code">$ runhaskell deletetodo.hs  
+These are your TO-DO items:  
+0 - Iron the dishes  
+1 - Dust the dog  
+2 - Take salad out of the oven  
+Which one do you want to delete?  
+1  
+
+$ cat todo.txt  
+Iron the dishes  
+Take salad out of the oven  
+
+$ runhaskell deletetodo.hs  
+These are your TO-DO items:  
+0 - Iron the dishes  
+1 - Take salad out of the oven  
+Which one do you want to delete?  
+0  
+  
+$ cat todo.txt  
+Take salad out of the oven</pre><a name="命令列引數"></a><h2>命令列引數</h2><p>如果你想要寫一個在終端裡運行的程式，處裡命令列引數是不可或缺的。</p><p>幸運地，利用Haskell的Standard Libary能讓我們有效地處裡命令列引數。</p><p>在之前的章節中，</p><p>我們寫了一個能將to-do item加進或移除to-do list的一個程式。</p><p>但我們的寫法有兩個問題。</p><p>第一個是我們把放to-do list的檔案名稱給寫死了。</p><p>我們擅自決定使用者不會有很多個to-do lists，就把檔案命名為todo.txt。</p><p>一種解決的方法是每次都詢問使用者他們想將他們的to-do list放進哪個檔案。</p><p>我們在使用者要刪除的時候也採用這種方式。</p><p>這是一種可以運作的方式，但不太能被接受，</p><p>因為他需要使用者運行程式，等待程式詢問才能回答。</p><p>這被稱為互動式的程式，但討厭的地方在當你想要自動化執行程式的時候，好比說寫成script，</p><p>這會讓你的script寫起來比較困難。</p><p>這也是為什麼有時候使用者在執行的時候就告訴程式他們要什麼會比叫好，</p><p>而不是讓程式去問使用者要什麼。</p><p>更好的是是讓使用者透過命令列引數告訴程式他想要什麼。</p><p>在<code>System.Environment</code>模組當中有兩個很酷的I/O actions，</p><p>一個是<strong>getArgs</strong>，他的type是<code>getArgs :: IO [String]</code>，</p><p>他是一個拿取命令列引數的I/O action，並把結果放在包含的一個串列中。</p><p><strong>getProgName</strong>的型態是<code>getProgName :: IO String</code>，</p><p>他則是一個I/O action包含了程式的名稱。</p><p>我們來看一個展現他們功能的程式。</p><pre class="code">import System.Environment   
+import Data.List  
+  
+main = do  
+    args <- getArgs  
+    progName <- getProgName  
+    putStrLn "The arguments are:"  
+    mapM putStrLn args  
+    putStrLn "The program name is:"  
+    putStrLn progName</pre><p>我們將<code>getArgs</code>跟<code>progName</code>分別綁定到<code>args</code>跟<code>progName</code>。</p><p>我們印出<code>The arguments are:</code>以及在<code>args</code>中的每個引數。</p><p>最後，我們印出程式的名字。</p><p>我們把程式編譯成<code>arg-test</code>。</p><pre class="code">$ ./arg-test first second w00t "multi word arg"  
+The arguments are:  
+first  
+second  
+w00t  
+multi word arg  
+The program name is:  
+arg-test</pre><p>知道了這些函數現在你能寫幾個很酷的命令列程式。</p><p>在之前的章節，</p><p>我們寫了一個程式來加入待作事項，也寫了另一個程式刪除事項。</p><p>現在我們要把兩個程式合起來，</p><p>他會根據命令列引數來決定該做的事情。</p><p>我們也會讓程式可以處裡不同的檔案，而不是只有todo.txt</p><p>我們叫這程式todo，他會作三件事：</p><p>* 檢視待作事項</p><p>* 加入待作事項</p><p>* 刪除待作事項</p><p>我們暫不考慮不合法的輸入這件事。</p><p>我們的程式要像這樣運作：</p><p>假如我們要加入<code>Find the magic sword of power</code>，</p><p>則我們會打<code>todo add todo.txt "Find the magic sword of power"</code>。</p><p>要檢視事項我們則會打<code>todo view todo.txt</code>，</p><p>如果要移除事項二則會打<code>todo remove todo.txt 2</code></p><p>我們先作一個分發的association list。</p><p>他會把命令列引數當作key，而對應的處裡函數當作value。</p><p>這些函數的型態都是<code>[String] -> IO ()</code>。</p><p>他們會接受命令列引數的串列並回傳對應的檢視，加入以及刪除的I/O action。</p><pre class="code">import System.Environment   
+import System.Directory  
+import System.IO  
+import Data.List  
+  
+dispatch :: [(String, [String] -> IO ())]  
+dispatch =  [ ("add", add)  
+            , ("view", view)  
+            , ("remove", remove)  
+            ]</pre><p>我們定義了<code>main</code>，<code>add</code>，<code>view</code>跟<code>remove</code>，</p><p>就從<code>main</code>開始講吧</p><pre class="code">main = do  
+    (command:args) <- getArgs  
+    let (Just action) = lookup command dispatch  
+    action args  V</pre><a name="亂數"></a><h2>亂數</h2><a name="Bytestrings"></a><h2>Bytestrings</h2><a name="Exceptions (例外)"></a><h2>Exceptions (例外)</h2>
             <ul class="nav">
                 <li class="left">  <img src="img/prv.png"></img><a href="make-types-and-classes-for-ourselves.html">構造我們自己的Types和Typeclasses</a></li>
                 <li class="center"><a href="chapters.html">Index</a></li>
