@@ -1125,9 +1125,254 @@ main = do
 }}
 
 實際上像是用一個pipe把檔案弄到標準輸出。
+正如你可以把list想成stream一樣，你也可以把檔案想成stream。
+他會每次讀一行然後印到終端上。
+你也許會問這個pipe究竟一次可以塞多少東西，
+讀去硬碟的頻率究竟是多少？
+對於文字檔而言，預設的buffer通常是line-buffering。
+這代表一次被讀進來的大小是一行。
+這也是為什麼在這個case我們是一行一行處裡。
+對於binary file而言，預設的buffer是block-buffering。
+這代表我們是一個chunk一個chunk去讀得。
+而一個chunk的大小是根據作業系統不同而不同。
+
+你能用``hSetBuffering``來控制buffer的行為。
+他接受一個handle跟一個``BufferMode``，回傳一個會設定buffer行為的I/O action。
+``BufferMode``是一個enumeration型態，他可能的值有：``NoBuffering``, ``LineBuffering``或``BlockBuffering (Maybe Int)``。
+其中``Maybe Int``是表示一個chunck有幾個byte。
+如果他的值是``Nothing``，則作業系統會幫你決定chunk的大小。
+``NoBuffering``代表我們一次讀一個character。
+一般來說``NoBuffering``的表現很差，因為他存取硬碟的頻率很高。
+
+接下來是我們把之前的範例改寫成用2048 bytes的chunk讀取，而不是一行一行讀。
+
+{{
+main = do   
+    withFile "something.txt" ReadMode (\handle -> do  
+        hSetBuffering handle $ BlockBuffering (Just 2048)  
+        contents <- hGetContents handle  
+        putStr contents)  
+}}
+
+用更大的chunk來讀取對於減少存取硬碟的次數是有幫助的，特別是我們的檔案其實是透過網路來存取。
+
+我們也可以使用**hFlush**，他機受一個handle並回傳一個會flush buffer到檔案的I/O action。
+當我們使用line-buffering的時候，buffer在每一行都會被flush到檔案。
+當我們使用block-buffering的時候，是在我們讀每一個chunk作flush的動作。
+flush也會發生在關閉handle的時候。
+這代表當我們碰到換行字元的時候，讀或寫的動作都會停止並回報手邊的資料。
+但我們能使用``hFlush``來強迫回報所有已經在buffer中的 料。
+經過flushing之後，資料也就能被其他程式看見。
+
+把block-buffering的讀取想成這樣：
+你的馬桶會在水箱有一加侖的水的時候自動沖水。
+所以你不斷灌水進去直到一加侖，馬桶就會自動沖水，在水裡面的資料也就會被看到。
+但你也可以手動地按下沖水鈕來沖水。
+他會讓現有的水被沖走。
+沖水這個動作就是``hFlush``這個名字的含意。
+
+我們已經寫了一個將item加進to-do list裡面的程式，
+現在我們想加進移除item的功能。
+我先把程式碼貼上然後講解他。
+我們會使用一些新面孔像是``System.Directory``以及``System.IO``裡面的函數。
+
+來看一下我們包含移除功能的程式:
+{{
+import System.IO  
+import System.Directory  
+import Data.List  
+  
+main = do        
+    handle <- openFile "todo.txt" ReadMode  
+    (tempName, tempHandle) <- openTempFile "." "temp"  
+    contents <- hGetContents handle  
+    let todoTasks = lines contents     
+    numberedTasks = zipWith (\n line -> show n ++ " - " ++ line) [0..] todoTasks     
+    putStrLn "These are your TO-DO items:"  
+    putStr $ unlines numberedTasks  
+    putStrLn "Which one do you want to delete?"     
+    numberString <- getLine     
+    let number = read numberString     
+    newTodoItems = delete (todoTasks !! number) todoTasks     
+    hPutStr tempHandle $ unlines newTodoItems  
+    hClose handle  
+    hClose tempHandle  
+    removeFile "todo.txt"  
+    renameFile tempName "todo.txt"  
+}}
+
+一開始，我們用read mode打開todo.txt，並把他綁定到``handle``。
+
+接著，我們使用了一個之前沒用過在``System.IO``中的函數**openTempFile**。
+他的名字淺顯易懂。他接受一個暫存的資料夾跟一個樣板檔案名，然後打開一個暫存檔。
+我們使用``"."``當作我們的暫存資料夾，因為``.``在幾乎任何作業系統中都代表了現在所在的資料夾。
+我們使用``"temp"``當作我們暫存檔的樣板名，他代表站存檔的名字會是temp接上某串隨機字串。
+他回傳一個創建暫存檔的I/O action，然後那個I/O action的結果是一個pair：暫存檔的名字跟一個handle。
+我們當然可以隨便開啟一個todo2.txt這種名字的檔案。
+但使用``openTempFile``會是比較好的作法，這樣你不會不小心覆寫任何檔案。
+
+我們不用``getCurrentDirectory``的來拿到現在所在資料夾而用``"."``的原因是``.``在unix-like系統跟Windows中都表示現在的資料夾。
+
+然後，我們綁定todo.txt的內容成``contents``。把字串斷成一串字串，每個字串代表一行。
+``todoTasks``就變成``["Iron the dishes", "Dust the dog", "Take salad out of the oven"]``。
+我們用一個會把3跟``"hey"``變成``"3 - hey"``的函數，然後從0開始把這個串列zip起來。
+所以``numberedTasks``就是``["0 - Iron the dishes", "1 - Dust the dog" ...``。
+我們用``unlines``把這個串列變成一行，然後印到終端上。
+注意我們也有另一種作法，就是用``mapM putStrLn numberedTasks``。
+
+我們問使用者他們想要刪除哪一個並且等著他們輸入一個數字。
+假設他們想要刪除1號，那代表``Dust the dog``，
+所以他們輸入``1``。於是``numberString``就代表``"1"``。
+由於我們想要一個數字，而不是一個字串，所以我們用對``1``使用``read``，並且綁定到``number``。
+
+還記得在``Data.List``中的``delete``跟``!!``嗎？
+``!!``回傳某個index的元素，而``delete``刪除在串列中第一個發現的元素，然後回傳一個新的沒有那個元素的串列。
+``(todoTasks !! number)`` (number代表``1``) 回傳``"Dust the dog"``。
+我們把``todoTasks``去掉第一個``"Dust the dog"``後的串列綁定到``newTodoItems``，
+然後用``unlines``變成一行然後寫到我們所打開的暫存檔。
+舊有的檔案並沒有變動，而暫存檔包含砍掉那一行後的所有內容。
+
+在我們關掉原始檔跟暫存檔之後我們用**removeFile**來移除原本的檔案。
+他接受一個檔案路徑並且刪除檔案。
+刪除舊得todo.txt之後，我們用**renameFile**來將暫存檔重新命名成todo.txt。
+特別留意``removeFile``跟``renameFile``(兩個都在``System.Directory``中)接受的是檔案路徑，而不是handle
+
+這就是我們要得，實際上我們可以用更少行寫出同樣的程式，
+但我們很小心地避免覆寫任何檔案，並詢問作業系統我們可以把暫存檔擺在哪？
+讓我們來執行看看。
+
+{{
+$ runhaskell deletetodo.hs  
+These are your TO-DO items:  
+0 - Iron the dishes  
+1 - Dust the dog  
+2 - Take salad out of the oven  
+Which one do you want to delete?  
+1  
+
+$ cat todo.txt  
+Iron the dishes  
+Take salad out of the oven  
+
+$ runhaskell deletetodo.hs  
+These are your TO-DO items:  
+0 - Iron the dishes  
+1 - Take salad out of the oven  
+Which one do you want to delete?  
+0  
+  
+$ cat todo.txt  
+Take salad out of the oven  
+}}
 
 
 ==命令列引數
+
+如果你想要寫一個在終端裡運行的程式，處裡命令列引數是不可或缺的。
+幸運地，利用Haskell的Standard Libary能讓我們有效地處裡命令列引數。
+
+在之前的章節中，
+我們寫了一個能將to-do item加進或移除to-do list的一個程式。
+但我們的寫法有兩個問題。
+第一個是我們把放to-do list的檔案名稱給寫死了。
+我們擅自決定使用者不會有很多個to-do lists，就把檔案命名為todo.txt。
+
+一種解決的方法是每次都詢問使用者他們想將他們的to-do list放進哪個檔案。
+我們在使用者要刪除的時候也採用這種方式。
+這是一種可以運作的方式，但不太能被接受，
+因為他需要使用者運行程式，等待程式詢問才能回答。
+這被稱為互動式的程式，但討厭的地方在當你想要自動化執行程式的時候，好比說寫成script，
+這會讓你的script寫起來比較困難。
+
+這也是為什麼有時候使用者在執行的時候就告訴程式他們要什麼會比叫好，
+而不是讓程式去問使用者要什麼。
+更好的是是讓使用者透過命令列引數告訴程式他想要什麼。
+
+在``System.Environment``模組當中有兩個很酷的I/O actions，
+一個是**getArgs**，他的type是``getArgs :: IO [String]``，
+他是一個拿取命令列引數的I/O action，並把結果放在包含的一個串列中。
+**getProgName**的型態是``getProgName :: IO String``，
+他則是一個I/O action包含了程式的名稱。
+
+我們來看一個展現他們功能的程式。
+{{
+import System.Environment   
+import Data.List  
+  
+main = do  
+    args <- getArgs  
+    progName <- getProgName  
+    putStrLn "The arguments are:"  
+    mapM putStrLn args  
+    putStrLn "The program name is:"  
+    putStrLn progName  
+}}
+
+我們將``getArgs``跟``progName``分別綁定到``args``跟``progName``。
+我們印出``The arguments are:``以及在``args``中的每個引數。
+最後，我們印出程式的名字。
+我們把程式編譯成``arg-test``。
+
+{{
+$ ./arg-test first second w00t "multi word arg"  
+The arguments are:  
+first  
+second  
+w00t  
+multi word arg  
+The program name is:  
+arg-test  
+}}
+
+知道了這些函數現在你能寫幾個很酷的命令列程式。
+在之前的章節，
+我們寫了一個程式來加入待作事項，也寫了另一個程式刪除事項。
+現在我們要把兩個程式合起來，
+他會根據命令列引數來決定該做的事情。
+我們也會讓程式可以處裡不同的檔案，而不是只有todo.txt
+
+我們叫這程式todo，他會作三件事：
+
+* 檢視待作事項
+* 加入待作事項
+* 刪除待作事項
+
+我們暫不考慮不合法的輸入這件事。
+
+我們的程式要像這樣運作：
+假如我們要加入``Find the magic sword of power``，
+則我們會打``todo add todo.txt "Find the magic sword of power"``。
+要檢視事項我們則會打``todo view todo.txt``，
+如果要移除事項二則會打``todo remove todo.txt 2``
+
+我們先作一個分發的association list。
+他會把命令列引數當作key，而對應的處裡函數當作value。
+這些函數的型態都是``[String] -> IO ()``。
+他們會接受命令列引數的串列並回傳對應的檢視，加入以及刪除的I/O action。
+
+{{
+import System.Environment   
+import System.Directory  
+import System.IO  
+import Data.List  
+  
+dispatch :: [(String, [String] -> IO ())]  
+dispatch =  [ ("add", add)  
+            , ("view", view)  
+            , ("remove", remove)  
+            ]  
+}}
+
+我們定義了``main``，``add``，``view``跟``remove``，
+就從``main``開始講吧
+
+{{
+main = do  
+    (command:args) <- getArgs  
+    let (Just action) = lookup command dispatch  
+    action args  V
+}}
+
 
 ==亂數
 
