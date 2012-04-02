@@ -1373,8 +1373,285 @@ main = do
     action args  V
 }}
 
+首先，我們取出引數並把他們綁定到``(command:args)``。
+如果你還記得pattern matching，這麼做會把第一個引數綁定到``command``，把其他的綁定到``args``。
+如果我們像這樣執行程式``todo add todo.txt "Spank the monkey"``，
+``command``會變成``"add"``，而``args``會變成``["todo.xt", "Spank the monkey"]``。
+
+在下一行，我們在一個分派的的串列中尋到我們的指令是哪個。
+由於``"add"``指向``add``，我們的結果便是``Just add``。
+我們再度使用了pattern matching來把我們的函數從``Maybe``中取出。
+但如果我們想要的指令不在分派的串列中呢？
+那樣lookup就會回傳``Nothing``，
+但我們這邊並不特別處裡失敗的情況，
+所以pattern matching會失敗然後我們的程式就會當掉。
+
+最後，我們用剩下的引數呼叫``action``這個函數。
+他會還傳一個加入item，顯示所有items或者刪除item的I/O action。
+由於這個I/O action是在``main``的do block中，他最後會被執行。
+如果我們的``action``函數是``add``，他就會被餵``args``然後回傳一個加入``Spank the monkey``到todo.txt中的I/O action。
+
+我們剩下要做的就是實做``add``，``view``跟``remove``，我們從``add``開始：
+{{
+add :: [String] -> IO ()  
+add [fileName, todoItem] = appendFile fileName (todoItem ++ "\n")  
+}}
+如果我們這樣執行程式``todo add todo.txt "Spank the monkey"``，
+則``"add"``會被綁定到``command``，而``["todo.txt", "Spank the monkey"]``會被帶到從dispatch list中拿到的函數。
+由於我們不處裡不合法的輸入，我們只針對這兩項作pattern matching，
+然後回傳一個附加一行到檔案末尾的I/O action。
+
+接著，我們來實做檢視串列。
+如果我們想要檢視所有items，
+我們會``todo view todo.txt``。
+所以``command``會是``"view"``，而``args``會是``["todo.txt"]``。
+{{
+view :: [String] -> IO ()  
+view [fileName] = do  
+    contents <- readFile fileName  
+    let todoTasks = lines contents  
+    numberedTasks = zipWith (\n line -> show n ++ " - " ++ line) [0..] todoTasks  
+    putStr $ unlines numberedTasks  
+}}
+這跟我們之前刪除檔案的程式差不多，只是我們是在顯示內容而已，
+
+最後，我們要來實做``remove``。
+他基本上跟之前寫的只有刪除功能的程式很像，
+所以如果你不知道刪除是怎麼做的，可以去看之前的解釋。
+主要的差別是我們不寫死todo.txt，而是從參數取得。
+我們也不會提示使用者要刪除哪一號的item，而是從參數取得。
+
+{{
+remove :: [String] -> IO ()  
+remove [fileName, numberString] = do  
+    handle <- openFile fileName ReadMode  
+    (tempName, tempHandle) <- openTempFile "." "temp"  
+    contents <- hGetContents handle  
+    let number = read numberString  
+        todoTasks = lines contents  
+        newTodoItems = delete (todoTasks !! number) todoTasks  
+    hPutStr tempHandle $ unlines newTodoItems  
+    hClose handle  
+    hClose tempHandle  
+    removeFile fileName  
+    renameFile tempName fileName  
+}}
+我們打開``fileName``的檔案以及一個暫存。
+刪除使用者要我們刪的那一行後，把檔案內容寫到暫存檔。
+砍掉原本的檔案然後把暫存檔重新命名成``fileName``。
+
+來看看完整的程式。
+
+{{
+import System.Environment   
+import System.Directory  
+import System.IO  
+import Data.List  
+  
+dispatch :: [(String, [String] -> IO ())]  
+dispatch =  [ ("add", add)  
+            , ("view", view)  
+            , ("remove", remove)  
+            ]  
+   
+main = do  
+    (command:args) <- getArgs  
+    let (Just action) = lookup command dispatch  
+    action args  
+  
+add :: [String] -> IO ()  
+add [fileName, todoItem] = appendFile fileName (todoItem ++ "\n")  
+  
+view :: [String] -> IO ()  
+view [fileName] = do  
+    contents <- readFile fileName  
+    let todoTasks = lines contents  
+        numberedTasks = zipWith (\n line -> show n ++ " - " ++ line) [0..] todoTasks  
+    putStr $ unlines numberedTasks  
+  
+remove :: [String] -> IO ()  
+remove [fileName, numberString] = do  
+    handle <- openFile fileName ReadMode  
+    (tempName, tempHandle) <- openTempFile "." "temp"  
+    contents <- hGetContents handle  
+    let number = read numberString  
+        todoTasks = lines contents  
+        newTodoItems = delete (todoTasks !! number) todoTasks  
+    hPutStr tempHandle $ unlines newTodoItems  
+    hClose handle  
+    hClose tempHandle  
+    removeFile fileName  
+    renameFile tempName fileName
+    
+}}
+
+總結我們的程式：
+我們做了一個dispatch association，將指令對應到一些會接受命令列引數並回傳I/O action的函數。
+我們知道使用者下了什麼命令，並根據那個命令從dispatch list取出對影的函數。
+我們用剩下的命令列引數呼叫哪些函數而得到一些作相對應事情的I/O action。
+然後便執行那些I/O action。
+
+在其他程式語言，我們可能會用一個大的switch case來實做，
+但使用高階函數讓我們可以要dispatch list給我們要的函數，
+並要那些函數給我們適當的I/O action。
+
+讓我們看看執行結果。
+
+{{
+$ ./todo view todo.txt  
+0 - Iron the dishes  
+1 - Dust the dog  
+2 - Take salad out of the oven  
+
+$ ./todo add todo.txt "Pick up children from drycleaners"  
+
+$ ./todo view todo.txt  
+0 - Iron the dishes  
+1 - Dust the dog  
+2 - Take salad out of the oven  
+3 - Pick up children from drycleaners  
+
+$ ./todo remove todo.txt 2  
+
+$ ./todo view todo.txt  
+0 - Iron the dishes  
+1 - Dust the dog  
+2 - Pick up children from drycleaners  
+}}
+
+要再另外加新的選項也是很容易。
+只要在dispatch list加入新的會作你要的事情函數。
+你可以試試實做一個``bump``函數，接受一個檔案跟一個task number，
+他會回傳一個把那個task搬到to-do list頂端的I/O action。
+
+對於不合法的輸入你也可以讓程式結束地漂亮一點。
+(例如使用者輸入了``todo UP YOURS HAHAHAHA``)
+可以作一個回報錯誤的I/O action (例如``errorExist :: IO ())
+檢查有沒有不合法的輸入，如果有便執行這個回報錯誤的I/O action。
+我們之後會談另一個可能，就是用exception。
+
 
 ==亂數
+
+在許多情況下，你寫程式會需要些隨機的資料。
+或許你在製作一個遊戲，在遊戲中你需要擲骰子。
+或是你需要測試程式的測試資料。
+精準一點地說，我們需要pseudo-random的資料，
+我們知道真正的隨機資料好比是一隻猴子拿著起司跟奶油騎在單輪車上，
+任何事情都會發生。
+在這個章節，我們要看看如何讓Haskell產生些pseudo-random的資料。
+
+在大多數其他的程式語言中，
+會給你一些函數能讓你拿到些隨機亂數。
+每呼叫一次他就會拿到一個不同的數字。
+那在Haskell中是如何？
+要記住Haskell是一個純粹函數式語言。
+代表任何東西都具有referential transparency。
+那代表你餵給一個函數相同的參數，不管怎麼呼叫都是回傳相同的結果。
+這很新奇的原因是因為他讓我們理解程式的方式不同，
+而且可以讓我們延遲計算，直到我們真正需要他。
+如果我呼叫一個函數，我可以確定他不會亂來。我真正在乎的是他的結果。
+然而，這會造成在亂數的情況有點複雜。
+如果我有一個函數像這樣：
+
+{{
+randomNumber :: (Num a) => a
+randomNumber = 4
+}}
+
+由於他永遠回傳``4``，所以對於亂數的情形而言是沒什麼意義。
+就算4這個結果是擲骰子來的也沒有意義。
+
+其他的程式語言是怎麼產生亂數的呢？
+他們可能隨便拿取一些電腦的資訊，像是現在的時間，
+你怎麼移動你的滑鼠，以及周圍的聲音。
+根據這些算出一個數值讓他看起來好像隨機的。
+那些要素算出來的結果可能在每個時間都不同，
+所以你會拿到不同的隨機數字。
+
+所以說在Haskell中，假如我們能作一個函數，
+他會接受一個具隨機性的參數，然後根據那些資訊還傳一個數值。
+
+在``System.Random``模組中。
+他包含所有滿足我們需求的函數。
+讓我們先來看其中一個，就是**random**。
+他的型態是``random :: (RandomGen g, Random a) => g -> (a, g)``。
+哇，出現了新的typeclass。
+**RandomGen** typeclass是指那些可以當作亂源的型態。
+而**Random** typeclass則是可以裝亂數的型態。
+一個布林值可以是隨機值，不是``True``就是``False``。
+一個整數可以是隨機的好多不同值。
+那你會問，函數可以是一個隨機值嗎？
+我不這麼認為。
+如果我們試著翻譯``random``的型態宣告，
+大概會是這樣：
+他接受一個random generator (亂源所在)，然後回傳一個隨機值以及一個新的random generator。
+為什麼他要回傳一個新的random generator呢？
+就是下面我們要講的。
+
+要使用``random``函數，
+我們必須要了解random generator。
+在``System.Random``中有一個很酷的型態，叫做**StdGen**，
+他是``RandomGen``的一個instance。
+我們可以自己手動作一個``StdGen``也可以告訴系統給我們一個現成的。
+
+要自己做一個random generator，要使用**mkStdGen**這個函數。
+他的型態是``mkStdGen :: Int -> StdGen``。
+他接受一個整數，然後根據這個整數會給一個random generator。
+讓我們來試一下``random``以及``mkStdGen``，
+用他們產生一個亂數吧。
+
+{{
+ghci> random (mkStdGen 100)      
+}}
+
+{{
+<interactive>:1:0:  
+    Ambiguous type variable `a' in the constraint:  
+        `Random a' arising from a use of `random' at <interactive>:1:0-20  
+    Probable fix: add a type signature that fixes these type variable(s)  `
+}}
+
+這是什麼？
+由於``random``函數會回傳``Random`` typeclass中任何一種型態，
+所以我們必須告訴Haskell我們是要哪一種型態。
+不要忘了我們是回傳random value跟random generator的一個pair
+
+{{
+ghci> random (mkStdGen 100) :: (Int, StdGen)  
+(-1352021624,651872571 1655838864)  
+}}
+
+我們終於有了一個看起來像亂數的數字。
+tuple的第一個部份是我們的亂數，
+而第二個部份是一個新的random generator的文字表示。
+如果我們用相同的random generator再呼叫``random``一遍呢？
+
+{{
+ghci> random (mkStdGen 100) :: (Int, StdGen)  
+(-1352021624,651872571 1655838864)  
+}}
+
+不易外地我們得到相同的結果。
+所以我們試試用不同的random generator作為我們的參數。
+
+{{
+ghci> random (mkStdGen 949494) :: (Int, StdGen)  
+(539963926,466647808 1655838864)  
+}}
+
+很好，我們拿到了不同的數字。
+我們可以用不同的型態標誌來拿到不同型態的亂數
+
+{{
+ghci> random (mkStdGen 949488) :: (Float, StdGen)  
+(0.8938442,1597344447 1655838864)  
+ghci> random (mkStdGen 949488) :: (Bool, StdGen)  
+(False,1485632275 40692)  
+ghci> random (mkStdGen 949488) :: (Integer, StdGen)  
+(1691547873,1597344447 1655838864)  
+}}
+
 
 ==Bytestrings
 
