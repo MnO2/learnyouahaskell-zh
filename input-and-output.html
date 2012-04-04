@@ -448,7 +448,83 @@ randomNumber = 4</pre><p>由於他永遠回傳<code>4</code>，所以對於亂�
 ghci> random (mkStdGen 949488) :: (Bool, StdGen)  
 (False,1485632275 40692)  
 ghci> random (mkStdGen 949488) :: (Integer, StdGen)  
-(1691547873,1597344447 1655838864)</pre><a name="Bytestrings"></a><h2>Bytestrings</h2><a name="Exceptions (例外)"></a><h2>Exceptions (例外)</h2>
+(1691547873,1597344447 1655838864)</pre><p>讓我們寫一個模擬丟三次銅板的函數。</p><p>假如<code>random</code>不同時回傳一個亂數以及一個新的random generator，</p><p>我們就必須讓這函數接受三個random generators讓他們每個回傳一個擲銅板的結果。</p><p>但那樣聽起來怪怪的，</p><p>加入一個generator可以產生一個型態是<code>Int</code>的亂數，</p><p>他應該可以產生擲三次銅板的結果（總共才八個組合）。</p><p>這就是<code>random</code>為什麼要回傳一個新的generator的關鍵了。</p><p>我們將一個銅板表示成<code>Bool</code>。</p><p><code>True</code>代表反面，<code>False</code>代表正面。</p><pre class="code">threeCoins :: StdGen -> (Bool, Bool, Bool)  
+threeCoins gen =   
+    let (firstCoin, newGen) = random gen  
+    (secondCoin, newGen') = random newGen  
+    (thirdCoin, newGen') = random newGen'  
+    in  (firstCoin, secondCoin, thirdCoin)  )</pre><p>我們用我們拿來當參數的generator呼叫<code>random</code>並得到一個擲銅板的結果跟一個新的generator。</p><p>然後我們再用新的generator呼叫他一遍，來得到第二個擲銅板的結果。</p><p>對於第三個擲銅板的結果也是如法炮製。</p><p>如果我們一直都用同樣的generator，那所有的結果都會是相同的值。</p><p>也就是不是<code>(False, False, False)</code>就是<code>(True, True, True)</code>。</p><pre class="code">ghci> threeCoins (mkStdGen 21)  
+(True,True,True)  
+ghci> threeCoins (mkStdGen 22)  
+(True,False,True)  
+ghci> threeCoins (mkStdGen 943)  
+(True,False,True)  
+ghci> threeCoins (mkStdGen 944)  
+(True,True,True)</pre><p>留意我們不需要寫<code>random gen :: (Bool, StdGen)</code>。</p><p>那是因為我們已經在函數的型態宣告那邊就表明我們要的是布林。</p><p>而Haskell可以推敲出我們要的是布林值。</p><p>假如我們要的是擲四次？甚至五次呢？</p><p>有一個函數叫<strong>randoms</strong>，</p><p>他接受一個generator並回傳一個無窮序列。</p><pre class="code">ghci> take 5 $ randoms (mkStdGen 11) :: [Int]  
+[-1807975507,545074951,-1015194702,-1622477312,-502893664]  
+ghci> take 5 $ randoms (mkStdGen 11) :: [Bool]  
+[True,True,True,True,False]  
+ghci> take 5 $ randoms (mkStdGen 11) :: [Float]  
+[7.904789e-2,0.62691015,0.26363158,0.12223756,0.38291094]</pre><p>為什麼<code>randoms</code>不另外多回傳一個新的generator呢？</p><p>我們可以這樣地實做<code>randoms</code></p><pre class="code">randoms' :: (RandomGen g, Random a) => g -> [a]  
+randoms' gen = let (value, newGen) = random gen in value:randoms' newGen</pre><p>一個遞迴的定義。</p><p>我們由現在的generator拿到一個亂數跟一個新的generator，</p><p>然後製作一個list，list的第一個值是那個亂數，而list的其餘部份是根據新的generator產生出的其餘亂數們。</p><p>由於我們可能產生出無限的亂數，</p><p>所以不可能回傳一個新的generator。</p><p>我們可以寫一個函數，他會回傳有限個亂數跟一個新的generator</p><pre class="code">finiteRandoms :: (RandomGen g, Random a, Num n) => n -> g -> ([a], g)  
+finiteRandoms 0 gen = ([], gen)  
+finiteRandoms n gen =   
+    let (value, newGen) = random gen  
+        (restOfList, finalGen) = finiteRandoms (n-1) newGen  
+    in  (value:restOfList, finalGen)</pre><p>又是一個遞迴的定義。</p><p>我們說如果我們要0個亂數，我們便回傳一個空的list跟原本給我們的generator。</p><p>對於其他數量的亂數，我們先拿一個亂數跟一個新的generator。</p><p>這一個亂數便是list的第一個數字。</p><p>然後list中剩下的便是n-1個由新的generator產生出的亂數。</p><p>然後我們回傳整個list跟最後一個產生完n-1個亂數後generator。</p><p>如果我們要的是在某個範圍內的亂數呢？</p><p>現在拿到的亂數要不是太大就是太小。</p><p>如果我們想要的是骰子上的數字呢？</p><p><strong>randomR</strong>能滿足我們的需求。</p><p>他的型態是<code>randomR :: (RandomGen g, Random a) :: (a, a) -> g -> (a, g)</code>，</p><p>代表他有點類似<code>random</code>。</p><p>只不過他的第一個參數是一對數目，定義了最後產生亂數的上界以及下界。</p><pre class="code">ghci> randomR (1,6) (mkStdGen 359353)  
+(6,1494289578 40692)  
+ghci> randomR (1,6) (mkStdGen 35935335)  
+(3,1250031057 40692)</pre><p>另外也有一個<strong>randomRs</strong>的函數，他會產生一連串在給定範圍內的亂數：</p><pre class="code">ghci> take 10 $ randomRs ('a','z') (mkStdGen 3) :: [Char]  
+"ndkxbvmomg"</pre><p>這結果看起來像是一個安全性很好的密碼。</p><p>你會問你自己，這一單元跟I/O有關系嗎？到現在為止還沒出現任何跟I/O有關的東西。</p><p>到現在為止我們都是手動地做我們的random generator。</p><p>但那樣的問題是，程式永遠都會回傳同樣的亂數。</p><p>這在真實世界中的程式是不能接受的。</p><p>這也是為什麼<code>System.Random</code>要提供<strong>getStdGen</strong>這個I/O action，</p><p>他的型態是<code>IO StdGen</code>。</p><p>當你的程式執行時，他會跟系統要一個random generator，並存成一個global generator。</p><p><code>getStdGen</code>會替你拿那個global random generator並把他綁定到某個名稱上。</p><p>這裡有一個簡單的產生隨機字串的程式。</p><pre class="code">import System.Random  
+  
+main = do  
+    gen <- getStdGen  
+    putStr $ take 20 (randomRs ('a','z') gen)</pre><pre class="code">$ runhaskell random_string.hs  
+pybphhzzhuepknbykxhe  
+$ runhaskell random_string.hs  
+eiqgcxykivpudlsvvjpg  
+$ runhaskell random_string.hs  
+nzdceoconysdgcyqjruo  
+$ runhaskell random_string.hs  
+bakzhnnuzrkgvesqplrx</pre><p>要當心當我們連續兩次呼叫<code>getStdGent</code>的時候，實際上都會回傳同樣的global generator。</p><p>像這樣：</p><pre class="code">import System.Random  
+  
+main = do  
+    gen <- getStdGen  
+    putStrLn $ take 20 (randomRs ('a','z') gen)  
+    gen2 <- getStdGen  
+    putStr $ take 20 (randomRs ('a','z') gen2)</pre><p>你會印出兩次同樣的字串。</p><p>要能得到兩個不同的字串是建立一個無限的stream，然後拿前20個字當作第一個字串，</p><p>拿下20個字當作第二個字串。</p><p>要這麼做，我們需要在<code>Data.List</code>中的<code>splitAt</code>函數。</p><p>他會把一個list根據給定的index切成一個tuple，tuple的第一部份就是切斷的前半，第二個部份就是切斷的後半。</p><pre class="code">import System.Random  
+import Data.List  
+  
+main = do  
+    gen <- getStdGen  
+    let randomChars = randomRs ('a','z') gen  
+        (first20, rest) = splitAt 20 randomChars  
+        (second20, _) = splitAt 20 rest  
+    putStrLn first20  
+    putStr second20</pre><p>另一種方法是用<strong>newStdGen</strong>這個I/O action，</p><p>他會把現有的random generator分成兩個新的generators。</p><p>然後會把其中一個指定成global generator，並回傳另一個。</p><pre class="code">import System.Random  
+  
+main = do     
+    gen <- getStdGen     
+    putStrLn $ take 20 (randomRs ('a','z') gen)     
+    gen' <- newStdGen  
+    putStr $ take 20 (randomRs ('a','z') gen')</pre><p>當我們綁定<code>newStdGen</code>的時候我們不只是會拿到一個新的generator，</p><p>global generator也會被重新指定。</p><p>所以再呼叫一次<code>getStdGen</code>並綁定到某個名稱的話，我們就會拿到跟<code>gen</code>不一樣的generator。</p><p>這邊有一個小程式會讓使用者猜數字：</p><pre class="code">import System.Random  
+import Control.Monad(when)  
+  
+main = do  
+    gen <- getStdGen  
+    askForNumber gen  
+
+askForNumber :: StdGen -> IO ()  
+askForNumber gen = do  
+    let (randNumber, newGen) = randomR (1,10) gen :: (Int, StdGen)  
+    putStr "Which number in the range from 1 to 10 am I thinking of? "  
+    numberString <- getLine  
+    when (not $ null numberString) $ do  
+        let number = read numberString  
+        if randNumber == number   
+            then putStrLn "You are correct!"  
+        else putStrLn $ "Sorry, it was " ++ show randNumber  
+            askForNumber newGen</pre><a name="Bytestrings"></a><h2>Bytestrings</h2><a name="Exceptions (例外)"></a><h2>Exceptions (例外)</h2>
             <ul class="nav">
                 <li class="left">  <img src="img/prv.png"></img><a href="make-types-and-classes-for-ourselves.html">構造我們自己的Types和Typeclasses</a></li>
                 <li class="center"><a href="chapters.html">Index</a></li>
