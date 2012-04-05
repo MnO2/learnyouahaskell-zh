@@ -523,8 +523,31 @@ askForNumber gen = do
         let number = read numberString  
         if randNumber == number   
             then putStrLn "You are correct!"  
-        else putStrLn $ "Sorry, it was " ++ show randNumber  
-            askForNumber newGen</pre><a name="Bytestrings"></a><h2>Bytestrings</h2><a name="Exceptions (例外)"></a><h2>Exceptions (例外)</h2>
+            else putStrLn $ "Sorry, it was " ++ show randNumber  
+            askForNumber newGen</pre><p>我們寫了一個<code>askForNumber</code>的函數，他接受一個random generator並回傳一個</p><p>問使用者要數字並回答是否正確的I/O action。</p><p>在那個函數裡面，</p><p>我們先根據從參數拿到的generator產生一個亂數以及一個新的generator，</p><p>分別叫他們為<code>randomNumber</code>跟<code>newGen</code>。</p><p>假設那個產生的數字是<code>7</code>。</p><p>則我們要求使用者猜我們握有的數字是什麼。</p><p>我們用<code>getLine</code>來將結果綁定到<code>numberString</code>上。</p><p>當使用者輸入<code>7</code>，<code>numberString</code>就會是<code>"7"</code>。</p><p>接下來，我們用<code>when</code>來檢查使用者輸入的是否是空字串。</p><p>如果是，那一個空的I/O action<code>return ()</code>就會被回傳。</p><p>基本上就等於是結束程式的意思。</p><p>如果不是，那I/O action就會被執行。</p><p>我們用<code>read</code>來把<code>numberString</code>轉成一個數字，所以<code>number</code>便會是<code>7</code>。</p><blockquote><p>如果使用者給我們一些<code>read</code>沒辦法讀取的輸入（像是<code>"haha"</code>），我們的程式便會當掉並印出錯誤訊息。</p><p>如果你不希望你的程式當掉，就用<strong>reads</strong>，當讀取失敗的時候他會回傳一個空的list。當成功的時候他就回傳一個</p><p>tuple，第一個部份是我們想要的數字，第二個部份是讀取失敗的字串。</p></blockquote><p>我們檢查如果輸入的數字跟我們隨機產生的數字一樣，便提示使用者恰當的訊息。</p><p>然後再遞迴地呼叫<code>askForNumber</code>，只是會拿到一個新的generator。</p><p>就像之前的generator一樣，他會給我們一個新的I/O action。</p><p><code>main</code>的組成很簡單，就是由拿取一個random generator跟呼叫<code>askForNumber</code>組成罷了。</p><p>來看看我們的程式：</p><pre class="code">$ runhaskell guess_the_number.hs  
+Which number in the range from 1 to 10 am I thinking of? 4  
+Sorry, it was 3  
+Which number in the range from 1 to 10 am I thinking of? 10  
+You are correct!  
+Which number in the range from 1 to 10 am I thinking of? 2  
+Sorry, it was 4  
+Which number in the range from 1 to 10 am I thinking of? 5  
+Sorry, it was 10  
+Which number in the range from 1 to 10 am I thinking of?</pre><p>用另一種方式寫的話像這樣：</p><pre class="code">import System.Random  
+import Control.Monad(when)  
+  
+main = do  
+    gen <- getStdGen  
+    let (randNumber, _) = randomR (1,10) gen :: (Int, StdGen)     
+    putStr "Which number in the range from 1 to 10 am I thinking of? "  
+    numberString <- getLine  
+    when (not $ null numberString) $ do  
+        let number = read numberString  
+        if randNumber == number  
+            then putStrLn "You are correct!"  
+            else putStrLn $ "Sorry, it was " ++ show randNumber  
+        newStdGen  
+        main</pre><p>他非常類似我們之前的版本，只是不是遞迴地呼叫，</p><p>而是把所有的工作都在<code>main</code>裡面做掉。</p><p>在告訴使用者他們猜得是否正確之後，</p><p>便更新global generator然後再一次呼叫<code>main</code>。</p><p>兩種策略都是有效但我比較喜歡第一種方式。</p><p>因為他在<code>main</code>裡面做的事比較少，並提供我們一個可以重複使用的函數。</p><a name="Bytestrings"></a><h2>Bytestrings</h2><p>List是一種有用又酷的資料結構。</p><p>到目前為止，我們幾乎無處不使用他。</p><a name="Exceptions (例外)"></a><h2>Exceptions (例外)</h2>
             <ul class="nav">
                 <li class="left">  <img src="img/prv.png"></img><a href="make-types-and-classes-for-ourselves.html">構造我們自己的Types和Typeclasses</a></li>
                 <li class="center"><a href="chapters.html">Index</a></li>
