@@ -1861,12 +1861,198 @@ askForNumber gen = do
         let number = read numberString  
         if randNumber == number   
             then putStrLn "You are correct!"  
-        else putStrLn $ "Sorry, it was " ++ show randNumber  
+            else putStrLn $ "Sorry, it was " ++ show randNumber  
             askForNumber newGen  
 }}
 
+我們寫了一個``askForNumber``的函數，他接受一個random generator並回傳一個
+問使用者要數字並回答是否正確的I/O action。
+在那個函數裡面，
+我們先根據從參數拿到的generator產生一個亂數以及一個新的generator，
+分別叫他們為``randomNumber``跟``newGen``。
+假設那個產生的數字是``7``。
+則我們要求使用者猜我們握有的數字是什麼。
+我們用``getLine``來將結果綁定到``numberString``上。
+當使用者輸入``7``，``numberString``就會是``"7"``。
+接下來，我們用``when``來檢查使用者輸入的是否是空字串。
+如果是，那一個空的I/O action ``return ()``就會被回傳。
+基本上就等於是結束程式的意思。
+如果不是，那I/O action就會被執行。
+我們用``read``來把``numberString``轉成一個數字，所以``number``便會是``7``。
+
+    如果使用者給我們一些``read``沒辦法讀取的輸入（像是``"haha"``），我們的程式便會當掉並印出錯誤訊息。
+    如果你不希望你的程式當掉，就用**reads**，當讀取失敗的時候他會回傳一個空的list。當成功的時候他就回傳一個
+    tuple，第一個部份是我們想要的數字，第二個部份是讀取失敗的字串。
+
+我們檢查如果輸入的數字跟我們隨機產生的數字一樣，便提示使用者恰當的訊息。
+然後再遞迴地呼叫``askForNumber``，只是會拿到一個新的generator。
+就像之前的generator一樣，他會給我們一個新的I/O action。
+
+``main``的組成很簡單，就是由拿取一個random generator跟呼叫``askForNumber``組成罷了。
+
+來看看我們的程式：
+
+{{
+$ runhaskell guess_the_number.hs  
+Which number in the range from 1 to 10 am I thinking of? 4  
+Sorry, it was 3  
+Which number in the range from 1 to 10 am I thinking of? 10  
+You are correct!  
+Which number in the range from 1 to 10 am I thinking of? 2  
+Sorry, it was 4  
+Which number in the range from 1 to 10 am I thinking of? 5  
+Sorry, it was 10  
+Which number in the range from 1 to 10 am I thinking of?  
+}}
+
+用另一種方式寫的話像這樣：
+
+{{
+import System.Random  
+import Control.Monad(when)  
+  
+main = do  
+    gen <- getStdGen  
+    let (randNumber, _) = randomR (1,10) gen :: (Int, StdGen)     
+    putStr "Which number in the range from 1 to 10 am I thinking of? "  
+    numberString <- getLine  
+    when (not $ null numberString) $ do  
+        let number = read numberString  
+        if randNumber == number  
+            then putStrLn "You are correct!"  
+            else putStrLn $ "Sorry, it was " ++ show randNumber  
+        newStdGen  
+        main  
+}}
+
+他非常類似我們之前的版本，只是不是遞迴地呼叫，
+而是把所有的工作都在``main``裡面做掉。
+在告訴使用者他們猜得是否正確之後，
+便更新global generator然後再一次呼叫``main``。
+兩種策略都是有效但我比較喜歡第一種方式。
+因為他在``main``裡面做的事比較少，並提供我們一個可以重複使用的函數。
+
 
 ==Bytestrings
+
+List是一種有用又酷的資料結構。
+到目前為止，我們幾乎無處不使用他。
+有好幾個函數是專門處裡List的，
+而Haskell惰性的性質又讓我們可以用filter跟map來替換其他語言中的for loop跟while loop。
+也由於evaluation只會發生在需要的時候，像infinite list也對於Haskell不成問題（甚至是infinite list of infinite list）。
+這也是為什麼list能被用來表達stream，像是讀取標準輸入或是讀取檔案。
+我們可以打開檔案然後讀取內容成字串，即便實際上我們是需要的時候才會真正取讀取。
+
+然而，用字串來處裡檔案有一個缺點：就是他很慢。
+想你所知道的，``String``是一個``[Char]``的type synonym。
+``Char``沒有一個固定的大小，因為他可能由好幾個byte組成，好比說Unicode。
+再加上list是惰性的。如果你有一個list像``[1,2,3,4]``，他只會在需要的時候被evaluate。
+所以整個list其實比較像是一個"保證"你會有一個list。
+要記住``[1,2,3,4]``不過是``1:2:3:4:[]``的一個syntactic sugar。
+當list的第一個元素被evaluated的時候，剩餘的部份``2:3:4:[]``一樣也只是一個"保證"你會有一個list，以此類推。以此類推。以此類推。
+所以你可以想像成list是保證在你需要的時候會給你第一個元素，以及保證你會有剩下的部份當你還需要更多的時候。
+其實不難說服你這樣做並不是一個最有效率的作法。
+
+這樣額外的負擔在大多數時候不會造成困擾，但當我們要讀取一個很大的檔案的時候就是個問題了。
+這也是為什麼Haskell要有``bytestrings``。
+Bytestrings有點像list，但他每一個元素都是一個byte (8 bits)，而且他們惰性的程度也是不同。
+
+Bytesstrings有兩種：strict跟lazy。
+Strict bytestrings放在``Data.ByteString``，他們把惰性的性質完全拿掉。
+不會有所謂任何的"保證"，
+一個strict bytestring就代表一連串的bytes。
+因此你不會有一個無限長的strict bytestrings。
+如果你evaluate第一個byte，你就必須evalute整個bytestring。
+這麼做的優點是他會比較少overhaed，因為他沒有"Thunk"(也就是用Haskell術語來說的"保證")。
+缺點就是他可能會快速消耗你的記憶體，
+因為你把他們一次都讀進了記憶體。
+
+另一種bytestring是放在``Data.ByteString.Lazy``中。
+他們具有惰性，但又不像list那麼極端。
+就像我們之前說的，List的thunk個數是跟list中有幾個元素一模一樣。
+這也是為什麼他們速度沒辦法滿足一些特殊需求。
+Lazy bytestrings則用另一種作法，
+他們被存在chunks中(不要跟Thunk搞混)，
+每一個chunck的大小是64K。
+所以如果你evaluate lazy bytestring中的byte，則前64K會被evaluated。
+在那個chunck之後，就是一些"保證"會有剩餘的chunk。
+lazy bytestrings有點像裝了一堆大小為64K的strict bytestrings的list。
+當你用lazy bytestring處裡一個檔案的時候，
+他是一個chunk一個chunk去讀。
+這很棒是因為他不會讓我們一下使用大量的記憶體，
+而且64K有很高的可能性能夠裝進你CPU的L2 Cache。
+
+如果你大概看過``Data.ByteString.Lazy``的文件，你會看到到他有一堆函數的名稱跟``Data.List``中的函數名稱相同，
+只是出現的type signature是``ByteString``而不是``[a]``，是``Word8``而不是``a``。
+同樣名稱的函數基本上表現的行為跟list中的差不多。
+因為名稱是一樣的，所以必須用qualified import才不會在裝載進GHCI的時候造成衝突。
+
+{{
+import qualified Data.ByteString.Lazy as B
+import qualified Data.ByteString as S
+}}
+
+``B``中有lazy bytestrings跟對應的函數，而``S``中則有strict的版本。
+大多數時候我們是用lazy的版本。
+
+**pack**函數的type signature是``pack :: [Word8] -> ByteString``。
+代表他接受一串型態為``Word8``的bytes，並回傳一個``ByteString``。
+你能想像一個lazy的list，要讓他稍微不lazy一些，所以讓他對於64K lazy。
+
+那``Word8``型態又是怎麼一回事？。
+他就像``Int``，只是他的範圍比較小，介於0-255之間。
+他代表一個8-bit的數字。
+就像``Int``一樣，他是屬於``Num``這個typeclass。
+例如我們知道``5``是polymorphic的，他能夠表現成任何數值型態。
+其實``Word8``他也能表示。
+
+{{
+ghci> B.pack [99,97,110]  
+Chunk "can" Empty  
+ghci> B.pack [98..120]  
+Chunk "bcdefghijklmnopqrstuvwx" Empty  
+}}
+
+正如你看到的，你其實不必特別在意``Word8``，
+因為型態系統會選擇正確的型態。
+如果你試著用比較大的數字，像是``336``。
+那對於``Word8``他就會變成``80``。
+
+我們把一些數值打包成``ByteString``，使他們可以塞進一個chunk裡面。
+``Empty``之於``ByteString``就像``[]``之於list一樣。
+
+**unpack**是``pack``的相反，他把一個bytestring變成一個byte list。
+
+**fromChunks**接受一串strict的bytestrings並把他變成一串lazy bytestring。
+**toChunks**接受一個lazy bytestrings並將他變成一串strict bytestrings。
+
+{{
+ghci> B.fromChunks [S.pack [40,41,42], S.pack [43,44,45], S.pack [46,47,48]]  
+Chunk "()*" (Chunk "+,-" (Chunk "./0" Empty))  
+}}
+
+如果你有很多小的strict bytestrings而且不想先將他們join起來（會耗損memory）
+這樣的作法是不錯的。
+
+bytestring版本的``:``叫做**cons**。
+他接受一個byte跟一個bytestring，並把這個byte放到bytestring的前端。
+他是lazy的操作，即使bytestring的第一個chunk不是滿的，他也會新增一個chunk。
+這也是為什麼當你要插入很多bytes的時候最好用strict版本的``cons``，
+也就是**cons'**。
+
+{{
+ghci> B.cons 85 $ B.pack [80,81,82,84]  
+Chunk "U" (Chunk "PQRT" Empty)  
+ghci> B.cons' 85 $ B.pack [80,81,82,84]  
+Chunk "UPQRT" Empty  
+ghci> foldr B.cons B.empty [50..60]  
+Chunk "2" (Chunk "3" (Chunk "4" (Chunk "5" (Chunk "6" (Chunk "7" (Chunk "8" (Chunk "9" (Chunk ":" (Chunk ";" (Chunk "<"  
+Empty))))))))))  
+ghci> foldr B.cons' B.empty [50..60]  
+Chunk "23456789:;<" Empty  
+}}
+
+
 
 ==Exceptions (例外)
 

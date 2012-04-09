@@ -753,7 +753,7 @@ fromList' :: (Ord k) => [(k,v)] -> Map.Map k v
 fromList' = foldr (\(k,v) acc -> Map.insert k v acc) Map.empty
 }}
 
-多直白的fold！ 從一個空的map開始，然後從右摺疊，隨着遍歷不斷地往map中插入新的鍵值對.
+簡潔明瞭的fold！ 從一個空的map開始，然後從右摺疊，隨着遍歷不斷地往map中插入新的鍵值對.
 
 **null**檢查一個map是否為空.
 

@@ -112,7 +112,7 @@ nudge (Circle (Point x y) r) a b = Circle (Point (x+a) (y+b)) r
 nudge (Rectangle (Point x1 y1) (Point x2 y2)) a b = Rectangle (Point (x1+a) (y1+b)) (Point (x2+a) (y2+b)) 
 }}
 
-很直白，我們給這一Shape的點加上位移的量。
+簡潔明瞭。我們再給這一Shape的點加上位移的量。
 
 {{
 ghci> nudge (Circle (Point 34 34) 10) 5 10  
