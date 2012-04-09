@@ -235,7 +235,7 @@ ghci> Map.insert 5 600 (Map.insert 4 200 ( Map.insert 3 100  Map.empty))
 fromList [(3,100),(4,200),(5,600)]
 ghci> Map.insert 5 600 。Map.insert 4 200 . Map.insert 3 100 $ Map.empty 
 fromList [(3,100),(4,200),(5,600)]</pre><p>通過<code>empty</code>，<code>insert</code>與<code>fold</code>，我們可以編寫出自己的<code>fromList</code>。</p><pre class="code">fromList' :: (Ord k) => [(k,v)] -> Map.Map k v 
-fromList' = foldr (\(k,v) acc -> Map.insert k v acc) Map.empty</pre><p>多直白的fold！ 從一個空的map開始，然後從右摺疊，隨着遍歷不斷地往map中插入新的鍵值對.</p><p><strong>null</strong>檢查一個map是否為空.</p><pre class="code">ghci> Map.null Map.empty 
+fromList' = foldr (\(k,v) acc -> Map.insert k v acc) Map.empty</pre><p>簡潔明瞭的fold！ 從一個空的map開始，然後從右摺疊，隨着遍歷不斷地往map中插入新的鍵值對.</p><p><strong>null</strong>檢查一個map是否為空.</p><pre class="code">ghci> Map.null Map.empty 
 True 
 ghci> Map.null $ Map.fromList [(2,3),(5,5)] 
 False</pre><p><strong>size</strong>返回一個map的大小。</p><pre class="code">ghci> Map.size Map.empty 

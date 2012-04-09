@@ -46,7 +46,7 @@ surface (Rectangle (Point x1 y1) (Point x2 y2)) = (abs $ x2 - x1) * (abs $ y2 - 
 ghci> surface (Circle (Point 0 0) 24)  
 1809.5574</pre><p>表示移動一個圖形的函數該怎麼寫？ 它應當取一個Shape和表示位移的兩個數，返回一個位於新位置的圖形。</p><pre class="code">nudge :: Shape -> Float -> Float -> Shape  
 nudge (Circle (Point x y) r) a b = Circle (Point (x+a) (y+b)) r  
-nudge (Rectangle (Point x1 y1) (Point x2 y2)) a b = Rectangle (Point (x1+a) (y1+b)) (Point (x2+a) (y2+b))</pre><p>很直白，我們給這一Shape的點加上位移的量。</p><pre class="code">ghci> nudge (Circle (Point 34 34) 10) 5 10  
+nudge (Rectangle (Point x1 y1) (Point x2 y2)) a b = Rectangle (Point (x1+a) (y1+b)) (Point (x2+a) (y2+b))</pre><p>簡潔明瞭。我們再給這一Shape的點加上位移的量。</p><pre class="code">ghci> nudge (Circle (Point 34 34) 10) 5 10  
 Circle (Point 39.0 44.0) 10.0</pre><p>如果不想直接處理Point，我們可以搞個輔助函數(auxilliary function)，初始從原點創建圖形，再移動它們。</p><pre class="code">baseCircle :: Float -> Shape  
 baseCircle r = Circle (Point 0 0) r  
 
