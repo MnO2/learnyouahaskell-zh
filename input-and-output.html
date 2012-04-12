@@ -560,7 +560,17 @@ ghci> foldr B.cons B.empty [50..60]
 Chunk "2" (Chunk "3" (Chunk "4" (Chunk "5" (Chunk "6" (Chunk "7" (Chunk "8" (Chunk "9" (Chunk ":" (Chunk ";" (Chunk "<"  
 Empty))))))))))  
 ghci> foldr B.cons' B.empty [50..60]  
-Chunk "23456789:;<" Empty</pre><a name="Exceptions (例外)"></a><h2>Exceptions (例外)</h2>
+Chunk "23456789:;<" Empty</pre><p>你可以看到<strong>empty</strong>製造了一個空的bytestring。</p><p>也注意到<code>cons</code>跟<code>cons'</code>的差異了嗎？</p><p>有了<code>foldr</code>，我們逐步地把一串數字從右邊開始，一個個放到bytestring的前頭。</p><p>當我們用<code>cons</code>，我們則得到一個byte一個chunk的結果，並不是我們要的。</p><p>bytestring模組有一大票很像<code>Data.List</code>中的函數。</p><p>包括了<code>head</code>，<code>tail</code>，<code>init</code>，<code>null</code>，<code>length</code>，<code>map</code>，<code>reverse</code>，<code>foldl</code>，<code>foldr</code>，<code>concat</code>，<code>takeWhile</code>，<code>filter</code>，等等。</p><p>他也有表現得跟<code>System.IO</code>中一樣的函數，只有<code>Strings</code>被換成了<code>ByteString</code>而已。</p><p>像是<code>System.IO</code>中的<code>readFile</code>，他的型態是<code>readFile :: FilePath -> IO String</code>，</p><p>而bytestring模組中的<strong>readFile</strong>則是<code>readFile :: FilePath -> IO ByteString</code>。</p><p>小心，如果你用了strict bytestring來讀取一個檔案，他會把檔案內容都讀進記憶體中。</p><p>而使用lazy bytestring，他則會讀取chunks。</p><p>讓我們來寫一個簡單的程式，他從命令列接受兩個檔案名，然後拷貝第一個檔案內容成第二個檔案。</p><p>雖然<code>System.Directory</code>中已經有一個函數叫<code>copyFile</code>，但我們想要實做自己的版本。</p><pre class="code">import System.Environment  
+import qualified Data.ByteString.Lazy as B  
+  
+main = do  
+    (fileName1:fileName2:_) <- getArgs  
+    copyFile fileName1 fileName2  
+
+copyFile :: FilePath -> FilePath -> IO ()  
+copyFile source dest = do  
+    contents <- B.readFile source  
+    B.writeFile dest contents</pre><p>我們寫了自己的函數，他接受兩個<code>FilePath</code>（記住<code>FilePath</code>不過是<code>String</code>的同義詞。）</p><p>並回傳一個I/O action，他會用bytestring拷貝第一個檔案至另一個。</p><p>在<code>main</code>函數中，我們做的只是拿到命令列引數然後呼叫那個函數來拿到一個I/O action。</p><pre class="code">$ runhaskell bytestringcopy.hs something.txt ../../something.txt</pre><p>就算我們不用bytestring來寫，程式最後也會長得像這樣。</p><p>差別在於我們會用<code>B.readFile</code>跟<code>B.writeFile</code>而不是<code>readFile</code>跟<code>writeFile</code>。</p><p>有很大的可能性，就是你只要import檔案並在函數前加上qualified模組名，就可以把一個用正常String的程式改成用ByteString。</p><p>也有可能你是要反過來做，但那也不難。</p><p>當你需要更好的效能來讀取許多資料，嘗試用bytestring，</p><p>有很大的機會你會用很小的力氣改進很多效能。</p><p>我通常用正常String來寫程式，然後在效能不好的時候把他們改成ByteString。</p><a name="Exceptions (例外)"></a><h2>Exceptions (例外)</h2><p>所有的程式語言都有要處裡失敗的情形。這就是人生。</p><p>不同的語言有不同的處裡方式。</p><p>在C裡面，我們通常用非正常範圍的回傳值（像是<code>-1</code>或null）來回傳錯誤。</p>
             <ul class="nav">
                 <li class="left">  <img src="img/prv.png"></img><a href="make-types-and-classes-for-ourselves.html">構造我們自己的Types和Typeclasses</a></li>
                 <li class="center"><a href="chapters.html">Index</a></li>
