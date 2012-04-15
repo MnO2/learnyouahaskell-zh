@@ -2052,7 +2052,228 @@ ghci> foldr B.cons' B.empty [50..60]
 Chunk "23456789:;<" Empty  
 }}
 
+你可以看到**empty**製造了一個空的bytestring。
+也注意到``cons``跟``cons'``的差異了嗎？
+有了``foldr``，我們逐步地把一串數字從右邊開始，一個個放到bytestring的前頭。
+當我們用``cons``，我們則得到一個byte一個chunk的結果，並不是我們要的。
+
+bytestring模組有一大票很像``Data.List``中的函數。
+包括了``head``，``tail``，``init``，``null``，``length``，``map``，``reverse``，``foldl``，``foldr``，``concat``，``takeWhile``，``filter``，等等。
+
+他也有表現得跟``System.IO``中一樣的函數，只有``Strings``被換成了``ByteString``而已。
+像是``System.IO``中的``readFile``，他的型態是``readFile :: FilePath -> IO String``，
+而bytestring模組中的**readFile**則是``readFile :: FilePath -> IO ByteString``。
+小心，如果你用了strict bytestring來讀取一個檔案，他會把檔案內容都讀進記憶體中。
+而使用lazy bytestring，他則會讀取chunks。
+
+讓我們來寫一個簡單的程式，他從命令列接受兩個檔案名，然後拷貝第一個檔案內容成第二個檔案。
+雖然``System.Directory``中已經有一個函數叫``copyFile``，但我們想要實做自己的版本。
+
+{{
+import System.Environment  
+import qualified Data.ByteString.Lazy as B  
+  
+main = do  
+    (fileName1:fileName2:_) <- getArgs  
+    copyFile fileName1 fileName2  
+
+copyFile :: FilePath -> FilePath -> IO ()  
+copyFile source dest = do  
+    contents <- B.readFile source  
+    B.writeFile dest contents  
+}}
+
+我們寫了自己的函數，他接受兩個``FilePath``（記住``FilePath``不過是``String``的同義詞。）
+並回傳一個I/O action，他會用bytestring拷貝第一個檔案至另一個。
+在``main``函數中，我們做的只是拿到命令列引數然後呼叫那個函數來拿到一個I/O action。
+
+{{
+$ runhaskell bytestringcopy.hs something.txt ../../something.txt      
+}}
+
+就算我們不用bytestring來寫，程式最後也會長得像這樣。
+差別在於我們會用``B.readFile``跟``B.writeFile``而不是``readFile``跟``writeFile``。
+有很大的可能性，就是你只要import檔案並在函數前加上qualified模組名，就可以把一個用正常String的程式改成用ByteString。
+也有可能你是要反過來做，但那也不難。
+
+當你需要更好的效能來讀取許多資料，嘗試用bytestring，
+有很大的機會你會用很小的力氣改進很多效能。
+我通常用正常String來寫程式，然後在效能不好的時候把他們改成ByteString。
 
 
 ==Exceptions (例外)
+
+所有的程式語言都有要處裡失敗的情形。這就是人生。
+不同的語言有不同的處裡方式。
+在C裡面，我們通常用非正常範圍的回傳值（像是``-1``或null）來回傳錯誤。
+Java跟C#則傾向於使用exception來處裡失敗的情況。
+當一個exception被丟出的時候，控制流程就會跳到我們做一些清理動作的地方，
+做完清理後exception被重新丟出，
+這樣一些處裡錯誤的程式碼可以完成他們的工作。
+
+Haskell有一個很棒的型態系統。
+Algebraic data types允許像是``Maybe``或``Either``這種型態，
+我們能用這些型態來代表一些可能有或沒有的結果。
+在C裡面，在失敗的時候回傳``-1``是很常見的事。
+但他只對寫程式的人有意義。
+如果我們不小心，
+我們有可能把這些錯誤碼當作正常值來處裡，便造成一些諢亂。
+Haskell的型態系統賦予我們更安全的環境。
+一個``a -> Maybe b``的函數指出了他會產生一個包含``b``的``Just``，或是回傳``Nothing``。
+這型態跟``a -> b``是不同的，
+如果我們試著將兩個函數混用，
+compiler便會警告我們。
+
+儘管有表達力夠強的型態來輔助失敗的情形，
+Haskell仍然支持exception，
+因為exception在I/O的contexts下是比較合理的。
+在處裡I/O的時候會有一堆奇奇怪怪的事情發生，環境是很不能被信賴的。
+像是打開檔案。檔案有可能被lock起來，也有可能檔案被移除了，
+或是整個硬碟都被拔掉。
+所以直接跳到處裡錯誤的程式碼是很合理的。
+
+我們了解到I/O code會丟出exception是件合理的事。
+至於pure code呢？
+其實他也能丟出Exception。
+想想看``div``跟``head``兩個案例。
+他們的型態是``(Integral a) => a -> a -> a``以及``[a] -> a``。
+``Maybe``跟``Either``都沒有在他們的回傳型態中，但他們都有可能失敗。
+``div``有可能除以零，而``head``有可能你傳給他一個空的list。
+
+{{
+ghci> 4 `div` 0  
+*** Exception: divide by zero  
+ghci> head []  
+*** Exception: Prelude.head: empty list  
+}}
+
+pure code能丟出Exception，但Exception只能在I/O section中被接到（也就是在``main``的do block中）
+這是因為在pure code中你不知道什麼東西什麼時候會被evaluate。
+因為lazy特性的緣故，程式沒有一個特定的執行順序，但I/O code有。
+
+先前我們談過為什麼在I/O部份的程式要越少越好。
+程式的邏輯部份盡量都放在pure的部份，因為pure的特性就是他們的結果只會根據函數的參數不同而改變。
+當思考pure function的時候，你只需要考慮他回傳什麼，因為除此之外他不會有任何副作用。
+這會讓事情簡單許多。
+儘管I/O的部份是難以避免的（像是打開檔案之類），
+但最好是把I/O部份降到最低。
+Pure functions預設是lazy，那代表我們不知道他什麼時候會被evaluate，不過我們也不該知道。
+然而，一旦pure functions需要丟出Exception，
+他們何時被evaluate就很重要了。
+那是因為我們只有在I/O的部份才能接到Exception。
+這很糟糕，因為我們說過希望I/O的部份越少越好。
+但如果我們不接Exception，我們的程式就會當掉。
+這問題有解決辦法嗎？
+答案是不要在pure code裡面使用Exception。
+利用Haskell的型態系統，盡量使用``Either``或``Maybe``之類的型態來表示可能失敗的計算。
+
+這也是為什麼我們要來看看怎麼使用I/O Excetion。
+I/O Exception是當我們在``main``裡面跟外界溝通失敗而丟出的Exception。
+例如我們嘗試打開一個檔案，結果發現他已經被刪掉或是其他狀況。
+來看看一個嘗試打開命令列引數所指定檔案名稱，並計算裡面有多少行的程式。
+
+{{
+import System.Environment  
+import System.IO  
+  
+main = do (fileName:_) <- getArgs  
+            contents <- readFile fileName  
+            putStrLn $ "The file has " ++ show (length (lines contents)) ++ " lines!"  
+}}
+
+一個很簡單的程式。
+我們使用``getArgs`` I/O action，並綁定第一個string到``fileName``。
+然後我們綁定檔案內容到``contents``。
+最後，我們用``lines``來取得line的list，並計算list的長度，並用``show``來轉換數字成string。
+他如我們想像的工作，但當我們給的檔案名稱不存在的時候呢？
+
+{{
+$ runhaskell linecount.hs i_dont_exist.txt  
+linecount.hs: i_dont_exist.txt: openFile: does not exist (No such file or directory)  
+}}
+
+GHC丟了錯誤訊息給我們，告訴我們檔案不存在。然後程式就掛掉了。
+假如我們希望印出比較好一些的錯誤訊息呢？
+一種方式就是在打開檔案前檢查他存不存在。
+用``System.Directory``中的**doesFileExist**。
+
+{{
+import System.Environment  
+import System.IO  
+import System.Directory  
+  
+main = do (fileName:_) <- getArgs  
+            fileExists <- doesFileExist fileName  
+            if fileExists  
+                then do contents <- readFile fileName  
+                    putStrLn $ "The file has " ++ show (length (lines contents)) ++ " lines!"  
+                else do putStrLn "The file doesn't exist!"  
+}}
+
+由於``doesFileExist``的型態是``doesFileExist :: FilePath -> IO Bool``，
+所以我們要寫成``fileExists <- doesFileExist fileName``。
+那代表他回傳含有一個布林值告訴我們檔案存不存在的I/O action。
+``doesFileExist``是不能直接在if expression中使用的。
+
+另一個解法是使用Exception。
+在這個情境下使用Exception是沒問題的。
+檔案不存在這個Exception是在I/O中被丟出，所以在I/O中接起來也沒什麼不對。
+
+要這樣使用Exception，我們必須使用``System.IO.Error``中的**catch**函數。
+他的型態是``catch :: IO a -> (IOError -> IO a) -> IO a``。
+他接受兩個參數，第一個是一個I/O action。
+像是他可以接受一個打開檔案的I/O action。
+第二個是handler。
+如果第一個參數的I/O action丟出了Exception，則他會被傳給handler，他會決定要作些什麼。
+所以整個I/O action的結果不是如預期中做完第一個參數的I/O action，
+就是handler處裡的結果。
+
+如果你對其他語言像是Java, Python中try-catch的形式很熟，
+那``catch``其實跟他們很像。
+第一個參數就是其他語言中的try block。
+第二個參數就是其他語言中的catch block。
+其中handler只有在exception被丟出時才會被執行。
+
+handler接受一個``IOError``型態的值，
+他代表的是一個I/O exception已經發生了。
+他也帶有一些exception本身的資訊。
+至於這型態在語言中使如何被實做則是要看編譯器。
+這代表我們沒辦法用pattern matching的方式來檢視``IOError``。
+就像我們不能用pattern matching來檢視``IO something``的內容。
+但我們能用一些predicate來檢視他們。
+
+我們來看看一個展示``catch``的程式
+
+{{
+import System.Environment  
+import System.IO  
+import System.IO.Error  
+  
+main = toTry `catch` handler  
+
+toTry :: IO ()  
+toTry = do (fileName:_) <- getArgs  
+            contents <- readFile fileName  
+            putStrLn $ "The file has " ++ show (length (lines contents)) ++ " lines!"  
+
+handler :: IOError -> IO ()  
+handler e = putStrLn "Whoops, had some trouble!"  
+}}
+
+首先你看到我們可以在關鍵字周圍加上backticks來把``catch``當作infix function用，
+因為他剛好接受兩個參數。
+這樣使用讓可讀性變好。
+``toTry `catch` handler``跟``catch toTry handler``是一模一樣的。
+``toTry``是一個I/O action，而``handler``接受一個``IOError``，並回傳一個當exception發生時被執行的I/O action。
+
+來看看執行的結果。
+
+{{
+$ runhaskell count_lines.hs i_exist.txt  
+The file has 3 lines!  
+  
+$ runhaskell count_lines.hs i_dont_exist.txt  
+Whoops, had some trouble!  
+}}
+
 
