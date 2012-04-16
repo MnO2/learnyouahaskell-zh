@@ -2276,4 +2276,142 @@ $ runhaskell count_lines.hs i_dont_exist.txt
 Whoops, had some trouble!  
 }}
 
+在handler裡面我們並沒有檢查我們拿到的是什麼樣的``IOError``，
+我們只是印出``"Whoops, had some trouble!"``。
+接住任何種類的Exception就跟其他語言一樣，在Haskell中也不是一個好的習慣。
+假如其他種類的Exception發生了，好比說我們送一個中斷指令，而我們沒有接到的話會發生什麼事？
+這就是為什麼我們要做跟其他語言一樣的事：就是檢查我們拿到的是什麼樣的Exception。
+如果說是我們要的Exception，那就做對應的處裡。
+如果不是，我們在重新丟出Exception。
+我們把我們的程式這樣修改，只接住檔案不存在的Exception。
+
+{{
+import System.Environment  
+import System.IO  
+import System.IO.Error  
+  
+main = toTry `catch` handler  
+
+toTry :: IO ()  
+toTry = do (fileName:_) <- getArgs  
+            contents <- readFile fileName  
+            putStrLn $ "The file has " ++ show (length (lines contents)) ++ " lines!"  
+
+handler :: IOError -> IO ()  
+handler e  
+    | isDoesNotExistError e = putStrLn "The file doesn't exist!"  
+    | otherwise = ioError e  
+}}
+
+除了handler以外其他東西都沒變，我們只接住我們想要的I/O exception。
+這邊使用了``System.IO.Error``中的函數 
+**isDoesNotExistError**跟**ioError**。
+``isDoesNotExistError``是一個運作在``IOError``上的predicate ，
+他代表他接受一個``IOError``然後回傳``True``或``False``，
+他的型態是``isDoesNotExistError :: IOError -> Bool``。
+我們用他來判斷是否這個錯誤是檔案不存在所造成的。
+我們這邊使用guard，但其實也可以用if else。
+如果exception不是由於檔案不存在所造成的，我們就用``ioEroror``重新丟出接到的exception。
+他的型態是``ioError :: IOException -> IO a``，
+所以他接受一個``IOError``然後產生一個會丟出exception的I/O action。
+那個I/O action的型態是``IO a``，但他其實不會產生任何結果，
+所以他可以被當作是``IO anything``。
+
+所以有可能在``toTry``裡面丟出的exception並不是檔案不存在造成的，
+而``toTry `catch` handler``會接住再丟出來，很酷吧。
+
+程式裡面有好幾個運作在``IOError``上的I/O action，
+當其中一個沒有被evaluate成``True``時，就會掉到下一個guard。
+這些predicate分別為：
+
+  * **isAlreadyExistsError**
+  * **isDoesNotExistError**
+  * **isFullError**
+  * **isEOFError**
+  * **isIllegalOperation**
+  * **isPermissionError**
+  * **isUserError**
+
+大部分的意思都是顯而易見的。
+當我們用了**userError**來丟出exception的時候，``isUserError``被evaluate成``True``。
+例如說，你可以寫``ioError $ userError "remote computer unplugged!"``，
+儘管用``Either``或``Maybe``來表示可能的錯誤會比自己丟出exception更好。
+
+所以你可能寫一個像這樣的handler
+
+{{
+handler :: IOError -> IO ()  
+handler e  
+    | isDoesNotExistError e = putStrLn "The file doesn't exist!"  
+    | isFullError e = freeSomeSpace  
+    | isIllegalOperation e = notifyCops  
+    | otherwise = ioError e  
+}}
+
+其中``notifyCops``跟``freeSomeSpace``是一些你定義的I/O action。
+如果exception不是你要的，記得要把他們重新丟出，
+不然你的程式可能只會安靜地當掉。
+
+``System.IO.Error``也會出了一些能詢問exception性質的函數，
+像是是哪些handle造成錯誤，或哪些檔案名造成錯誤。
+這些函數都是``ioe``當開頭。
+而且你可以在文件中看到一整串詳細資料。
+假設我們想要印出造成錯誤的檔案名。
+我們不能直接印出從``getArgs``那邊拿到的``fileName``，
+因為只有``IOError``被傳進handler中，而handler並不知道其他事情。
+一個函數只依賴於他所被呼叫時的參數。
+這也是為什麼我們會用**ioeGetFileName**這函數，
+他的型態是``ioeGetFileName :: IOError -> Maybe FilePath``。
+他接受一個``IOError``並回傳一個``FilePath``（他是``String``的同義詞。）
+基本上他做的事就是從``IOError``中抽出檔案路徑。
+我們來修改一下我們的程式。
+
+{{
+import System.Environment     
+import System.IO     
+import System.IO.Error     
+    
+main = toTry `catch` handler     
+
+toTry :: IO ()     
+toTry = do (fileName:_) <- getArgs     
+    contents <- readFile fileName     
+    putStrLn $ "The file has " ++ show (length (lines contents)) ++ " lines!"     
+
+handler :: IOError -> IO ()     
+handler e     
+    | isDoesNotExistError e =   
+        case ioeGetFileName e of Just path -> putStrLn $ "Whoops! File does not exist at: " ++ path  
+                                 Nothing -> putStrLn "Whoops! File does not exist at unknown location!"  
+    | otherwise = ioError e     
+}}
+
+在``isDoesNotExistError``是``True``的guard裡面，
+我們在case expression中用``e``來呼叫``ioeGetFileName``，
+然後用pattern matching拆出``Maybe``中的值。
+當你想要用pattern matching卻又不想要寫一個新的函數的時候，case expression是你的好朋友。
+
+你不想只用一個``catch``來接你I/O part中的所有exception。
+你可以只在特定地方用``catch``接exception，或你可以用不同的handler。像這樣：
+
+{{
+main = do toTry `catch` handler1  
+          thenTryThis `catch` handler2  
+          launchRockets  
+}}
+
+這邊``toTry``使用``handler1``當作handler，而``thenTryThis``用了``handler2``。
+``launchRockets``並不是``catch``的參數，
+所以如果有任何一個exception被丟出都會讓我們的程式當掉，除非``launchRockets``使用``catch``來處裡exception。
+當然``toTry``，``thenTryThis``跟``launchRockets``都是I/O actions，而且被do syntax綁在一起。
+這很像其他語言中的try-catch blocks，你可以把一小段程式用try-catch包住，你可以自己調整該包多少進去。
+
+現在你知道如何處裡I/O exception了。
+我們並沒有提到如何從pure code中丟出exception，
+這是因為正如我們先前提到的，
+Haskell提供了更好的辦法來處裡錯誤。
+就算是在可能會失敗的I/O action中，
+我也傾向用``IO (Either a b)``，
+代表他們是I/O action，但當他們被執行，他們結果的型態是``Either a b``，
+意思是不是``Left a``就是``Right b``。
 
