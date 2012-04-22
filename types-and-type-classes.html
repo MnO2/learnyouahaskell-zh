@@ -45,8 +45,8 @@ circumference r = 2 * pi * r</pre><pre class="code">ghci> circumference 4.0
 circumference' r = 2 * pi * r</pre><pre class="code">ghci> circumference' 4.0  
 25.132741228718345</pre><p><strong>Bool</strong>表示布林值，它只有兩種值：True和False。</p><p><strong>Char</strong>表示一個字元。一個字元由單引號括起，一組字元的List即為字元串。</p><p>Tuple的類型取決於它的長度及其中項的類型。注意，空Tuple同樣也是個類型，它只有一種值：<code>()</code>。</p><a name="Type variables"></a><h2>Type variables</h2><p>你覺得head函數的類型是啥？它可以取任意類型的List的首項，是怎麼做到的呢？我們查一下！</p><pre class="code">ghci> :t head  
 head :: [a] -> a</pre><img src="img/box.png" style="float:left"></img><p>嗯! a是啥？類型嗎？想想我們在前面說過，凡是類型其首字母必大寫，所以它不會是個類型。它是個類型變數，意味着a可以是任意的類型。這一點與其他語言中的泛型(generic)很相似，但在haskell中要更為強大。它可以讓我們輕而易舉地寫出類型無關的函數。使用到類型變數的函數被稱作“多態函數 ”，head函數的類型聲明裡標明了它可以取任意類型的List並返回其中的第一個元素。</p><p>在命名上，類型變數使用多個字元是合法的，不過約定俗成，通常都是使用單個字元，如a,b,c,d...</p><p>還記得fst？我們查一下它的類型：</p><pre class="code">ghci> :t fst  
-fst :: (a, b) -> a</pre><p>可以看到fst取一個包含兩個類型的Tuple作參數，並以第一個項的類型作為返回值。這便是fst可以處理一個含有兩種類型項的pair的原因。注意，a和b是不同的類型變數，但它們不一定非得是不同的類型，它只是標明了首項的類型與返回值的類型相同。</p><a name="Typeclasses入門"></a><h2>Typeclasses入門</h2><img src="img/classes.png" style="float:right"></img><p>類型定義行為的介面，如果一個類型屬於某類型類，那它必實現了該類型類所描述的行為。很多從OOP走過來的人們往往會把類型類當成面向對象語言中的類而感到疑惑，厄，它們不是一回事。易於理解起見，你可以把它看做是java中介面（interface）的類似物。</p><p>==函數的類型聲明是怎樣的？</p><pre class="code">ghci> :t (==)  
-(==) :: (Eq a) => a -> a -> Bool</pre><blockquote><p><b>Note</b>:判斷相等的==運算符是函數，+-*/之類的運算符也是同樣。在預設條件下，它們多為中綴函數。若要檢查它的類型，就必須得用括號括起使之作為另一個函數，或者說以首碼函數的形式呼叫它。</p></blockquote><p>有意思。在這裡我們見到個新東西：=>符號。它左邊的部分叫做類型約束。我們可以這樣閲讀這段類型聲明：“相等函數取兩個相同類型的值作為參數並返回一個布林值，而這兩個參數的類型同在Eq類之中（即類型約束）”</p><p><strong>Eq</strong>這一類型類提供了判斷相等性的介面，凡是可比較相等性的類型必屬於Eq類。</p><pre class="code">ghci> 5 == 5   
+fst :: (a, b) -> a</pre><p>可以看到fst取一個包含兩個類型的Tuple作參數，並以第一個項的類型作為返回值。這便是fst可以處理一個含有兩種類型項的pair的原因。注意，a和b是不同的類型變數，但它們不一定非得是不同的類型，它只是標明了首項的類型與返回值的類型相同。</p><a name="Typeclasses入門"></a><h2>Typeclasses入門</h2><img src="img/classes.png" style="float:right"></img><p>類型定義行為的介面，如果一個類型屬於某Typeclass，那它必實現了該Typeclass所描述的行為。很多從OOP走過來的人們往往會把Typeclass當成物件導向語言中的class而感到疑惑，厄，它們不是一回事。易於理解起見，你可以把它看做是Java的interface。</p><p>==函數的類型聲明是怎樣的？</p><pre class="code">ghci> :t (==)  
+(==) :: (Eq a) => a -> a -> Bool</pre><blockquote><p><b>Note</b>:判斷相等的==運算符是函數，+-*/之類的運算符也是同樣。在預設條件下，它們多為中綴函數。若要檢查它的類型，就必須得用括號括起使之作為另一個函數，或者說以首碼函數的形式呼叫它。</p></blockquote><p>有意思。在這裡我們見到個新東西：=>符號。它左邊的部分叫做類型約束。我們可以這樣閲讀這段類型聲明：“相等函數取兩個相同類型的值作為參數並返回一個布林值，而這兩個參數的類型同在Eq類之中（即類型約束）”</p><p><strong>Eq</strong>這一Typeclass提供了判斷相等性的介面，凡是可比較相等性的類型必屬於Eq class。</p><pre class="code">ghci> 5 == 5   
 True   
 ghci> 5 /= 5   
 False   
@@ -55,7 +55,7 @@ True
 ghci> "Ho Ho" == "Ho Ho"   
 True   
 ghci> 3.432 == 3.432   
-True</pre><p>elem函數的類型為:<code>(Eq a)=>a->[a]->Bool</code>。這是它在檢測值是否存在於一個list時使用到了==的緣故。</p><p>幾個基本的類型類：</p><p><strong>Eq</strong>包含可判斷相等性的類型。提供實現的函數是==和/=。所以，只要一個函數有Eq類的類型限制，那麼它就必定在定義中用到了==和/=。剛纔說了，除函數意外的所有類型都屬於Eq，所以它們都可以判斷相等性。</p><p><strong>Ord</strong>包含可比較大小的類型。除了函數以外，我們目前所談到的所有類型都屬於Ord類。Ord包中包含了<,>,<=,>=之類用於比較大小的函數。compare函數取兩個Ord類中的相同類型的值作參數，返回比較的結果。這個結果是如下三種類型之一：GT,LT,EQ。</p><pre class="code">ghci> :t (>)  
+True</pre><p>elem函數的類型為:<code>(Eq a)=>a->[a]->Bool</code>。這是它在檢測值是否存在於一個list時使用到了==的緣故。</p><p>幾個基本的Typeclass：</p><p><strong>Eq</strong>包含可判斷相等性的類型。提供實現的函數是==和/=。所以，只要一個函數有Eq類的類型限制，那麼它就必定在定義中用到了==和/=。剛纔說了，除函數意外的所有類型都屬於Eq，所以它們都可以判斷相等性。</p><p><strong>Ord</strong>包含可比較大小的類型。除了函數以外，我們目前所談到的所有類型都屬於Ord類。Ord包中包含了<,>,<=,>=之類用於比較大小的函數。compare函數取兩個Ord類中的相同類型的值作參數，返回比較的結果。這個結果是如下三種類型之一：GT,LT,EQ。</p><pre class="code">ghci> :t (>)  
 (>) :: (Ord a) => a -> a -> Bool</pre><p>類型若要成為Ord的成員，必先加入Eq家族。</p><pre class="code">ghci> "Abrakadabra" < "Zebra"  
 True  
 ghci> "Abrakadabra" `compare` "Zebra"  
@@ -63,24 +63,24 @@ LT
 ghci> 5 >= 2  
 True  
 ghci> 5 `compare` 3  
-GT</pre><p><strong>Show</strong>的成員為可用字元串表示的類型。目前為止，除函數以外的所有類型都是Show的成員。操作Show類型類，最常用的函數表示show。它可以取任一Show的成員類型並將其轉為字元串。</p><pre class="code">ghci> show 3  
+GT</pre><p><strong>Show</strong>的成員為可用字元串表示的類型。目前為止，除函數以外的所有類型都是Show的成員。操作ShowTypeclass，最常用的函數表示show。它可以取任一Show的成員類型並將其轉為字元串。</p><pre class="code">ghci> show 3  
 "3"  
 ghci> show 5.334  
 "5.334"  
 ghci> show True  
-"True"</pre><p><strong>Read</strong>是與Show相反的類型類。read函數可以將一個字元串轉為Read的某成員類型。</p><pre class="code">ghci> read "True" || False  
+"True"</pre><p><strong>Read</strong>是與Show相反的Typeclass。read函數可以將一個字元串轉為Read的某成員類型。</p><pre class="code">ghci> read "True" || False  
 True  
 ghci> read "8.2" + 3.8  
 12.0  
 ghci> read "5" - 2  
 3  
 ghci> read "[1,2,3,4]" ++ [3]  
-[1,2,3,4,3]</pre><p>一切良好，如上的所有類型都屬於這一類型類。嘗試read "4"又會怎樣？</p><pre class="code">ghci> read "4"  
+[1,2,3,4,3]</pre><p>一切良好，如上的所有類型都屬於這一Typeclass。嘗試read "4"又會怎樣？</p><pre class="code">ghci> read "4"  
 < interactive >:1:0:  
     Ambiguous type variable `a' in the constraint:  
       `Read a' arising from a use of `read' at <interactive>:1:0-7  
-    Probable fix: add a type signature that fixes these type variable(s)</pre><p>ghci跟我們說它搞不清楚我們想要的是什麼樣的返回值。注意呼叫read後跟的那部分，ghci通過它來辨認其類型。若要一個boolean值，他就 知道必須得返回一個Bool類型的值。但在這裡它只知道我們要的類型屬於Read類型類，而不能明確到底是哪個。看一下read函數的類型聲明吧：</p><pre class="code">ghci> :t read  
-read :: (Read a) => String -> a</pre><p>看？它的返回值屬於Read類型類，但我們若用不到這個值，它就永遠都不會得知該表達式的類型。所以我們需要在一個表達式後跟<code>::</code>的<b>類型註釋</b>，以明確其類型。如下：</p><pre class="code">ghci> read "5" :: Int  
+    Probable fix: add a type signature that fixes these type variable(s)</pre><p>ghci跟我們說它搞不清楚我們想要的是什麼樣的返回值。注意呼叫read後跟的那部分，ghci通過它來辨認其類型。若要一個boolean值，他就 知道必須得返回一個Bool類型的值。但在這裡它只知道我們要的類型屬於ReadTypeclass，而不能明確到底是哪個。看一下read函數的類型聲明吧：</p><pre class="code">ghci> :t read  
+read :: (Read a) => String -> a</pre><p>看？它的返回值屬於ReadTypeclass，但我們若用不到這個值，它就永遠都不會得知該表達式的類型。所以我們需要在一個表達式後跟<code>::</code>的<b>類型註釋</b>，以明確其類型。如下：</p><pre class="code">ghci> read "5" :: Int  
 5  
 ghci> read "5" :: Float  
 5.0  
@@ -89,7 +89,7 @@ ghci> (read "5" :: Float) * 4
 ghci> read "[1,2,3,4]" :: [Int]  
 [1,2,3,4]  
 ghci> read "(3, 'a')" :: (Int, Char)  
-(3, 'a')</pre><p>編譯器可以辨認出大部分表達式的類型，但遇到<code>read "5"</code>的時候它就搞不清楚究竟該是Int還是Float了。只有經過運算，haskell才會明確其類型；同時由於haskell是靜態的，它還必須得在 編譯前搞清楚所有值的類型。所以我們就最好提前給它打聲招呼：“嘿，這個表達式應該是這個類型，省的你認不出來！”</p><p><strong>Enum</strong>的成員都是連續的類型--也就是可枚舉。Enum類存在的主要好處就在於我們可以在Range中用到它的成員類型：每個值都有後繼子(successer)和前置子(predecesor)，分別可以通過succ函數和pred函數得到。該類型類包含的類型有：<code>()</code>,<code>Bool</code>,<code>Char</code>,<code>Ordering</code>,<code>Int</code>,<code>Integer</code>,<code>Float</code>和<code>Double</code>。</p><pre class="code">ghci> ['a'..'e']  
+(3, 'a')</pre><p>編譯器可以辨認出大部分表達式的類型，但遇到<code>read "5"</code>的時候它就搞不清楚究竟該是Int還是Float了。只有經過運算，haskell才會明確其類型；同時由於haskell是靜態的，它還必須得在 編譯前搞清楚所有值的類型。所以我們就最好提前給它打聲招呼：“嘿，這個表達式應該是這個類型，省的你認不出來！”</p><p><strong>Enum</strong>的成員都是連續的類型--也就是可枚舉。Enum類存在的主要好處就在於我們可以在Range中用到它的成員類型：每個值都有後繼子(successer)和前置子(predecesor)，分別可以通過succ函數和pred函數得到。該Typeclass包含的類型有：<code>()</code>,<code>Bool</code>,<code>Char</code>,<code>Ordering</code>,<code>Int</code>,<code>Integer</code>,<code>Float</code>和<code>Double</code>。</p><pre class="code">ghci> ['a'..'e']  
 "abcde"  
 ghci> [LT .. GT]  
 [LT,EQ,GT]  
@@ -103,10 +103,10 @@ ghci> maxBound :: Char
 ghci> maxBound :: Bool  
 True  
 ghci> minBound :: Bool  
-False</pre><p><code>minBound</code>和<code>maxBound</code>函數很有趣，它們的類型都是<code>(Bounded a) => a</code>。可以說，它們都是多態常量。</p><p>如果其中的項都屬於<code>Bounded</code>類型類，那麼該Tuple也屬於<code>Bounded</code></p><pre class="code">ghci> maxBound :: (Bool, Int, Char)  
-(True,2147483647,'\1114111')</pre><p><strong>Num</strong>是表示數字的類型類，它的成員類型都具有數字的特徵。檢查一個數字的類型：</p><pre class="code">ghci> :t 20  
-20 :: (Num t) => t</pre><p>看樣子所有的數字都是多態常量，它可以作為所有<code>Num</code>類型類中的成員類型。以上便是<code>Num</code>類型類中包含的所有類型，檢測*運算符的類型，可以發現它可以處理一切的數字：</p><pre class="code">ghci> :t (*)  
-(*) :: (Num a) => a -> a -> a</pre><p>它只取兩個相同類型的參數。所以<code>(5 :: Int) * (6 :: Integer)</code>會引發一個類型錯誤，而<code>5 * (6 :: Integer)</code>就不會有問題。</p><p>類型只有親近<code>Show</code>和<code>Eq</code>，才可以加入<code>Num</code>。</p><p><strong>Integral</strong>同樣是表示數字的類型類。Num包含所有的數字：實數和整數。而Intgral僅包含整數，其中的成員類型有Int和Integer。</p><p><strong>Floating</strong>僅包含浮點類型：Float和Double。</p><p>有個函數在處理數字時會非常有用，它便是<code>fromIntegral</code>。其類型聲明為：<code>fromIntegral :: (Num b, Integral a) => a -> b</code>。從中可以看出，它取一個整數做參數並返回一個更加通用的數字，這在同時處理整數和浮點時會尤為有用。舉例來說，<code>length</code>函數的類型聲明為：<code>length :: [a] -> Int</code>，而非更通用的形式，如<code>(Num b) => length :: [a] -> b</code>。這應該時歷史原因吧，反正我覺得挺蠢。如果取了一個List長度的值再給它加3.2就會報錯，因為這是將浮點數和整數相加。面對這種情況，我們就用<code>fromIntegral (length [1,2,3,4]) + 3.2</code>來解決。</p><p>注意到，<code>fromIntegral</code>的類型聲明中用到了多個類型約束。如你所見，只要將多個類型約束放到括號裡用逗號隔開即可。</p>
+False</pre><p><code>minBound</code>和<code>maxBound</code>函數很有趣，它們的類型都是<code>(Bounded a) => a</code>。可以說，它們都是多態常量。</p><p>如果其中的項都屬於<code>Bounded</code>Typeclass，那麼該Tuple也屬於<code>Bounded</code></p><pre class="code">ghci> maxBound :: (Bool, Int, Char)  
+(True,2147483647,'\1114111')</pre><p><strong>Num</strong>是表示數字的Typeclass，它的成員類型都具有數字的特徵。檢查一個數字的類型：</p><pre class="code">ghci> :t 20  
+20 :: (Num t) => t</pre><p>看樣子所有的數字都是多態常量，它可以作為所有<code>Num</code>Typeclass中的成員類型。以上便是<code>Num</code>Typeclass中包含的所有類型，檢測*運算符的類型，可以發現它可以處理一切的數字：</p><pre class="code">ghci> :t (*)  
+(*) :: (Num a) => a -> a -> a</pre><p>它只取兩個相同類型的參數。所以<code>(5 :: Int) * (6 :: Integer)</code>會引發一個類型錯誤，而<code>5 * (6 :: Integer)</code>就不會有問題。</p><p>類型只有親近<code>Show</code>和<code>Eq</code>，才可以加入<code>Num</code>。</p><p><strong>Integral</strong>同樣是表示數字的Typeclass。Num包含所有的數字：實數和整數。而Intgral僅包含整數，其中的成員類型有Int和Integer。</p><p><strong>Floating</strong>僅包含浮點類型：Float和Double。</p><p>有個函數在處理數字時會非常有用，它便是<code>fromIntegral</code>。其類型聲明為：<code>fromIntegral :: (Num b, Integral a) => a -> b</code>。從中可以看出，它取一個整數做參數並返回一個更加通用的數字，這在同時處理整數和浮點時會尤為有用。舉例來說，<code>length</code>函數的類型聲明為：<code>length :: [a] -> Int</code>，而非更通用的形式，如<code>(Num b) => length :: [a] -> b</code>。這應該時歷史原因吧，反正我覺得挺蠢。如果取了一個List長度的值再給它加3.2就會報錯，因為這是將浮點數和整數相加。面對這種情況，我們就用<code>fromIntegral (length [1,2,3,4]) + 3.2</code>來解決。</p><p>注意到，<code>fromIntegral</code>的類型聲明中用到了多個類型約束。如你所見，只要將多個類型約束放到括號裡用逗號隔開即可。</p>
             <ul class="nav">
                 <li class="left">  <img src="img/prv.png"></img><a href="ready-begin.html">從零開始</a></li>
                 <li class="center"><a href="chapters.html">Index</a></li>
