@@ -81,9 +81,179 @@ instance Functor IO where
         return (f result)
 }}
 
+對一個I/O action做map over動作的結果仍會是一個I/O action，
+所以我們才用do syntax來把兩個I/O action黏成一個。
+在``fmap``的實做中，
+我們先執行了原本傳進的I/O action，並把結果綁定成``result``。
+然後我們寫了``return (f result)``。
+``return``就如你所知道的，
+是一個只會回傳包了你傳給他東西的I/O action。
+還有一個do block的回傳值一定是他最後一個I/O action的回傳值。
+這也是為什麼我們需要return。
+其實他只是回傳包了``f result``的I/O action。
+
+我們可以再多實驗一下來找到些感覺。
+來看看這段code：
+
+{{
+main = do line <- getLine   
+        let line' = reverse line  
+        putStrLn $ "You said " ++ line' ++ " backwards!"  
+        putStrLn $ "Yes, you really said" ++ line' ++ " backwards!"  
+}}
+
+這程式要求使用者輸入一行文字，然後印出一行反過來的。
+我們可以用``fmap``來改寫：
+
+{{
+main = do line <- fmap reverse getLine  
+            putStrLn $ "You said " ++ line ++ " backwards!"  
+            putStrLn $ "Yes, you really said" ++ line ++ " backwards!"  
+}}
+
+就像我們用``fmap`` ``reverse``來map over ``Just "blah"``會得到``Just "halb"``，
+我們也可以``fmap`` ``reverse``來map over ``getLine``。
+``getLine``是一個I/O action，他的type是``IO String``，
+而用``reverse``來map over他會回傳一個取回一個字串並``reverse``他的I/O action。
+就像我們apply一個function到一個``Maybe``一樣，
+我們也可以apply一個function到一個``IO``，
+只是這個``IO``會跑去外面拿回某些值。
+然後我們把結果用``<-``綁定到某個名稱，
+而這個名稱綁定的值是已經``reverse``過了。
+
+而``fmap (++"!") getLine``這個I/O action表現得就像``getLine``，
+只是他的結果多了一個``"!"``在最後。
+
+如果我們限縮``fmap``到``IO``型態上，
+那fmap的型態是``fmap :: (a -> b) -> IO a -> IO b``。
+``fmap``接受一個函數跟一個I/O action，並回傳一個I/O action包含了已經apply過function的結果。
+
+如果你曾經注意到你想要將一個I/O action綁定到一個名稱上，只是為了要apply一個function。
+你可以考慮使用``fmap``，那會更漂亮地表達這件事。
+或者你想要對functor中的資料做transformation，
+你可以先將你要用的function寫在top level，
+或是把他作成一個lambda function，甚至用function composition。
+
+{{
+import Data.Char  
+import Data.List  
+  
+main = do line <- fmap (intersperse '-' . reverse . map toUpper) getLine  
+        putStrLn line  
+}}
+
+{{
+$ runhaskell fmapping_io.hs  
+hello there  
+E-R-E-H-T- -O-L-L-E-H  
+}}
+
+正如你想的，``intersperse '-' . reverse . map toUpper``合成了一個function，
+他接受一個字串，將他轉成大寫，然後反過來，再用``intersperse '-'``安插'-'。
+他是比較漂亮版本的``(\xs -> intersperse '-' (reverse (map toUpper xs)))``。
+
+另一個``Functor``的案例是``(->) r``，只是我們先前沒有注意到。
+你可能會困惑到底``(->) r``究竟代表什麼？
+一個``r -> a``的型態可以寫成``(->) r a``，
+就像是``2 + 3``可以寫成``(+) 2 3``一樣。
+我們可以從一個不同的角度來看待``(->) r a``，
+他其實只是一個接受兩個參數的type constructor，好比``Either``。
+但記住我們說過``Functor``只能接受一個type constructor。
+這也是為什麼``(->)``不是``Functor``的一個instance，
+但``(->) r``則是。
+如果程式的語法允許的話，你也可以將``(->) r``寫成(r ->)。就如``(2+)``代表的其實是``(+) 2``。
+至於細節是如何呢？
+我們可以看看``Control.Monad.Instances``。
+
+    我們通常說一個接受任何東西以及回傳隨便一個東西的函數型態是``a -> b``。``r -> a``是同樣意思，只是把符號代換了一下。
+
+{{
+instance Functor ((->) r) where  
+    fmap f g = (\x -> f (g x))  
+}}
+
+如果語法允許的話，他可以被寫成
+
+{{
+instance Functor (r ->) where  
+    fmap f g = (\x -> f (g x))  
+}}
+
+但其實是不允許的，所以我們必須寫成第一種的樣子。
+
+首先我們來看看``fmap``的型態。
+他的型態是``fmap :: (a -> b) -> f a -> f b``。
+我們把所有的``f``在心裡代換成``(->) r``。
+則``fmap``的型態就變成``fmap :: (a -> b) -> ((->) r a) -> ((->) r b)``。
+接著我們把``(->) r a``跟``(->) r b``換成``r -> a``跟``r -> b``。
+則我們得到``fmap :: (a -> b) -> (r -> a) -> (r -> b)``。
+
+從上面的結果看到將一個function map over一個function會得到另一個function，
+就如map over一個function到``Maybe``會得到一個``Maybe``，
+而map over一個function到一個list會得到一個list。
+而``fmap :: (a -> b) -> (r -> a) -> (r -> b)``告訴我們什麼？
+他接受一個從``a``到``b``的function，跟一個從``r``到``a``的function，並回傳一個從``r``到``b``的function。
+這根本就是function composition。
+把``r -> a``的輸出接到``a -> b``的輸入，的確是function composition在做的事。
+如果你再仔細看看instance的定義，會發現真的就是一個function composition。
+
+{{
+instance Functor ((->) r) where  
+    fmap = (.)  
+}}
+
+這很明顯就是把``fmap``當composition在用。
+可以用``:m + Control.Monad.Instances``把模組裝載進來，
+並做一些嘗試。
+
+{{
+ghci> :t fmap (*3) (+100)  
+fmap (*3) (+100) :: (Num a) => a -> a  
+ghci> fmap (*3) (+100) 1  
+303  
+ghci> (*3) `fmap` (+100) $ 1  
+303  
+ghci> (*3) . (+100) $ 1  
+303  
+ghci> fmap (show . (*3)) (*100) 1  
+"300"  
+}}
+
+我們呼叫``fmap``的方式是infix的方式，這跟``.``很像。
+在第二行，我們把``(*3)`` map over到``(+100)``上，
+這會回傳一個先把輸入值``(+100)``再``(*3)``的function，
+我們再用``1``去呼叫他。
+
+到這邊為止盒子的比喻還適用嗎？
+如果你硬是要解釋的話還是解釋得通。
+當我們將``fmap (+3)`` map over ``Just 3``的時候，
+對於``Maybe``我們很容易把他想成是裝了值的盒子，我們只是對盒子裡面的值``(+3)``。
+但對於``fmap (*3) (+100)``呢？
+你可以把``(+100)``想成是一個裝了值的盒子。
+有點像把I/O action想成長了腳的盒子一樣。
+對``(+100)``使用``fmap (*3)``會產生另一個表現得像``(+100)``的function。
+只是在算出值之前，會再多計算``(*3)``。
+這樣我們可以看出來``fmap``表現得就像``.``一樣。
+
+``fmap``等同於function composition這件事對我們來說並不是很實用，但至少是一個有趣的觀點。
+這也讓我們打開視野，看到盒子的比喻不是那麼恰當，functors其實比較像computation。
+function被map over到一個computation會產生經由那個function映射過後的computation。
+
+在我們繼續看``fmap``該遵守的規則之前，
+我們再看一次``fmap``的型態，他是``fmap :: (a -> b) -> f a -> f b``。
+很明顯我們是在討論Functor，所以為了簡潔，我們就不寫``(Functor f) =>``的部份。
+當我們在學curry的時候，
+我們說過Haskell的function實際上只接受一個參數。
+一個型態是``a -> b -> c``的函數實際上是接受``a``然後回傳``b -> c``，
+而``b -> c``實際上接受一個``b``然後回傳一個``c``。
+如果我們用比較少的參數呼叫一個函數，他就會回傳一個函數需要接受剩下的參數。
+所以``a -> b -> c``可以寫成``a -> (b -> c)``。
+這樣curry可以明顯一些。
+
 
 ==Applicative functors
 
 ==關鍵字"newtype"
 
 ==Monoids
+
