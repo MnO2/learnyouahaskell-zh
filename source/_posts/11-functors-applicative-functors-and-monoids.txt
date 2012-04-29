@@ -250,6 +250,24 @@ function被map over到一個computation會產生經由那個function映射過後
 所以``a -> b -> c``可以寫成``a -> (b -> c)``。
 這樣curry可以明顯一些。
 
+同樣的，我們可以不要把``fmap``想成是一個接受function跟functor並回傳一個function的function。
+而是想成一個接受function並回傳一個新的function的function，回傳的function接受一個functor並回傳一個functor。
+他接受``a -> b``並回傳``f a -> f b``。
+這動作叫做lifting。
+我們用GHCI的``:t``來做的實驗。
+
+{{
+ghci> :t fmap (*2)  
+fmap (*2) :: (Num a, Functor f) => f a -> f a  
+ghci> :t fmap (replicate 3)  
+fmap (replicate 3) :: (Functor f) => f a -> f [a]  
+}}
+
+``fmap (*2)``接受一個functor ``f``，並回傳一個基於數字的functor。
+那個functor可以是list，可以是``Maybe``，可以是``Either String``。
+``fmap (replicate 3)``可以接受一個基於任何型態的functor，並回傳一個基於list的functor。
+
+
 
 ==Applicative functors
 

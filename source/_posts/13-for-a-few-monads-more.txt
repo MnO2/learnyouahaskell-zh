@@ -1,6 +1,38 @@
 =再來看看更多Monad #for-a-few-monads-more
+我們已經看過Monad是如何接受具有context的值，並如何用函數操作他們。
+還有如何用``>>=``跟``do``來減輕我們對context的關注，集中精神在value本身。
+
+我們也看過了``Maybe``是如何把值加上一個可能會失敗的context。
+我們學習到List Monad是如何加進多重結果的context。
+我們也了解``IO`` Monad如何運作，而且我們在知道什麼是Monad之前就已經知道他了。
+
+在這個章節，我們會介紹一些其他的Monad。
+他們可以把值變成monadiv value，因此可以讓我們的程式更簡潔清晰。
+多見識幾個Monad也可以敏銳我們對Monad的直覺。
+
+我們即將要介紹的Monad都包含在``mtl``這個套建中。
+一個Haskell package包含了一堆模組。
+而``mtl``已經包含在Haskell Platform中，所以你可能不用另外安裝。
+要檢查你有沒有這套件，你可以下``ghc-pkg list``。
+這會列出你已經安裝的套件，其中應該包含``mtl``後面接著對應的版號。
+
 
 ==你所不知道的Writer Monad
+我們已經看過``Maybe``, list以及``IO`` Monad。
+現在我們要來看看``Writer`` Monad。
+
+相對於``Maybe``是加入可能失敗的context，list是加入non-deterministic的context，
+``Writer``則是加進一個附加值的context，好比log一般。
+``Writer``可以讓我們在計算的同時蒐集所有log紀錄，並匯集成一個log並附加在結果上。
+
+例如我們想要附加一個String好說明我們的值在幹麼（有可能是為了除錯）。
+想像有一個函數接受一個代表幫派人數的數字，然後會回傳值告訴我們這是否算是一個龐大的幫派：
+
+{{
+isBigGang :: Int -> Bool  
+isBigGang x = x > 9  
+}}
+
 
 ==Reader Monad
 
