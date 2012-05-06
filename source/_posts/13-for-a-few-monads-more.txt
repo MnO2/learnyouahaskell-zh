@@ -33,6 +33,97 @@ isBigGang :: Int -> Bool
 isBigGang x = x > 9  
 }}
 
+現在我們希望他不只是回傳``True``或``False``，我們還希望他能夠多回傳一個字串代表log。
+這很容易，只要多加一個``String``在``Bool``旁邊就好了。
+
+{{
+isBigGang :: Int -> (Bool, String)  
+isBigGang x = (x > 9, "Compared gang size to 9.")  
+}}
+
+我們現在回傳了一個Tuple，第一個元素是原來的布林值，第二個元素是一個String。
+現在我們的值有了一個context。
+
+{{
+ghci> isBigGang 3  
+(False,"Compared gang size to 9.")  
+ghci> isBigGang 30  
+(True,"Compared gang size to 9.")  
+}}
+
+到目前為止都還不錯，``isBigGang``回傳一個值跟他的context。
+對於正常的數值來說這樣的寫法都能運作良好。
+但如果我們想要把一個已經具有context的值，像是``(3, "Smallish gang.")``，餵給``isBigGang``呢？
+我們又面對了同樣的問題：
+如果我們有一個能接受正常數值並回傳一個具有context值的function，
+那我們要如何餵給他一個具有context的值？
+
+當我們在研究``Maybe`` monad的時候，我們寫了一個``applyMaybe``。
+他接受一個``Maybe a``值跟一個``a -> Maybe b``型態的函數，
+他會把``Maybe a``餵給這個function，即便這個function其實是接受``a``而非``Maybe a``。
+``applyMaybe``有針對這樣的context做處裡，也就是會留意有可能發生的失敗情況。
+但在``a -> Maybe b``裡面，我們可以只專心處裡正常數值即可。
+因為``applyMaybe`` (之後變成了``>>=``)會幫我們處裡需要檢查``Nothing``或``Just``的情況。
+
+我們再來寫一個接受附加log值的函數，
+也就是``(a, String)``型態的值跟``a -> (b, String)``型態的函數。
+我們稱呼這個函數為``applyLog``。
+這個函數有的context是附加log值，而不是一個可能會失敗的context，
+因此``applyLog``會確保原有的log被保留，並附上從函數產生出的新的log。
+這邊我們來看一下實做：
+
+{{
+applyLog :: (a,String) -> (a -> (b,String)) -> (b,String)  
+applyLog (x,log) f = let (y,newLog) = f x in (y,log ++ newLog)  
+}}
+
+當我們想把一個具有context的值餵給一個函數的時候，
+我們會嘗試把值跟他的context分開，然後把值餵給函數再重新接回context。
+在``Maybe`` monad的情況，我們檢查值是否為``Just x``，如果是，便將``x``餵給函數。
+而在log的情況，我們知道pair的其中一個component是log而另一個是值。
+所以我們先取出值``x``，將``f`` apply到``x``，便獲取``(y,newLog)``，
+其中``y``是新的值而``newLog``則是新的log。
+但如果我們回傳``newLog``，舊的log便不會包含進去，
+所以我們要回傳的是``(y, log ++ newLog)``。
+我們用``++``來把新的log接到舊的上面。
+
+來看看``applyLog``運作的情形：
+
+{{
+ghci> (3, "Smallish gang.") `applyLog` isBigGang  
+(False,"Smallish gang.Compared gang size to 9")  
+ghci> (30, "A freaking platoon.") `applyLog` isBigGang  
+(True,"A freaking platoon.Compared gang size to 9")  
+}}
+
+跟之前的結果很像，只差在我們多了伴隨產生的log。
+再來多看幾個例子：
+
+{{
+ghci> ("Tobin","Got outlaw name.") `applyLog` (\x -> (length x, "Applied length."))  
+(5,"Got outlaw name.Applied length.")  
+ghci> ("Bathcat","Got outlaw name.") `applyLog` (\x -> (length x, "Applied length"))  
+(7,"Got outlaw name.Applied length")  
+}}
+
+可以看到在lambda裡面``x``只是個正常的字串而不是tuple，且``applyLog``幫我們處裡掉附加log的動作。
+
+*Monoids的好處*
+
+    請確定你了解什麼是Monoids。
+
+到目前為止``applyLog``接受``(a,String)``型態的值，
+但為什麼log一定要是``String``呢？
+我們使用``++``來附加新的log，
+難道``++``並不能運作在任何形式的list，而一定要限制我們在``String``上呢？
+我們當然可以擺脫``String``，
+我們可以如下改變他的型態：
+
+{{
+applyLog :: (a,[c]) -> (a -> (b,[c])) -> (b,[c])      
+}}
+
+
 
 ==Reader Monad
 
