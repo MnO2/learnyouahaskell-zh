@@ -123,6 +123,96 @@ ghci> ("Bathcat","Got outlaw name.") `applyLog` (\x -> (length x, "Applied lengt
 applyLog :: (a,[c]) -> (a -> (b,[c])) -> (b,[c])      
 }}
 
+我們用一個List來代表Log。
+包含在List中的元素型態必須跟原有的List跟回傳的List型態相同，
+否則我們沒辦法用``++``來把他們接起來。
+
+這能夠運作在bytestring上嗎？絕對沒問題。
+只是我們現在的型態只對List有效。
+我們必須要另外做一個bytestring版本的``applyLog``。
+但我們注意到List跟bytestring都是monoids。
+因此他們都是``Monoid`` type class的instance，
+那代表他們都有實做``mappend``。
+對List以及bytestring而言，``mappend``都是拿來串接的。
+
+{{
+ghci> [1,2,3] `mappend` [4,5,6]  
+[1,2,3,4,5,6]  
+ghci> B.pack [99,104,105] `mappend` B.pack [104,117,97,104,117,97]  
+Chunk "chi" (Chunk "huahua" Empty)  
+}}
+
+修改後我們的``applyLog``可以運作在任何monoid上。
+我們必須要修改型態宣告來表示這件事，同時也要在實做中把``++``改成``mappend``：
+
+{{
+applyLog :: (Monoid m) => (a,m) -> (a -> (b,m)) -> (b,m)  
+applyLog (x,log) f = let (y,newLog) = f x in (y,log `mappend` newLog)  
+}}
+
+由於現在包含的值可以是任何monoid，
+我們不再需要把tuple想成包含一個值跟對應的log，
+我們可以想成他包含一個值跟一個對應的monoid。
+舉例來說，
+可以說我們有一個tuple包含一個產品名稱跟一個符合monoid特性的產品價格。
+我們可以定義一個``Sum``的newtype來保證我們在操作產品的時候也會把價錢跟著加起來。
+
+{{
+import Data.Monoid  
+  
+type Food = String  
+type Price = Sum Int  
+
+addDrink :: Food -> (Food,Price)  
+addDrink "beans" = ("milk", Sum 25)  
+addDrink "jerky" = ("whiskey", Sum 99)  
+addDrink _ = ("beer", Sum 30)  
+}}
+
+我們用string來代表食物，用``newtype``重新定義``nInt``為``Sum``，
+來追蹤總共需要花多少錢。
+可以注意到我們用``mappend``來操作``Sum``的時候，價錢會被一起加起來。
+
+{{
+ghci> Sum 3 `mappend` Sum 9  
+Sum {getSum = 12}  
+}}
+
+``addDrink``的實做很簡單，
+如果我們想吃豆子，他會回傳``"milk"``以及伴隨的``Sum 25``，
+同樣的如果我們要吃"jerky"，他就會回傳"whiskey"，
+要吃其他東西的話，就會回傳"beer"。
+乍看之下這個函數沒什麼特別，
+但如果用``applyLog``的話就會有趣些。
+
+{{
+ghci> ("beans", Sum 10) `applyLog` addDrink  
+("milk",Sum {getSum = 35})  
+ghci> ("jerky", Sum 25) `applyLog` addDrink  
+("whiskey",Sum {getSum = 124})  
+ghci> ("dogmeat", Sum 5) `applyLog` addDrink  
+("beer",Sum {getSum = 35})  
+}}
+
+牛奶價值``25``美分，但如果我們也吃了價值``10``美分的豆子的話，
+總共需要付``35``美分。
+這樣很清楚地展示了伴隨的值不一定需要是log，他可以是任何monoid。
+至於兩個值要如何結合，那要看monoid中怎麼定義。
+當我們需要的是log的時候，他們是串接，
+但這個case裡面，數字是被加起來。
+
+由於``addDrink``回傳一個``(Food,Price)``，
+我們可以再把結果重新餵給``addDrink``，
+這可以很容易告訴我們總共喝了多少錢：
+
+{{
+ghci> ("dogmeat", Sum 5) `applyLog` addDrink `applyLog` addDrink  
+("beer",Sum {getSum = 65})  
+}}
+
+將狗食跟30美分的啤酒加在一起會得到``("beer", Sum 35)``。
+如果我們用``applyLog``將上面的結果再餵給``addDrink``，
+我們會得到``("beer", Sum 65)``這樣的結果。
 
 
 ==Reader Monad
