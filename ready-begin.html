@@ -26,7 +26,7 @@
                 <li class="center"><a href="chapters.html">Index</a></li>
                 <li class="right"> <a href="types-and-type-classes.html">Types and Typeclasses</a><img src="img/nxt.png"></img></li>
             </ul>
-            <a name="從零開始"></a><h1>從零開始</h1><a name="準備好了嗎？"></a><h2>準備好了嗎？</h2><img src="img/startingout.png" style="float:right"></img><p>好的，出發！如果你就是那種從不看說明書的不良人士，我推薦你還是回頭看一下簡介的最後一節。那裡面講了這個教程中你需要用到的工具及基本用法。我們首先要做的就是進入ghc的交互模式，接着就可以調幾個函數小體驗一把haskell了。打開控制台，輸入ghci，你會看到如下歡迎信息</p><pre class="code">GHCi, version 6.8.2: http://www.haskell.org/ghc/  
+            <a name="從零開始"></a><h1>從零開始</h1><a name="準備好了嗎？"></a><h2>準備好了嗎？</h2><img src="img/startingout.png" style="float:right"></img><p>準備來開始我們的旅程！如果你就是那種從不看說明書的人，我推薦你還是回頭看一下簡介的最後一節。那裡面講了這個教學中你需要用到的工具及基本用法。我們首先要做的就是進入ghc的互動模式，接着就可以寫幾個函數小體驗一下haskell了。打開終端機，輸入ghci，你會看到下列歡迎訊息</p><pre class="code">GHCi, version 6.8.2: http://www.haskell.org/ghc/  
 :? for help  Loading package base ... linking ... done.  
 Prelude> </pre><p>恭喜，您已經進入了ghci！目前它的命令行提示是<code>prelude></code>，不過它在你裝載什麼東西后會變的比較長。免得礙眼，我們輸入個:<code>set prompt "ghci> "</code>把它改成<code>ghci></code>。</p><p>如下是一些簡單的運算</p><pre class="code">ghci> 2 + 15  17  
 ghci> 49 * 100  4900  
@@ -59,16 +59,16 @@ True  </pre><p>執行5+"llama"或者5==True會怎樣？好的，一個大大�
 arising from a use of `+' at :1:0-9  
 Possible fix: add an instance declaration for (Num [Char])  
 In the expression: 5 + "llama"  
-In the definition of `it': it = 5 + "llama"  </pre><p>Yikes！ghci 提示說"llama"並不是數值類型，所以它不知道該怎樣才能給它加上5。即便是“four”甚至是“4”也不可以，haskel不拿它當數值。執行True==5, ghci就會提示類型不匹配。+運算符要求兩端都是數值，而==運算符僅對兩個可比較的值可用。這就要求他們的類型都必須一致，蘋果和橙子就無法做比較。我們會在後面深入地理解類型的概念。Note:<code>5+4.0</code>是可以執行的，5既可以做被看做整數也可以被看做浮點數，但4.0則不能被看做整數。</p><img src="img/ringring.png" style="float:right"></img><p>也許你並未察覺，不過從始至終我們一直都在使用函數。*就是一個將兩個數相乘的函數，就像三明治一樣，用兩個參數將它夾在中央，這被稱作中綴函數。而其他大多數不能與數夾在一起的函數則被稱作首碼函數。絶大部分函數都是首碼函數，在接下來我們就不多做甄別。大多數命令式編程語言中的函數調用形式通常就是函數名，括號，由逗號分隔的參數表。而在haskell中，函數調用的形式是函數名，空格，空格分隔的參數表。簡單據個例子，我們調用haskell中最無聊的函數：</p><pre class="code">ghci> succ 8  
-9  </pre><p>succ函數返回一個數的後繼（successor, 在這裡就是8後面那個數，也就是9。譯者注）。如你所見，通過空格將函數與參數分隔。調用多個參數的函數也是同樣容易，min和max接受兩個可比較大小的參數，並返回較大或者較小的那個數。</p><pre class="code">ghci> min 9 10  
+In the definition of `it': it = 5 + "llama"  </pre><p>Yikes！ghci 提示說"llama"並不是數值類型，所以它不知道該怎樣才能給它加上5。即便是“four”甚至是“4”也不可以，haskel不拿它當數值。執行True==5, ghci就會提示類型不匹配。+運算符要求兩端都是數值，而==運算符僅對兩個可比較的值可用。這就要求他們的類型都必須一致，蘋果和橘子就無法做比較。我們會在後面深入地理解類型的概念。Note:<code>5+4.0</code>是可以執行的，5既可以做被看做整數也可以被看做浮點數，但4.0則不能被看做整數。</p><img src="img/ringring.png" style="float:right"></img><p>也許你並未察覺，不過從始至終我們一直都在使用函數。*就是一個將兩個數相乘的函數，就像三明治一樣，用兩個參數將它夾在中央，這被稱作中綴函數。而其他大多數不能與數夾在一起的函數則被稱作首碼函數。絶大部分函數都是首碼函數，在接下來我們就不多做甄別。大多數命令式編程語言中的函數呼叫形式通常就是函數名，括號，由逗號分隔的參數表。而在haskell中，函數呼叫的形式是函數名，空格，空格分隔的參數表。簡單據個例子，我們呼叫haskell中最無聊的函數：</p><pre class="code">ghci> succ 8  
+9  </pre><p>succ函數返回一個數的後繼（successor, 在這裡就是8後面那個數，也就是9。譯者注）。如你所見，通過空格將函數與參數分隔。呼叫多個參數的函數也是同樣容易，min和max接受兩個可比較大小的參數，並返回較大或者較小的那個數。</p><pre class="code">ghci> min 9 10  
 9  
 ghci> min 3.4 3.2  
 3.2  
 ghci> max 100 101  
-101  </pre><p>函數調用擁有最高的優先順序，如下兩句是等效的</p><pre class="code">ghci> succ 9 + max 5 4 + 1  
+101  </pre><p>函數呼叫擁有最高的優先順序，如下兩句是等效的</p><pre class="code">ghci> succ 9 + max 5 4 + 1  
 16  
 ghci> (succ 9) + (max 5 4) + 1  
-16 </pre><p>若要取9乘10的後繼，<code>succ 9*10</code>是不行的，程式會先取9的後繼，然後再乘以10得100。正確的寫法應該是<code>succ(9*10)</code>，得91。如果某函數有兩個參數，也可以用 .. 符號將它括起，以中綴函數的形式調用它。例如取兩個整數相除所得商的div函數,div 92 10可得9，但這種形式不容易理解：究竟是哪個數是除數，哪個數被除？使用中綴函數的形式 92div10 就更清晰了。從命令式編程走過來的人們往往會覺得函數調用與括號密不可分，在C中，調用函數必加括號，就像foo(),bar(1),或者baz(3,"haha")。而在haskell中，函數的調用必使用空格，例如bar (bar 3)，它並不表示以bar和3兩個參數去調用bar，而是以bar 3所得的結果作為參數去調用bar。在C中，就相當於bar(bar(3))`。</p><a name="初學者的第一個函數"></a><h2>初學者的第一個函數</h2><p>在前一節中我們簡單介紹了函數的調用，現在讓我們編寫我們自己的函數！打開你最喜歡的編輯器，輸入如下代碼，它的功能就是將一個數字乘以2.</p><pre class="code">doubleMe x = x + x </pre><p>函數的聲明與它的調用形式大體相同，都是先函數名，後跟由空格分隔的參數表。但在聲明中一定要在 = 後面定義函數的行為。</p><p>保存為baby.hs或任意名稱，然後轉至保存的位置，打開ghci，執行:l baby.hs。這樣我們的函數就裝載成功，可以調用了。</p><pre class="code">ghci> :l baby  
+16 </pre><p>若要取9乘10的後繼，<code>succ 9*10</code>是不行的，程式會先取9的後繼，然後再乘以10得100。正確的寫法應該是<code>succ(9*10)</code>，得91。如果某函數有兩個參數，也可以用 .. 符號將它括起，以中綴函數的形式呼叫它。例如取兩個整數相除所得商的div函數,div 92 10可得9，但這種形式不容易理解：究竟是哪個數是除數，哪個數被除？使用中綴函數的形式 92div10 就更清晰了。從命令式編程走過來的人們往往會覺得函數呼叫與括號密不可分，在C中，呼叫函數必加括號，就像foo(),bar(1),或者baz(3,"haha")。而在haskell中，函數的呼叫必使用空格，例如bar (bar 3)，它並不表示以bar和3兩個參數去呼叫bar，而是以bar 3所得的結果作為參數去呼叫bar。在C中，就相當於bar(bar(3))`。</p><a name="初學者的第一個函數"></a><h2>初學者的第一個函數</h2><p>在前一節中我們簡單介紹了函數的呼叫，現在讓我們編寫我們自己的函數！打開你最喜歡的編輯器，輸入如下代碼，它的功能就是將一個數字乘以2.</p><pre class="code">doubleMe x = x + x </pre><p>函數的聲明與它的呼叫形式大體相同，都是先函數名，後跟由空格分隔的參數表。但在聲明中一定要在 = 後面定義函數的行為。</p><p>保存為baby.hs或任意名稱，然後轉至保存的位置，打開ghci，執行:l baby.hs。這樣我們的函數就裝載成功，可以呼叫了。</p><pre class="code">ghci> :l baby  
 [1 of 1] Compiling Main             ( baby.hs, interpreted )  
 Ok, modules loaded: Main.  
 ghci> doubleMe 9  
@@ -77,7 +77,7 @@ ghci> doubleMe 8.3  
 16.6  </pre><p><strong>+</strong>運算符對整數和浮點都可用（實際上所有有數字特徵的值都可以），所以我們的函數可以處理一切數值。聲明一個包含兩個參數的函數如下：</p><pre class="code">doubleUs x y = x*2 + y*2  </pre><p>很簡單。將其寫成doubleUs x y = x + x + y + y也可以。測試一下（記住要保存為baby.hs併到ghci下邊執行:l baby.hs）</p><pre class="code">ghci> doubleUs 4 9  26  
 ghci> doubleUs 2.3 34.2  73.0  
 ghci> doubleUs 28 88 + doubleMe 123  
-478</pre><p>你可以在其他函數中調用你編寫的函數，如此一來我們可以將doubleMe函數改為：</p><pre class="code">doubleUs x y = doubleMe x + doubleMe y  </pre><img src="img/baby.png" style="float:left"></img><p>這種情形在haskell下邊十分常見：編寫一些簡單的函數，然後將其組合，形成一個較為複雜的函數，這樣可以減少重複工作。設想若是哪天有個數學家驗證說2應該是3，我們只需要將doubleMe改為x+x+x即可，由於doubleUs調用到doubleMe，於是整個程式便進入了2即是3的古怪世界。</p><p>haskell中的函數並沒有順序，所以先聲明doubleUs還是先聲明doubleMe都是同樣的。如下，我們編寫一個函數，它將小於100的數都乘以2，因為大於100的數都已經足夠大了！</p><pre class="code">doubleSmallNumber x = if x > 100                          
+478</pre><p>你可以在其他函數中呼叫你編寫的函數，如此一來我們可以將doubleMe函數改為：</p><pre class="code">doubleUs x y = doubleMe x + doubleMe y  </pre><img src="img/baby.png" style="float:left"></img><p>這種情形在haskell下邊十分常見：編寫一些簡單的函數，然後將其組合，形成一個較為複雜的函數，這樣可以減少重複工作。設想若是哪天有個數學家驗證說2應該是3，我們只需要將doubleMe改為x+x+x即可，由於doubleUs呼叫到doubleMe，於是整個程式便進入了2即是3的古怪世界。</p><p>haskell中的函數並沒有順序，所以先聲明doubleUs還是先聲明doubleMe都是同樣的。如下，我們編寫一個函數，它將小於100的數都乘以2，因為大於100的數都已經足夠大了！</p><pre class="code">doubleSmallNumber x = if x > 100                          
                                      then x                          
                                      else  x*2  </pre><p>接下來介紹haskell的if語句。你也許會覺得和其他語言很像，不過存在一些不同。haskell中if語句的else部分是不可省略。在命令式語言中，你可以通過if語句來跳過一段代碼，而在haskell中，每個函數和表達式都要返回一個結果。對於這點我覺得將if語句置於一行之中會更易理解。haskell 中的if語句的另一個特點就是它其實是個表達式，表達式就是返回一個值的一段代碼：5是個表達式，它返回5；4+8是個表達式；x+y也是個表達式，它返 回x+y的結果。正由於else是強制的，if語句一定會返回某個值，所以說if語句也是個表達式。如果要給剛剛定義的函數的結果都加上1，可以如此修改：</p><pre class="code">doubleSmallNumber' x = (if x > 100 then x else x*2) + 1 </pre><p>若是去掉括號，那就會只在小於100的時候加1。注意涵數名最後的那個單引號，它沒有任何特殊含義，只是一個函數名的合法字元罷了。通常，我們使用單引號來區分一個稍經修改但差別不大的函數。定義這樣的函數也是可以的：</p><pre class="code">conanO'Brien = "It's a-me, Conan O'Brien!"  </pre><p>在這裡有兩點需要注意。首先就是我們沒有大寫conan的首字母，因為首字母大寫的函數是不允許的，稍後我們將討論其原因；另外就是這個函數並沒有任何參數。沒有參數的函數通常被稱作“定義”（或者“名字”），一旦定義，conanO'Brien就與字元串"It's a-me, Conan O'Brien!"完全等價，且它的值不可以修改。</p><a name="List入門"></a><h2>List入門</h2><img src="img/list.png" style="float:right"></img><p>在Haskell中，List就像現實世界中的購物單一樣重要。它是最常用的資料結構，並且十分強大，靈活地使用它可以解決很多問題。本節我們將對List，字元串和list comprehension有個初步瞭解。 在Haskell中，List是一種單類型的資料結構，可以用來存儲多個類型相同的元素。我們可以在裡面裝一組數字或者一組字元，但不能把字元和數字裝在一起。</p><blockquote><p><b>Note</b>:在ghci下，我們可以使用let關鍵字來定義一個常量。在ghci下執行<code>let a =1</code>與在腳本中編寫a=1是等價的。</p></blockquote><pre class="code">ghci> let lostNumbers = [4,8,15,16,23,48]  
 ghci> lostNumbers   
@@ -139,7 +139,7 @@ ghci> maximum [1,9,2,3,4]  
 ghci> product [6,2,1,2]  
 24  
 ghci> product [1,2,5,6,7,9,2,0]  
-0  </pre><p><strong>elem</strong>判斷一個元素是否在包含于一個List，通常以中綴函數的形式調用它。</p><pre class="code">ghci> 4 `elem` [3,4,5,6]  
+0  </pre><p><strong>elem</strong>判斷一個元素是否在包含于一個List，通常以中綴函數的形式呼叫它。</p><pre class="code">ghci> 4 `elem` [3,4,5,6]  
 True  
 ghci> 10 `elem` [3,4,5,6]  
 False </pre><p>這就是幾個基本的List操作函數，我們會在往後的一節中瞭解更多的函數。</p><a name="使用Range"></a><h2>使用Range</h2><img src="img/cowboy.png" style="float:right"></img><p>該怎樣得到一個包含1到20之間所有數的List呢?我們完全可以用手把它全打出來，但顯而易見，這並不是完美人士的方案，他們都用區間（Range）。Range是構造List方法之一，而其中的值必須是可枚舉的，像1、2、3、4...字元同樣也可以枚舉，字母表就是A..Z所有字元的枚舉。而名字就不可以枚舉了，"john"後面是誰？我不知道。</p><p>要得到包含1到20中所有自然數的List，只要<code>[1..20]</code>即可，這與用手寫<code>[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]</code>是完全等價的。其實用手寫一兩個還不是什麼大事，但若是手寫一個非常長的List那就一定是笨得可以了。</p><pre class="code">ghci> [1..20]  
@@ -186,7 +186,7 @@ False</pre><blockquote><p><b>Note</b>：這兩個函數僅對序對有效，而�
 ghci> zip [1 .. 5] ["one", "two", "three", "four", "five"]  
 [(1,"one"),(2,"two"),(3,"three"),(4,"four"),(5,"five")]</pre><p>它把元素配對並返回一個新的List。第一個元素配第一個，第二個元素配第二個..以此類推。注意，由於序對中可以含有不同的類型，zip函數可能會將不同類型的序對組合在一起。若是兩個不同長度的List會怎麼樣？</p><pre class="code">ghci> zip [5,3,2,6,2,7,2,5,4,6,6] ["im","a","turtle"]  
 [(5,"im"),(3,"a"),(2,"turtle")]</pre><p>較長的那個會在中間斷開，去匹配較短的那個。由於haskell是惰性的，使用zip同時處理有限和無限的List也是可以的：</p><pre class="code">ghci> zip [1..] ["apple", "orange", "cherry", "mango"]  
-[(1,"apple"),(2,"orange"),(3,"cherry"),(4,"mango")]</pre><p>接下來考慮一個同時應用到List和Tuple的問題：如何取得所有三邊長度皆為整數且小於等於10，周長為24的直角三角形？首先，把所有三遍長度小於等於10的三角形都列出來：</p><pre class="code">ghci> let triangles = [ (a,b,c) | c <- [1..10], b <- [1..10], a <- [1..10] ]</pre><p>剛纔我們是從三個List中取值，並且通過輸出函數將其組合為一個三元組。只要在ghci下邊調用triangle，你就會得到所有三邊都小於等於 10的三角形。我們接下來給它添加一個限制條件，令其必須為直角三角形。同時也考慮上b邊要短於斜邊，a邊要短於b邊情況：</p><pre class="code">ghci> let rightTriangles = [ (a,b,c) | c <- [1..10], b <- [1..c], a <- [1..b], a^2 + b^2 == c^2]</pre><p>已經差不多了。最後修改函數，告訴它只要周長為24的三角形。</p><pre class="code">ghci> let rightTriangles' = [ (a,b,c) | c <- [1..10], b <- [1..c], a <- [1..b], a^2 + b^2 == c^2, a+b+c == 24]  
+[(1,"apple"),(2,"orange"),(3,"cherry"),(4,"mango")]</pre><p>接下來考慮一個同時應用到List和Tuple的問題：如何取得所有三邊長度皆為整數且小於等於10，周長為24的直角三角形？首先，把所有三遍長度小於等於10的三角形都列出來：</p><pre class="code">ghci> let triangles = [ (a,b,c) | c <- [1..10], b <- [1..10], a <- [1..10] ]</pre><p>剛才我們是從三個List中取值，並且通過輸出函數將其組合為一個三元組。只要在ghci下邊呼叫triangle，你就會得到所有三邊都小於等於 10的三角形。我們接下來給它添加一個限制條件，令其必須為直角三角形。同時也考慮上b邊要短於斜邊，a邊要短於b邊情況：</p><pre class="code">ghci> let rightTriangles = [ (a,b,c) | c <- [1..10], b <- [1..c], a <- [1..b], a^2 + b^2 == c^2]</pre><p>已經差不多了。最後修改函數，告訴它只要周長為24的三角形。</p><pre class="code">ghci> let rightTriangles' = [ (a,b,c) | c <- [1..10], b <- [1..c], a <- [1..b], a^2 + b^2 == c^2, a+b+c == 24]  
 ghci> rightTriangles'  
 [(6,8,10)]</pre><p>得到正確結果！這便是函數式編程的一般思路：先取一個初始的集合併將其變形，執行過濾條件，最終取得正確的結果。</p>
             <ul class="nav">

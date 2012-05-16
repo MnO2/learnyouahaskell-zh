@@ -38,7 +38,26 @@ ghci> (30, "A freaking platoon.") `applyLog` isBigGang
 (True,"A freaking platoon.Compared gang size to 9")</pre><p>跟之前的結果很像，只差在我們多了伴隨產生的log。</p><p>再來多看幾個例子：</p><pre class="code">ghci> ("Tobin","Got outlaw name.") `applyLog` (\x -> (length x, "Applied length."))  
 (5,"Got outlaw name.Applied length.")  
 ghci> ("Bathcat","Got outlaw name.") `applyLog` (\x -> (length x, "Applied length"))  
-(7,"Got outlaw name.Applied length")</pre><p>可以看到在lambda裡面<code>x</code>只是個正常的字串而不是tuple，且<code>applyLog</code>幫我們處裡掉附加log的動作。</p><p><b>Monoids的好處</b></p><blockquote><p>請確定你了解什麼是Monoids。</p></blockquote><p>到目前為止<code>applyLog</code>接受<code>(a,String)</code>型態的值，</p><p>但為什麼log一定要是<code>String</code>呢？</p><p>我們使用<code>++</code>來附加新的log，</p><p>難道<code>++</code>並不能運作在任何形式的list，而一定要限制我們在<code>String</code>上呢？</p><p>我們當然可以擺脫<code>String</code>，</p><p>我們可以如下改變他的型態：</p><pre class="code">applyLog :: (a,[c]) -> (a -> (b,[c])) -> (b,[c])</pre><a name="Reader Monad"></a><h2>Reader Monad</h2><a name="State Monad"></a><h2>State Monad</h2><a name="Error Monad"></a><h2>Error Monad</h2><a name="一些實用的Moandic functions"></a><h2>一些實用的Moandic functions</h2><a name="定義自己的Monad"></a><h2>定義自己的Monad</h2>
+(7,"Got outlaw name.Applied length")</pre><p>可以看到在lambda裡面<code>x</code>只是個正常的字串而不是tuple，且<code>applyLog</code>幫我們處裡掉附加log的動作。</p><p><b>Monoids的好處</b></p><blockquote><p>請確定你了解什麼是Monoids。</p></blockquote><p>到目前為止<code>applyLog</code>接受<code>(a,String)</code>型態的值，</p><p>但為什麼log一定要是<code>String</code>呢？</p><p>我們使用<code>++</code>來附加新的log，</p><p>難道<code>++</code>並不能運作在任何形式的list，而一定要限制我們在<code>String</code>上呢？</p><p>我們當然可以擺脫<code>String</code>，</p><p>我們可以如下改變他的型態：</p><pre class="code">applyLog :: (a,[c]) -> (a -> (b,[c])) -> (b,[c])</pre><p>我們用一個List來代表Log。</p><p>包含在List中的元素型態必須跟原有的List跟回傳的List型態相同，</p><p>否則我們沒辦法用<code>++</code>來把他們接起來。</p><p>這能夠運作在bytestring上嗎？絕對沒問題。</p><p>只是我們現在的型態只對List有效。</p><p>我們必須要另外做一個bytestring版本的<code>applyLog</code>。</p><p>但我們注意到List跟bytestring都是monoids。</p><p>因此他們都是<code>Monoid</code>type class的instance，</p><p>那代表他們都有實做<code>mappend</code>。</p><p>對List以及bytestring而言，<code>mappend</code>都是拿來串接的。</p><pre class="code">ghci> [1,2,3] `mappend` [4,5,6]  
+[1,2,3,4,5,6]  
+ghci> B.pack [99,104,105] `mappend` B.pack [104,117,97,104,117,97]  
+Chunk "chi" (Chunk "huahua" Empty)</pre><p>修改後我們的<code>applyLog</code>可以運作在任何monoid上。</p><p>我們必須要修改型態宣告來表示這件事，同時也要在實做中把<code>++</code>改成<code>mappend</code>：</p><pre class="code">applyLog :: (Monoid m) => (a,m) -> (a -> (b,m)) -> (b,m)  
+applyLog (x,log) f = let (y,newLog) = f x in (y,log `mappend` newLog)</pre><p>由於現在包含的值可以是任何monoid，</p><p>我們不再需要把tuple想成包含一個值跟對應的log，</p><p>我們可以想成他包含一個值跟一個對應的monoid。</p><p>舉例來說，</p><p>可以說我們有一個tuple包含一個產品名稱跟一個符合monoid特性的產品價格。</p><p>我們可以定義一個<code>Sum</code>的newtype來保證我們在操作產品的時候也會把價錢跟著加起來。</p><pre class="code">import Data.Monoid  
+  
+type Food = String  
+type Price = Sum Int  
+
+addDrink :: Food -> (Food,Price)  
+addDrink "beans" = ("milk", Sum 25)  
+addDrink "jerky" = ("whiskey", Sum 99)  
+addDrink _ = ("beer", Sum 30)</pre><p>我們用string來代表食物，用<code>newtype</code>重新定義<code>nInt</code>為<code>Sum</code>，</p><p>來追蹤總共需要花多少錢。</p><p>可以注意到我們用<code>mappend</code>來操作<code>Sum</code>的時候，價錢會被一起加起來。</p><pre class="code">ghci> Sum 3 `mappend` Sum 9  
+Sum {getSum = 12}</pre><p><code>addDrink</code>的實做很簡單，</p><p>如果我們想吃豆子，他會回傳<code>"milk"</code>以及伴隨的<code>Sum 25</code>，</p><p>同樣的如果我們要吃"jerky"，他就會回傳"whiskey"，</p><p>要吃其他東西的話，就會回傳"beer"。</p><p>乍看之下這個函數沒什麼特別，</p><p>但如果用<code>applyLog</code>的話就會有趣些。</p><pre class="code">ghci> ("beans", Sum 10) `applyLog` addDrink  
+("milk",Sum {getSum = 35})  
+ghci> ("jerky", Sum 25) `applyLog` addDrink  
+("whiskey",Sum {getSum = 124})  
+ghci> ("dogmeat", Sum 5) `applyLog` addDrink  
+("beer",Sum {getSum = 35})</pre><p>牛奶價值<code>25</code>美分，但如果我們也吃了價值<code>10</code>美分的豆子的話，</p><p>總共需要付<code>35</code>美分。</p><p>這樣很清楚地展示了伴隨的值不一定需要是log，他可以是任何monoid。</p><p>至於兩個值要如何結合，那要看monoid中怎麼定義。</p><p>當我們需要的是log的時候，他們是串接，</p><p>但這個case裡面，數字是被加起來。</p><p>由於<code>addDrink</code>回傳一個<code>(Food,Price)</code>，</p><p>我們可以再把結果重新餵給<code>addDrink</code>，</p><p>這可以很容易告訴我們總共喝了多少錢：</p><pre class="code">ghci> ("dogmeat", Sum 5) `applyLog` addDrink `applyLog` addDrink  
+("beer",Sum {getSum = 65})</pre><p>將狗食跟30美分的啤酒加在一起會得到<code>("beer", Sum 35)</code>。</p><p>如果我們用<code>applyLog</code>將上面的結果再餵給<code>addDrink</code>，</p><p>我們會得到<code>("beer", Sum 65)</code>這樣的結果。</p><a name="Reader Monad"></a><h2>Reader Monad</h2><a name="State Monad"></a><h2>State Monad</h2><a name="Error Monad"></a><h2>Error Monad</h2><a name="一些實用的Moandic functions"></a><h2>一些實用的Moandic functions</h2><a name="定義自己的Monad"></a><h2>定義自己的Monad</h2>
             <ul class="nav">
                 <li class="left">  <img src="img/prv.png"></img><a href="a-fistful-of-monads.html">來看看幾種Moand</a></li>
                 <li class="center"><a href="chapters.html">Index</a></li>
