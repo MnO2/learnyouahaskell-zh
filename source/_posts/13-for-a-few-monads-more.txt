@@ -215,7 +215,116 @@ ghci> ("dogmeat", Sum 5) `applyLog` addDrink `applyLog` addDrink
 我們會得到``("beer", Sum 65)``這樣的結果。
 
 
+*The Writer type*
+
+我們認識了一個附加monoid的值其實表現出來的是一個monad，
+我們來再來看看其他類似的``Monad`` instance。
+``Control.Monad.Writer``這模組含有``Writer w a``的一個型態，
+裏面定義了他``Monad``的instance，
+還有一些操作這些值的函數。
+
+首先，我們來看一下型態。
+要把一個monoid附加給一個值，只需要定義一個tuple就好了。
+``Writer w a``這型態其實是一個``newtype`` wrapper。
+他的定義很簡單：
+
+{{
+newtype Writer w a = Writer { runWriter :: (a, w) }      
+}}
+
+他包在一個``newtype``裏面，並且可以是一個``Monad``的instance，
+而且這樣定義的好處是可以跟單純tuple的型態區分開來。
+``a``這個型態參數代表是包含的值的型態，而``w``則是附加的monoid的型態。
+
+他``Monad`` instance的定義如下：
+
+{{
+instance (Monoid w) => Monad (Writer w) where  
+    return x = Writer (x, mempty)  
+    (Writer (x,v)) >>= f = let (Writer (y, v')) = f x in Writer (y, v `mappend` v')  
+}}
+
+首先，我們來看看``>>=``。
+他的實作基本上就是``applyLog``，
+只是我們的tuple現在是包在一個``Writer``的``newtype``中，
+我們可以用pattern matching的方式把他給unwrap。
+我們將``x``餵給``f``。
+這會回給我們``Writer w a``。
+接著可以用``let`` expression來做pattern matching。
+把結果綁定到``y``這個名字上，
+然後用``mappend``來結合舊的monoid值跟新的monoid值。
+最後把結果跟monoid值用``Writer`` constructor包起來，
+形成我們最後的``Writer`` value。
+
+
+那``return``呢？
+回想``return``的作用是接受一個值，並回傳一個具有意義的最小context來裝我們的值。
+那究竟什麼樣的context可以代表我們的``Writer``呢？
+如果我們希望monoid值所造成的影響愈小愈好，
+那``mempty``是個合理的選擇。
+``mempty``是被當作identity monoid value，
+像是``""``或``Sum 0``，或是空的bytestring。
+當我們對``mempty``用``mappend``跟其他monoid值結合，結果會是其他的monoid值。
+所以如果我們用``return``來做一個``Writer``，然後用``>>=``來餵給其他的函數，
+那函數回傳的便是算出來的monoid。
+下面我們試著用``return``搭配不同context來回傳``3``：
+
+{{
+ghci> runWriter (return 3 :: Writer String Int)  
+(3,"")  
+ghci> runWriter (return 3 :: Writer (Sum Int) Int)  
+(3,Sum {getSum = 0})  
+ghci> runWriter (return 3 :: Writer (Product Int) Int)  
+(3,Product {getProduct = 1})  
+}}
+
+因為``Writer``並沒有定義成``Show``的instance，
+我們必須用``runWriter``來把我們的``Writer``轉成正常的tuple。
+對於``String``，monoid的值就是空字串。
+而對於``Sum``來說則是``0``，因為``0``加上其他任何值都會是對方。
+而對``Product``來說，則是``1``。
+
+這裡的``Writer`` instance並沒有定義``fail``，
+所以如果pattern matching失敗的話，
+就會呼叫``error``。
+
+
+*Using do notation with Writer*
+
+
+
 ==Reader Monad
+在講Applicative的章節中，我們說過了``(->) r``的型態只是``Functor``的一個instance。
+要將一個函數``f`` map over一個函數``g``，
+基本上等價於一個函數，他可以接受原本``g``接受的參數，
+先套用``g``然後再把其結果丟給``f``。
+
+{{
+ghci> let f = (*5)  
+ghci> let g = (+3)
+ghci> (fmap f g) 8
+}}
+
+我們已經見識過函數當作applicative functors的例子。
+這樣能讓我們對函數的結果直接進行操作。
+
+{{
+ghci> let f = (+) <$> (*2) <*> (+10)
+ghci> f 3
+19
+}}
+
+``(+) <$> (*2) <*> (+10)``代表一個函數，
+他接受一個數值，
+分別把這數值交給``(*2)``跟``(+10)``。
+然後把結果加起來。
+例如說，如果我們餵``3``給這個函數，
+他會分別對``3``做``(*2)``跟``(+10)``的動作。
+而得到``6``跟``13``。
+然後呼叫``(+)``，
+而得到``19``。
+
+
 
 ==State Monad
 
