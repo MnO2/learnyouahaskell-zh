@@ -291,6 +291,176 @@ ghci> runWriter (return 3 :: Writer (Product Int) Int)
 
 *Using do notation with Writer*
 
+既然我們定義了``Monad``的instance，
+我們自然可以用``do``串接``Writer``型態的值。
+這在我們需要對一群``Writer``型態的值做處理時顯得特別方便。
+就如其他的monad，
+我們可以把他們當作具有context的值。
+在現在這個case中，
+所有的monoid的值都會用``mappend``來連接起來並得到最後的結果。
+這邊有一個簡單的範例，我們用``Writer``來相乘兩個數。
+
+{{
+import Control.Monad.Writer  
+  
+logNumber :: Int -> Writer [String] Int  
+logNumber x = Writer (x, ["Got number: " ++ show x])  
+  
+multWithLog :: Writer [String] Int  
+multWithLog = do  
+    a <- logNumber 3  
+    b <- logNumber 5  
+    return (a*b)  
+}}
+
+``logNumber``接受一個數並把這個數做成一個``Writer``。
+我們再用一串string來當作我們的monoid值，
+每一個數都跟著一個只有一個元素的list，說明我們只有一個數。
+``multWithLog``式一個``Writer``，
+他將``3``跟``5``相乘並確保相乘的紀錄有寫進最後的log中。
+我們用``return``來做成``a*b``的結果。
+我們知道``return``會接受某個值並加上某個最小的context，
+我們可以確定他不會多添加額外的log。
+如果我們執行程式會得到：
+
+{{
+ghci> runWriter multWithLog  
+(15,["Got number: 3","Got number: 5"])  
+}}
+
+有時候我們就是想要在某個時間點放進某個Monoid value。
+``tell``正是我們需要的函數。
+他實作了``MonadWriter``這個type class，而且在當``Writer``用的時候也能接受一個monoid value，
+好比說``["This is going on"]``。
+我們能用他來把我們的monoid value接到任何一個dummy value ``()``上來形成一個Writer。
+當我們拿到的結果是``()``的時候，我們不會把他綁定到變數上。
+來看一個``multWithLog``的範例：
+
+{{
+multWithLog :: Writer [String] Int  
+multWithLog = do  
+    a <- logNumber 3  
+    b <- logNumber 5  
+    tell ["Gonna multiply these two"]  
+    return (a*b)  
+}}
+
+``return (a*b)``是我們的最後一行，
+還記得在一個``do``中的最後一行代表整個``do``的結果。
+如果我們把``tell``擺到最後，
+則``do``的結果則會是``()``。
+我們會因此丟掉乘法運算的結果。
+除此之外，log的結果是不變的。
+
+{{
+ghci> runWriter multWithLog  
+(15,["Got number: 3","Got number: 5","Gonna multiply these two"])  
+}}
+
+
+*Adding logging to programs*
+歐幾里得算法是找出兩個數的最大公因數。
+Haskell已經提供了``gcd``的函數，
+但我們來實作一個具有log功能的gcd：
+
+{{
+gcd' :: Int -> Int -> Int  
+gcd' a b   
+    | b == 0    = a  
+    | otherwise = gcd' b (a `mod` b)  
+}}
+
+演算法的內容很簡單。
+首先他檢查第二個數字是否為零。
+如果是零，那就回傳第一個數字。
+如果不是，那結果就是第二個數字跟將第一個數字除以第二個數字的餘數兩個數字的最大公因數。
+舉例來說，
+如果我們想知道8跟3的最大公因數，首先可以注意到3不是0。
+所以我們要求的是3跟2的最大公因數(8除以3餘二)。
+接下去我可以看到2不是0，所以我們要再找2跟1的最大公因數。
+同樣的，第二個數不是0，所以我們再找1跟0的最大公因數。
+最後第二個數終於是0了，所以我們得到最大公因數是1。
+
+{{
+ghci> gcd' 8 3  
+1  
+}}
+
+答案真的是這樣。接著我們想加進context，
+context會是一個monoid value並且像是一個log一樣。
+就像之前的範例，我們用一串string來當作我們的monoid。
+所以``gcd'``會長成這樣：
+
+{{
+gcd' :: Int -> Int -> Writer [String] Int  
+}}
+
+而他的程式碼會像這樣：
+
+{{
+import Control.Monad.Writer  
+  
+gcd' :: Int -> Int -> Writer [String] Int  
+gcd' a b  
+  | b == 0 = do  
+      tell ["Finished with " ++ show a]  
+      return a  
+  | otherwise = do  
+      tell [show a ++ " mod " ++ show b ++ " = " ++ show (a `mod` b)]  
+      gcd' b (a `mod` b)  
+}}
+
+這個函數接受兩個``Int``並回傳一個``Writer [String] Int``，
+也就是說是一個有log context的``Int``。
+當``b``等於``0``的時候，
+我們用一個``do``來組成一個``Writer``的值。
+我們先用``tell``來寫入我們的log，然後用``return``來當作``do``的結果。
+當然我們也可以這樣寫：
+
+{{
+Writer (a, ["Finished with " ++ show a])  
+}}
+
+但我想``do``的表達方式是比較容易閱讀的。
+接下來我們看看當``b``不等於``0``的時候。
+我們會把``mod``的使用情況寫進log。
+然後在``do``當中的第二行遞迴呼叫``gcd'``。
+``gcd'``現在是回傳一個``Writer``的型態，
+所以``gcd' b (a `mod` b)``這樣的寫法是完全沒問題的。
+
+儘管去trace這個``gcd'``對於理解十分有幫助，
+但我想了解整個大概念，把值視為具有context是更加有用的。
+
+接著來試試跑我們的``gcd'``，
+他的結果會是``Writer [String] Int``，
+如果我們把他從``newtype``中取出來，
+我們會拿到一個tuple。
+tuple的第一個部份就是我們要的結果：
+
+{{
+ghci> fst $ runWriter (gcd' 8 3)  
+1  
+}}
+
+至於log呢，由於log是一連串string，
+我們就用``mapM_ putStrLn``來把這些string印出來：
+
+{{
+ghci> mapM_ putStrLn $ snd $ runWriter (gcd' 8 3)  
+8 mod 3 = 2  
+3 mod 2 = 1  
+2 mod 1 = 0  
+Finished with 1  
+}}
+
+把普通的演算法轉換成具有log是很棒的經驗，
+我們不過是把普通的value重寫成Monadiv value，
+剩下的就靠``>>=``跟``Writer``來幫我們處理一切。
+用這樣的方法我們幾乎可以對任何函數加上logging的功能。
+我們只要把普通的值換成``Writer``，
+然後把一般的函數呼叫換成``>>=`` (當然也可以用``do``)
+
+*Inefficient list construction*
 
 
 ==Reader Monad
