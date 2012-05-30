@@ -64,7 +64,36 @@ ghci> ("dogmeat", Sum 5) `applyLog` addDrink
 ghci> runWriter (return 3 :: Writer (Sum Int) Int)  
 (3,Sum {getSum = 0})  
 ghci> runWriter (return 3 :: Writer (Product Int) Int)  
-(3,Product {getProduct = 1})</pre><p>因為<code>Writer</code>並沒有定義成<code>Show</code>的instance，</p><p>我們必須用<code>runWriter</code>來把我們的<code>Writer</code>轉成正常的tuple。</p><p>對於<code>String</code>，monoid的值就是空字串。</p><p>而對於<code>Sum</code>來說則是<code>0</code>，因為<code>0</code>加上其他任何值都會是對方。</p><p>而對<code>Product</code>來說，則是<code>1</code>。</p><p>這裡的<code>Writer</code>instance並沒有定義<code>fail</code>，</p><p>所以如果pattern matching失敗的話，</p><p>就會呼叫<code>error</code>。</p><p><b>Using do notation with Writer</b></p><a name="Reader Monad"></a><h2>Reader Monad</h2><p>在講Applicative的章節中，我們說過了<code>(->) r</code>的型態只是<code>Functor</code>的一個instance。</p><p>要將一個函數<code>f</code>map over一個函數<code>g</code>，</p><p>基本上等價於一個函數，他可以接受原本<code>g</code>接受的參數，</p><p>先套用<code>g</code>然後再把其結果丟給<code>f</code>。</p><pre class="code">ghci> let f = (*5)  
+(3,Product {getProduct = 1})</pre><p>因為<code>Writer</code>並沒有定義成<code>Show</code>的instance，</p><p>我們必須用<code>runWriter</code>來把我們的<code>Writer</code>轉成正常的tuple。</p><p>對於<code>String</code>，monoid的值就是空字串。</p><p>而對於<code>Sum</code>來說則是<code>0</code>，因為<code>0</code>加上其他任何值都會是對方。</p><p>而對<code>Product</code>來說，則是<code>1</code>。</p><p>這裡的<code>Writer</code>instance並沒有定義<code>fail</code>，</p><p>所以如果pattern matching失敗的話，</p><p>就會呼叫<code>error</code>。</p><p><b>Using do notation with Writer</b></p><p>既然我們定義了<code>Monad</code>的instance，</p><p>我們自然可以用<code>do</code>串接<code>Writer</code>型態的值。</p><p>這在我們需要對一群<code>Writer</code>型態的值做處理時顯得特別方便。</p><p>就如其他的monad，</p><p>我們可以把他們當作具有context的值。</p><p>在現在這個case中，</p><p>所有的monoid的值都會用<code>mappend</code>來連接起來並得到最後的結果。</p><p>這邊有一個簡單的範例，我們用<code>Writer</code>來相乘兩個數。</p><pre class="code">{
+import Control.Monad.Writer  
+  
+logNumber :: Int -> Writer [String] Int  
+logNumber x = Writer (x, ["Got number: " ++ show x])  
+  
+multWithLog :: Writer [String] Int  
+multWithLog = do  
+    a <- logNumber 3  
+    b <- logNumber 5  
+    return (a*b)  
+}</pre><p><code>logNumber</code>接受一個數並把這個數做成一個<code>Writer</code>。</p><p>我們再用一串string來當作我們的monoid值，</p><p>每一個數都跟著一個只有一個元素的list，說明我們只有一個數。</p><p><code>multWithLog</code>式一個<code>Writer</code>，</p><p>他將<code>3</code>跟<code>5</code>相乘並確保相乘的紀錄有寫進最後的log中。</p><p>我們用<code>return</code>來做成<code>a*b</code>的結果。</p><p>我們知道<code>return</code>會接受某個值並加上某個最小的context，</p><p>我們可以確定他不會多添加額外的log。</p><p>如果我們執行程式會得到：</p><pre class="code">{
+ghci> runWriter multWithLog  
+(15,["Got number: 3","Got number: 5"])  
+}</pre><p>有時候我們就是想要在某個時間點放進某個Monoid value。</p><p><code>tell</code>正是我們需要的函數。</p><p>他實作了<code>MonadWriter</code>這個type class，而且在當<code>Writer</code>用的時候也能接受一個monoid value，</p><p>好比說<code>["This is going on"]</code>。</p><p>我們能用他來把我們的monoid value接到任何一個dummy value<code>()</code>上來形成一個Writer。</p><p>當我們拿到的結果是<code>()</code>的時候，我們不會把他綁定到變數上。</p><p>來看一個<code>multWithLog</code>的範例：</p><pre class="code">{
+multWithLog :: Writer [String] Int  
+multWithLog = do  
+    a <- logNumber 3  
+    b <- logNumber 5  
+    tell ["Gonna multiply these two"]  
+    return (a*b)  
+}</pre><p><code>return (a*b)</code>是我們的最後一行，</p><p>還記得在一個<code>do</code>中的最後一行代表整個<code>do</code>的結果。</p><p>如果我們把<code>tell</code>擺到最後，</p><p>則<code>do</code>的結果則會是<code>()</code>。</p><p>我們會因此丟掉乘法運算的結果。</p><p>除此之外，log的結果是不變的。</p><pre class="code">{
+ghci> runWriter multWithLog  
+(15,["Got number: 3","Got number: 5","Gonna multiply these two"])  
+}</pre><p><b>Adding logging to programs</b></p><p>歐幾里得算法是找出兩個數的最大公因數。</p><p>Haskell已經提供了<code>gcd</code>的函數，</p><p>但我們來實作一個具有log功能的gcd：</p><pre class="code">{
+gcd' :: Int -> Int -> Int  
+gcd' a b   
+    | b == 0    = a  
+    | otherwise = gcd' b (a `mod` b)  
+}</pre><a name="Reader Monad"></a><h2>Reader Monad</h2><p>在講Applicative的章節中，我們說過了<code>(->) r</code>的型態只是<code>Functor</code>的一個instance。</p><p>要將一個函數<code>f</code>map over一個函數<code>g</code>，</p><p>基本上等價於一個函數，他可以接受原本<code>g</code>接受的參數，</p><p>先套用<code>g</code>然後再把其結果丟給<code>f</code>。</p><pre class="code">ghci> let f = (*5)  
 ghci> let g = (+3)
 ghci> (fmap f g) 8</pre><p>我們已經見識過函數當作applicative functors的例子。</p><p>這樣能讓我們對函數的結果直接進行操作。</p><pre class="code">ghci> let f = (+) <$> (*2) <*> (+10)
 ghci> f 3
