@@ -98,7 +98,55 @@ gcd' a b
 8 mod 3 = 2  
 3 mod 2 = 1  
 2 mod 1 = 0  
-Finished with 1</pre><p>把普通的演算法轉換成具有log是很棒的經驗，</p><p>我們不過是把普通的value重寫成Monadiv value，</p><p>剩下的就靠<code>>>=</code>跟<code>Writer</code>來幫我們處理一切。</p><p>用這樣的方法我們幾乎可以對任何函數加上logging的功能。</p><p>我們只要把普通的值換成<code>Writer</code>，</p><p>然後把一般的函數呼叫換成<code>>>=</code>(當然也可以用<code>do</code>)</p><p><b>Inefficient list construction</b></p><a name="Reader Monad"></a><h2>Reader Monad</h2><p>在講Applicative的章節中，我們說過了<code>(->) r</code>的型態只是<code>Functor</code>的一個instance。</p><p>要將一個函數<code>f</code>map over一個函數<code>g</code>，</p><p>基本上等價於一個函數，他可以接受原本<code>g</code>接受的參數，</p><p>先套用<code>g</code>然後再把其結果丟給<code>f</code>。</p><pre class="code">ghci> let f = (*5)  
+Finished with 1</pre><p>把普通的演算法轉換成具有log是很棒的經驗，</p><p>我們不過是把普通的value重寫成Monadiv value，</p><p>剩下的就靠<code>>>=</code>跟<code>Writer</code>來幫我們處理一切。</p><p>用這樣的方法我們幾乎可以對任何函數加上logging的功能。</p><p>我們只要把普通的值換成<code>Writer</code>，</p><p>然後把一般的函數呼叫換成<code>>>=</code>(當然也可以用<code>do</code>)</p><p><b>Inefficient list construction</b></p><p>當製作<code>Writer</code>Monad的時候，要特別注意你是使用哪種monoid。</p><p>使用list的話效能有時候是沒辦法接受的。</p><p>因為list是使用<code>++</code>來作為<code>mappend</code>的實現。</p><p>而<code>++</code>在list很長的時候是非常慢的。</p><p>在之前的<code>gcd'</code>中，</p><p>log並不會慢是因為list append的動作實際上看起來是這樣：</p><pre class="code">a ++ (b ++ (c ++ (d ++ (e ++ f))))</pre><p>list是建立的方向是從左到右，</p><p>當我們先建立左邊的部份，而把另一串list加到右邊的時候效能會不錯。</p><p>但如果我們不小心使用，</p><p>而讓<code>Writer</code>monad實際在操作list的時候變成像這樣的話。</p><pre class="code">((((a ++ b) ++ c) ++ d) ++ e) ++ f</pre><p>這會讓我們的操作是left associative，而不是right associative。</p><p>這非常沒有效率，</p><p>因為每次都是把右邊的部份加到左邊的部份，</p><p>而左邊的部份又必須要從頭開始建起。</p><p>下面這個函數跟<code>gcd'</code>差不多，只是log的順序是相反的。</p><p>他先紀錄剩下的操作，然後紀錄現在的步驟。</p><pre class="code">import Control.Monad.Writer  
+  
+gcdReverse :: Int -> Int -> Writer [String] Int  
+gcdReverse a b  
+  | b == 0 = do  
+      tell ["Finished with " ++ show a]  
+      return a  
+    | otherwise = do  
+      result <- gcdReverse b (a `mod` b)  
+      tell [show a ++ " mod " ++ show b ++ " = " ++ show (a `mod` b)]  
+      return result</pre><p>他先遞迴呼叫，然後把結果綁定到<code>result</code>。</p><p>然後把目前的動作寫到log，在遞迴的結果之後。</p><p>最後呈現的就是完整的log。</p><pre class="code">ghci> mapM_ putStrLn $ snd $ runWriter (gcdReverse 8 3)  
+Finished with 1  
+2 mod 1 = 0  
+3 mod 2 = 1  
+8 mod 3 = 2</pre><p>這沒效率是因為他讓<code>++</code>成為left associative而不是right associative。</p><p><b>Difference lists</b></p><p>由於list在重複append的時候顯得低效，</p><p>我們最好能使用一種支援高效appending的資料結構。</p><p>其中一種就是difference list。</p><p>difference list很類似list，只是他是一個函數。</p><p>他接受一個list並prepend另一串list到他前面。</p><p>一個等價於<code>[1,2,3]</code>的difference list是這樣一個函數<code>\xs -> [1,2,3] ++ xs</code>。</p><p>一個等價於<code>[]</code>的difference list則是<code>\xs -> [] ++ xs</code>。</p><p>Difference list最酷的地方在於他支援高效的appending。</p><p>當我們用<code>++</code>來實現appending的時候，他必須要走到左邊的list的尾端，</p><p>然後把右邊的list一個個從這邊接上。</p><p>那difference list是怎麼作的呢？</p><p>appending兩個difference list就像這樣</p><pre class="code">f `append` g = \xs -> f (g xs)</pre><p><code>f</code>跟<code>g</code>這邊是兩個函數，他們都接受一個list並prepend另一串list。</p><p>舉例來說，如果<code>f</code>代表<code>("dog"++)</code>（可以寫成<code>\xs -> "dog" ++ xs</code>）</p><p>而<code>g</code>是<code>("meat"++)</code>，</p><p>那<code>f `append` g</code>就會做成一個新的函數，等價於：</p><pre class="code">\xs -> "dog" ++ ("meat" ++ xs)</pre><p>append兩個difference list其實就是用一個函數，這函數先餵一個list給第一個difference list，</p><p>然後再把結果餵給第二個difference list。</p><p>我們可以用一個<code>newtype</code>來包起來</p><pre class="code">newtype DiffList a = DiffList { getDiffList :: [a] -> [a] }</pre><p>我們包起來的型態是<code>[a] -> [a]</code>，因為difference list不過就是一個轉換一個list到另一個list的函數。</p><p>要把普通list轉換成difference list也很容易。</p><pre class="code">toDiffList :: [a] -> DiffList a  
+toDiffList xs = DiffList (xs++)  
+  
+fromDiffList :: DiffList a -> [a]  
+fromDiffList (DiffList f) = f []</pre><p>要把一個普通list轉成difference list不過就是照之前定義的，作一個prepend另一個list的函數。</p><p>由於difference list只是一個prepend另一串list的一個函數，假如我們要轉回來的話，只要餵給他空的list就行了。</p><p>這邊我們給一個difference list的<code>Monoid</code>定義</p><pre class="code">instance Monoid (DiffList a) where  
+    mempty = DiffList (\xs -> [] ++ xs)  
+    (DiffList f) `mappend` (DiffList g) = DiffList (\xs -> f (g xs))</pre><p>我們可以看到<code>mempty</code>不過就是<code>id</code>，</p><p>而<code>mappend</code>其實是function composition。</p><pre class="code">ghci> fromDiffList (toDiffList [1,2,3,4] `mappend` toDiffList [1,2,3])  
+[1,2,3,4,1,2,3]</pre><p>現在我們可以用difference list來加速我們的<code>gcdReverse</code></p><pre class="code">import Control.Monad.Writer  
+  
+gcd' :: Int -> Int -> Writer (DiffList String) Int  
+gcd' a b  
+  | b == 0 = do  
+      tell (toDiffList ["Finished with " ++ show a])  
+      return a  
+  | otherwise = do  
+      result <- gcd' b (a `mod` b)  
+      tell (toDiffList [show a ++ " mod " ++ show b ++ " = " ++ show (a `mod` b)])  
+      return result</pre><p>我們只要把monoid的型態從<code>[String]</code>改成<code>DiffList String</code>，</p><p>並在使用<code>tell</code>的時候把普通的list用<code>toDiffList</code>轉成difference list就可以了。</p><pre class="code">ghci> mapM_ putStrLn . fromDiffList . snd . runWriter $ gcdReverse 110 34  
+Finished with 2  
+8 mod 2 = 0  
+34 mod 8 = 2  
+110 mod 34 = 8</pre><p>我們用<code>runWriter</code>來取出<code>gcdReverse 110 34</code>的結果，</p><p>然後用<code>snd</code>取出log，並用<code>fromDiffList</code>轉回普通的list印出來。</p><p><b>Comparing Performance</b></p><p>要體會Difference List能如何增進效率，</p><p>考慮一個從某數數到零的case。</p><p>我們紀錄的時候就像<code>gcdReverse</code>一樣是反過來記的，</p><p>所以在log中實際上是從零數到某個數。</p><pre class="code">finalCountDown :: Int -> Writer (DiffList String) ()  
+finalCountDown 0 = do  
+    tell (toDiffList ["0"])  
+finalCountDown x = do  
+    finalCountDown (x-1)  
+    tell (toDiffList [show x])</pre><p>如果我們餵<code>0</code>，他就只log 0。</p><p>如果餵其他正整數，</p><p>他會先倒數到<code>0</code>然後append那些數到log中，</p><p>所以如果我們呼叫<code>finalCountDown</code>並餵給他<code>100</code>，</p><p>那log的最後一筆就會是<code>"100"</code>。</p><p>如果你把這個函數load進GHCi中並餵給他一個比較大的整數<code>500000</code>，</p><p>你會看到他無停滯地從<code>0</code>開始數起：</p><pre class="code">ghci> mapM_ putStrLn . fromDiffList . snd . runWriter $ finalCountDown 500000  
+0  
+1  
+2</pre><p>但如果我們用普通的list而不用difference list</p><pre class="code">finalCountDown :: Int -> Writer [String] ()  
+finalCountDown 0 = do  
+    tell ["0"]  
+finalCountDown x = do  
+    finalCountDown (x-1)  
+    tell [show x]</pre><p>並下同樣的指令</p><pre class="code">ghci> mapM_ putStrLn . snd . runWriter $ finalCountDown 500000</pre><p>我們會看到整個運算卡卡的。</p><p>當然這不是一個嚴謹的測試方法，但足以表顯出difference list是比較有效率的寫法。</p><a name="Reader Monad"></a><h2>Reader Monad</h2><p>在講Applicative的章節中，我們說過了<code>(->) r</code>的型態只是<code>Functor</code>的一個instance。</p><p>要將一個函數<code>f</code>map over一個函數<code>g</code>，</p><p>基本上等價於一個函數，他可以接受原本<code>g</code>接受的參數，</p><p>先套用<code>g</code>然後再把其結果丟給<code>f</code>。</p><pre class="code">ghci> let f = (*5)  
 ghci> let g = (+3)
 ghci> (fmap f g) 8</pre><p>我們已經見識過函數當作applicative functors的例子。</p><p>這樣能讓我們對函數的結果直接進行操作。</p><pre class="code">ghci> let f = (+) <$> (*2) <*> (+10)
 ghci> f 3
