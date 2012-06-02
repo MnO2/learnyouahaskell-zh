@@ -461,6 +461,215 @@ Finished with 1
 然後把一般的函數呼叫換成``>>=`` (當然也可以用``do``)
 
 *Inefficient list construction*
+當製作``Writer`` Monad的時候，要特別注意你是使用哪種monoid。
+使用list的話效能有時候是沒辦法接受的。
+因為list是使用``++``來作為``mappend``的實現。
+而``++``在list很長的時候是非常慢的。
+
+在之前的``gcd'``中，
+log並不會慢是因為list append的動作實際上看起來是這樣：
+
+{{
+a ++ (b ++ (c ++ (d ++ (e ++ f))))  
+}}
+
+list是建立的方向是從左到右，
+當我們先建立左邊的部份，而把另一串list加到右邊的時候效能會不錯。
+但如果我們不小心使用，
+而讓``Writer`` monad實際在操作list的時候變成像這樣的話。
+
+{{
+((((a ++ b) ++ c) ++ d) ++ e) ++ f 
+}}
+
+這會讓我們的操作是left associative，而不是right associative。
+這非常沒有效率，
+因為每次都是把右邊的部份加到左邊的部份，
+而左邊的部份又必須要從頭開始建起。
+
+下面這個函數跟``gcd'``差不多，只是log的順序是相反的。
+他先紀錄剩下的操作，然後紀錄現在的步驟。
+
+{{
+import Control.Monad.Writer  
+  
+gcdReverse :: Int -> Int -> Writer [String] Int  
+gcdReverse a b  
+  | b == 0 = do  
+      tell ["Finished with " ++ show a]  
+      return a  
+    | otherwise = do  
+      result <- gcdReverse b (a `mod` b)  
+      tell [show a ++ " mod " ++ show b ++ " = " ++ show (a `mod` b)]  
+      return result  
+}}
+
+他先遞迴呼叫，然後把結果綁定到``result``。
+然後把目前的動作寫到log，在遞迴的結果之後。
+最後呈現的就是完整的log。
+
+{{ 
+ghci> mapM_ putStrLn $ snd $ runWriter (gcdReverse 8 3)  
+Finished with 1  
+2 mod 1 = 0  
+3 mod 2 = 1  
+8 mod 3 = 2  
+}}
+
+這沒效率是因為他讓``++``成為left associative而不是right associative。
+
+
+*Difference lists*
+
+由於list在重複append的時候顯得低效，
+我們最好能使用一種支援高效appending的資料結構。
+其中一種就是difference list。
+difference list很類似list，只是他是一個函數。
+他接受一個list並prepend另一串list到他前面。
+一個等價於``[1,2,3]``的difference list是這樣一個函數``\xs -> [1,2,3] ++ xs``。
+一個等價於``[]``的difference list則是``\xs -> [] ++ xs``。
+
+Difference list最酷的地方在於他支援高效的appending。
+當我們用``++``來實現appending的時候，他必須要走到左邊的list的尾端，
+然後把右邊的list一個個從這邊接上。
+那difference list是怎麼作的呢？
+appending兩個difference list就像這樣
+
+{{
+f `append` g = \xs -> f (g xs)  
+}}
+
+``f``跟``g``這邊是兩個函數，他們都接受一個list並prepend另一串list。
+舉例來說，如果``f``代表``("dog"++)``（可以寫成``\xs -> "dog" ++ xs``）
+而``g``是``("meat"++)``，
+那``f `append` g``就會做成一個新的函數，等價於：
+
+{{
+\xs -> "dog" ++ ("meat" ++ xs)  
+}}
+
+append兩個difference list其實就是用一個函數，這函數先餵一個list給第一個difference list，
+然後再把結果餵給第二個difference list。
+
+我們可以用一個``newtype``來包起來
+
+{{ 
+newtype DiffList a = DiffList { getDiffList :: [a] -> [a] }  
+}}
+
+我們包起來的型態是``[a] -> [a]``，因為difference list不過就是一個轉換一個list到另一個list的函數。
+要把普通list轉換成difference list也很容易。
+
+{{ 
+toDiffList :: [a] -> DiffList a  
+toDiffList xs = DiffList (xs++)  
+  
+fromDiffList :: DiffList a -> [a]  
+fromDiffList (DiffList f) = f []  
+}}
+
+要把一個普通list轉成difference list不過就是照之前定義的，作一個prepend另一個list的函數。
+由於difference list只是一個prepend另一串list的一個函數，假如我們要轉回來的話，只要餵給他空的list就行了。
+
+這邊我們給一個difference list的``Monoid``定義
+
+{{
+instance Monoid (DiffList a) where  
+    mempty = DiffList (\xs -> [] ++ xs)  
+    (DiffList f) `mappend` (DiffList g) = DiffList (\xs -> f (g xs))  
+}}
+
+我們可以看到``mempty``不過就是``id``，
+而``mappend``其實是function composition。
+
+{{
+ghci> fromDiffList (toDiffList [1,2,3,4] `mappend` toDiffList [1,2,3])  
+[1,2,3,4,1,2,3]  
+}}
+
+現在我們可以用difference list來加速我們的``gcdReverse``
+
+{{
+import Control.Monad.Writer  
+  
+gcd' :: Int -> Int -> Writer (DiffList String) Int  
+gcd' a b  
+  | b == 0 = do  
+      tell (toDiffList ["Finished with " ++ show a])  
+      return a  
+  | otherwise = do  
+      result <- gcd' b (a `mod` b)  
+      tell (toDiffList [show a ++ " mod " ++ show b ++ " = " ++ show (a `mod` b)])  
+      return result  
+}}
+
+我們只要把monoid的型態從``[String]``改成``DiffList String``，
+並在使用``tell``的時候把普通的list用``toDiffList``轉成difference list就可以了。
+
+{{
+ghci> mapM_ putStrLn . fromDiffList . snd . runWriter $ gcdReverse 110 34  
+Finished with 2  
+8 mod 2 = 0  
+34 mod 8 = 2  
+110 mod 34 = 8  
+}}
+
+我們用``runWriter``來取出``gcdReverse 110 34``的結果，
+然後用``snd``取出log，並用``fromDiffList``轉回普通的list印出來。
+
+
+*Comparing Performance*
+
+要體會Difference List能如何增進效率，
+考慮一個從某數數到零的case。
+我們紀錄的時候就像``gcdReverse``一樣是反過來記的，
+所以在log中實際上是從零數到某個數。
+
+{{
+finalCountDown :: Int -> Writer (DiffList String) ()  
+finalCountDown 0 = do  
+    tell (toDiffList ["0"])  
+finalCountDown x = do  
+    finalCountDown (x-1)  
+    tell (toDiffList [show x])  
+}}
+
+如果我們餵``0``，他就只log 0。
+如果餵其他正整數，
+他會先倒數到``0``然後append那些數到log中，
+所以如果我們呼叫``finalCountDown``並餵給他``100``，
+那log的最後一筆就會是``"100"``。
+
+如果你把這個函數load進GHCi中並餵給他一個比較大的整數``500000``，
+你會看到他無停滯地從``0``開始數起：
+
+{{
+ghci> mapM_ putStrLn . fromDiffList . snd . runWriter $ finalCountDown 500000  
+0  
+1  
+2  
+}}
+
+但如果我們用普通的list而不用difference list
+
+{{
+finalCountDown :: Int -> Writer [String] ()  
+finalCountDown 0 = do  
+    tell ["0"]  
+finalCountDown x = do  
+    finalCountDown (x-1)  
+    tell [show x]  
+}}
+
+並下同樣的指令
+
+{{
+ghci> mapM_ putStrLn . snd . runWriter $ finalCountDown 500000  
+}}
+
+我們會看到整個運算卡卡的。
+
+當然這不是一個嚴謹的測試方法，但足以表顯出difference list是比較有效率的寫法。
 
 
 ==Reader Monad
@@ -493,7 +702,6 @@ ghci> f 3
 而得到``6``跟``13``。
 然後呼叫``(+)``，
 而得到``19``。
-
 
 
 ==State Monad
