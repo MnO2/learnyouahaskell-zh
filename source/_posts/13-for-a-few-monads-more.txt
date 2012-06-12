@@ -703,8 +703,150 @@ ghci> f 3
 然後呼叫``(+)``，
 而得到``19``。
 
+其實``(->) r``不只是一個functor跟一個applicative functor，他也是一個monad。
+就如其他monadic value一般，一個函數也可以被想做是包含一個context的。
+這個context是說我們期待某個值，他還沒出現，但我們知道我們會把他當作函數的參數，
+呼叫函數來得到結果。
+
+我們已經見識到函數是怎樣可以看作functor或是applicative functors了。
+再來讓我們看看當作``Monad``的一個instance時會是什麼樣子。
+你可以在``Control.Monad.Instances``裡面找到，
+他看起來像這樣：
+
+{{
+instance Monad ((->) r) where  
+    return x = \_ -> x  
+    h >>= f = \w -> f (h w) w  
+}}
+
+我們之前已經看過函數的``pure``實作了，而``return``差不多就是``pure``。
+他接受一個值並把他放進一個minimal context裡面。
+而要讓一個函數能夠是某個定值的唯一方法就是讓他完全忽略他的參數。
+
+而``>>=``的實作看起來有點難以理解，我們可以仔細來看看。
+當我們使用``>>=``的時候，餵進去的是一個monadic value，
+處理他的是一個函數，而吐出來的也是一個monadic value。
+在這個情況下，
+當我們將一個函數餵進一個函數，吐出來的也是一個函數。
+這就是為什麼我們在最外層使用了一個lambda。
+在我們目前看過的實作中，``>>=``幾乎都是用lambda將內部跟外部隔開來，
+然後在內部來使用``f``。
+這邊也是一樣的道理。
+要從一個函數得到一個結果，我們必須餵給他一些東西，
+這也是為什麼我們先用``(h w)``取得結果，
+然後將他丟給``f``。
+而``f``回傳一個monadic value，
+在這邊這個monadic value也就是一個函數。
+我們再把``w``餵給他。
+
+如果你還不太懂``>>=``怎麼寫出來的，
+不要擔心，因為接下來的範例會讓你曉得這真的是一個簡單的Monad。
+我們造一個``do`` expression來使用這個Monad。
+
+{{ 
+import Control.Monad.Instances  
+  
+addStuff :: Int -> Int  
+addStuff = do  
+  a <- (*2)  
+  b <- (+10)  
+  return (a+b)  
+}}
+
+
+這跟我們之前寫的applicative expression差不多，
+只差在他是運作在monad上。
+一個``do`` expression的結果永遠會是一個monadic vlaue，這個也不例外。
+而這個monadic value其實是一個函數。
+只是在這邊他接受一個數字，然後套用``(*2)``，把結果綁定到``a``上面。
+而``(+10)``也同用被套用到同樣的參數。結果被綁訂到``b``上。
+``return``就如其他monad一樣，只是製作一個簡單的monadiv value而不會作多餘的事情。
+這讓整個函數的結果是``a+b``。
+如果我們試著跑跑看，
+會得到之前的結果。
+
+{{
+ghci> addStuff 3  
+19  
+}}
+
+其中``3``會被餵給``(*2)``跟``(+10)``。
+而且他也會被餵給``return (a+b)``，
+只是他會忽略掉``3``而永遠回傳``a+b``
+正因為如此，function monad也被稱作reader monad。
+所有函數都從一個固定的地方讀取。
+要寫得更清楚一些，可以把``addStuff``改寫如下：
+
+{{
+addStuff :: Int -> Int  
+addStuff x = let  
+    a = (*2) x  
+    b = (+10) x  
+    in a+b  
+}}
+
+
+我們見識了把函數視作具有context的值很自然的可以表達成reader monad。
+只要我們當作我們知道函數會回傳什麼值就好。
+他作的就是把所有的函數都黏在一起做成一個大的函數，
+然後把這個函數的參數都餵給全部組成的函數，
+這有點取出他們未來的值的意味。
+實作做完了然後``>>=``就會保證一切都能正常運作。
+
 
 ==State Monad
+Haskell是一個純粹的語言，正因為如此，
+我們的程式是有一堆沒辦法改變全域狀態或變數的函數所組成，
+他們只會作些處理並回傳結果。
+這樣的性質讓我們很容易思考我們的程式在幹嘛，
+因為我們不需要擔心變數在某一個時間點的值是什麼。
+然而，有一些領域的問題根本上就是依賴於隨著時間而改變的狀態。
+雖然我們也可以用Haskell寫出這樣的程式，
+但有時候寫起來蠻痛苦的。
+這也是為什麼Haskell要加進State Monad這個特性。
+這讓我們在Haskell中可以容易地處理狀態性的問題，
+並讓其他部份的程式還是保持純粹性。
+
+
+當我們處理亂數的時候，
+我們
+的函數接受一個random generator並回傳一個新的亂數跟一個新的random generator。
+如果我們需要很多個亂數，
+我們可以用前一個函數回傳的random generator繼續做下去。
+當我們要寫一個接受``StdGen``的函數並產生丟三個硬幣結果的函數，
+我們會這樣寫：
+
+{{
+threeCoins :: StdGen -> (Bool, Bool, Bool)  
+threeCoins gen =   
+    let (firstCoin, newGen) = random gen  
+        (secondCoin, newGen') = random newGen  
+        (thirdCoin, newGen''') = random newGen'  
+    in  (firstCoin, secondCoin, thirdCoin)  
+}}
+
+他接受一個``gen``然後用``random gen``產生一個``Bool``型態的值以及新的generator。
+要模擬丟第二個硬幣的話，便使用新的generator。
+在其他語言中，多半除了亂數之外不需要多回傳一個generator。
+那是因為我們可以對現有的進行修改。
+但Haskell是純粹的語言，我們沒辦法那麼做，
+所以我們必須要接受一個狀態，產生結果然後回傳一個新的狀態，
+然後用新的狀態來繼續做下去。
+
+一般來講你應該不會喜歡這麼寫，在程式中有赤裸裸的狀態，但我們又不想放棄Haskell的純粹性質。
+這就是State Monad的好處了，他可以幫我們處理這些瑣碎的事情，又讓我們保持Haskell的純粹性。
+
+為了深入理解狀態性的計算，我們先來看看應該給他們什麼樣的型態。
+我們會說一個狀態性的計算是一個函數，
+他接受一個狀態，回傳一個值跟一個新的狀態。
+寫起來會像這樣：
+
+{{
+s -> (a,s) 
+}}
+
+``s``是狀態的型態，而``a``是計算結果的型態。
+
 
 ==Error Monad
 
