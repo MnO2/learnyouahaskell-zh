@@ -1,0 +1,18 @@
+=Resource
+
+==Specification
+    # [http://www.haskell.org/onlinereport/ Haskell 98 Report]
+    # [http://www.haskell.org/onlinereport/haskell2010/ Haskell 2010 Report]
+
+==Tools
+    # [http://www.haskell.org/hoogle/ Hoogle]
+    # [http://holumbus.fh-wedel.de/hayoo/hayoo.html Hayoo]
+    # [http://hdiff.luite.com/ hdiff]
+
+==Lectures & Articles
+    # [http://en.wikibooks.org/wiki/Haskell Wikibook Haskell]
+    # [http://www.scs.stanford.edu/11au-cs240h/notes/ CS240h]
+    # [http://itpro.nikkeibp.co.jp/article/COLUMN/20060915/248215/ 本物のプログラマはHaskellを使う]
+
+==Forum
+    # [http://stackoverflow.com/questions/tagged/haskell Stackoverflow]

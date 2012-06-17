@@ -1,78 +1,25 @@
 =Functors, Applicative Functors與Monoids #functors-applicative-functors-and-monoids
 
-Haskell的一些特色，像是純粹性，高階函數，algebraic data types，typeclasses，
-這些讓我們可以從更高的角度來看到polymorphism這件事。
-不像OOP當中需要從龐大的型態階層來思考。
-我們只需要看看手邊的型態的行為，將他們跟適當地typeclass對應起來就可以了。
-像``Int``的行為跟很多東西很像。
-好比說他可以比較相不相等，可以從大到小排列，也可以將他們一一窮舉出來。
+Haskell的一些特色，像是純粹性，高階函數，algebraic data types，typeclasses，這些讓我們可以從更高的角度來看到polymorphism這件事。不像OOP當中需要從龐大的型態階層來思考。我們只需要看看手邊的型態的行為，將他們跟適當地typeclass對應起來就可以了。像``Int``的行為跟很多東西很像。好比說他可以比較相不相等，可以從大到小排列，也可以將他們一一窮舉出來。
 
-Typeclass的運用是很隨意的。
-我們可以定義自己的資料型態，然後描述他可以怎樣被操作，跟typeclass關聯起來便定義了他的行為。
-由於Haskell強大的型態系統，
-這讓我們只要讀函數的型態宣告就可以知道很多資訊。
-typeclass可以定義得很抽象很general。
-我們之前有看過typeclass定義了可以比較兩個東西是否相等，或是定義了可以比較兩個東西的大小。
-這些是既抽象但又描述簡潔的行為，
-但我們不會認為他們有什麼特別之處，因為我們時常碰到他們。
-最近我們看過了functor，基本上他們是一群可以被map over的物件。
-這是其中一個例子能夠抽象但又漂亮地描述行為。
-在這一章中，
-我們會詳加闡述functors，
-並會提到比較強一些的版本，也就是applicative functors。
-我們也會提到monoids。
+Typeclass的運用是很隨意的。我們可以定義自己的資料型態，然後描述他可以怎樣被操作，跟typeclass關聯起來便定義了他的行為。由於Haskell強大的型態系統，這讓我們只要讀函數的型態宣告就可以知道很多資訊。typeclass可以定義得很抽象很general。我們之前有看過typeclass定義了可以比較兩個東西是否相等，或是定義了可以比較兩個東西的大小。這些是既抽象但又描述簡潔的行為，但我們不會認為他們有什麼特別之處，因為我們時常碰到他們。最近我們看過了functor，基本上他們是一群可以被map over的物件。這是其中一個例子能夠抽象但又漂亮地描述行為。在這一章中，我們會詳加闡述functors，並會提到比較強一些的版本，也就是applicative functors。我們也會提到monoids。
 
 
 ==溫習Functors
 
-我們已經在之前的章節提到functors。
-如果你還沒讀那個章節，
-也許你應該先去看看。
-或是你直接假裝你已經讀過了。
+我們已經在之前的章節提到functors。如果你還沒讀那個章節，也許你應該先去看看。或是你直接假裝你已經讀過了。
 
-來快速複習一下：
-Functors是可以被map over的物件，
-像是lists，``Maybe``，trees等等。
-在Haskell中我們是用``Functor``這個typeclass來描述他。
-這個typeclass只有一個method，叫做``fmap``，
-他的型態是``fmap :: (a -> b) ->  fa -> f b``。
-這型態說明了如果給我一個從``a``映到``b``的函數，以及一個裝了``a``的盒子，
-我會回給你一個裝了``b``的盒子。
-就好像用這個函數將每個元素都轉成``b``一樣
+來快速複習一下：Functors是可以被map over的物件，像是lists，``Maybe``，trees等等。在Haskell中我們是用``Functor``這個typeclass來描述他。這個typeclass只有一個method，叫做``fmap``，他的型態是``fmap :: (a -> b) ->  fa -> f b``。這型態說明了如果給我一個從``a``映到``b``的函數，以及一個裝了``a``的盒子，我會回給你一個裝了``b``的盒子。就好像用這個函數將每個元素都轉成``b``一樣
 
     *給一點建議*。這盒子的比喻嘗試讓你抓到些functors是如何運作的感覺。在之後我們也會用相同的比喻來比喻applicative functors跟monads。在多數情況下這種比喻是恰當的，但不要過度引申，有些functors是不適用這個比喻的。一個比較正確的形容是functors是一個計算語境(computational context)。這個語境可能是這個computation可能帶有值，或是有可能會失敗(像``Maybe``跟``Either a``)，或是他可能有多個值(像lists)，等等。
 
-如果一個type constructor要是``Functor``的instance，那他的kind必須是``* -> *``，
-這代表他必須剛好接受一個type當作type parameter。
-像是``Maybe``可以是Functor的一個instance，
-因為他接受一個type parameter，來做成像是``Maybe Int``，或是``Maybe String``。
-如果一個type constructor接受兩個參數，
-像是``Either``，我們必須給他兩個type parameter。
-所以我們不能這樣寫：``instance Functor Either where``，
-但我們可以寫``instance Functor (Either a) where``，
-如果我們把``fmap``限縮成只是``Either a``的，
-那他的型態就是``fmap :: (b -> c) -> Either a b -> Either a c``。
-就像你看到的，``Either a``的是固定的一部分，
-因為``Either a``只恰好接受一個type parameter，
-但``Either``則要接球兩個type parameters。
-這樣fmap的型態變成``fmap :: (b -> c) -> Either b -> Either c``，這不太合理。
+如果一個type constructor要是``Functor``的instance，那他的kind必須是``* -> *``，這代表他必須剛好接受一個type當作type parameter。像是``Maybe``可以是Functor的一個instance，因為他接受一個type parameter，來做成像是``Maybe Int``，或是``Maybe String``。如果一個type constructor接受兩個參數，像是``Either``，我們必須給他兩個type parameter。所以我們不能這樣寫：``instance Functor Either where``，但我們可以寫``instance Functor (Either a) where``，如果我們把``fmap``限縮成只是``Either a``的，那他的型態就是``fmap :: (b -> c) -> Either a b -> Either a c``。就像你看到的，``Either a``的是固定的一部分，因為``Either a``只恰好接受一個type parameter，但``Either``則要接球兩個type parameters。這樣fmap的型態變成``fmap :: (b -> c) -> Either b -> Either c``，這不太合理。
 
-我們知道有許多型態都是``Functor``的instance，
-像是``[]``，``Maybe``，``Either a``以及我們自己寫的``Tree``。
-我們也看到了如何用一個函數map他們。
-在這一章節，我們再多舉兩個例子，也就是``IO``跟``(->) r``。
+我們知道有許多型態都是``Functor``的instance，像是``[]``，``Maybe``，``Either a``以及我們自己寫的``Tree``。我們也看到了如何用一個函數map他們。在這一章節，我們再多舉兩個例子，也就是``IO``跟``(->) r``。
 
-如果一個值的型態是``IO String``，
-他代表的是一個會被計算成String結果的I/O action。
-我們可以用do syntax來把結果綁定到某個名稱。
-我們之前把I/O action比喻做長了腳的盒子，會到真實世界幫我們取一些值回來。
-我們可以檢視他們取了什麼值，
-但一旦看過，我們必須要把值放回盒子中。
-用這個比喻，``IO``的行為就像是一個functor。
+如果一個值的型態是``IO String``，他代表的是一個會被計算成String結果的I/O action。我們可以用do syntax來把結果綁定到某個名稱。我們之前把I/O action比喻做長了腳的盒子，會到真實世界幫我們取一些值回來。我們可以檢視他們取了什麼值，但一旦看過，我們必須要把值放回盒子中。用這個比喻，``IO``的行為就像是一個functor。
 
-我們來看看``IO``是怎麼樣的一個``Functor`` instance。
-當我們``fmap``用一個function來map over I/O action時，
-我們會想要拿回一個裝著已經用function映射過值的I/O action。
+我們來看看``IO``是怎麼樣的一個``Functor`` instance。當我們``fmap``用一個function來map over I/O action時，我們會想要拿回一個裝著已經用function映射過值的I/O action。
 
 {{
 instance Functor IO where
@@ -81,19 +28,9 @@ instance Functor IO where
         return (f result)
 }}
 
-對一個I/O action做map over動作的結果仍會是一個I/O action，
-所以我們才用do syntax來把兩個I/O action黏成一個。
-在``fmap``的實做中，
-我們先執行了原本傳進的I/O action，並把結果綁定成``result``。
-然後我們寫了``return (f result)``。
-``return``就如你所知道的，
-是一個只會回傳包了你傳給他東西的I/O action。
-還有一個do block的回傳值一定是他最後一個I/O action的回傳值。
-這也是為什麼我們需要return。
-其實他只是回傳包了``f result``的I/O action。
+對一個I/O action做map over動作的結果仍會是一個I/O action，所以我們才用do syntax來把兩個I/O action黏成一個。在``fmap``的實做中，我們先執行了原本傳進的I/O action，並把結果綁定成``result``。然後我們寫了``return (f result)``。``return``就如你所知道的，是一個只會回傳包了你傳給他東西的I/O action。還有一個do block的回傳值一定是他最後一個I/O action的回傳值。這也是為什麼我們需要return。其實他只是回傳包了``f result``的I/O action。
 
-我們可以再多實驗一下來找到些感覺。
-來看看這段code：
+我們可以再多實驗一下來找到些感覺。來看看這段code：
 
 {{
 main = do line <- getLine   
@@ -111,28 +48,13 @@ main = do line <- fmap reverse getLine
             putStrLn $ "Yes, you really said" ++ line ++ " backwards!"  
 }}
 
-就像我們用``fmap`` ``reverse``來map over ``Just "blah"``會得到``Just "halb"``，
-我們也可以``fmap`` ``reverse``來map over ``getLine``。
-``getLine``是一個I/O action，他的type是``IO String``，
-而用``reverse``來map over他會回傳一個取回一個字串並``reverse``他的I/O action。
-就像我們apply一個function到一個``Maybe``一樣，
-我們也可以apply一個function到一個``IO``，
-只是這個``IO``會跑去外面拿回某些值。
-然後我們把結果用``<-``綁定到某個名稱，
-而這個名稱綁定的值是已經``reverse``過了。
+就像我們用``fmap`` ``reverse``來map over ``Just "blah"``會得到``Just "halb"``，我們也可以``fmap`` ``reverse``來map over ``getLine``。``getLine``是一個I/O action，他的type是``IO String``，而用``reverse``來map over他會回傳一個取回一個字串並``reverse``他的I/O action。就像我們apply一個function到一個``Maybe``一樣，我們也可以apply一個function到一個``IO``，只是這個``IO``會跑去外面拿回某些值。然後我們把結果用``<-``綁定到某個名稱，而這個名稱綁定的值是已經``reverse``過了。
 
-而``fmap (++"!") getLine``這個I/O action表現得就像``getLine``，
-只是他的結果多了一個``"!"``在最後。
+而``fmap (++"!") getLine``這個I/O action表現得就像``getLine``，只是他的結果多了一個``"!"``在最後。
 
-如果我們限縮``fmap``到``IO``型態上，
-那fmap的型態是``fmap :: (a -> b) -> IO a -> IO b``。
-``fmap``接受一個函數跟一個I/O action，並回傳一個I/O action包含了已經apply過function的結果。
+如果我們限縮``fmap``到``IO``型態上，那fmap的型態是``fmap :: (a -> b) -> IO a -> IO b``。``fmap``接受一個函數跟一個I/O action，並回傳一個I/O action包含了已經apply過function的結果。
 
-如果你曾經注意到你想要將一個I/O action綁定到一個名稱上，只是為了要apply一個function。
-你可以考慮使用``fmap``，那會更漂亮地表達這件事。
-或者你想要對functor中的資料做transformation，
-你可以先將你要用的function寫在top level，
-或是把他作成一個lambda function，甚至用function composition。
+如果你曾經注意到你想要將一個I/O action綁定到一個名稱上，只是為了要apply一個function。你可以考慮使用``fmap``，那會更漂亮地表達這件事。或者你想要對functor中的資料做transformation，你可以先將你要用的function寫在top level，或是把他作成一個lambda function，甚至用function composition。
 
 {{
 import Data.Char  
@@ -148,22 +70,9 @@ hello there
 E-R-E-H-T- -O-L-L-E-H  
 }}
 
-正如你想的，``intersperse '-' . reverse . map toUpper``合成了一個function，
-他接受一個字串，將他轉成大寫，然後反過來，再用``intersperse '-'``安插'-'。
-他是比較漂亮版本的``(\xs -> intersperse '-' (reverse (map toUpper xs)))``。
+正如你想的，``intersperse '-' . reverse . map toUpper``合成了一個function，他接受一個字串，將他轉成大寫，然後反過來，再用``intersperse '-'``安插'-'。他是比較漂亮版本的``(\xs -> intersperse '-' (reverse (map toUpper xs)))``。
 
-另一個``Functor``的案例是``(->) r``，只是我們先前沒有注意到。
-你可能會困惑到底``(->) r``究竟代表什麼？
-一個``r -> a``的型態可以寫成``(->) r a``，
-就像是``2 + 3``可以寫成``(+) 2 3``一樣。
-我們可以從一個不同的角度來看待``(->) r a``，
-他其實只是一個接受兩個參數的type constructor，好比``Either``。
-但記住我們說過``Functor``只能接受一個type constructor。
-這也是為什麼``(->)``不是``Functor``的一個instance，
-但``(->) r``則是。
-如果程式的語法允許的話，你也可以將``(->) r``寫成(r ->)。就如``(2+)``代表的其實是``(+) 2``。
-至於細節是如何呢？
-我們可以看看``Control.Monad.Instances``。
+另一個``Functor``的案例是``(->) r``，只是我們先前沒有注意到。你可能會困惑到底``(->) r``究竟代表什麼？一個``r -> a``的型態可以寫成``(->) r a``，就像是``2 + 3``可以寫成``(+) 2 3``一樣。我們可以從一個不同的角度來看待``(->) r a``，他其實只是一個接受兩個參數的type constructor，好比``Either``。但記住我們說過``Functor``只能接受一個type constructor。這也是為什麼``(->)``不是``Functor``的一個instance，但``(->) r``則是。如果程式的語法允許的話，你也可以將``(->) r``寫成(r ->)。就如``(2+)``代表的其實是``(+) 2``。至於細節是如何呢？我們可以看看``Control.Monad.Instances``。
 
     我們通常說一個接受任何東西以及回傳隨便一個東西的函數型態是``a -> b``。``r -> a``是同樣意思，只是把符號代換了一下。
 
@@ -181,30 +90,16 @@ instance Functor (r ->) where
 
 但其實是不允許的，所以我們必須寫成第一種的樣子。
 
-首先我們來看看``fmap``的型態。
-他的型態是``fmap :: (a -> b) -> f a -> f b``。
-我們把所有的``f``在心裡代換成``(->) r``。
-則``fmap``的型態就變成``fmap :: (a -> b) -> ((->) r a) -> ((->) r b)``。
-接著我們把``(->) r a``跟``(->) r b``換成``r -> a``跟``r -> b``。
-則我們得到``fmap :: (a -> b) -> (r -> a) -> (r -> b)``。
+首先我們來看看``fmap``的型態。他的型態是``fmap :: (a -> b) -> f a -> f b``。我們把所有的``f``在心裡代換成``(->) r``。則``fmap``的型態就變成``fmap :: (a -> b) -> ((->) r a) -> ((->) r b)``。接著我們把``(->) r a``跟``(->) r b``換成``r -> a``跟``r -> b``。則我們得到``fmap :: (a -> b) -> (r -> a) -> (r -> b)``。
 
-從上面的結果看到將一個function map over一個function會得到另一個function，
-就如map over一個function到``Maybe``會得到一個``Maybe``，
-而map over一個function到一個list會得到一個list。
-而``fmap :: (a -> b) -> (r -> a) -> (r -> b)``告訴我們什麼？
-他接受一個從``a``到``b``的function，跟一個從``r``到``a``的function，並回傳一個從``r``到``b``的function。
-這根本就是function composition。
-把``r -> a``的輸出接到``a -> b``的輸入，的確是function composition在做的事。
-如果你再仔細看看instance的定義，會發現真的就是一個function composition。
+從上面的結果看到將一個function map over一個function會得到另一個function，就如map over一個function到``Maybe``會得到一個``Maybe``，而map over一個function到一個list會得到一個list。而``fmap :: (a -> b) -> (r -> a) -> (r -> b)``告訴我們什麼？他接受一個從``a``到``b``的function，跟一個從``r``到``a``的function，並回傳一個從``r``到``b``的function。這根本就是function composition。把``r -> a``的輸出接到``a -> b``的輸入，的確是function composition在做的事。如果你再仔細看看instance的定義，會發現真的就是一個function composition。
 
 {{
 instance Functor ((->) r) where  
     fmap = (.)  
 }}
 
-這很明顯就是把``fmap``當composition在用。
-可以用``:m + Control.Monad.Instances``把模組裝載進來，
-並做一些嘗試。
+這很明顯就是把``fmap``當composition在用。可以用``:m + Control.Monad.Instances``把模組裝載進來，並做一些嘗試。
 
 {{
 ghci> :t fmap (*3) (+100)  
@@ -219,42 +114,15 @@ ghci> fmap (show . (*3)) (*100) 1
 "300"  
 }}
 
-我們呼叫``fmap``的方式是infix的方式，這跟``.``很像。
-在第二行，我們把``(*3)`` map over到``(+100)``上，
-這會回傳一個先把輸入值``(+100)``再``(*3)``的function，
-我們再用``1``去呼叫他。
+我們呼叫``fmap``的方式是infix的方式，這跟``.``很像。在第二行，我們把``(*3)`` map over到``(+100)``上，這會回傳一個先把輸入值``(+100)``再``(*3)``的function，我們再用``1``去呼叫他。
 
-到這邊為止盒子的比喻還適用嗎？
-如果你硬是要解釋的話還是解釋得通。
-當我們將``fmap (+3)`` map over ``Just 3``的時候，
-對於``Maybe``我們很容易把他想成是裝了值的盒子，我們只是對盒子裡面的值``(+3)``。
-但對於``fmap (*3) (+100)``呢？
-你可以把``(+100)``想成是一個裝了值的盒子。
-有點像把I/O action想成長了腳的盒子一樣。
-對``(+100)``使用``fmap (*3)``會產生另一個表現得像``(+100)``的function。
-只是在算出值之前，會再多計算``(*3)``。
-這樣我們可以看出來``fmap``表現得就像``.``一樣。
+到這邊為止盒子的比喻還適用嗎？如果你硬是要解釋的話還是解釋得通。當我們將``fmap (+3)`` map over ``Just 3``的時候，對於``Maybe``我們很容易把他想成是裝了值的盒子，我們只是對盒子裡面的值``(+3)``。但對於``fmap (*3) (+100)``呢？你可以把``(+100)``想成是一個裝了值的盒子。有點像把I/O action想成長了腳的盒子一樣。對``(+100)``使用``fmap (*3)``會產生另一個表現得像``(+100)``的function。只是在算出值之前，會再多計算``(*3)``。這樣我們可以看出來``fmap``表現得就像``.``一樣。
 
-``fmap``等同於function composition這件事對我們來說並不是很實用，但至少是一個有趣的觀點。
-這也讓我們打開視野，看到盒子的比喻不是那麼恰當，functors其實比較像computation。
-function被map over到一個computation會產生經由那個function映射過後的computation。
+``fmap``等同於function composition這件事對我們來說並不是很實用，但至少是一個有趣的觀點。這也讓我們打開視野，看到盒子的比喻不是那麼恰當，functors其實比較像computation。function被map over到一個computation會產生經由那個function映射過後的computation。
 
-在我們繼續看``fmap``該遵守的規則之前，
-我們再看一次``fmap``的型態，他是``fmap :: (a -> b) -> f a -> f b``。
-很明顯我們是在討論Functor，所以為了簡潔，我們就不寫``(Functor f) =>``的部份。
-當我們在學curry的時候，
-我們說過Haskell的function實際上只接受一個參數。
-一個型態是``a -> b -> c``的函數實際上是接受``a``然後回傳``b -> c``，
-而``b -> c``實際上接受一個``b``然後回傳一個``c``。
-如果我們用比較少的參數呼叫一個函數，他就會回傳一個函數需要接受剩下的參數。
-所以``a -> b -> c``可以寫成``a -> (b -> c)``。
-這樣curry可以明顯一些。
+在我們繼續看``fmap``該遵守的規則之前，我們再看一次``fmap``的型態，他是``fmap :: (a -> b) -> f a -> f b``。很明顯我們是在討論Functor，所以為了簡潔，我們就不寫``(Functor f) =>``的部份。當我們在學curry的時候，我們說過Haskell的function實際上只接受一個參數。一個型態是``a -> b -> c``的函數實際上是接受``a``然後回傳``b -> c``，而``b -> c``實際上接受一個``b``然後回傳一個``c``。如果我們用比較少的參數呼叫一個函數，他就會回傳一個函數需要接受剩下的參數。所以``a -> b -> c``可以寫成``a -> (b -> c)``。這樣curry可以明顯一些。
 
-同樣的，我們可以不要把``fmap``想成是一個接受function跟functor並回傳一個function的function。
-而是想成一個接受function並回傳一個新的function的function，回傳的function接受一個functor並回傳一個functor。
-他接受``a -> b``並回傳``f a -> f b``。
-這動作叫做lifting。
-我們用GHCI的``:t``來做的實驗。
+同樣的，我們可以不要把``fmap``想成是一個接受function跟functor並回傳一個function的function。而是想成一個接受function並回傳一個新的function的function，回傳的function接受一個functor並回傳一個functor。他接受``a -> b``並回傳``f a -> f b``。這動作叫做lifting。我們用GHCI的``:t``來做的實驗。
 
 {{
 ghci> :t fmap (*2)  
@@ -263,10 +131,7 @@ ghci> :t fmap (replicate 3)
 fmap (replicate 3) :: (Functor f) => f a -> f [a]  
 }}
 
-``fmap (*2)``接受一個functor ``f``，並回傳一個基於數字的functor。
-那個functor可以是list，可以是``Maybe``，可以是``Either String``。
-``fmap (replicate 3)``可以接受一個基於任何型態的functor，並回傳一個基於list的functor。
-
+``fmap (*2)``接受一個functor ``f``，並回傳一個基於數字的functor。那個functor可以是list，可以是``Maybe``，可以是``Either String``。``fmap (replicate 3)``可以接受一個基於任何型態的functor，並回傳一個基於list的functor。
 
 
 ==Applicative functors

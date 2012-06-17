@@ -40,6 +40,16 @@ open("#{public_dir}/#{fn}", 'w'){|f|
 }
 puts "#{public_dir}/#{fn}... \t#{File.size("#{public_dir}/"+fn).div(1024).to_s}kb"
 
+#parse resource
+fn="resource.html"
+c=FDoc.parse( open("#{source_dir}/resource.txt").read )
+tpl=ERB.new( open('_faq.erb').read )
+html=tpl.result(binding)
+open("#{public_dir}/#{fn}", 'w'){|f|
+    f.write( html )
+}
+puts "#{public_dir}/#{fn}... \t#{File.size("#{public_dir}/"+fn).div(1024).to_s}kb"
+
 #make content list page
 c=Node.new {
   olist{

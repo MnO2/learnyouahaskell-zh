@@ -1,19 +1,10 @@
 =來看看幾種Moand #a-fistful-of-monads
 
-當我們第一次談到Functor的時候，我們了解到他是一個抽象概念，代表是一種可以被map over的值。
-然後我們再將其概念提升到Applicative Functor，
-他代表一種帶有context的型態，我們可以用函數操作他而且同時還保有他的context。
+當我們第一次談到Functor的時候，我們了解到他是一個抽象概念，代表是一種可以被map over的值。然後我們再將其概念提升到Applicative Functor，他代表一種帶有context的型態，我們可以用函數操作他而且同時還保有他的context。
 
-在這一章，我們會學到Monad，基本上他是一種加強版的Applicative Functor，
-正如Applicative Functor是Functor的加強版一樣。
+在這一章，我們會學到Monad，基本上他是一種加強版的Applicative Functor，正如Applicative Functor是Functor的加強版一樣。
 
-我們介紹到Functor是因為我們觀察到有許多型態都可以被function給map over，
-了解到這個目的，便抽象化了``Functor``這個typeclass出來。
-但這讓我們想問：如果給定一個``a -> b``的函數以及``f a``的型態，
-我們要如何將函數map over這個型態而得到``f b``？
-我們知道要如何map over ``Maybe a``，``[a]``以及``IO a``。
-我們甚至還知道如何用``a -> b`` map over ``r -> a``，並且會得到``r -> b``。
-要回答這個問題，我們只需要看``fmap``的型態就好了：
+我們介紹到Functor是因為我們觀察到有許多型態都可以被function給map over，了解到這個目的，便抽象化了``Functor``這個typeclass出來。但這讓我們想問：如果給定一個``a -> b``的函數以及``f a``的型態，我們要如何將函數map over這個型態而得到``f b``？我們知道要如何map over ``Maybe a``，``[a]``以及``IO a``。我們甚至還知道如何用``a -> b`` map over ``r -> a``，並且會得到``r -> b``。要回答這個問題，我們只需要看``fmap``的型態就好了：
 
 {{
 fmap :: (Functor f) => (a -> b) -> f a -> f b      
@@ -21,28 +12,15 @@ fmap :: (Functor f) => (a -> b) -> f a -> f b
 
 然後只要針對``Functor`` instance撰寫對應的實做。
 
-之後我們又看到一些可以針對Functor改進的地方，例如``a -> b``也被包在一個Functor value裡面呢？
-像是``Just (*3)``，我們要如何apply ``Just 5``給他？
-如果我們不要apply ``Just 5``而是``Nothing``呢？
-甚至給定``[(*2),(+4)]``，
-我們要如何apply他們到``[1,2,3]``呢？
-對於此，我們抽象出``Applicative`` typeclass，
-這就是我們想要問的問題：
+之後我們又看到一些可以針對Functor改進的地方，例如``a -> b``也被包在一個Functor value裡面呢？像是``Just (*3)``，我們要如何apply ``Just 5``給他？如果我們不要apply ``Just 5``而是``Nothing``呢？甚至給定``[(*2),(+4)]``，我們要如何apply他們到``[1,2,3]``呢？對於此，我們抽象出``Applicative`` typeclass，這就是我們想要問的問題：
 
 {{
 (<*>) :: (Applicative f) => f (a -> b) -> f a -> f b     
 }}
 
-我們也看到我們可以將一個正常的值包在一個資料型態中。
-例如說我們可以拿一個``1``然後把他包成``Just 1``。
-或是把他包成``[1]``。
-也可以是一個I/O action會產生一個``1``。
-這樣包裝的function我們叫他做``pure``。
+我們也看到我們可以將一個正常的值包在一個資料型態中。例如說我們可以拿一個``1``然後把他包成``Just 1``。或是把他包成``[1]``。也可以是一個I/O action會產生一個``1``。這樣包裝的function我們叫他做``pure``。
 
-如我們說得，一個applicative value可以被看作一個有附加context的值。
-例如說，``'a'``只是一個普通的字元，但``Just 'a'``是一個附加了context的字元。
-他不是``Char``而是``Maybe Char``，
-這型態告訴我們這個值可能是一個字元，也可能什麼都沒有。
+如我們說得，一個applicative value可以被看作一個有附加context的值。例如說，``'a'``只是一個普通的字元，但``Just 'a'``是一個附加了context的字元。他不是``Char``而是``Maybe Char``，這型態告訴我們這個值可能是一個字元，也可能什麼都沒有。
 
 來看看``Applicative`` typeclass怎樣讓我們用普通的function操作他們，同時還保有context：
 {{
@@ -54,10 +32,7 @@ ghci> (-) <$> [3,4] <*> [1,2,3]
 [2,1,0,3,2,1]  
 }}
 
-所以我們可以視他們為aaplicative values，
-``Maybe a``代表可能會失敗的computation，
-``[a]``代表同時有好多結果的computation (non-deterministic computation)，
-而``IO a``代表會有side-effects的computation。
+所以我們可以視他們為aaplicative values，``Maybe a``代表可能會失敗的computation，``[a]``代表同時有好多結果的computation (non-deterministic computation)，而``IO a``代表會有side-effects的computation。
 
 
 ==動手做做看: Maybe Monad
