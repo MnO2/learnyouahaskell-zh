@@ -69,7 +69,7 @@ ghci> ("Bathcat","Got outlaw name.") `applyLog` (\x -> (length x, "Applied lengt
 
 可以看到在lambda裡面``x``只是個正常的字串而不是tuple，且``applyLog``幫我們處裡掉附加log的動作。
 
-*Monoids的好處*
+===Monoids的好處
 
     請確定你了解什麼是Monoids。
 
@@ -141,7 +141,7 @@ ghci> ("dogmeat", Sum 5) `applyLog` addDrink `applyLog` addDrink
 將狗食跟30美分的啤酒加在一起會得到``("beer", Sum 35)``。如果我們用``applyLog``將上面的結果再餵給``addDrink``，我們會得到``("beer", Sum 65)``這樣的結果。
 
 
-*The Writer type*
+===The Writer type
 
 我們認識了一個附加monoid的值其實表現出來的是一個monad，我們來再來看看其他類似的``Monad`` instance。``Control.Monad.Writer``這模組含有``Writer w a``的一個型態，裏面定義了他``Monad``的instance，還有一些操作這些值的函數。
 
@@ -180,7 +180,7 @@ ghci> runWriter (return 3 :: Writer (Product Int) Int)
 這裡的``Writer`` instance並沒有定義``fail``，所以如果pattern matching失敗的話，就會呼叫``error``。
 
 
-*Using do notation with Writer*
+===Using do notation with Writer
 
 既然我們定義了``Monad``的instance，我們自然可以用``do``串接``Writer``型態的值。這在我們需要對一群``Writer``型態的值做處理時顯得特別方便。就如其他的monad，我們可以把他們當作具有context的值。在現在這個case中，所有的monoid的值都會用``mappend``來連接起來並得到最後的結果。這邊有一個簡單的範例，我們用``Writer``來相乘兩個數。
 
@@ -223,7 +223,7 @@ ghci> runWriter multWithLog
 }}
 
 
-*Adding logging to programs*
+===Adding logging to programs
 歐幾里得算法是找出兩個數的最大公因數。Haskell已經提供了``gcd``的函數，但我們來實作一個具有log功能的gcd：
 
 {{
@@ -290,7 +290,7 @@ Finished with 1
 
 把普通的演算法轉換成具有log是很棒的經驗，我們不過是把普通的value重寫成Monadiv value，剩下的就靠``>>=``跟``Writer``來幫我們處理一切。用這樣的方法我們幾乎可以對任何函數加上logging的功能。我們只要把普通的值換成``Writer``，然後把一般的函數呼叫換成``>>=`` (當然也可以用``do``)
 
-*Inefficient list construction*
+===Inefficient list construction
 當製作``Writer`` Monad的時候，要特別注意你是使用哪種monoid。使用list的話效能有時候是沒辦法接受的。因為list是使用``++``來作為``mappend``的實現。而``++``在list很長的時候是非常慢的。
 
 在之前的``gcd'``中，log並不會慢是因為list append的動作實際上看起來是這樣：
@@ -336,7 +336,7 @@ Finished with 1
 這沒效率是因為他讓``++``成為left associative而不是right associative。
 
 
-*Difference lists*
+===Difference lists
 
 由於list在重複append的時候顯得低效，我們最好能使用一種支援高效appending的資料結構。其中一種就是difference list。difference list很類似list，只是他是一個函數。他接受一個list並prepend另一串list到他前面。一個等價於``[1,2,3]``的difference list是這樣一個函數``\xs -> [1,2,3] ++ xs``。一個等價於``[]``的difference list則是``\xs -> [] ++ xs``。
 
@@ -416,7 +416,7 @@ Finished with 2
 我們用``runWriter``來取出``gcdReverse 110 34``的結果，然後用``snd``取出log，並用``fromDiffList``轉回普通的list印出來。
 
 
-*Comparing Performance*
+===Comparing Performance
 
 要體會Difference List能如何增進效率，考慮一個從某數數到零的case。我們紀錄的時候就像``gcdReverse``一樣是反過來記的，所以在log中實際上是從零數到某個數。
 
@@ -562,7 +562,7 @@ s -> (a,s)
 實際的值是結果。然而要得到結果，我們必須要給一個初始的狀態，才能得到結果跟最後的狀態。
 
 
-**Stack and Stones**
+===Stack and Stones
 
 考慮現在我們要對一個堆疊的操作建立模型。你可以把東西推上堆疊頂端，或是把東西從頂端拿下來。如果你要的元素是在堆疊的底層的話，你必須要把他上面的東西都拿下來才能拿到他。
 
@@ -612,7 +612,7 @@ stackManip = do
 這就是State Monad在做的事。有了他，我們便可以免除於要把狀態操作寫得太明白的窘境。
 
 
-**The State Monad**
+===The State Monad
 
 ``Control.Monad.State``這個模組提供了一個``newtype``包起來的型態。
 
@@ -699,6 +699,72 @@ stackStuff = do
 ghci> runState stackStuff [9,0,2,1,0]  
 ((),[8,3,0,2,1,0]) 
 }}
+
+還記得我們說過``do``的結果會是一個monadic value，
+而在``State`` monad的case，``do``也就是一個改變狀態的函數。
+而由於``stackManip``跟``stackStuff``都是改變狀態的計算，
+因此我們可以把他們黏在一起：
+
+{{
+moreStack :: State Stack ()  
+moreStack = do  
+    a <- stackManip  
+    if a == 100  
+        then stackStuff  
+        else return ()  
+}}
+
+如果``stackManip``的結果是``100``，我們就會跑``stackStuff``，
+如果不是的話就什麼都不做。
+``return ()``不過就是什麼是都不做，全部保持原樣。
+
+``Contorl.Monad.State``提供了一個``MonadState``的typeclass，
+他有兩個有用的函數，分別是``get``跟``put``。
+對於``State``來說，``get``的實作就像這樣：
+
+{{
+get = State $ \s -> (s,s)
+}}
+
+他只是取出現在的狀態除此之外什麼也不做。
+而``put``函數會接受一個狀態並取代掉現有的狀態。
+
+{{
+put newState = State $ \s -> ((),newState)  
+}}
+
+有了這兩個狀態，我們便可以看到現在堆疊中有什麼，或是把整個堆疊中的元素換掉。
+
+{{
+stackyStack :: State Stack ()  
+stackyStack = do  
+    stackNow <- get  
+    if stackNow == [1,2,3]  
+        then put [8,3,1]  
+        else put [9,2,1]  
+}}
+
+我們可以看看對於``State``而言，``>>=``的型態會是什麼：
+
+{{
+(>>=) :: State s a -> (a -> State s b) -> State s b  
+}}
+
+我們可以看到狀態的型態都是``s``，而結果從型態``a``變成型態``b``。
+這代表我們可以把好幾個改變狀態的計算黏在一起，
+這些計算的結果可以都不一樣，但狀態的型態會是一樣的。
+舉例來說，對於``Maybe``而言，``>>=``的型態會是：
+
+{{
+(>>=) :: Maybe a -> (a -> Maybe b) -> Maybe b  
+}}
+
+``Maybe``不變是有道理的，
+但如果用``>>=``來把兩種不同的monad接起來是沒道理的。
+但對於state monad而言，monad其實是``State s``，
+所以如果``s``不一樣，我們就要用``>>=``來把兩個monad接起來。
+
+===隨機性與state monad
 
 
 ==Error Monad
