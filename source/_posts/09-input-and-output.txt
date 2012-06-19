@@ -1,5 +1,7 @@
 =輸入與輸出 #input-and-output
 
+[$img/dognap.png]
+
 我們已經說明了Haskell是一個純粹函數式語言。雖說在命令式語言中我們習慣給電腦執行一連串指令，在函數式語言中我們是用定義東西的方式進行。在Haskell中，一個函數不能改變狀態，像是改變一個變數的內容。(當一個函數會改變狀態，我們說這函數是有副作用的。)在Haskell中函數唯一可以做的事是根據我們給定的參數來算出的結果。如果我們用同樣的參數呼叫兩次同一個函數，它會回傳相同的結果。儘管這從命令列語言的角度來看是蠻大的限制，我們已經看過它可以達成多麼酷的效果。在一個命令式語言中，程式語言沒辦法給你任何保證在一個簡單如印出幾個數字的函數不會同時燒掉你的房子，綁架你的狗並刮傷你車子的烤漆。例如，當我們要做一個二元樹的時候，我們並不插入一個結點來改變原有的樹。由於我們無法改變狀態，我們的函數實際上回傳了一棵新的二元樹。
 
 
@@ -10,6 +12,8 @@
 
 
 ==Hello, world!
+
+[^img/helloworld.png]
 
 到目前為止我們都是將函數載入GHCi中來測試，像是標準函式庫中的一些函式。但現在我們要做些不一樣的，寫一個真實跟世界互動的Haskell程式。當然不例外，我們會來寫個"hello world"。
 
@@ -73,6 +77,9 @@ main = do
 ghci> :t getLine
 getLine :: IO String
 }}
+
+
+[^img/luggage.png]
 
 我們可以看到``getLine``是一個回傳``String``的I/O action。因為它會等使用者輸入某些字串，這很合理。那``name <- getLine``又是如何?你能這樣解讀它: 執行一個I/O action ``getLine``並將它的結果綁定到``name``這個名字。``getLine``的型態是``IO String``，所以``name``的型態會是``String``。你能把I/O action想程式一個長了腳的盒子，它會跑到真實世界中替你做某些事，像是在牆壁上塗鴉，然後帶回來某些資料。一旦它帶了某些資料給你，打開盒子的唯一辦法就是用``<-``。而且如果我們要從I/O action拿出某些資料，就一定同時要在另一個I/O action中。這就是Haskell如何漂亮地分開純粹跟不純粹的程式的方法。``getLine``在這樣的意義下是不純粹的，因為執行兩次的時候它沒辦法保證會回傳一樣的值。這也是為什麼它需要在一個``IO``的型態建構子中，那樣我們才能在I/O actio中取出資料。而且任何一段程式一旦依賴著I/O資料的話，那段程式也會被視為I/O code。
 
@@ -405,6 +412,8 @@ orange
 
 ==檔案與字符流
 
+[$img/streams.png]
+
 ``getChar``是一個讀取單一字元的I/O action。``getLine``是一個讀取一行的I/O action。這是兩個非常直覺的函式，多數程式語言也有類似這兩個函式的statement或function。但現在我們來看看*getContents*。``getContents``是一個從標準輸入讀取直到end-of-file字元的I/O action。他的型態是``getContents :: IO String``。最酷的是``getContents``是惰性I/O (Lazy I/O)。當我們寫了``foo <- getContents``，他並不會馬上讀取所有輸入，將他們存在memory裡面。他只有當你真的需要輸入資料的時候才會讀取。
 
 當我們需要重導一個程式的輸出到另一個程式的輸入時，``getContents``非常有用。假設我們有下面一個文字檔。
@@ -637,6 +646,8 @@ type FilePath = String
 data IOMode = ReadMode | WriteMode | AppendMode | ReadWriteMode      
 }}
 
+[^img/file.png]
+
 就像我們之前定義的型態，分別代表一個星期的七天。這個型態代表了我們想對打開的檔案做什麼。很簡單吧。留意到我們的型態是``IOMode``而不是``IO Mode``。``IO Mode``代表的是一個I/O action包含了一個型態為``Mode``的值，但``IOMode``不過是一個陽春的enumeration。
 
 最後，他回傳一個I/O action會將指定的檔案用指定的模式打開。如果我們將I/O action綁定到某個東西，我們會得到一個``Handle``。型態為``Handle``的值代表我們的檔案在哪裡。有了handle我們才知道要從哪個檔案讀取內容。想讀取檔案但不將檔案綁定到handle上這樣做是很蠢的。所以，我們將一個handle綁定到``handle``。
@@ -668,6 +679,8 @@ withFile' path mode f = do
     hClose handle  
     return result  
 }}
+
+[$img/edd.png]
 
 我們知道要回傳的是一個I/O action，所以我們先放一個do。首先我們打開檔案，得到一個handle。然後我們apply ``handle``到我們的函數，並得到一個做事的I/O action。我們綁定那個I/O action到``result``這個名字，關上handle並``return result``。``return``的作用把從``f``得到的結果包在I/O action中，這樣一來I/O action中就包含了``f handle``得到的結果。如果``f handle``回傳一個從標準輸入讀去數行並寫到檔案然後回傳讀入的行數的I/O action，在``withFile'``的情形中，最後的I/O action就會包含讀入的行數。
 
@@ -833,6 +846,8 @@ Take salad out of the oven
 
 
 ==命令列引數
+
+[$img/arguments.png]
 
 如果你想要寫一個在終端裡運行的程式，處裡命令列引數是不可或缺的。幸運地，利用Haskell的Standard Libary能讓我們有效地處裡命令列引數。
 
@@ -1010,6 +1025,8 @@ remove [fileName, numberString] = do
     
 }}
 
+[^img/salad.png]
+
 總結我們的程式：我們做了一個dispatch association，將指令對應到一些會接受命令列引數並回傳I/O action的函數。我們知道使用者下了什麼命令，並根據那個命令從dispatch list取出對影的函數。我們用剩下的命令列引數呼叫哪些函數而得到一些作相對應事情的I/O action。然後便執行那些I/O action。
 
 在其他程式語言，我們可能會用一個大的switch case來實做，但使用高階函數讓我們可以要dispatch list給我們要的函數，並要那些函數給我們適當的I/O action。
@@ -1044,6 +1061,8 @@ $ ./todo view todo.txt
 
 
 ==亂數
+
+[$img/random.png]
 
 在許多情況下，你寫程式會需要些隨機的資料。或許你在製作一個遊戲，在遊戲中你需要擲骰子。或是你需要測試程式的測試資料。精準一點地說，我們需要pseudo-random的資料，我們知道真正的隨機資料好比是一隻猴子拿著起司跟奶油騎在單輪車上，任何事情都會發生。在這個章節，我們要看看如何讓Haskell產生些pseudo-random的資料。
 
@@ -1275,6 +1294,8 @@ askForNumber gen = do
             askForNumber newGen  
 }}
 
+[^img/jackofdiamonds.png]
+
 我們寫了一個``askForNumber``的函數，他接受一個random generator並回傳一個問使用者要數字並回答是否正確的I/O action。在那個函數裡面，我們先根據從參數拿到的generator產生一個亂數以及一個新的generator，分別叫他們為``randomNumber``跟``newGen``。假設那個產生的數字是``7``。則我們要求使用者猜我們握有的數字是什麼。我們用``getLine``來將結果綁定到``numberString``上。當使用者輸入``7``，``numberString``就會是``"7"``。接下來，我們用``when``來檢查使用者輸入的是否是空字串。如果是，那一個空的I/O action ``return ()``就會被回傳。基本上就等於是結束程式的意思。如果不是，那I/O action就會被執行。我們用``read``來把``numberString``轉成一個數字，所以``number``便會是``7``。
 
     如果使用者給我們一些``read``沒辦法讀取的輸入（像是``"haha"``），我們的程式便會當掉並印出錯誤訊息。 如果你不希望你的程式當掉，就用**reads**，當讀取失敗的時候他會回傳一個空的list。當成功的時候他就回傳一個 tuple，第一個部份是我們想要的數字，第二個部份是讀取失敗的字串。
@@ -1322,6 +1343,8 @@ main = do
 
 
 ==Bytestrings
+
+[$img/chainchomp.png]
 
 List是一種有用又酷的資料結構。到目前為止，我們幾乎無處不使用他。有好幾個函數是專門處裡List的，而Haskell惰性的性質又讓我們可以用filter跟map來替換其他語言中的for loop跟while loop。也由於evaluation只會發生在需要的時候，像infinite list也對於Haskell不成問題（甚至是infinite list of infinite list）。這也是為什麼list能被用來表達stream，像是讀取標準輸入或是讀取檔案。我們可以打開檔案然後讀取內容成字串，即便實際上我們是需要的時候才會真正取讀取。
 
@@ -1417,6 +1440,8 @@ $ runhaskell bytestringcopy.hs something.txt ../../something.txt
 
 ==Exceptions (例外)
 
+[^img/timber.png]
+
 所有的程式語言都有要處裡失敗的情形。這就是人生。不同的語言有不同的處裡方式。在C裡面，我們通常用非正常範圍的回傳值（像是``-1``或null）來回傳錯誤。Java跟C#則傾向於使用exception來處裡失敗的情況。當一個exception被丟出的時候，控制流程就會跳到我們做一些清理動作的地方，做完清理後exception被重新丟出，這樣一些處裡錯誤的程式碼可以完成他們的工作。
 
 Haskell有一個很棒的型態系統。Algebraic data types允許像是``Maybe``或``Either``這種型態，我們能用這些型態來代表一些可能有或沒有的結果。在C裡面，在失敗的時候回傳``-1``是很常見的事。但他只對寫程式的人有意義。如果我們不小心，我們有可能把這些錯誤碼當作正常值來處裡，便造成一些諢亂。Haskell的型態系統賦予我們更安全的環境。一個``a -> Maybe b``的函數指出了他會產生一個包含``b``的``Just``，或是回傳``Nothing``。這型態跟``a -> b``是不同的，如果我們試著將兩個函數混用，compiler便會警告我們。
@@ -1431,6 +1456,8 @@ ghci> 4 `div` 0
 ghci> head []  
 *** Exception: Prelude.head: empty list  
 }}
+
+[^img/police.png]
 
 pure code能丟出Exception，但Exception只能在I/O section中被接到（也就是在``main``的do block中）這是因為在pure code中你不知道什麼東西什麼時候會被evaluate。因為lazy特性的緣故，程式沒有一個特定的執行順序，但I/O code有。
 
@@ -1474,6 +1501,8 @@ main = do (fileName:_) <- getArgs
 另一個解法是使用Exception。在這個情境下使用Exception是沒問題的。檔案不存在這個Exception是在I/O中被丟出，所以在I/O中接起來也沒什麼不對。
 
 要這樣使用Exception，我們必須使用``System.IO.Error``中的**catch**函數。他的型態是``catch :: IO a -> (IOError -> IO a) -> IO a``。他接受兩個參數，第一個是一個I/O action。像是他可以接受一個打開檔案的I/O action。第二個是handler。如果第一個參數的I/O action丟出了Exception，則他會被傳給handler，他會決定要作些什麼。所以整個I/O action的結果不是如預期中做完第一個參數的I/O action，就是handler處裡的結果。
+
+[$img/puppy.png]
 
 如果你對其他語言像是Java, Python中try-catch的形式很熟，那``catch``其實跟他們很像。第一個參數就是其他語言中的try block。第二個參數就是其他語言中的catch block。其中handler只有在exception被丟出時才會被執行。
 
