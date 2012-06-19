@@ -26,7 +26,30 @@
                 <li class="center"><a href="chapters.html">Index</a></li>
                 <li class="right"></li>
             </ul>
-            <a name="Zippers資料結構"></a><h1>Zippers資料結構</h1><p>儘管Haskell的純粹性質帶來很多好處，但他讓一些在非純粹語言很容易處理的一些事情變得要用另一種方法解決。由於referential transparency，同樣一件事在Haskell中是沒有分別的。</p><p>所以如果我們有一個裝滿5的樹，而我們希望把其中一個換成6，那我們必須要知道我們究竟是想改變哪個5。我們也必須知道我們身處在這棵樹的哪裡。但在Haskell中，每個5都長得一樣，我們並不能因為他們在記憶體中的位址不同就把他們區分開來。我們也不能改變任何狀態，當我們想要改變一棵樹的時候，我們實際上是說我們要一棵新的樹，只是他長得很像舊的。</p><a name="來走二元樹吧!"></a><h2>來走二元樹吧!</h2><a name="凡走過必留下痕跡"></a><h2>凡走過必留下痕跡</h2><a name="來看串列"></a><h2>來看串列</h2><a name="陽春的檔案系統"></a><h2>陽春的檔案系統</h2><a name="小心每一步"></a><h2>小心每一步</h2>
+            <a name="Zippers資料結構"></a><h1>Zippers資料結構</h1><img src="img/60sdude.png" style="float:right"></img><p>儘管Haskell的純粹性質帶來很多好處，但他讓一些在非純粹語言很容易處理的一些事情變得要用另一種方法解決。由於referential transparency，同樣一件事在Haskell中是沒有分別的。</p><p>所以如果我們有一個裝滿5的樹，而我們希望把其中一個換成6，那我們必須要知道我們究竟是想改變哪個5。我們也必須知道我們身處在這棵樹的哪裡。但在Haskell中，每個5都長得一樣，我們並不能因為他們在記憶體中的位址不同就把他們區分開來。我們也不能改變任何狀態，當我們想要改變一棵樹的時候，我們實際上是說我們要一棵新的樹，只是他長得很像舊的。</p><p>一種解決方式是記住一條從根節點到現在這個節點的路徑。我們可以這樣表達：給定一棵樹，先往左走，再往右走，再往左走，然後改變你走到的元素。雖然這是可行的，但這非常沒有效率。如果我們想接連改變一個在附近的節點，我們必須再從根節點走一次。</p><p>在這個章節中，我們會看到我們可以集中注意在某個資料結構上，這樣讓改變資料結構跟遍歷的動作非常有效率。</p><a name="來走二元樹吧!"></a><h2>來走二元樹吧!</h2><p>我們在生物課中學過，樹有非常多種。所以我們來自己發明棵樹吧！</p><pre class="code">data Tree a = Empty | Node a (Tree a) (Tree a) deriving (Show)</pre><p>這邊我們的樹不是空的就是有兩棵子樹。來看看一個範例：</p><pre class="code">freeTree :: Tree Char  
+freeTree =   
+    Node 'P'  
+        (Node 'O'  
+             (Node 'L'  
+              (Node 'N' Empty Empty)  
+              (Node 'T' Empty Empty)  
+             )  
+             (Node 'Y'  
+              (Node 'S' Empty Empty)  
+              (Node 'A' Empty Empty)  
+             )  
+        )  
+        (Node 'L'  
+             (Node 'W'  
+                  (Node 'C' Empty Empty)  
+                  (Node 'R' Empty Empty)  
+             )  
+             (Node 'A'  
+                  (Node 'A' Empty Empty)  
+                  (Node 'C' Empty Empty)  
+             )  
+        )</pre><p>畫成圖的話就是像這樣：</p><img src="img/pollywantsa.png" style="float:right"></img><p>注意到<code>W</code>這個節點了嗎？</p><p>如果我們想要把他變成<code>P</code>。我們會怎麼做呢？</p><p>一種方式是用pattern match的方式做，直到我們找到那個節點為止。</p><p>要先往右走再往左走，再改變元素內容，像是這樣：</p><pre class="code">changeToP :: Tree Char -> Tree Char  
+changeToP (Node x l (Node y (Node _ m n) r)) = Node x l (Node y (Node 'P' m n) r)</pre><a name="凡走過必留下痕跡"></a><h2>凡走過必留下痕跡</h2><a name="來看串列"></a><h2>來看串列</h2><a name="陽春的檔案系統"></a><h2>陽春的檔案系統</h2><a name="小心每一步"></a><h2>小心每一步</h2>
             <ul class="nav">
                 <li class="left">  <img src="img/prv.png"></img><a href="for-a-few-monads-more.html">再來看看更多Monad</a></li>
                 <li class="center"><a href="chapters.html">Index</a></li>
