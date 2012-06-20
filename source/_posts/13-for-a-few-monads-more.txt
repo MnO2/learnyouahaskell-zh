@@ -782,8 +782,62 @@ stackyStack = do
 
 ===隨機性與state monad
 
+在章節的一開始，我們知道了在Haskell中要產生亂數的不方便。
+我們要拿一個產生器，並回傳一個亂數跟一個新的產生器。
+接下來我們還一定要用新的產生器不可。
+但State Monad讓我們可以方便一些。
+
+``System.Random``中的``random``函數有下列的型態：
+
+{{
+random :: (RandomGen g, Random a) => g -> (a, g)  
+}}
+
+代表他接受一個亂數產生器，並產生一個亂數跟一個新的產生器。
+很明顯他是一個會改變狀態的計算，所以我們可以用``newtype``把他包在一個``State``中，
+然後把他當作monadic value來操作。
+
+{{
+import System.Random  
+import Control.Monad.State  
+  
+randomSt :: (RandomGen g, Random a) => State g a  
+randomSt = State random  
+}}
+
+這樣我們要丟三個硬幣的結果可以改寫成這樣：
+
+{{
+import System.Random  
+import Control.Monad.State  
+  
+threeCoins :: State StdGen (Bool,Bool,Bool)  
+threeCoins = do  
+  a <- randomSt  
+  b <- randomSt  
+  c <- randomSt  
+  return (a,b,c)  
+}}
+
+``threeCoins``是一個改變狀態的計算，他接受一個初始的亂數產生器，
+他會把他餵給``randomSt``，他會產生一個數字跟一個新的產生器，
+然後會一直傳遞下去。
+我們用``return (a,b,c)``來呈現``(a,b,c)``，這樣並不會改變最近一個產生器的狀態。
+
+{{
+ghci> runState threeCoins (mkStdGen 33)  
+((True,False,True),680029187 2103410263)
+}}
+
+要完成像這樣要改變狀態的任務便因此變得輕鬆了很多。
 
 ==Error Monad
+
+我們知道``Maybe``是拿來賦予一個值具有可能失敗的context。
+一個值可能會是``Just something``或是一個``Nothing``。
+儘管這很有用，但當我們拿到了一個``Nothing``，我們只知道他失敗了，
+但我們沒辦法塞進一些有用的資訊，告訴我們究竟是在什麼樣的情況下失敗了。
+
 
 ==一些實用的Moandic functions
 
