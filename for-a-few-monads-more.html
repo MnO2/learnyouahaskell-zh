@@ -221,7 +221,20 @@ stackyStack = do
     stackNow <- get  
     if stackNow == [1,2,3]  
         then put [8,3,1]  
-        else put [9,2,1]</pre><p>我們可以看看對於<code>State</code>而言，<code>>>=</code>的型態會是什麼：</p><pre class="code">(>>=) :: State s a -> (a -> State s b) -> State s b</pre><p>我們可以看到狀態的型態都是<code>s</code>，而結果從型態<code>a</code>變成型態<code>b</code>。</p><p>這代表我們可以把好幾個改變狀態的計算黏在一起，</p><p>這些計算的結果可以都不一樣，但狀態的型態會是一樣的。</p><p>舉例來說，對於<code>Maybe</code>而言，<code>>>=</code>的型態會是：</p><pre class="code">(>>=) :: Maybe a -> (a -> Maybe b) -> Maybe b</pre><p><code>Maybe</code>不變是有道理的，</p><p>但如果用<code>>>=</code>來把兩種不同的monad接起來是沒道理的。</p><p>但對於state monad而言，monad其實是<code>State s</code>，</p><p>所以如果<code>s</code>不一樣，我們就要用<code>>>=</code>來把兩個monad接起來。</p><a name="隨機性與state monad"></a><h3>隨機性與state monad</h3><a name="Error Monad"></a><h2>Error Monad</h2><a name="一些實用的Moandic functions"></a><h2>一些實用的Moandic functions</h2><a name="定義自己的Monad"></a><h2>定義自己的Monad</h2>
+        else put [9,2,1]</pre><p>我們可以看看對於<code>State</code>而言，<code>>>=</code>的型態會是什麼：</p><pre class="code">(>>=) :: State s a -> (a -> State s b) -> State s b</pre><p>我們可以看到狀態的型態都是<code>s</code>，而結果從型態<code>a</code>變成型態<code>b</code>。</p><p>這代表我們可以把好幾個改變狀態的計算黏在一起，</p><p>這些計算的結果可以都不一樣，但狀態的型態會是一樣的。</p><p>舉例來說，對於<code>Maybe</code>而言，<code>>>=</code>的型態會是：</p><pre class="code">(>>=) :: Maybe a -> (a -> Maybe b) -> Maybe b</pre><p><code>Maybe</code>不變是有道理的，</p><p>但如果用<code>>>=</code>來把兩種不同的monad接起來是沒道理的。</p><p>但對於state monad而言，monad其實是<code>State s</code>，</p><p>所以如果<code>s</code>不一樣，我們就要用<code>>>=</code>來把兩個monad接起來。</p><a name="隨機性與state monad"></a><h3>隨機性與state monad</h3><p>在章節的一開始，我們知道了在Haskell中要產生亂數的不方便。</p><p>我們要拿一個產生器，並回傳一個亂數跟一個新的產生器。</p><p>接下來我們還一定要用新的產生器不可。</p><p>但State Monad讓我們可以方便一些。</p><p><code>System.Random</code>中的<code>random</code>函數有下列的型態：</p><pre class="code">random :: (RandomGen g, Random a) => g -> (a, g)</pre><p>代表他接受一個亂數產生器，並產生一個亂數跟一個新的產生器。</p><p>很明顯他是一個會改變狀態的計算，所以我們可以用<code>newtype</code>把他包在一個<code>State</code>中，</p><p>然後把他當作monadic value來操作。</p><pre class="code">import System.Random  
+import Control.Monad.State  
+  
+randomSt :: (RandomGen g, Random a) => State g a  
+randomSt = State random</pre><p>這樣我們要丟三個硬幣的結果可以改寫成這樣：</p><pre class="code">import System.Random  
+import Control.Monad.State  
+  
+threeCoins :: State StdGen (Bool,Bool,Bool)  
+threeCoins = do  
+  a <- randomSt  
+  b <- randomSt  
+  c <- randomSt  
+  return (a,b,c)</pre><p><code>threeCoins</code>是一個改變狀態的計算，他接受一個初始的亂數產生器，</p><p>他會把他餵給<code>randomSt</code>，他會產生一個數字跟一個新的產生器，</p><p>然後會一直傳遞下去。</p><p>我們用<code>return (a,b,c)</code>來呈現<code>(a,b,c)</code>，這樣並不會改變最近一個產生器的狀態。</p><pre class="code">ghci> runState threeCoins (mkStdGen 33)  
+((True,False,True),680029187 2103410263)</pre><p>要完成像這樣要改變狀態的任務便因此變得輕鬆了很多。</p><a name="Error Monad"></a><h2>Error Monad</h2><p>我們知道<code>Maybe</code>是拿來賦予一個值具有可能失敗的context。</p><p>一個值可能會是<code>Just something</code>或是一個<code>Nothing</code>。</p><p>儘管這很有用，但當我們拿到了一個<code>Nothing</code>，我們只知道他失敗了，</p><p>但我們沒辦法塞進一些有用的資訊，告訴我們究竟是在什麼樣的情況下失敗了。</p><a name="一些實用的Moandic functions"></a><h2>一些實用的Moandic functions</h2><a name="定義自己的Monad"></a><h2>定義自己的Monad</h2>
             <ul class="nav">
                 <li class="left">  <img src="img/prv.png"></img><a href="a-fistful-of-monads.html">來看看幾種Moand</a></li>
                 <li class="center"><a href="chapters.html">Index</a></li>
