@@ -27,3 +27,10 @@
     
 ==Books
     # [http://www.amazon.co.jp/%E4%81%99%E3%81%94%E3%81%84Haskell%E3%81%9F%E3%81%AE%E3%81%97%E3%81%8F%E5%AD%A6%E3%81%BC%E3%81%86-Miran-Lipova%C4%8Da/dp/4274068854 Learn you a Haskell for great good (Japanese Translation)]
+    # [http://book.realworldhaskell.org/]: Real World Haskell
+    
+==PL Researchers
+    # [http://www.iis.sinica.edu.tw/~scm/]: 穆信成老師
+    # [http://www.cs.rutgers.edu/~ccshan/]: 單中杰老師
+    # [http://conal.net/]: Conal Elliott
+    # [http://blog.ezyang.com/]: Edward Yang

@@ -1,0 +1,69 @@
+/* 
+    Document   : feedback
+    Created on : 13.7.2011, 17:48:48
+    Author     : Niklas von Hertzen <niklas at hertzen.com>
+    Description:
+        Purpose of the stylesheet follows.
+*/
+
+/* 
+   TODO customize this sample style
+   Syntax recommendation http://www.w3.org/TR/REC-CSS2/
+*/
+
+
+
+
+#feedback{
+    position:fixed;
+    bottom:0;
+    right:0;
+    width:100px;
+    padding:10px;
+    color: #666;
+ 
+    font-weight:bold;
+    cursor:pointer;
+    margin:0;
+
+    z-index:99;
+
+
+
+}
+
+#feedback, .feedback-form{
+   font-family: arial,sans-serif;
+    font-size:13px;
+    -moz-box-shadow: -4px -4px 8px #cacaca; 
+    -webkit-box-shadow: -4px -4px 8px #cacaca; 
+    box-shadow: -4px -4px 8px #cacaca; 
+
+    -moz-border-radius: 12px 0 0  0 ; 
+    -webkit-border-radius: 12px 0 0  0 ; 
+    border-radius: 12px 0 0  0 ; 
+    background:#fff;
+    -moz-background-clip: padding; -webkit-background-clip: padding-box; background-clip: padding-box; 
+}
+
+.feedback-form{
+    font-size: 13px;
+    font-family: arial,sans-serif;
+    padding:10px;
+    height:300px;
+    width:200px;
+}
+
+.feedback-form h2{
+    font-family: arial,sans-serif;
+    font-size:24px;
+}
+
+
+
+.feedback-form textarea{
+    margin-top:10px;
+    height:150px;
+
+}
+
