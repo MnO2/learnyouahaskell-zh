@@ -5,13 +5,34 @@
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
         <style>
             @import url(css/style.css);
+            @import url(css/feedback.css);
         </style>
         <script src="js/jquery.js"></script>
         <script src="js/jquery.chili-2.2.js"></script>
         <script src="js/script.js"></script>
+        <script src="js/html2canvas.js"></script>
+        <script src="js/jsfeedback.js"></script>
         <script>
              ChiliBook.recipeFolder = "js/chili/";  
              ChiliBook.automaticSelector = "pre";
+        </script>
+        <script>
+            $(function(){
+                $('#feedback').click(function(){
+                    $('body').feedback();
+                })
+            });
+        </script>
+        <script type="text/javascript">
+            var _gaq = _gaq || [];
+            _gaq.push(['_setAccount', 'UA-32830659-1']);
+            _gaq.push(['_trackPageview']);
+
+            (function() {
+                var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+                ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+                    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+            })();
         </script>
         <title>構造我們自己的Types和Typeclasses</title>
     </head>
@@ -254,5 +275,6 @@ Right "QOTSA"</pre><p>我們完全可以用<code>Maybe a</code>來表示它的�
         </div>
         <div id="footer">
         </div>
+        <div id="feedback">Send feedback</div>
     </body>
 </html>
