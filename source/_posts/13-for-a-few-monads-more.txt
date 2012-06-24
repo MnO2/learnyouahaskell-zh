@@ -716,10 +716,7 @@ ghci> runState stackStuff [9,0,2,1,0]
 ((),[8,3,0,2,1,0]) 
 }}
 
-還記得我們說過``do``的結果會是一個monadic value，
-而在``State`` monad的case，``do``也就是一個改變狀態的函數。
-而由於``stackManip``跟``stackStuff``都是改變狀態的計算，
-因此我們可以把他們黏在一起：
+還記得我們說過``do``的結果會是一個monadic value，而在``State`` monad的case，``do``也就是一個改變狀態的函數。而由於``stackManip``跟``stackStuff``都是改變狀態的計算，因此我們可以把他們黏在一起：
 
 {{
 moreStack :: State Stack ()  
@@ -730,20 +727,15 @@ moreStack = do
         else return ()  
 }}
 
-如果``stackManip``的結果是``100``，我們就會跑``stackStuff``，
-如果不是的話就什麼都不做。
-``return ()``不過就是什麼是都不做，全部保持原樣。
+如果``stackManip``的結果是``100``，我們就會跑``stackStuff``，如果不是的話就什麼都不做。``return ()``不過就是什麼是都不做，全部保持原樣。
 
-``Contorl.Monad.State``提供了一個``MonadState``的typeclass，
-他有兩個有用的函數，分別是``get``跟``put``。
-對於``State``來說，``get``的實作就像這樣：
+``Contorl.Monad.State``提供了一個``MonadState``的typeclass，他有兩個有用的函數，分別是``get``跟``put``。對於``State``來說，``get``的實作就像這樣：
 
 {{
 get = State $ \s -> (s,s)
 }}
 
-他只是取出現在的狀態除此之外什麼也不做。
-而``put``函數會接受一個狀態並取代掉現有的狀態。
+他只是取出現在的狀態除此之外什麼也不做。而``put``函數會接受一個狀態並取代掉現有的狀態。
 
 {{
 put newState = State $ \s -> ((),newState)  
@@ -766,26 +758,17 @@ stackyStack = do
 (>>=) :: State s a -> (a -> State s b) -> State s b  
 }}
 
-我們可以看到狀態的型態都是``s``，而結果從型態``a``變成型態``b``。
-這代表我們可以把好幾個改變狀態的計算黏在一起，
-這些計算的結果可以都不一樣，但狀態的型態會是一樣的。
-舉例來說，對於``Maybe``而言，``>>=``的型態會是：
+我們可以看到狀態的型態都是``s``，而結果從型態``a``變成型態``b``。這代表我們可以把好幾個改變狀態的計算黏在一起，這些計算的結果可以都不一樣，但狀態的型態會是一樣的。舉例來說，對於``Maybe``而言，``>>=``的型態會是：
 
 {{
 (>>=) :: Maybe a -> (a -> Maybe b) -> Maybe b  
 }}
 
-``Maybe``不變是有道理的，
-但如果用``>>=``來把兩種不同的monad接起來是沒道理的。
-但對於state monad而言，monad其實是``State s``，
-所以如果``s``不一樣，我們就要用``>>=``來把兩個monad接起來。
+``Maybe``不變是有道理的，但如果用``>>=``來把兩種不同的monad接起來是沒道理的。但對於state monad而言，monad其實是``State s``，所以如果``s``不一樣，我們就要用``>>=``來把兩個monad接起來。
 
 ===隨機性與state monad
 
-在章節的一開始，我們知道了在Haskell中要產生亂數的不方便。
-我們要拿一個產生器，並回傳一個亂數跟一個新的產生器。
-接下來我們還一定要用新的產生器不可。
-但State Monad讓我們可以方便一些。
+在章節的一開始，我們知道了在Haskell中要產生亂數的不方便。我們要拿一個產生器，並回傳一個亂數跟一個新的產生器。接下來我們還一定要用新的產生器不可。但State Monad讓我們可以方便一些。
 
 ``System.Random``中的``random``函數有下列的型態：
 
@@ -793,9 +776,7 @@ stackyStack = do
 random :: (RandomGen g, Random a) => g -> (a, g)  
 }}
 
-代表他接受一個亂數產生器，並產生一個亂數跟一個新的產生器。
-很明顯他是一個會改變狀態的計算，所以我們可以用``newtype``把他包在一個``State``中，
-然後把他當作monadic value來操作。
+代表他接受一個亂數產生器，並產生一個亂數跟一個新的產生器。很明顯他是一個會改變狀態的計算，所以我們可以用``newtype``把他包在一個``State``中，然後把他當作monadic value來操作。
 
 {{
 import System.Random  
@@ -819,10 +800,7 @@ threeCoins = do
   return (a,b,c)  
 }}
 
-``threeCoins``是一個改變狀態的計算，他接受一個初始的亂數產生器，
-他會把他餵給``randomSt``，他會產生一個數字跟一個新的產生器，
-然後會一直傳遞下去。
-我們用``return (a,b,c)``來呈現``(a,b,c)``，這樣並不會改變最近一個產生器的狀態。
+``threeCoins``是一個改變狀態的計算，他接受一個初始的亂數產生器，他會把他餵給``randomSt``，他會產生一個數字跟一個新的產生器，然後會一直傳遞下去。我們用``return (a,b,c)``來呈現``(a,b,c)``，這樣並不會改變最近一個產生器的狀態。
 
 {{
 ghci> runState threeCoins (mkStdGen 33)  
@@ -833,12 +811,89 @@ ghci> runState threeCoins (mkStdGen 33)
 
 ==Error Monad
 
-我們知道``Maybe``是拿來賦予一個值具有可能失敗的context。
-一個值可能會是``Just something``或是一個``Nothing``。
-儘管這很有用，但當我們拿到了一個``Nothing``，我們只知道他失敗了，
-但我們沒辦法塞進一些有用的資訊，告訴我們究竟是在什麼樣的情況下失敗了。
+我們知道``Maybe``是拿來賦予一個值具有可能失敗的context。一個值可能會是``Just something``或是一個``Nothing``。儘管這很有用，但當我們拿到了一個``Nothing``，我們只知道他失敗了，但我們沒辦法塞進一些有用的資訊，告訴我們究竟是在什麼樣的情況下失敗了。
 
+而``Either e a``則能讓我們可以加入一個可能會發生錯誤的context，還可以增加些有用的訊息，這樣能讓我們知道究竟是什麼東西出錯了。一個``Either e a``的值可以是代表正確的``Right``，或是代表錯誤的``Left``，例如說：
+
+{{
+ghci> :t Right 4  
+Right 4 :: (Num t) => Either a t  
+ghci> :t Left "out of cheese error"  
+Left "out of cheese error" :: Either [Char] b  
+}}
+
+這就像是加強版的``Maybe``，他看起來實在很像一個monad，畢竟他也可以當作是一個可能會發生錯誤的context，只是多了些訊息罷了。
+
+在``Control.Monad.Error``裡面有他的``Monad`` instance。
+
+{{
+instance (Error e) => Monad (Either e) where  
+    return x = Right x   
+    Right x >>= f = f x  
+    Left err >>= f = Left err  
+    fail msg = Left (strMsg msg)  
+}}
+
+``return``就是建立起一個最小的context，由於我們用``Right``代表正確的結果，所以他把值包在一個``Right`` constructor裡面。就像實作``Maybe``時的``return``一樣。
+
+``>>=``會檢查兩種可能的情況：也就是``Left``跟``Right``。如果進來的是``Right``，那我們就呼叫``f``，就像我們在寫``Just``的時候一樣，只是呼叫對應的函數。而在錯誤的情況下，``Left``會被傳出來，而且裡面保有描述失敗的值。
+
+
+``Either e``的``Monad`` instance有一項額外的要求，就是包在``Left``中的型態，也就是``e``，必須是``Error`` typeclass的instance。``Error``這個typeclass描述一個可以被當作錯誤訊息的型態。他定義了``strMsg``這個函數，他接受一個用字串表達的錯誤。一個明顯的範例就是``String``型態，當他是``String``的時候，``strMsg``只不過回傳他接受到的字串。
+
+{{
+ghci> :t strMsg  
+strMsg :: (Error a) => String -> a  
+ghci> strMsg "boom!" :: String  
+"boom!"  
+}}
+
+但因為我們通常在用``Either``來描述錯誤的時候，是用``String``來裝錯誤訊息，所以我們也不用擔心這一點。當在``do``裡面做pattern match失敗的時候，``Left``的值會拿來代表失敗。
+
+總之來看看一個範例吧：
+
+{{
+ghci> Left "boom" >>= \x -> return (x+1)  
+Left "boom"  
+ghci> Right 100 >>= \x -> Left "no way!"  
+Left "no way!" 
+}}
+
+
+當我們用``>>=``來把一個``Left``餵進一個函數，函數的運算會被忽略而直接回傳丟進去的``Left``值。當我們餵``Right``值給函數，函數就會被計算而得到結果，但函數還是產生了一個``Left``值。
+
+當我們試著餵一個``Right``值給函數，而且函數也成功地計算，我們卻碰到了一個奇怪的type error。
+
+{{
+ghci> Right 3 >>= \x -> return (x + 100)  
+  
+<interactive>:1:0:  
+  Ambiguous type variable `a' in the constraints:  
+    `Error a' arising from a use of `it' at <interactive>:1:0-33  
+    `Show a' arising from a use of `print' at <interactive>:1:0-33  
+  Probable fix: add a type signature that fixes these type variable(s)  
+}}
+
+Haskell警告說他不知道要為``e``選擇什麼樣的型態，儘管我們是要印出``Right``的值。這是因為``Error e``被限制成``Monad``。把``Either``當作Monad使用就會碰到這樣的錯誤，你只要明確寫出type signature就行了：
+
+{{
+ghci> Right 3 >>= \x -> return (x + 100) :: Either String Int  
+Right 103  
+}}
+
+這樣就沒問題了。
+
+
+撇除這個小毛病，把``Either``當Monad使用就像使用``Maybe``一樣。在前一章中，我們展示了``Maybe``的使用方式。你可以把前一章的範例用``Either``重寫當作練習。
 
 ==一些實用的Moandic functions
+
+在這個章節，我們會看看一些操作monadiv value的函數。
+這樣的函數通常我們稱呼他們為monadiv function。
+其中有些你是第一次見到，但有些不過是``filter``或``foldl``的變形。
+讓我們來看看吧！
+
+===liftM 
+
 
 ==定義自己的Monad
