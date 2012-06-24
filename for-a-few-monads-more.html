@@ -232,17 +232,17 @@ stackStuff = do
         else do  
             push 3  
             push 8</pre><p>很直覺吧！我們來看看初始的堆疊的樣子。</p><pre class="code">ghci> runState stackStuff [9,0,2,1,0]  
-((),[8,3,0,2,1,0])</pre><p>還記得我們說過<code>do</code>的結果會是一個monadic value，</p><p>而在<code>State</code>monad的case，<code>do</code>也就是一個改變狀態的函數。</p><p>而由於<code>stackManip</code>跟<code>stackStuff</code>都是改變狀態的計算，</p><p>因此我們可以把他們黏在一起：</p><pre class="code">moreStack :: State Stack ()  
+((),[8,3,0,2,1,0])</pre><p>還記得我們說過<code>do</code>的結果會是一個monadic value，而在<code>State</code>monad的case，<code>do</code>也就是一個改變狀態的函數。而由於<code>stackManip</code>跟<code>stackStuff</code>都是改變狀態的計算，因此我們可以把他們黏在一起：</p><pre class="code">moreStack :: State Stack ()  
 moreStack = do  
     a <- stackManip  
     if a == 100  
         then stackStuff  
-        else return ()</pre><p>如果<code>stackManip</code>的結果是<code>100</code>，我們就會跑<code>stackStuff</code>，</p><p>如果不是的話就什麼都不做。</p><p><code>return ()</code>不過就是什麼是都不做，全部保持原樣。</p><p><code>Contorl.Monad.State</code>提供了一個<code>MonadState</code>的typeclass，</p><p>他有兩個有用的函數，分別是<code>get</code>跟<code>put</code>。</p><p>對於<code>State</code>來說，<code>get</code>的實作就像這樣：</p><pre class="code">get = State $ \s -> (s,s)</pre><p>他只是取出現在的狀態除此之外什麼也不做。</p><p>而<code>put</code>函數會接受一個狀態並取代掉現有的狀態。</p><pre class="code">put newState = State $ \s -> ((),newState)</pre><p>有了這兩個狀態，我們便可以看到現在堆疊中有什麼，或是把整個堆疊中的元素換掉。</p><pre class="code">stackyStack :: State Stack ()  
+        else return ()</pre><p>如果<code>stackManip</code>的結果是<code>100</code>，我們就會跑<code>stackStuff</code>，如果不是的話就什麼都不做。<code>return ()</code>不過就是什麼是都不做，全部保持原樣。</p><p><code>Contorl.Monad.State</code>提供了一個<code>MonadState</code>的typeclass，他有兩個有用的函數，分別是<code>get</code>跟<code>put</code>。對於<code>State</code>來說，<code>get</code>的實作就像這樣：</p><pre class="code">get = State $ \s -> (s,s)</pre><p>他只是取出現在的狀態除此之外什麼也不做。而<code>put</code>函數會接受一個狀態並取代掉現有的狀態。</p><pre class="code">put newState = State $ \s -> ((),newState)</pre><p>有了這兩個狀態，我們便可以看到現在堆疊中有什麼，或是把整個堆疊中的元素換掉。</p><pre class="code">stackyStack :: State Stack ()  
 stackyStack = do  
     stackNow <- get  
     if stackNow == [1,2,3]  
         then put [8,3,1]  
-        else put [9,2,1]</pre><p>我們可以看看對於<code>State</code>而言，<code>>>=</code>的型態會是什麼：</p><pre class="code">(>>=) :: State s a -> (a -> State s b) -> State s b</pre><p>我們可以看到狀態的型態都是<code>s</code>，而結果從型態<code>a</code>變成型態<code>b</code>。</p><p>這代表我們可以把好幾個改變狀態的計算黏在一起，</p><p>這些計算的結果可以都不一樣，但狀態的型態會是一樣的。</p><p>舉例來說，對於<code>Maybe</code>而言，<code>>>=</code>的型態會是：</p><pre class="code">(>>=) :: Maybe a -> (a -> Maybe b) -> Maybe b</pre><p><code>Maybe</code>不變是有道理的，</p><p>但如果用<code>>>=</code>來把兩種不同的monad接起來是沒道理的。</p><p>但對於state monad而言，monad其實是<code>State s</code>，</p><p>所以如果<code>s</code>不一樣，我們就要用<code>>>=</code>來把兩個monad接起來。</p><a name="隨機性與state monad"></a><h3>隨機性與state monad</h3><p>在章節的一開始，我們知道了在Haskell中要產生亂數的不方便。</p><p>我們要拿一個產生器，並回傳一個亂數跟一個新的產生器。</p><p>接下來我們還一定要用新的產生器不可。</p><p>但State Monad讓我們可以方便一些。</p><p><code>System.Random</code>中的<code>random</code>函數有下列的型態：</p><pre class="code">random :: (RandomGen g, Random a) => g -> (a, g)</pre><p>代表他接受一個亂數產生器，並產生一個亂數跟一個新的產生器。</p><p>很明顯他是一個會改變狀態的計算，所以我們可以用<code>newtype</code>把他包在一個<code>State</code>中，</p><p>然後把他當作monadic value來操作。</p><pre class="code">import System.Random  
+        else put [9,2,1]</pre><p>我們可以看看對於<code>State</code>而言，<code>>>=</code>的型態會是什麼：</p><pre class="code">(>>=) :: State s a -> (a -> State s b) -> State s b</pre><p>我們可以看到狀態的型態都是<code>s</code>，而結果從型態<code>a</code>變成型態<code>b</code>。這代表我們可以把好幾個改變狀態的計算黏在一起，這些計算的結果可以都不一樣，但狀態的型態會是一樣的。舉例來說，對於<code>Maybe</code>而言，<code>>>=</code>的型態會是：</p><pre class="code">(>>=) :: Maybe a -> (a -> Maybe b) -> Maybe b</pre><p><code>Maybe</code>不變是有道理的，但如果用<code>>>=</code>來把兩種不同的monad接起來是沒道理的。但對於state monad而言，monad其實是<code>State s</code>，所以如果<code>s</code>不一樣，我們就要用<code>>>=</code>來把兩個monad接起來。</p><a name="隨機性與state monad"></a><h3>隨機性與state monad</h3><p>在章節的一開始，我們知道了在Haskell中要產生亂數的不方便。我們要拿一個產生器，並回傳一個亂數跟一個新的產生器。接下來我們還一定要用新的產生器不可。但State Monad讓我們可以方便一些。</p><p><code>System.Random</code>中的<code>random</code>函數有下列的型態：</p><pre class="code">random :: (RandomGen g, Random a) => g -> (a, g)</pre><p>代表他接受一個亂數產生器，並產生一個亂數跟一個新的產生器。很明顯他是一個會改變狀態的計算，所以我們可以用<code>newtype</code>把他包在一個<code>State</code>中，然後把他當作monadic value來操作。</p><pre class="code">import System.Random  
 import Control.Monad.State  
   
 randomSt :: (RandomGen g, Random a) => State g a  
@@ -254,8 +254,28 @@ threeCoins = do
   a <- randomSt  
   b <- randomSt  
   c <- randomSt  
-  return (a,b,c)</pre><p><code>threeCoins</code>是一個改變狀態的計算，他接受一個初始的亂數產生器，</p><p>他會把他餵給<code>randomSt</code>，他會產生一個數字跟一個新的產生器，</p><p>然後會一直傳遞下去。</p><p>我們用<code>return (a,b,c)</code>來呈現<code>(a,b,c)</code>，這樣並不會改變最近一個產生器的狀態。</p><pre class="code">ghci> runState threeCoins (mkStdGen 33)  
-((True,False,True),680029187 2103410263)</pre><p>要完成像這樣要改變狀態的任務便因此變得輕鬆了很多。</p><a name="Error Monad"></a><h2>Error Monad</h2><p>我們知道<code>Maybe</code>是拿來賦予一個值具有可能失敗的context。</p><p>一個值可能會是<code>Just something</code>或是一個<code>Nothing</code>。</p><p>儘管這很有用，但當我們拿到了一個<code>Nothing</code>，我們只知道他失敗了，</p><p>但我們沒辦法塞進一些有用的資訊，告訴我們究竟是在什麼樣的情況下失敗了。</p><a name="一些實用的Moandic functions"></a><h2>一些實用的Moandic functions</h2><a name="定義自己的Monad"></a><h2>定義自己的Monad</h2>
+  return (a,b,c)</pre><p><code>threeCoins</code>是一個改變狀態的計算，他接受一個初始的亂數產生器，他會把他餵給<code>randomSt</code>，他會產生一個數字跟一個新的產生器，然後會一直傳遞下去。我們用<code>return (a,b,c)</code>來呈現<code>(a,b,c)</code>，這樣並不會改變最近一個產生器的狀態。</p><pre class="code">ghci> runState threeCoins (mkStdGen 33)  
+((True,False,True),680029187 2103410263)</pre><p>要完成像這樣要改變狀態的任務便因此變得輕鬆了很多。</p><a name="Error Monad"></a><h2>Error Monad</h2><p>我們知道<code>Maybe</code>是拿來賦予一個值具有可能失敗的context。一個值可能會是<code>Just something</code>或是一個<code>Nothing</code>。儘管這很有用，但當我們拿到了一個<code>Nothing</code>，我們只知道他失敗了，但我們沒辦法塞進一些有用的資訊，告訴我們究竟是在什麼樣的情況下失敗了。</p><p>而<code>Either e a</code>則能讓我們可以加入一個可能會發生錯誤的context，還可以增加些有用的訊息，這樣能讓我們知道究竟是什麼東西出錯了。一個<code>Either e a</code>的值可以是代表正確的<code>Right</code>，或是代表錯誤的<code>Left</code>，例如說：</p><pre class="code">ghci> :t Right 4  
+Right 4 :: (Num t) => Either a t  
+ghci> :t Left "out of cheese error"  
+Left "out of cheese error" :: Either [Char] b</pre><p>這就像是加強版的<code>Maybe</code>，他看起來實在很像一個monad，畢竟他也可以當作是一個可能會發生錯誤的context，只是多了些訊息罷了。</p><p>在<code>Control.Monad.Error</code>裡面有他的<code>Monad</code>instance。</p><pre class="code">instance (Error e) => Monad (Either e) where  
+    return x = Right x   
+    Right x >>= f = f x  
+    Left err >>= f = Left err  
+    fail msg = Left (strMsg msg)</pre><p><code>return</code>就是建立起一個最小的context，由於我們用<code>Right</code>代表正確的結果，所以他把值包在一個<code>Right</code>constructor裡面。就像實作<code>Maybe</code>時的<code>return</code>一樣。</p><p><code>>>=</code>會檢查兩種可能的情況：也就是<code>Left</code>跟<code>Right</code>。如果進來的是<code>Right</code>，那我們就呼叫<code>f</code>，就像我們在寫<code>Just</code>的時候一樣，只是呼叫對應的函數。而在錯誤的情況下，<code>Left</code>會被傳出來，而且裡面保有描述失敗的值。</p><p><code>Either e</code>的<code>Monad</code>instance有一項額外的要求，就是包在<code>Left</code>中的型態，也就是<code>e</code>，必須是<code>Error</code>typeclass的instance。<code>Error</code>這個typeclass描述一個可以被當作錯誤訊息的型態。他定義了<code>strMsg</code>這個函數，他接受一個用字串表達的錯誤。一個明顯的範例就是<code>String</code>型態，當他是<code>String</code>的時候，<code>strMsg</code>只不過回傳他接受到的字串。</p><pre class="code">ghci> :t strMsg  
+strMsg :: (Error a) => String -> a  
+ghci> strMsg "boom!" :: String  
+"boom!"</pre><p>但因為我們通常在用<code>Either</code>來描述錯誤的時候，是用<code>String</code>來裝錯誤訊息，所以我們也不用擔心這一點。當在<code>do</code>裡面做pattern match失敗的時候，<code>Left</code>的值會拿來代表失敗。</p><p>總之來看看一個範例吧：</p><pre class="code">ghci> Left "boom" >>= \x -> return (x+1)  
+Left "boom"  
+ghci> Right 100 >>= \x -> Left "no way!"  
+Left "no way!"</pre><p>當我們用<code>>>=</code>來把一個<code>Left</code>餵進一個函數，函數的運算會被忽略而直接回傳丟進去的<code>Left</code>值。當我們餵<code>Right</code>值給函數，函數就會被計算而得到結果，但函數還是產生了一個<code>Left</code>值。</p><p>當我們試著餵一個<code>Right</code>值給函數，而且函數也成功地計算，我們卻碰到了一個奇怪的type error。</p><pre class="code">ghci> Right 3 >>= \x -> return (x + 100)  
+  
+<interactive>:1:0:  
+  Ambiguous type variable `a' in the constraints:  
+    `Error a' arising from a use of `it' at <interactive>:1:0-33  
+    `Show a' arising from a use of `print' at <interactive>:1:0-33  
+  Probable fix: add a type signature that fixes these type variable(s)</pre><p>Haskell警告說他不知道要為<code>e</code>選擇什麼樣的型態，儘管我們是要印出<code>Right</code>的值。這是因為<code>Error e</code>被限制成<code>Monad</code>。把<code>Either</code>當作Monad使用就會碰到這樣的錯誤，你只要明確寫出type signature就行了：</p><pre class="code">ghci> Right 3 >>= \x -> return (x + 100) :: Either String Int  
+Right 103</pre><p>這樣就沒問題了。</p><p>撇除這個小毛病，把<code>Either</code>當Monad使用就像使用<code>Maybe</code>一樣。在前一章中，我們展示了<code>Maybe</code>的使用方式。你可以把前一章的範例用<code>Either</code>重寫當作練習。</p><a name="一些實用的Moandic functions"></a><h2>一些實用的Moandic functions</h2><p>在這個章節，我們會看看一些操作monadiv value的函數。</p><p>這樣的函數通常我們稱呼他們為monadiv function。</p><p>其中有些你是第一次見到，但有些不過是<code>filter</code>或<code>foldl</code>的變形。</p><p>讓我們來看看吧！</p><a name="liftM"></a><h3>liftM</h3><a name="定義自己的Monad"></a><h2>定義自己的Monad</h2>
             <ul class="nav">
                 <li class="left">  <img src="img/prv.png"></img><a href="a-fistful-of-monads.html">來看看幾種Moand</a></li>
                 <li class="center"><a href="chapters.html">Index</a></li>
