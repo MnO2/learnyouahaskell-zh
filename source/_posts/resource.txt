@@ -16,6 +16,7 @@
     # [http://www.scs.stanford.edu/11au-cs240h/notes/ CS240h]: David Mazières跟Bryan O'Sullivan在Stanford開的課。
     # [http://itpro.nikkeibp.co.jp/article/COLUMN/20060915/248215/ 本物のプログラマはHaskellを使う]: Haskell專欄
     # [http://en.wikibooks.org/wiki/Write_Yourself_a_Scheme_in_48_Hours Write Yourself a Scheme in 48 Hours]，Audrey Tang寫的教學，教你如何用Haskell寫出一個Scheme。
+    # [http://video.s-inf.de/#FP.2005-SS-Giesl.(COt).HD_Videoaufzeichnung]: 德國大學的Functional Programming課程，語言是用FP （英文授課）
 
 ==Forum
     # [http://stackoverflow.com/questions/tagged/haskell Stackoverflow]: 著名stackoverflow上的#haskell tag

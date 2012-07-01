@@ -895,5 +895,286 @@ Right 103
 
 ===liftM 
 
+當我們開始學習Monad的時候，我們是先學習functors，他代表可以被map over的事物。
+接著我們學了functors的加強版，也就是applicative functors，他可以對applicative values做函數的套用，
+也可以把一個一般值放到一個預設的context中。
+最後，我們介紹在applicative functors上更進一步的monad，他讓這些具有context的值可以被餵進一般函數中。 
+
+也就是說每一個monad都是個applicative functor，而每一個applicative functor也都是一個functor。
+``Applicative`` typeclass中有加入限制，讓每一個``Applicative``都是``Functor``。
+但``Monad``卻沒有這樣的限制，讓每個``Monad``都是``Applicative``。
+這是因為``Monad``這個typeclass是在``Applicative``引入前就存在的緣故。
+
+但即使每個monad都是一個functor，但我們不需要依賴``Functor``的定義。
+那是因為我們有``liftM``這個函數。
+他會接受一個函數跟一個monadic value，然後把函數map over那些monadic value。
+所以他其實就是``fmap``，以下是他的型態：
+
+{{
+liftM :: (Monad m) => (a -> b) -> m a -> m b  
+}}
+
+而這是``fmap``的型態：
+
+{{
+fmap :: (Functor f) => (a -> b) -> f a -> f b
+}}
+
+如果``Functor``跟``Monad``的instance遵守functor跟monad的法則（到目前為止我們看過的monad都遵守），
+那這兩個函數其實是等價的。
+這就像``pure``跟``return``其實是同一件事，
+只是一個在``Applicative``中，而另外一個在``Monad``裡面，
+我們來試試看``liftM``吧：
+
+{{
+ghci> liftM (*3) (Just 8)  
+Just 24  
+ghci> fmap (*3) (Just 8)  
+Just 24  
+ghci> runWriter $ liftM not $ Writer (True, "chickpeas")  
+(False,"chickpeas")  
+ghci> runWriter $ fmap not $ Writer (True, "chickpeas")  
+(False,"chickpeas")  
+ghci> runState (liftM (+100) pop) [1,2,3,4]  
+(101,[2,3,4])  
+ghci> runState (fmap (+100) pop) [1,2,3,4]  
+(101,[2,3,4]) 
+}}
+
+我們已經知道``fmap``是如何運作在``Maybe``上。
+而``liftM``又跟``fmap``等價。
+對於``Writer``型態的值而言，函數只有對他的第一個component做處理。
+而對於改變狀態的計算，``fmap``跟``liftM``也都是產生另一個改變狀態的計算。
+我們也看過了``(+100)``當作用在``pop``上會產生``(1, [2,3,4])``。
+
+來看看``liftM``是如何被實作的：
+{{
+liftM :: (Monad m) => (a -> b) -> m a -> m b  
+liftM f m = m >>= (\x -> return (f x)) 
+}}
+
+或者用``do``來表示得清楚些
+
+{{
+liftM :: (Monad m) => (a -> b) -> m a -> m b  
+liftM f m = do  
+    x <- m  
+    return (f x)  
+}}
+
+我們餵一個monadic value ``m``給函數，我們套用那個函數然後把結果放進一個預設的context。
+由於遵守monad laws，這保證這操作不會改變context，只會呈現最後的結果。
+我們可以看到實作中``liftM``也沒有用到``Functor``的性質。
+這代表我們能只用monad提供給我們的就實作完``fmap``。
+這特性讓我們可以得到monad比functor性質要強的結論。
+
+``Applicative``讓我們可以操作具有context的值就像操作一般的值一樣。
+就像這樣：
+
+{{
+ghci> (+) <$> Just 3 <*> Just 5  
+Just 8  
+ghci> (+) <$> Just 3 <*> Nothing  
+Nothing  
+}}
+
+使用applicative的特性讓事情變得很精簡。
+``<$>``不過就是``fmap``，而``<*>``只是一個具有下列型態的函數：
+
+{{
+(<*>) :: (Applicative f) => f (a -> b) -> f a -> f b  
+}}
+
+他有點像``fmap``，只是函數本身有一個context。
+我們必須把他從context中抽出，對``f a``做map over的東做，然後再放回context中。
+由於在Haskel中函數預設都是curried，我們便能用``<$>``以及``<*>``來讓接受多個參數的函數也能接受applicative種類的值。
+
+總之``<*>``跟``fmap``很類似，他也能只用``Monad``保證的性質實作出來。
+``ap```這個函數基本上就是``<*>``，只是他是限制在``Monad``上而不是``Applicative``上。
+這邊是他的定義：
+
+{{
+ap :: (Monad m) => m (a -> b) -> m a -> m b  
+ap mf m = do  
+    f <- mf  
+    x <- m  
+    return (f x)  
+}}
+
+
+``mf``是一個monadic value，他的結果是一個函數。
+由於函數跟值都是放在context中，假設我們從context取出的函數叫``f``，從context取出的值叫``x``，
+我們把``x``餵給``f``然後再把結果放回context。
+像這樣：
+
+{{
+ghci> Just (+3) <*> Just 4  
+Just 7  
+ghci> Just (+3) `ap` Just 4  
+Just 7  
+ghci> [(+1),(+2),(+3)] <*> [10,11]  
+[11,12,12,13,13,14]  
+ghci> [(+1),(+2),(+3)] `ap` [10,11]  
+[11,12,12,13,13,14]  
+}}
+
+
+由於我們能用``Monad``提供的函數實作出``Applicative``的函數，因此我們看到Monad有比applicative強的性質。
+事實上，當我們知道一個型態是monad的時候，
+大多數會先定義出``Monad``的instance，然後才定義``Applicative``的instance。
+而且只要把``pure``定義成``return``，``<*>``定義成``ap``就行了。
+同樣的，如果你已經有了``Monad``的instance，你也可以簡單的定義出``Functor``，
+只要把``fmap``定義成``liftM``就行了。
+
+``liftA2``是一個方便的函數，他可以把兩個applicative的值餵給一個函數。
+他的定義很簡單：
+
+{{
+liftA2 :: (Applicative f) => (a -> b -> c) -> f a -> f b -> f c  
+liftA2 f x y = f <$> x <*> y  
+}}
+
+``liftM2``也是做差不多的事情，只是多了``Monad``的限制。
+在函式庫中其實也有``liftM3``，``liftM4``跟``liftM5``。
+
+我們看到了monad相較於applicative跟functor有比較強的性質。
+儘管moand有functor跟applicative functor的性質，但他們不見得有``Functor``跟``Applicative``的instance定義。
+所以我們檢視了一些在monad中定義，且等價於functor或applicative functor所具有的函數。
+
+
+===The join function
+
+如果一個monadic value的結果是另一個monadic value，也就是其中一個monadic value被包在另一個裡面，
+你能夠把他們變成一個普通的monadic value嗎？就好像把他們打平一樣。
+譬如說，我們有``Just (Just 9)``，我們能夠把他變成``Just 9``嗎？
+事實上是可以的，這也是monad的一個性質。
+也就是我要看的``join``函數，他的型態是這樣：
+
+{{
+join :: (Monad m) => m (m a) -> m a  
+}}
+
+他接受一個包在另一個monadic value中的monadic value，然後會回給我們一個普通的monadic value。
+這邊有一些``Maybe``的範例：
+
+{{
+ghci> join (Just (Just 9))  
+Just 9  
+ghci> join (Just Nothing)  
+Nothing  
+ghci> join Nothing  
+Nothing  
+}}
+
+第一行是一個計算成功的結果包在另一個計算成功的結果，他們應該要能結合成為一個比較大的計算成功的結果。
+第二行則是一個``Nothing``包在一個``Just``中。
+我們之前在處理``Maybe``型態的值時，會用``<*>``或``>>=``把他們結合起來。
+輸入必須都是``Just``時結果出來才會是``Just``。
+如果中間有任何的失敗，結果就會是一個失敗的結果。
+而第三行就是這樣，我們嘗試把失敗的結果接合起來，結果也會是一個失敗。
+
+要``join``一個list也是很簡單：
+
+{{
+ghci> join [[1,2,3],[4,5,6]]  
+[1,2,3,4,5,6]  
+}}
+
+你可以看到，對於list而言``join``不過就是``concat``。
+而要``join``一個包在``Writer``中的``Writer``，
+我們必須用``mappend``：
+
+{{
+ghci> runWriter $ join (Writer (Writer (1,"aaa"),"bbb"))  
+(1,"bbbaaa")  
+}}
+
+```"bbb"``先被加到monoid中，接著``"aaa"``被附加上去。
+你想要檢視``Writer``中的值的話，必須先把值寫進去才行。
+
+要對``Either``做``join``跟對``Maybe``做``join``是很類似的：
+
+{{
+ghci> join (Right (Right 9)) :: Either String Int  
+Right 9  
+ghci> join (Right (Left "error")) :: Either String Int  
+Left "error"  
+ghci> join (Left "error") :: Either String Int  
+Left "error"  
+}}
+
+如果我們對一個包了另外一個改變狀態的計算的進行改變狀態的計算，
+要作``join``的動作會讓外面的掀被計算，然後才是計算裡面的：
+
+{{
+ghci> runState (join (State $ \s -> (push 10,1:2:s))) [0,0,0]  
+((),[10,1,2,0,0,0])  
+}}
+
+這邊的lambda函數接受一個狀態，並把``2``跟``1``放到堆疊中，
+並把``push 10``當作他的結果。
+當對整個東西做``join``的時候，
+他會先把``2``跟``1``放到堆疊上，然後進行``push 10``的計算，
+因而把``10``放到堆疊的頂端。
+
+``join``的實作像是這樣：
+
+{{
+join :: (Monad m) => m (m a) -> m a  
+join mm = do  
+    m <- mm  
+    m  
+}}
+
+因為``mm``的結果會是一個monadic value，
+我們單獨用``m <- mm``拿取他的結果。
+這也可以說明``Maybe``只有當外層跟內層的值都是``Just``的時候才會是``Just``。
+如果把``mm``的值設成``Just (Just 8)``的話，他看起來會是這樣：
+
+{{
+joinedMaybes :: Maybe Int  
+joinedMaybes = do  
+    m <- Just (Just 8)  
+    m  
+}}
+
+最有趣的是對於一個monadic value而言，用``>>=``把他餵進一個函數其實等價於
+對monad做mapping over的動作，然後用``join``來把值從nested的狀態變成扁平的狀態。
+也就是說``m >>= f``其實就是``join (fmap f m)``。
+如果你仔細想想的話其實很明顯。
+``>>=``的使用方式是，把一個monadic value餵進一個接受普通值的函數，但他卻會回傳monadic value。
+如果我們map over一個monadic value，我們會做成一個monadic value包了另外一個monadic value。
+例如說，我們現在手上有``Just 9``跟``\x -> Just (x+1)``。
+如果我們把這個函數map over ``Just 9``，我們會得到``Just (Just 10)``
+
+事實上``m >>= f``永遠等價於``join (fmap f m)``這性質非常有用。
+如果我們要定義自己的``Monad`` instance，
+要知道怎麼把nested monadic value變成扁平比起要定義``>>=``是比較容易的一件事。
+
+
+===filterM
+
+``filter``函數是Haskell中不可或缺的要素。
+他接受一個斷言(predicate)跟一個list來過濾掉斷言為否的部份並回傳一個新的list。
+他的型態是這樣：
+
+{{
+filter :: (a -> Bool) -> [a] -> [a]  
+}}
+
+predicate能接list中的一個元素並回傳一個``Bool``型態的值。
+但如果``Bool``型態其實是一個monadic value呢？也就是他有一個context。
+例如說除了``True``跟``False``之外還伴隨一個monoid，像是``["Accepted the number 5"]``，
+或``["3 is too small"]``。
+照前面所學的聽起來是沒問題，而且產出的list也會跟隨context，在這個例子中就是log。
+所以如果``Bool``會回傳伴隨context的布林值，我們會認為最終的結果也會具有context。
+要不然這些context都會在處理過程中遺失。
+
+在``Control.Monad``中的``filterM``函數正是我們所需要的，他的型態如下：
+
+{{
+filterM :: (Monad m) => (a -> m Bool) -> [a] -> m [a]  
+}}
+
 
 ==定義自己的Monad
