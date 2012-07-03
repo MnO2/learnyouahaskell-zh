@@ -76,7 +76,8 @@ elem' a (x:xs)
     | otherwise = a `elem'` xs</pre><p>這很簡單明瞭。若頭部不是該元素, 就檢測尾部, 若為空List就回傳False</p><a name=""快速"排序"></a><h2>"快速"排序</h2><img src="img/quickman.png" style="float:right"></img><p>假定我們有一個可排序的List,其中元素的類型為Ord Typeclass的成員. 現在我們要給它排序! 有個排序算法非常的酷, 就是快速排序(<i>quick sort</i>), 睿智的排序方法. 儘管它在命令式語言中也不過10行, 但在haskell下邊要更短,更漂亮, 儼然已經成了haskell的招牌了. 嗯, 我們在這裡也實現一下. 或許會顯得很俗氣, 因為每個人都用它來展示haskell究竟有多優雅!</p><p>它的類型聲明應為<code>quicksort :: (Ord a) => [a] -> [a]</code>, 沒啥奇怪的. 邊界條件呢? 如料，空List。排過序的空List還是空List。接下來便是算法的定義：<b>排過序的List就是令所有小於等於頭部的元素在先(它們已經排過了序), 後跟大於頭部的元素(它們同樣已經拍過了序)</b>。 注意定義中有兩次排序，所以就得遞迴兩次！同時也需要注意算法定義的動詞為"是"什麼而非"做"這個,"做"那個,再"做"那個...這便是函數式編程之美！如何才能從List中取得比頭部小的那些元素呢？List Comprehension。好，動手寫出這個函數！</p><pre class="code">quicksort :: (Ord a) => [a] -> [a]  
 quicksort [] = []  
 quicksort (x:xs) =  
-  let smallerSorted = quicksort [a | a <- xs, a <= x] biggerSorted = quicksort [a | a <- xs, a > x]  
+  let smallerSorted = quicksort [a | a <- xs, a <= x] 
+      biggerSorted = quicksort [a | a <- xs, a > x]  
   in smallerSorted ++ [x] ++ biggerSorted</pre><p>小小的測試一下, 看看結果是否正確~</p><pre class="code">ghci> quicksort [10,2,5,3,1,6,7,4,2,3,4,8,9]  
 [1,2,2,3,3,4,4,5,6,7,8,9,10]  
 ghci> quicksort "the quick brown fox jumps over the lazy dog"  
