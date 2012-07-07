@@ -324,7 +324,87 @@ join mm = do
     m</pre><p>因為<code>mm</code>的結果會是一個monadic value，</p><p>我們單獨用<code>m <- mm</code>拿取他的結果。</p><p>這也可以說明<code>Maybe</code>只有當外層跟內層的值都是<code>Just</code>的時候才會是<code>Just</code>。</p><p>如果把<code>mm</code>的值設成<code>Just (Just 8)</code>的話，他看起來會是這樣：</p><pre class="code">joinedMaybes :: Maybe Int  
 joinedMaybes = do  
     m <- Just (Just 8)  
-    m</pre><p>最有趣的是對於一個monadic value而言，用<code>>>=</code>把他餵進一個函數其實等價於</p><p>對monad做mapping over的動作，然後用<code>join</code>來把值從nested的狀態變成扁平的狀態。</p><p>也就是說<code>m >>= f</code>其實就是<code>join (fmap f m)</code>。</p><p>如果你仔細想想的話其實很明顯。</p><p><code>>>=</code>的使用方式是，把一個monadic value餵進一個接受普通值的函數，但他卻會回傳monadic value。</p><p>如果我們map over一個monadic value，我們會做成一個monadic value包了另外一個monadic value。</p><p>例如說，我們現在手上有<code>Just 9</code>跟<code>\x -> Just (x+1)</code>。</p><p>如果我們把這個函數map over<code>Just 9</code>，我們會得到<code>Just (Just 10)</code></p><p>事實上<code>m >>= f</code>永遠等價於<code>join (fmap f m)</code>這性質非常有用。</p><p>如果我們要定義自己的<code>Monad</code>instance，</p><p>要知道怎麼把nested monadic value變成扁平比起要定義<code>>>=</code>是比較容易的一件事。</p><a name="filterM"></a><h3>filterM</h3><p><code>filter</code>函數是Haskell中不可或缺的要素。</p><p>他接受一個斷言(predicate)跟一個list來過濾掉斷言為否的部份並回傳一個新的list。</p><p>他的型態是這樣：</p><pre class="code">filter :: (a -> Bool) -> [a] -> [a]</pre><p>predicate能接list中的一個元素並回傳一個<code>Bool</code>型態的值。</p><p>但如果<code>Bool</code>型態其實是一個monadic value呢？也就是他有一個context。</p><p>例如說除了<code>True</code>跟<code>False</code>之外還伴隨一個monoid，像是<code>["Accepted the number 5"]</code>，</p><p>或<code>["3 is too small"]</code>。</p><p>照前面所學的聽起來是沒問題，而且產出的list也會跟隨context，在這個例子中就是log。</p><p>所以如果<code>Bool</code>會回傳伴隨context的布林值，我們會認為最終的結果也會具有context。</p><p>要不然這些context都會在處理過程中遺失。</p><p>在<code>Control.Monad</code>中的<code>filterM</code>函數正是我們所需要的，他的型態如下：</p><pre class="code">filterM :: (Monad m) => (a -> m Bool) -> [a] -> m [a]</pre><a name="定義自己的Monad"></a><h2>定義自己的Monad</h2>
+    m</pre><p>最有趣的是對於一個monadic value而言，用<code>>>=</code>把他餵進一個函數其實等價於</p><p>對monad做mapping over的動作，然後用<code>join</code>來把值從nested的狀態變成扁平的狀態。</p><p>也就是說<code>m >>= f</code>其實就是<code>join (fmap f m)</code>。</p><p>如果你仔細想想的話其實很明顯。</p><p><code>>>=</code>的使用方式是，把一個monadic value餵進一個接受普通值的函數，但他卻會回傳monadic value。</p><p>如果我們map over一個monadic value，我們會做成一個monadic value包了另外一個monadic value。</p><p>例如說，我們現在手上有<code>Just 9</code>跟<code>\x -> Just (x+1)</code>。</p><p>如果我們把這個函數map over<code>Just 9</code>，我們會得到<code>Just (Just 10)</code></p><p>事實上<code>m >>= f</code>永遠等價於<code>join (fmap f m)</code>這性質非常有用。</p><p>如果我們要定義自己的<code>Monad</code>instance，</p><p>要知道怎麼把nested monadic value變成扁平比起要定義<code>>>=</code>是比較容易的一件事。</p><a name="filterM"></a><h3>filterM</h3><p><code>filter</code>函數是Haskell中不可或缺的要素。</p><p>他接受一個斷言(predicate)跟一個list來過濾掉斷言為否的部份並回傳一個新的list。</p><p>他的型態是這樣：</p><pre class="code">filter :: (a -> Bool) -> [a] -> [a]</pre><p>predicate能接list中的一個元素並回傳一個<code>Bool</code>型態的值。</p><p>但如果<code>Bool</code>型態其實是一個monadic value呢？也就是他有一個context。</p><p>例如說除了<code>True</code>跟<code>False</code>之外還伴隨一個monoid，像是<code>["Accepted the number 5"]</code>，</p><p>或<code>["3 is too small"]</code>。</p><p>照前面所學的聽起來是沒問題，而且產出的list也會跟隨context，在這個例子中就是log。</p><p>所以如果<code>Bool</code>會回傳伴隨context的布林值，我們會認為最終的結果也會具有context。</p><p>要不然這些context都會在處理過程中遺失。</p><p>在<code>Control.Monad</code>中的<code>filterM</code>函數正是我們所需要的，他的型態如下：</p><pre class="code">filterM :: (Monad m) => (a -> m Bool) -> [a] -> m [a]</pre><p>predicate會回傳一個monadic value，他的結果會是<code>Bool</code>型態，</p><p>由於他是monadic value，他的context有可能會是任何context，</p><p>譬如說可能的失敗，non-determinism，甚至其他的context。</p><p>一旦我們能保證context也會被保存在最後的結果中，結果也就是一個monadic value。</p><p>我們來寫一個接受list然後過濾掉小於4的函數。先嘗試使用<code>filter</code>函數：</p><pre class="code">ghci> filter (\x -> x < 4) [9,1,5,2,10,3]  
+[1,2,3]</pre><p>很簡單吧。</p><p>接著我們在做個predicate，除了表達<code>True</code>或<code>False</code>之外，還提供了一個log。</p><p>我們會用<code>Writer</code>monad來表達這件事：</p><pre class="code">keepSmall :: Int -> Writer [String] Bool  
+keepSmall x  
+    | x < 4 = do  
+        tell ["Keeping " ++ show x]  
+        return True  
+    | otherwise = do  
+        tell [show x ++ " is too large, throwing it away"]  
+        return False</pre><p>這個函數會回傳<code>Writer [String] Bool</code>而不是一個單純的<code>Bool</code>。</p><p>他是一個monadic predicate。</p><p>如果掃到的數字小於<code>4</code>的話，我們就會回報要保存他，而且回傳<code>return True</code>。</p><p>接著，我們把他跟一個list餵給<code>filterM</code>。</p><p>由於predicate會回傳<code>Writer</code>，</p><p>所以結果仍會是一個<code>Writer</code>值。</p><pre class="code">ghci> fst $ runWriter $ filterM keepSmall [9,1,5,2,10,3]  
+[1,2,3]</pre><p>要檢查<code>Writer</code>的結果，</p><p>我們想要印出log看看裡面有什麼東西：</p><pre class="code">ghci> mapM_ putStrLn $ snd $ runWriter $ filterM keepSmall [9,1,5,2,10,3]  
+9 is too large, throwing it away  
+Keeping 1  
+5 is too large, throwing it away  
+Keeping 2  
+10 is too large, throwing it away  
+Keeping 3</pre><p>提供monadic predicate給<code>filterM</code>，</p><p>我們便能夠做filter的動作，同時還能保有monadic context。</p><p>一個比較炫的技巧是用<code>filterM</code>來產生一個list的powerset。</p><p>一個powerset就是一個集合所有子集所形成的集合。</p><p>如果說我們的list是<code>[1,2,3]</code>，</p><p>那他個powerset就會是：</p><pre class="code">[1,2,3]  
+[1,2]  
+[1,3]  
+[1]  
+[2,3]  
+[2]  
+[3]  
+[]</pre><p>換句話說，要產生一個powerset就是要列出所有要丟掉跟保留的組合。</p><p><code>[2,3]</code>只不過代表我們把<code>1</code>給丟掉而已。</p><p>我們要依賴non-determinism來寫我們這產生powerset的函數。</p><p>我們接受一個list<code>[1,2,3]</code>然後查看第一個元素，</p><p>這個例子中是<code>1</code>，我們會問：我們要保留他呢？還是丟掉他呢？</p><p>答案是我們都要做。</p><p>所以我們會用一個non-determinism的predicate來過濾我的list。</p><p>也就是我們的<code>powerset</code>函數：</p><pre class="code">powerset :: [a] -> [[a]]  
+powerset xs = filterM (\x -> [True, False]) xs</pre><p>等等，我們已經寫完了嗎？</p><p>沒錯，就這麼簡單，我們可以同時丟掉跟保留每個元素。</p><p>只要我們用non-deterministic predicate，</p><p>那結果也就是一個non-deterministic value，</p><p>也便是一個list的list。</p><p>試著跑跑看：</p><pre class="code">ghci> powerset [1,2,3]  
+[[1,2,3],[1,2],[1,3],[1],[2,3],[2],[3],[]]</pre><p>這樣的寫法需要讓你好好想一下，</p><p>但如果你能接受list其實就是non-deterministic value的話，</p><p>那要想通會比較容易一些。</p><a name="foldM"></a><h3>foldM</h3><p><code>foldl</code>的monadic的版本叫做<code>foldM</code>。</p><p>如果你還有印象的話，<code>foldl</code>會接受一個binary函數，一個起始累加值跟一串list，</p><p>他會從左邊開始用binary函數每次帶進一個值來fold。</p><p><code>foldM</code>也是做同樣的事，</p><p>只是他接受的這個binary函數會產生monadic value。</p><p>不意外的，他的結果也會是monadic value。</p><p><code>foldl</code>的型態是：</p><pre class="code">foldl :: (a -> b -> a) -> a -> [b] -> a</pre><p>而<code>foldM</code>的型態則是：</p><pre class="code">foldM :: (Monad m) => (a -> b -> m a) -> a -> [b] -> m a</pre><p>binary函數的回傳值是monadic，所以結果也會是monadic。</p><p>我們來試著把list的值用fold全部加起來：</p><pre class="code">ghci> foldl (\acc x -> acc + x) 0 [2,8,3,1]  
+14</pre><p>這邊起始的累加值是<code>0</code>，首先<code>2</code>會被加進去，變成<code>2</code>。</p><p>然後<code>8</code>被加進去變成<code>10</code>，</p><p>直到我們沒有值可以再加，那便是最終的結果。</p><p>但如果我們想額外加一個條件，也就是當碰到一個數字大於<code>9</code>時候，整個運算就算失敗呢？</p><p>一種合理的修改就是用一個binary函數，他會檢查現在這個數是否大於<code>9</code>，</p><p>如果是便引發失敗，如果不是就繼續。</p><p>由於有失敗的可能性，我們便需要這個binary函數回傳一個<code>Maybe</code>，而不是一個普通的值。</p><p>我們來看看這個函數：</p><pre class="code">binSmalls :: Int -> Int -> Maybe Int  
+binSmalls acc x  
+    | x > 9     = Nothing  
+    | otherwise = Just (acc + x)</pre><p>由於這邊的binary函數是monadic function，</p><p>我們不能用普通的<code>foldl</code>，我們必須用<code>foldM</code>：</p><pre class="code">ghci> foldM binSmalls 0 [2,8,3,1]  
+Just 14  
+ghci> foldM binSmalls 0 [2,11,3,1]  
+Nothing</pre><p>由於這串list中有一個數值大於<code>9</code>，所以整個結果會是<code>Nothing</code>。</p><p>另外你也可以嘗試fold一個回傳<code>Writer</code>的binary函數，</p><p>他會在fold的過程中紀錄你想紀錄的資訊。</p><a name="Making a safe RPN calculator"></a><h3>Making a safe RPN calculator</h3><p>之前的章節我們實作了一個RPN計算機，但我們沒有做錯誤的處理。</p><p>他只有在輸入是合法的時候才會運算正確。</p><p>假如有東西出錯了，整個程式便會當掉。</p><p>我們在這章看到了要怎樣把程式碼轉換成monadic的版本，</p><p>我們先嘗適用<code>Maybe</code>monad來幫我們的RPN計算機加上些錯誤處理。</p><p>我們的RPN計算機接受一個像<code>"1 3 + 2 *"</code>這樣的字串，</p><p>把他斷成word，變成<code>["1","3","+","2","*"]</code>這樣。</p><p>然後用一個binary函數，跟一個空的堆疊，從左邊開始或是將數值推進堆疊中，或是操作堆疊最上層的兩個元素。</p><p>以下便是程式的核心部份：</p><pre class="code">import Data.List  
+  
+solveRPN :: String -> Double  
+solveRPN = head . foldl foldingFunction [] . words</pre><p>我們把輸入變成一個字串的list，從左邊開始fold，當堆疊中只剩下一個元素的時候，他便是我們要的答案。</p><p>以下是我們的folding函數：</p><pre class="code">foldingFunction :: [Double] -> String -> [Double]  
+foldingFunction (x:y:ys) "*" = (x * y):ys  
+foldingFunction (x:y:ys) "+" = (x + y):ys  
+foldingFunction (x:y:ys) "-" = (y - x):ys  
+foldingFunction xs numberString = read numberString:xs</pre><p>這邊我們的累加元素是一個堆疊，我們用一個<code>Double</code>的list來表示他。</p><p>當我們在做folding的過程，如果當前的元素是一個operator，</p><p>他會從堆疊上拿下兩個元素，</p><p>用operator施行運算然後把結果放回堆疊。</p><p>如果當前的元素是一個表示成字串的數字，</p><p>他會把字串轉換成數字，並回傳一個新的堆疊包含了轉換後的數字。</p><p>我們首先把我們的folding函數加上處理錯誤的case，</p><p>所以他的型態會變成這樣：</p><pre class="code">foldingFunction :: [Double] -> String -> Maybe [Double]</pre><p>他不是回傳一個<code>Just</code>的堆疊就是回傳<code>Nothing</code>。</p><p><code>reads</code>函數就像<code>read</code>一樣，差別在於他回傳一個list。</p><p>在成功讀取的情況下list中只工讀取的那個元素。</p><p>如果他失敗了，他會回傳一個空的list。</p><p>除了回傳讀取的元素，他也回傳剩下讀取失敗的元素。</p><p>他必須要看完整串輸入，</p><p>我們想把他弄成一個<code>readMaybe</code>的函數，好方便我們進行。</p><pre class="code">readMaybe :: (Read a) => String -> Maybe a  
+readMaybe st = case reads st of [(x,"")] -> Just x  
+                                _ -> Nothing</pre><p>測試結果如下：</p><pre class="code">ghci> readMaybe "1" :: Maybe Int  
+Just 1  
+ghci> readMaybe "GO TO HELL" :: Maybe Int  
+Nothing</pre><p>看起來運作正常。</p><p>我們再把他變成一個可以處理失敗情況的monadic函數</p><pre class="code">foldingFunction :: [Double] -> String -> Maybe [Double]  
+foldingFunction (x:y:ys) "*" = return ((x * y):ys)  
+foldingFunction (x:y:ys) "+" = return ((x + y):ys)  
+foldingFunction (x:y:ys) "-" = return ((y - x):ys)  
+foldingFunction xs numberString = liftM (:xs) (readMaybe numberString)</pre><p>前三種case跟前面的很像，只差在堆疊現在是包在<code>Just</code>裡面（我們常常是用<code>return</code>來做到這件事，但其實我們也可以用<code>Just</code>）。</p><p>在最後一種情況，我們用<code>readMaybe numberString</code>然後我們用<code>(:xs)</code>map over他。</p><p>所以如果堆疊<code>xs</code>是<code>[1.0,2.0]</code>且<code>readMaybe numberString</code>產生<code>Just 3.0</code>，</p><p>那結果便是<code>Just [3.0,1.0,2.0]</code>。</p><p>如果<code>readyMaybe numberString</code>產生<code>Nothing</code>那結果便是<code>Nothing</code>。</p><p>我們來試著跑跑看folding函數</p><pre class="code">ghci> foldingFunction [3,2] "*"  
+Just [6.0]  
+ghci> foldingFunction [3,2] "-"  
+Just [-1.0]  
+ghci> foldingFunction [] "*"  
+Nothing  
+ghci> foldingFunction [] "1"  
+Just [1.0]  
+ghci> foldingFunction [] "1 wawawawa"  
+Nothing</pre><p>看起來正常運作。</p><p>我們可以用他來寫一個新的<code>solveRPN</code>。</p><pre class="code">import Data.List  
+  
+solveRPN :: String -> Maybe Double  
+solveRPN st = do  
+  [result] <- foldM foldingFunction [] (words st)  
+  return result</pre><p>我們仍是接受一個字串把他斷成一串word。</p><p>然後我們用一個空的堆疊來作folding的動作，只差在我們用的是<code>foldM</code>而不是<code>foldl</code>。</p><p><code>foldM</code>的結果會是<code>Maybe</code>，<code>Maybe</code>裡面包含了一個只有一個元素的list。</p><p>我們用<code>do</code>expression來取出值，把他綁定到<code>result</code>上。</p><p>當<code>foldM</code>回傳<code>Nothing</code>的時候，整個結果就變成<code>Nothing</code>。</p><p>也特別注意我們有在<code>do</code>裡面做pattern match的動作，</p><p>所以如果list中不是只有一個元素的話，</p><p>最後結果便會是<code>Nohting</code>。</p><p>最後一行我們用<code>return result</code>來展示RPN計算的結果，把他包在一個<code>Maybe</code>裡面。</p><pre class="code">ghci> solveRPN "1 2 * 4 +"  
+Just 6.0  
+ghci> solveRPN "1 2 * 4 + 5 *"  
+Just 30.0  
+ghci> solveRPN "1 2 * 4"  
+Nothing  
+ghci> solveRPN "1 8 wharglbllargh"  
+Nothing</pre><p>第一個例子會失敗是因為list中不是只有一個元素，</p><p>所以<code>do</code>裡面的pattern matching失敗了。</p><p>第二個例子會失敗是因為<code>readMaybe</code>回傳了<code>Nothing</code>。</p><a name="Composing monadic functions"></a><h3>Composing monadic functions</h3><p>當我們介紹monad law的時候，我們說過<code><=<</code>就像是函數合成一樣，</p><p>只差在一個是作用在普通函數<code>a -> b</code>。</p><p>一個是作用在monadic函數<code>a -> m b</code>。</p><pre class="code">ghci> let f = (+1) . (*100)  
+ghci> f 4  
+401  
+ghci> let g = (\x -> return (x+1)) <=< (\x -> return (x*100))  
+ghci> Just 4 >>= g  
+Just 401</pre><p>在這個例子中我們合成了兩個普通的函數，並餵給給他<code>4</code>。</p><p>我們也合成了兩個monadic函數並用<code>>>=</code>餵給他<code>Just 4</code>。</p><p>如果我們在list中有一大堆函數，我們可以把他們合成一個巨大的函數。</p><p>用<code>id</code>當作累加的起點，<code>.</code>當作binary函數，用fold來作這件事。</p><pre class="code">ghci> let f = foldr (.) id [(+1),(*100),(+1)]  
+ghci> f 1  
+201</pre><p><code>f</code>接受一個數字，然後會幫他加<code>1</code>，乘以<code>100</code>，再加<code>1</code>。</p><p>我們也可以將monadic函數用同樣的方式做合成，</p><p>只是不用<code>.</code>而用<code><=<</code>，不用<code>id</code>而用<code>return</code>。</p><p>我們不需要<code>foldM</code>，由於<code><=<</code>只用<code>foldr</code>就足夠了。</p><p>當我們在之前的章節介紹list monad的時候，</p><p>我們用他來解決一個騎士是否能在三步內走到另一點的問題。</p><p>那個函數叫做<code>moveKnight</code>，</p><p>他接受一個座標然後回傳所有可能的下一步。</p><p>然後產生出所有可能三步的移動。</p><pre class="code">in3 start = return start >>= moveKnight >>= moveKnight >>= moveKnight</pre><p>要檢查我們是否能只用三步從<code>start</code>走到<code>end</code>，我們用下列函數</p><pre class="code">canReachIn3 :: KnightPos -> KnightPos -> Bool  
+canReachIn3 start end = end `elem` in3 start</pre><p>如果使用monadic版本的合成的話，</p><p>我們也可以做一個類似的<code>in3</code>，</p><p>但我們希望他不只有三步的版本，而希望有任意步的版本。</p><p>如果你仔細觀察<code>in3</code>，他只不過用<code>>>=</code>跟<code>moveKnight</code>把之前所有可能結果餵到下一步。</p><p>把他一般化，就會像下面的樣子：</p><pre class="code">import Data.List  
+  
+inMany :: Int -> KnightPos -> [KnightPos]  
+inMany x start = return start >>= foldr (<=<) return (replicate x moveKnight)</pre><p>首先我們用<code>replicate</code>來做出一個list，裡面有<code>x</code>份的<code>moveKnight</code>。</p><p>然後我們把所有函數都合成起來，就會給我們從起點走<code>x</code>步內所有可能的的位置。</p><p>然後我們只需要把起始位置餵給他就好了。</p><p>我們也可以一般化我們的<code>canReachIn3</code>：</p><pre class="code">canReachIn :: Int -> KnightPos -> KnightPos -> Bool  
+canReachIn x start end = end `elem` inMany x start</pre><a name="定義自己的Monad"></a><h2>定義自己的Monad</h2><p>在這一章節，我們會帶你看看究竟一個型態是怎麼被辨認，確認是一個monad而且正確定義出<code>Monad</code>的instance。</p><p>我們通常不會為了定義monad而定義。</p><p>比較常發生的是，我們想要針對一個問題建立模型，卻稍後發現我們定義的型態其實是一個Monad，所以就定義一個<code>Monad</code>的instance。</p><p>正如我們看到的，list是被拿來當作non-deterministic values。對於<code>[3,5,9]</code>，</p><p>我們可以看作是一個non-deterministic value，我們不能知道究竟是哪一個。</p><p>當我們把一個list用<code>>>=</code>餵給一個函數，</p><p>他就是把一串可能的選擇都丟給函數，函數一個個去計算在那種情況下的結果，結果也便是一個list。</p>
             <ul class="nav">
                 <li class="left">  <img src="img/prv.png"></img><a href="a-fistful-of-monads.html">來看看幾種Moand</a></li>
                 <li class="center"><a href="chapters.html">Index</a></li>

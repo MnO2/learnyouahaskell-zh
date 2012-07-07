@@ -70,7 +70,18 @@ freeTree =
                   (Node 'C' Empty Empty)  
              )  
         )</pre><p>畫成圖的話就是像這樣：</p><img src="img/pollywantsa.png" style="float:right"></img><p>注意到<code>W</code>這個節點了嗎？</p><p>如果我們想要把他變成<code>P</code>。我們會怎麼做呢？</p><p>一種方式是用pattern match的方式做，直到我們找到那個節點為止。</p><p>要先往右走再往左走，再改變元素內容，像是這樣：</p><pre class="code">changeToP :: Tree Char -> Tree Char  
-changeToP (Node x l (Node y (Node _ m n) r)) = Node x l (Node y (Node 'P' m n) r)</pre><a name="凡走過必留下痕跡"></a><h2>凡走過必留下痕跡</h2><a name="來看串列"></a><h2>來看串列</h2><a name="陽春的檔案系統"></a><h2>陽春的檔案系統</h2><a name="小心每一步"></a><h2>小心每一步</h2>
+changeToP (Node x l (Node y (Node _ m n) r)) = Node x l (Node y (Node 'P' m n) r)</pre><p>這不只看起來很醜，而且很不容易閱讀。</p><p>這到底是怎麼回事？</p><p>我們使用pattern match來拆開我們的樹，</p><p>我們把root綁定成<code>x</code>，把左子樹綁定成<code>l</code>。</p><p>對於右子樹我們繼續使用pattern match。</p><p>直到我們碰到一個子樹他的root是<code>'W'</code>。</p><p>到此為止我們再重建整棵樹，</p><p>新的樹只差在把<code>'W'</code>改成了<code>'P'</code>。</p><p>有沒有比較好的作法呢？</p><p>有一種作法是我們寫一個函數，他接受一個樹跟一串list，裡面包含有行走整個樹時的方向。</p><p>方向可以是<code>L</code>或是<code>R</code>，分別代表向左走或向右走。</p><p>我們只要跟隨指令就可以走達指定的位置：</p><pre class="code">data Direction = L | R deriving (Show)  
+type Directions = [Direction]  
+  
+changeToP :: Directions-> Tree Char -> Tree Char  
+changeToP (L:ds) (Node x l r) = Node x (changeToP ds l) r  
+changeToP (R:ds) (Node x l r) = Node x l (changeToP ds r)  
+changeToP [] (Node _ l r) = Node 'P' l r</pre><p>如果在list中的第一個元素是<code>L</code>，我們會建構一個左子樹變成<code>'P'</code>的新樹。</p><p>當我們遞迴地呼叫<code>changeToP</code>，</p><p>我們只會傳給他剩下的部份，因為前面的部份已經看過了。</p><p>對於<code>R</code>的case也一樣。</p><p>如果list已經消耗完了，</p><p>那表示我們已經走到我們的目的地，</p><p>所以我們就回傳一個新的樹，他的root被修改成<code>'P'</code>。</p><p>要避免印出整棵樹，</p><p>我們要寫一個函數告訴我們目的地究竟是什麼元素。</p><pre class="code">elemAt :: Directions -> Tree a -> a  
+elemAt (L:ds) (Node _ l _) = elemAt ds l  
+elemAt (R:ds) (Node _ _ r) = elemAt ds r  
+elemAt [] (Node x _ _) = x</pre><p>這函數跟<code>changeToP</code>很像，</p><p>只是他不會記下沿路上的資訊，</p><p>他只會記住目的地是什麼。</p><p>我們把<code>'W'</code>變成<code>'P'</code>，然後用他來查看。</p><pre class="code">ghci> let newTree = changeToP [R,L] freeTree  
+ghci> elemAt [R,L] newTree  
+'P'</pre><a name="凡走過必留下痕跡"></a><h2>凡走過必留下痕跡</h2><a name="來看串列"></a><h2>來看串列</h2><a name="陽春的檔案系統"></a><h2>陽春的檔案系統</h2><a name="小心每一步"></a><h2>小心每一步</h2>
             <ul class="nav">
                 <li class="left">  <img src="img/prv.png"></img><a href="for-a-few-monads-more.html">再來看看更多Monad</a></li>
                 <li class="center"><a href="chapters.html">Index</a></li>
