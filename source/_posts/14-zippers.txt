@@ -61,6 +61,60 @@ changeToP :: Tree Char -> Tree Char
 changeToP (Node x l (Node y (Node _ m n) r)) = Node x l (Node y (Node 'P' m n) r)  
 }}
 
+這不只看起來很醜，而且很不容易閱讀。
+這到底是怎麼回事？
+我們使用pattern match來拆開我們的樹，
+我們把root綁定成``x``，把左子樹綁定成``l``。
+對於右子樹我們繼續使用pattern match。
+直到我們碰到一個子樹他的root是``'W'``。
+到此為止我們再重建整棵樹，
+新的樹只差在把``'W'``改成了``'P'``。
+
+有沒有比較好的作法呢？
+有一種作法是我們寫一個函數，他接受一個樹跟一串list，裡面包含有行走整個樹時的方向。
+方向可以是``L``或是``R``，分別代表向左走或向右走。
+我們只要跟隨指令就可以走達指定的位置：
+
+{{
+data Direction = L | R deriving (Show)  
+type Directions = [Direction]  
+  
+changeToP :: Directions-> Tree Char -> Tree Char  
+changeToP (L:ds) (Node x l r) = Node x (changeToP ds l) r  
+changeToP (R:ds) (Node x l r) = Node x l (changeToP ds r)  
+changeToP [] (Node _ l r) = Node 'P' l r  
+}}
+
+如果在list中的第一個元素是``L``，我們會建構一個左子樹變成``'P'``的新樹。
+當我們遞迴地呼叫``changeToP``，
+我們只會傳給他剩下的部份，因為前面的部份已經看過了。
+對於``R``的case也一樣。
+如果list已經消耗完了，
+那表示我們已經走到我們的目的地，
+所以我們就回傳一個新的樹，他的root被修改成``'P'``。
+
+要避免印出整棵樹，
+我們要寫一個函數告訴我們目的地究竟是什麼元素。
+
+{{
+elemAt :: Directions -> Tree a -> a  
+elemAt (L:ds) (Node _ l _) = elemAt ds l  
+elemAt (R:ds) (Node _ _ r) = elemAt ds r  
+elemAt [] (Node x _ _) = x  
+}}
+
+這函數跟``changeToP``很像，
+只是他不會記下沿路上的資訊，
+他只會記住目的地是什麼。
+我們把``'W'``變成``'P'``，然後用他來查看。
+
+
+{{
+ghci> let newTree = changeToP [R,L] freeTree  
+ghci> elemAt [R,L] newTree  
+'P' 
+}}
+
 
 ==凡走過必留下痕跡
 

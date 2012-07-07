@@ -235,7 +235,7 @@ ghci> filter (`elem` ['A'..'Z']) "i lauGh At You BecAuse u r aLL the Same"
 quicksort :: (Ord a) => [a] -> [a]    
 quicksort [] = []    
 quicksort (x:xs) =     
-    let smallerSorted = quicksort (filter (<x) xs)
+    let smallerSorted = quicksort (filter (<=x) xs)
         biggerSorted = quicksort (filter (>x) xs)   
     in  smallerSorted ++ [x] ++ biggerSorted  
 }}
