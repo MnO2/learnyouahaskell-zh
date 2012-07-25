@@ -404,7 +404,41 @@ canReachIn3 start end = end `elem` in3 start</pre><p>如果使用monadic版本�
   
 inMany :: Int -> KnightPos -> [KnightPos]  
 inMany x start = return start >>= foldr (<=<) return (replicate x moveKnight)</pre><p>首先我們用<code>replicate</code>來做出一個list，裡面有<code>x</code>份的<code>moveKnight</code>。</p><p>然後我們把所有函數都合成起來，就會給我們從起點走<code>x</code>步內所有可能的的位置。</p><p>然後我們只需要把起始位置餵給他就好了。</p><p>我們也可以一般化我們的<code>canReachIn3</code>：</p><pre class="code">canReachIn :: Int -> KnightPos -> KnightPos -> Bool  
-canReachIn x start end = end `elem` inMany x start</pre><a name="定義自己的Monad"></a><h2>定義自己的Monad</h2><p>在這一章節，我們會帶你看看究竟一個型態是怎麼被辨認，確認是一個monad而且正確定義出<code>Monad</code>的instance。</p><p>我們通常不會為了定義monad而定義。</p><p>比較常發生的是，我們想要針對一個問題建立模型，卻稍後發現我們定義的型態其實是一個Monad，所以就定義一個<code>Monad</code>的instance。</p><p>正如我們看到的，list是被拿來當作non-deterministic values。對於<code>[3,5,9]</code>，</p><p>我們可以看作是一個non-deterministic value，我們不能知道究竟是哪一個。</p><p>當我們把一個list用<code>>>=</code>餵給一個函數，</p><p>他就是把一串可能的選擇都丟給函數，函數一個個去計算在那種情況下的結果，結果也便是一個list。</p>
+canReachIn x start end = end `elem` inMany x start</pre><a name="定義自己的Monad"></a><h2>定義自己的Monad</h2><p>在這一章節，我們會帶你看看究竟一個型態是怎麼被辨認，確認是一個monad而且正確定義出<code>Monad</code>的instance。</p><p>我們通常不會為了定義monad而定義。</p><p>比較常發生的是，我們想要針對一個問題建立模型，卻稍後發現我們定義的型態其實是一個Monad，所以就定義一個<code>Monad</code>的instance。</p><p>正如我們看到的，list是被拿來當作non-deterministic values。對於<code>[3,5,9]</code>，</p><p>我們可以看作是一個non-deterministic value，我們不能知道究竟是哪一個。</p><p>當我們把一個list用<code>>>=</code>餵給一個函數，</p><p>他就是把一串可能的選擇都丟給函數，函數一個個去計算在那種情況下的結果，結果也便是一個list。</p><p>如果我們把<code>[3,5,9]</code>看作是<code>3</code>,<code>5</code>,<code>9</code>各出現一次，</p><p>但這邊沒有每一種數字出現的機率。</p><p>如果我們把non-deterministic的值看作是<code>[3,5,9]</code>，</p><p>但<code>3</code>出現的機率是50%，<code>5</code>跟<code>9</code>出現的機率各是25%呢？</p><p>我們來試著用Haskell描述看看。</p><p>如果說list中的每一個元素都伴隨著他出現的機率。</p><p>那下面的形式就蠻合理的：</p><pre class="code">[(3,0.5),(5,0.25),(9,0.25)]</pre><p>在數學上，機率通常不是用百分比表示，而是用介於0跟1的實數表示。</p><p>0代表不可能會發生，而1代表絕對會發生。</p><p>但浮點數很有可能很快隨著運算失去精準度，</p><p>所以Haskell有提供有理數。</p><p>他的型態是擺在<code>Data.Ratio</code>中，叫做<code>Rational</code>。</p><p>要創造出一個<code>Rational</code>，我們會把他寫成一個分數的形式。</p><p>分子跟分母用<code>%</code>分隔。</p><p>這邊有幾個例子：</p><pre class="code">ghci> 1%4  
+1 % 4  
+ghci> 1%2 + 1%2  
+1 % 1  
+ghci> 1%3 + 5%4  
+19 % 12</pre><p>第一行代表四分之一，第二行代表兩個二分之一加起來變成一。</p><p>而第三行我們把三分之一跟四分之五加起來變成十二分之十九。</p><p>所以我們來用<code>Rational</code>取代浮點數來當作我們的機率值吧。</p><pre class="code">ghci> [(3,1%2),(5,1%4),(9,1%4)]  
+[(3,1 % 2),(5,1 % 4),(9,1 % 4)]</pre><p>所以<code>3</code>有二分之一的機會出現，而<code>5</code>跟<code>9</code>有四分之一的機會出現。</p><p>可以看到我們幫list加上了一些額外的context。</p><p>再我們繼續深入之前，我們用一個<code>newtype</code>把他包起來，</p><p>好讓我們幫他寫instance。</p><pre class="code">import Data.Ratio
+
+newtype Prob a = Prob { getProb :: [(a,Rational)] } deriving Show</pre><p>接著我們想問，這是一個functor嗎？</p><p>list是一個functor，所以很有可能他也是一個functor，畢竟我們只是在list上多加一些東西而已。</p><p>在list的情況下，我們可以針對每個元素用函數做處理。</p><p>這邊我們也是用函數針對每個元素做處理，只是我們是輸出機率值。</p><p>所以我們就來寫個functor的instance吧。</p><pre class="code">instance Functor Prob where  
+    fmap f (Prob xs) = Prob $ map (\(x,p) -> (f x,p)) xs</pre><p>我們可以用pattern matching的方式把<code>newtype</code>解開來，套用函數<code>f</code>之後再包回去。</p><p>過程中不會動到機率值。</p><pre class="code">ghci> fmap negate (Prob [(3,1%2),(5,1%4),(9,1%4)])  
+Prob {getProb = [(-3,1 % 2),(-5,1 % 4),(-9,1 % 4)]}</pre><p>要注意機率的和永遠是<code>1</code>。</p><p>如果我們沒有漏掉某種情形的話，沒有道理他們加起來的值不為<code>1</code>。</p><p>一個有75%機率是正面以及50%機率是反面的硬幣根本沒什麼道理。</p><p>接著要問一個重要的問題，他是一個monad嗎？</p><p>我們知道list是一個monad，所以他很有可能也是一個monad。</p><p>首先來想想<code>return</code>。他在list是怎麼運作的？</p><p>他接受一個普通的值並把他放到一個list中變成只有一個元素的list。</p><p>那在這邊又如何？</p><p>由於他是一個最小的context，他也應該是一個元素的list。</p><p>那機率值呢？<code>return x</code>的值永遠都是<code>x</code>，所以機率值不應該是<code>0</code>，而應該是<code>1</code>。</p><p>至於<code>>>=</code>呢？看起來有點複雜，所以我們換種方式來思考，</p><p>我們知道<code>m >>= f</code>會等價於<code>join (fmap f m)</code>，</p><p>所以我們來想要怎麼把一串包含probability list的list弄平。</p><p>舉個例子，考慮一個list，<code>'a'</code>跟<code>'b'</code>恰出現其中一個的機率為25%，兩個出現的機率相等。</p><p>而<code>'c'</code>跟<code>'d'</code>恰出現其中一個的機率為75%，兩個出現的機率也是相等。</p><p>這邊有一個圖將情形畫出來。</p><p>每個字母發生的機率有多高呢？</p><p>如果我們用四個盒子來代表每個字母，那每個盒子的機率為何？</p><p>每個盒子的機率是他們所裝有的機率值相乘的結果。</p><p><code>'a'</code>的機率是八分之一，<code>'b'</code>同樣也是八分之一。</p><p>八分之一是因為我們把二分之一跟四分之一相乘得到的結果。</p><p>而<code>'c'</code>發生的機率是八分之三，是因為二分之一乘上四分之三。</p><p><code>'d'</code>同樣也是八分之三。</p><p>如果把所有的機率加起來，就會得到一，符合機率的規則。</p><p>來看看怎麼用一個list表達我們要說明的東西：</p><pre class="code">thisSituation :: Prob (Prob Char)  
+thisSituation = Prob  
+    [( Prob [('a',1%2),('b',1%2)] , 1%4 )  
+    ,( Prob [('c',1%2),('d',1%2)] , 3%4)  
+    ]</pre><p>注意到這邊的型態是<code>Prob (Prob Char)</code>。</p><p>所以我們要思考的是如何把一串包含機率list的list打平。</p><p>如果能成功寫出這樣的邏輯，<code>>>=</code>不過就是<code>join (fmap f m)</code>，我們便得到了一個monad。</p><p>我們這邊寫了一個<code>flatten</code>來做這件事。</p><pre class="code">flatten :: Prob (Prob a) -> Prob a  
+flatten (Prob xs) = Prob $ concat $ map multAll xs  
+    where multAll (Prob innerxs,p) = map (\(x,r) -> (x,p*r)) innerxs</pre><p><code>multAll</code>接受一個tuple，裡面包含一個probability list跟一個伴隨的機率值<code>p</code>，</p><p>所以我們要作的事是把list裡面的機率值都乘以<code>p</code>，並回傳一個新的tuple包含新的list跟新的機率值。</p><p>我們將<code>multAll</code>map over到我們的probability list上，我們就成功地打平了我們的list。</p><p>現在我們就能定義我們的<code>Monad</code>instance。</p><pre class="code">instance Monad Prob where  
+    return x = Prob [(x,1%1)]  
+    m >>= f = flatten (fmap f m)  
+    fail _ = Prob []</pre><p>由於我們已經把所有苦工的做完了，定義這個instance顯得格外輕鬆。</p><p>我們也定義了<code>fail</code>，我們定義他的方式跟定義list一樣。</p><p>如果在<code>do</code>中發生了失敗的pattern match，那就會呼叫<code>fail</code>。</p><p>檢查我們定義的instance是否遵守monad law也是很重要的。</p><p>monad law的第一個定律是<code>return x >>= f</code>應該要等價於<code>f x</code>。</p><p>要寫出嚴格的證明會很麻煩，</p><pre class="code">data Coin = Heads | Tails deriving (Show, Eq)  
+
+coin :: Prob Coin  
+coin = Prob [(Heads,1%2),(Tails,1%2)]  
+
+loadedCoin :: Prob Coin  
+loadedCoin = Prob [(Heads,1%10),(Tails,9%10)]</pre><p>最後，來看看擲硬幣的函數：</p><pre class="code">import Data.List (all)  
+  
+flipThree :: Prob Bool  
+flipThree = do  
+  a <- coin  
+  b <- coin  
+  c <- loadedCoin  
+  return (all (==Tails) [a,b,c])</pre><p>試著跑一下的話，我們會看到儘管我們用了不公平的硬幣，三個反面的機率還是不高。</p><pre class="code">ghci> getProb flipThree  
+[(False,1 % 40),(False,9 % 40),(False,1 % 40),(False,9 % 40),  
+ (False,1 % 40),(False,9 % 40),(False,1 % 40),(True,9 % 40)]</pre>
             <ul class="nav">
                 <li class="left">  <img src="img/prv.png"></img><a href="a-fistful-of-monads.html">來看看幾種Moand</a></li>
                 <li class="center"><a href="chapters.html">Index</a></li>
