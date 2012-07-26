@@ -115,8 +115,84 @@ ghci> elemAt [R,L] newTree
 'P' 
 }}
 
+看起來運作正常。
+在這些函數裡面，包含方向的list比較像是一種"focus"，
+因為他特別指出了一棵子樹。
+一個像``[R]``這樣的list是聚焦在root的右子樹。
+一個空的list代表的是主樹本身。
+
+這個技巧看起來酷炫，但卻不太有效率，特別是在我們想要重複地改變內容的時候。
+假如我們有一個非常大的樹以及非常長的一串包含方向的list。
+我們需要沿著方向從root一直走到樹的底部。
+如果我們想要改變一個鄰近的元素，我們仍需要從root開始走到樹的底部。
+這實在不太令人滿意。
+
+在下一個章節，我們會介紹一個比較好的方法，讓我們可以有效率地改變我們的focus。
 
 ==凡走過必留下痕跡
+
+我們需要一個比包含一串方向的list更好的聚焦的方法。
+如果我們能夠在從root走到指定地點的沿路上撒下些麵包屑，來紀錄我們的足跡呢？
+當我們往左走，我們便記住我們選擇了左邊，當我們往右走，便記住我們選擇了右邊。
+
+要找個東西來代表我們的麵包屑，就用一串``Direction`` (他可以是``L``或者是``R``)，
+只是我們叫他``BreadCrumb``而不叫``Direction``。
+這是因為現在我們把這串direction反過來看了：
+
+{{
+type Breadcrumbs = [Direction]
+}}
+
+這邊有一個函數，他接受一棵樹跟一些麵包屑，並在我們往左走時在list的前頭加上``L``
+
+{{
+goLeft :: (Tree a, Breadcrumbs) -> (Tree a, Breadcrumbs)
+goLeft (Node _ l _, bs) = (l, L:bs)
+}}
+
+我們忽略root跟右子樹，直接回傳左子樹以及麵包屑，只是在現有的麵包屑前面加上``L``。
+再來看看往右走的函數：
+
+{{
+goRight :: (Tree a, Breadcrumbs) -> (Tree a, Breadcrumbs)  
+goRight (Node _ _ r, bs) = (r, R:bs)  
+}}
+
+幾乎是一模一樣。
+我們再來做一個先往右走再往左走的函數，讓他來走我們的``freeTree``
+
+{{
+ghci> goLeft (goRight (freeTree, []))  
+(Node 'W' (Node 'C' Empty Empty) (Node 'R' Empty Empty),[L,R])  
+}}
+
+現在我們有了一棵樹，他的root是``'W'``，而他的左子樹的root是``'C'``，
+右子樹的root是``'R'``。
+而由於我們先往右走再往左走，所以麵包屑是``[L,R]``。
+
+要再表示得更清楚些，我們能用定義一個``-:``
+
+{{
+x -: f = f x
+}}
+
+他讓我們可以將值餵給函數這件事反過來寫，
+先寫值，再來是``-:``，最後是函數。
+所以我們可以寫成``(freeTree, []) -: goRight``而不是``goRight (freeTree, [])``。
+我們便可以把上面的例子改寫地更清楚。
+
+{{
+ghci> (freeTree, []) -: goRight -: goLeft  
+(Node 'W' (Node 'C' Empty Empty) (Node 'R' Empty Empty),[L,R])  
+}}
+
+===Going back up
+
+
+
+===I'm going straight to top, oh yeah, up where the air is fresh and clean!
+
+
 
 ==來看串列
 

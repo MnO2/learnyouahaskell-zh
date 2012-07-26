@@ -888,27 +888,15 @@ Right 103
 
 ==一些實用的Moandic functions
 
-在這個章節，我們會看看一些操作monadiv value的函數。
-這樣的函數通常我們稱呼他們為monadiv function。
-其中有些你是第一次見到，但有些不過是``filter``或``foldl``的變形。
-讓我們來看看吧！
+在這個章節，我們會看看一些操作monadiv value的函數。這樣的函數通常我們稱呼他們為monadiv function。其中有些你是第一次見到，但有些不過是``filter``或``foldl``的變形。讓我們來看看吧！
 
 ===liftM 
 
-當我們開始學習Monad的時候，我們是先學習functors，他代表可以被map over的事物。
-接著我們學了functors的加強版，也就是applicative functors，他可以對applicative values做函數的套用，
-也可以把一個一般值放到一個預設的context中。
-最後，我們介紹在applicative functors上更進一步的monad，他讓這些具有context的值可以被餵進一般函數中。 
+當我們開始學習Monad的時候，我們是先學習functors，他代表可以被map over的事物。接著我們學了functors的加強版，也就是applicative functors，他可以對applicative values做函數的套用，也可以把一個一般值放到一個預設的context中。最後，我們介紹在applicative functors上更進一步的monad，他讓這些具有context的值可以被餵進一般函數中。 
 
-也就是說每一個monad都是個applicative functor，而每一個applicative functor也都是一個functor。
-``Applicative`` typeclass中有加入限制，讓每一個``Applicative``都是``Functor``。
-但``Monad``卻沒有這樣的限制，讓每個``Monad``都是``Applicative``。
-這是因為``Monad``這個typeclass是在``Applicative``引入前就存在的緣故。
+也就是說每一個monad都是個applicative functor，而每一個applicative functor也都是一個functor。``Applicative`` typeclass中有加入限制，讓每一個``Applicative``都是``Functor``。但``Monad``卻沒有這樣的限制，讓每個``Monad``都是``Applicative``。這是因為``Monad``這個typeclass是在``Applicative``引入前就存在的緣故。
 
-但即使每個monad都是一個functor，但我們不需要依賴``Functor``的定義。
-那是因為我們有``liftM``這個函數。
-他會接受一個函數跟一個monadic value，然後把函數map over那些monadic value。
-所以他其實就是``fmap``，以下是他的型態：
+但即使每個monad都是一個functor，但我們不需要依賴``Functor``的定義。那是因為我們有``liftM``這個函數。他會接受一個函數跟一個monadic value，然後把函數map over那些monadic value。所以他其實就是``fmap``，以下是他的型態：
 
 {{
 liftM :: (Monad m) => (a -> b) -> m a -> m b  
@@ -920,11 +908,7 @@ liftM :: (Monad m) => (a -> b) -> m a -> m b
 fmap :: (Functor f) => (a -> b) -> f a -> f b
 }}
 
-如果``Functor``跟``Monad``的instance遵守functor跟monad的法則（到目前為止我們看過的monad都遵守），
-那這兩個函數其實是等價的。
-這就像``pure``跟``return``其實是同一件事，
-只是一個在``Applicative``中，而另外一個在``Monad``裡面，
-我們來試試看``liftM``吧：
+如果``Functor``跟``Monad``的instance遵守functor跟monad的法則（到目前為止我們看過的monad都遵守），那這兩個函數其實是等價的。這就像``pure``跟``return``其實是同一件事，只是一個在``Applicative``中，而另外一個在``Monad``裡面，我們來試試看``liftM``吧：
 
 {{
 ghci> liftM (*3) (Just 8)  
@@ -941,11 +925,7 @@ ghci> runState (fmap (+100) pop) [1,2,3,4]
 (101,[2,3,4]) 
 }}
 
-我們已經知道``fmap``是如何運作在``Maybe``上。
-而``liftM``又跟``fmap``等價。
-對於``Writer``型態的值而言，函數只有對他的第一個component做處理。
-而對於改變狀態的計算，``fmap``跟``liftM``也都是產生另一個改變狀態的計算。
-我們也看過了``(+100)``當作用在``pop``上會產生``(1, [2,3,4])``。
+我們已經知道``fmap``是如何運作在``Maybe``上。而``liftM``又跟``fmap``等價。對於``Writer``型態的值而言，函數只有對他的第一個component做處理。而對於改變狀態的計算，``fmap``跟``liftM``也都是產生另一個改變狀態的計算。我們也看過了``(+100)``當作用在``pop``上會產生``(1, [2,3,4])``。
 
 來看看``liftM``是如何被實作的：
 {{
@@ -962,11 +942,7 @@ liftM f m = do
     return (f x)  
 }}
 
-我們餵一個monadic value ``m``給函數，我們套用那個函數然後把結果放進一個預設的context。
-由於遵守monad laws，這保證這操作不會改變context，只會呈現最後的結果。
-我們可以看到實作中``liftM``也沒有用到``Functor``的性質。
-這代表我們能只用monad提供給我們的就實作完``fmap``。
-這特性讓我們可以得到monad比functor性質要強的結論。
+我們餵一個monadic value ``m``給函數，我們套用那個函數然後把結果放進一個預設的context。由於遵守monad laws，這保證這操作不會改變context，只會呈現最後的結果。我們可以看到實作中``liftM``也沒有用到``Functor``的性質。這代表我們能只用monad提供給我們的就實作完``fmap``。這特性讓我們可以得到monad比functor性質要強的結論。
 
 ``Applicative``讓我們可以操作具有context的值就像操作一般的值一樣。
 就像這樣：
@@ -985,13 +961,9 @@ Nothing
 (<*>) :: (Applicative f) => f (a -> b) -> f a -> f b  
 }}
 
-他有點像``fmap``，只是函數本身有一個context。
-我們必須把他從context中抽出，對``f a``做map over的東做，然後再放回context中。
-由於在Haskel中函數預設都是curried，我們便能用``<$>``以及``<*>``來讓接受多個參數的函數也能接受applicative種類的值。
+他有點像``fmap``，只是函數本身有一個context。我們必須把他從context中抽出，對``f a``做map over的東做，然後再放回context中。由於在Haskel中函數預設都是curried，我們便能用``<$>``以及``<*>``來讓接受多個參數的函數也能接受applicative種類的值。
 
-總之``<*>``跟``fmap``很類似，他也能只用``Monad``保證的性質實作出來。
-``ap```這個函數基本上就是``<*>``，只是他是限制在``Monad``上而不是``Applicative``上。
-這邊是他的定義：
+總之``<*>``跟``fmap``很類似，他也能只用``Monad``保證的性質實作出來。``ap```這個函數基本上就是``<*>``，只是他是限制在``Monad``上而不是``Applicative``上。這邊是他的定義：
 
 {{
 ap :: (Monad m) => m (a -> b) -> m a -> m b  
@@ -1002,10 +974,7 @@ ap mf m = do
 }}
 
 
-``mf``是一個monadic value，他的結果是一個函數。
-由於函數跟值都是放在context中，假設我們從context取出的函數叫``f``，從context取出的值叫``x``，
-我們把``x``餵給``f``然後再把結果放回context。
-像這樣：
+``mf``是一個monadic value，他的結果是一個函數。由於函數跟值都是放在context中，假設我們從context取出的函數叫``f``，從context取出的值叫``x``，我們把``x``餵給``f``然後再把結果放回context。像這樣：
 
 {{
 ghci> Just (+3) <*> Just 4  
@@ -1019,43 +988,29 @@ ghci> [(+1),(+2),(+3)] `ap` [10,11]
 }}
 
 
-由於我們能用``Monad``提供的函數實作出``Applicative``的函數，因此我們看到Monad有比applicative強的性質。
-事實上，當我們知道一個型態是monad的時候，
-大多數會先定義出``Monad``的instance，然後才定義``Applicative``的instance。
-而且只要把``pure``定義成``return``，``<*>``定義成``ap``就行了。
-同樣的，如果你已經有了``Monad``的instance，你也可以簡單的定義出``Functor``，
-只要把``fmap``定義成``liftM``就行了。
+由於我們能用``Monad``提供的函數實作出``Applicative``的函數，因此我們看到Monad有比applicative強的性質。事實上，當我們知道一個型態是monad的時候，大多數會先定義出``Monad``的instance，然後才定義``Applicative``的instance。而且只要把``pure``定義成``return``，``<*>``定義成``ap``就行了。同樣的，如果你已經有了``Monad``的instance，你也可以簡單的定義出``Functor``，只要把``fmap``定義成``liftM``就行了。
 
-``liftA2``是一個方便的函數，他可以把兩個applicative的值餵給一個函數。
-他的定義很簡單：
+``liftA2``是一個方便的函數，他可以把兩個applicative的值餵給一個函數。他的定義很簡單：
 
 {{
 liftA2 :: (Applicative f) => (a -> b -> c) -> f a -> f b -> f c  
 liftA2 f x y = f <$> x <*> y  
 }}
 
-``liftM2``也是做差不多的事情，只是多了``Monad``的限制。
-在函式庫中其實也有``liftM3``，``liftM4``跟``liftM5``。
+``liftM2``也是做差不多的事情，只是多了``Monad``的限制。在函式庫中其實也有``liftM3``，``liftM4``跟``liftM5``。
 
-我們看到了monad相較於applicative跟functor有比較強的性質。
-儘管moand有functor跟applicative functor的性質，但他們不見得有``Functor``跟``Applicative``的instance定義。
-所以我們檢視了一些在monad中定義，且等價於functor或applicative functor所具有的函數。
+我們看到了monad相較於applicative跟functor有比較強的性質。儘管moand有functor跟applicative functor的性質，但他們不見得有``Functor``跟``Applicative``的instance定義。所以我們檢視了一些在monad中定義，且等價於functor或applicative functor所具有的函數。
 
 
 ===The join function
 
-如果一個monadic value的結果是另一個monadic value，也就是其中一個monadic value被包在另一個裡面，
-你能夠把他們變成一個普通的monadic value嗎？就好像把他們打平一樣。
-譬如說，我們有``Just (Just 9)``，我們能夠把他變成``Just 9``嗎？
-事實上是可以的，這也是monad的一個性質。
-也就是我要看的``join``函數，他的型態是這樣：
+如果一個monadic value的結果是另一個monadic value，也就是其中一個monadic value被包在另一個裡面，你能夠把他們變成一個普通的monadic value嗎？就好像把他們打平一樣。譬如說，我們有``Just (Just 9)``，我們能夠把他變成``Just 9``嗎？事實上是可以的，這也是monad的一個性質。也就是我要看的``join``函數，他的型態是這樣：
 
 {{
 join :: (Monad m) => m (m a) -> m a  
 }}
 
-他接受一個包在另一個monadic value中的monadic value，然後會回給我們一個普通的monadic value。
-這邊有一些``Maybe``的範例：
+他接受一個包在另一個monadic value中的monadic value，然後會回給我們一個普通的monadic value。這邊有一些``Maybe``的範例：
 
 {{
 ghci> join (Just (Just 9))  
@@ -1066,12 +1021,7 @@ ghci> join Nothing
 Nothing  
 }}
 
-第一行是一個計算成功的結果包在另一個計算成功的結果，他們應該要能結合成為一個比較大的計算成功的結果。
-第二行則是一個``Nothing``包在一個``Just``中。
-我們之前在處理``Maybe``型態的值時，會用``<*>``或``>>=``把他們結合起來。
-輸入必須都是``Just``時結果出來才會是``Just``。
-如果中間有任何的失敗，結果就會是一個失敗的結果。
-而第三行就是這樣，我們嘗試把失敗的結果接合起來，結果也會是一個失敗。
+第一行是一個計算成功的結果包在另一個計算成功的結果，他們應該要能結合成為一個比較大的計算成功的結果。第二行則是一個``Nothing``包在一個``Just``中。我們之前在處理``Maybe``型態的值時，會用``<*>``或``>>=``把他們結合起來。輸入必須都是``Just``時結果出來才會是``Just``。如果中間有任何的失敗，結果就會是一個失敗的結果。而第三行就是這樣，我們嘗試把失敗的結果接合起來，結果也會是一個失敗。
 
 要``join``一個list也是很簡單：
 
@@ -1089,8 +1039,7 @@ ghci> runWriter $ join (Writer (Writer (1,"aaa"),"bbb"))
 (1,"bbbaaa")  
 }}
 
-```"bbb"``先被加到monoid中，接著``"aaa"``被附加上去。
-你想要檢視``Writer``中的值的話，必須先把值寫進去才行。
+```"bbb"``先被加到monoid中，接著``"aaa"``被附加上去。你想要檢視``Writer``中的值的話，必須先把值寫進去才行。
 
 要對``Either``做``join``跟對``Maybe``做``join``是很類似的：
 
@@ -1103,19 +1052,14 @@ ghci> join (Left "error") :: Either String Int
 Left "error"  
 }}
 
-如果我們對一個包了另外一個改變狀態的計算的進行改變狀態的計算，
-要作``join``的動作會讓外面的掀被計算，然後才是計算裡面的：
+如果我們對一個包了另外一個改變狀態的計算的進行改變狀態的計算，要作``join``的動作會讓外面的掀被計算，然後才是計算裡面的：
 
 {{
 ghci> runState (join (State $ \s -> (push 10,1:2:s))) [0,0,0]  
 ((),[10,1,2,0,0,0])  
 }}
 
-這邊的lambda函數接受一個狀態，並把``2``跟``1``放到堆疊中，
-並把``push 10``當作他的結果。
-當對整個東西做``join``的時候，
-他會先把``2``跟``1``放到堆疊上，然後進行``push 10``的計算，
-因而把``10``放到堆疊的頂端。
+這邊的lambda函數接受一個狀態，並把``2``跟``1``放到堆疊中，並把``push 10``當作他的結果。當對整個東西做``join``的時候，他會先把``2``跟``1``放到堆疊上，然後進行``push 10``的計算，因而把``10``放到堆疊的頂端。
 
 ``join``的實作像是這樣：
 
@@ -1126,10 +1070,7 @@ join mm = do
     m  
 }}
 
-因為``mm``的結果會是一個monadic value，
-我們單獨用``m <- mm``拿取他的結果。
-這也可以說明``Maybe``只有當外層跟內層的值都是``Just``的時候才會是``Just``。
-如果把``mm``的值設成``Just (Just 8)``的話，他看起來會是這樣：
+因為``mm``的結果會是一個monadic value，我們單獨用``m <- mm``拿取他的結果。這也可以說明``Maybe``只有當外層跟內層的值都是``Just``的時候才會是``Just``。如果把``mm``的值設成``Just (Just 8)``的話，他看起來會是這樣：
 
 {{
 joinedMaybes :: Maybe Int  
@@ -1138,37 +1079,20 @@ joinedMaybes = do
     m  
 }}
 
-最有趣的是對於一個monadic value而言，用``>>=``把他餵進一個函數其實等價於
-對monad做mapping over的動作，然後用``join``來把值從nested的狀態變成扁平的狀態。
-也就是說``m >>= f``其實就是``join (fmap f m)``。
-如果你仔細想想的話其實很明顯。
-``>>=``的使用方式是，把一個monadic value餵進一個接受普通值的函數，但他卻會回傳monadic value。
-如果我們map over一個monadic value，我們會做成一個monadic value包了另外一個monadic value。
-例如說，我們現在手上有``Just 9``跟``\x -> Just (x+1)``。
-如果我們把這個函數map over ``Just 9``，我們會得到``Just (Just 10)``
+最有趣的是對於一個monadic value而言，用``>>=``把他餵進一個函數其實等價於對monad做mapping over的動作，然後用``join``來把值從nested的狀態變成扁平的狀態。也就是說``m >>= f``其實就是``join (fmap f m)``。如果你仔細想想的話其實很明顯。``>>=``的使用方式是，把一個monadic value餵進一個接受普通值的函數，但他卻會回傳monadic value。如果我們map over一個monadic value，我們會做成一個monadic value包了另外一個monadic value。例如說，我們現在手上有``Just 9``跟``\x -> Just (x+1)``。如果我們把這個函數map over ``Just 9``，我們會得到``Just (Just 10)``
 
-事實上``m >>= f``永遠等價於``join (fmap f m)``這性質非常有用。
-如果我們要定義自己的``Monad`` instance，
-要知道怎麼把nested monadic value變成扁平比起要定義``>>=``是比較容易的一件事。
+事實上``m >>= f``永遠等價於``join (fmap f m)``這性質非常有用。如果我們要定義自己的``Monad`` instance，要知道怎麼把nested monadic value變成扁平比起要定義``>>=``是比較容易的一件事。
 
 
 ===filterM
 
-``filter``函數是Haskell中不可或缺的要素。
-他接受一個斷言(predicate)跟一個list來過濾掉斷言為否的部份並回傳一個新的list。
-他的型態是這樣：
+``filter``函數是Haskell中不可或缺的要素。他接受一個斷言(predicate)跟一個list來過濾掉斷言為否的部份並回傳一個新的list。他的型態是這樣：
 
 {{
 filter :: (a -> Bool) -> [a] -> [a]  
 }}
 
-predicate能接list中的一個元素並回傳一個``Bool``型態的值。
-但如果``Bool``型態其實是一個monadic value呢？也就是他有一個context。
-例如說除了``True``跟``False``之外還伴隨一個monoid，像是``["Accepted the number 5"]``，
-或``["3 is too small"]``。
-照前面所學的聽起來是沒問題，而且產出的list也會跟隨context，在這個例子中就是log。
-所以如果``Bool``會回傳伴隨context的布林值，我們會認為最終的結果也會具有context。
-要不然這些context都會在處理過程中遺失。
+predicate能接list中的一個元素並回傳一個``Bool``型態的值。但如果``Bool``型態其實是一個monadic value呢？也就是他有一個context。例如說除了``True``跟``False``之外還伴隨一個monoid，像是``["Accepted the number 5"]``，或``["3 is too small"]``。照前面所學的聽起來是沒問題，而且產出的list也會跟隨context，在這個例子中就是log。所以如果``Bool``會回傳伴隨context的布林值，我們會認為最終的結果也會具有context。要不然這些context都會在處理過程中遺失。
 
 在``Control.Monad``中的``filterM``函數正是我們所需要的，他的型態如下：
 
@@ -1176,10 +1100,7 @@ predicate能接list中的一個元素並回傳一個``Bool``型態的值。
 filterM :: (Monad m) => (a -> m Bool) -> [a] -> m [a]  
 }}
 
-predicate會回傳一個monadic value，他的結果會是``Bool``型態，
-由於他是monadic value，他的context有可能會是任何context，
-譬如說可能的失敗，non-determinism，甚至其他的context。
-一旦我們能保證context也會被保存在最後的結果中，結果也就是一個monadic value。
+predicate會回傳一個monadic value，他的結果會是``Bool``型態，由於他是monadic value，他的context有可能會是任何context，譬如說可能的失敗，non-determinism，甚至其他的context。一旦我們能保證context也會被保存在最後的結果中，結果也就是一個monadic value。
 
 
 我們來寫一個接受list然後過濾掉小於4的函數。先嘗試使用``filter``函數：
@@ -1189,9 +1110,7 @@ ghci> filter (\x -> x < 4) [9,1,5,2,10,3]
 [1,2,3] 
 }}
 
-很簡單吧。
-接著我們在做個predicate，除了表達``True``或``False``之外，還提供了一個log。
-我們會用``Writer`` monad來表達這件事：
+很簡單吧。接著我們在做個predicate，除了表達``True``或``False``之外，還提供了一個log。我們會用``Writer`` monad來表達這件事：
 
 {{
 keepSmall :: Int -> Writer [String] Bool  
@@ -1204,21 +1123,16 @@ keepSmall x
         return False  
 }}
 
-這個函數會回傳``Writer [String] Bool``而不是一個單純的``Bool``。
-他是一個monadic predicate。
-如果掃到的數字小於``4``的話，我們就會回報要保存他，而且回傳``return True``。
+這個函數會回傳``Writer [String] Bool``而不是一個單純的``Bool``。他是一個monadic predicate。如果掃到的數字小於``4``的話，我們就會回報要保存他，而且回傳``return True``。
 
-接著，我們把他跟一個list餵給``filterM``。
-由於predicate會回傳``Writer``，
-所以結果仍會是一個``Writer``值。
+接著，我們把他跟一個list餵給``filterM``。由於predicate會回傳``Writer``，所以結果仍會是一個``Writer``值。
 
 {{
 ghci> fst $ runWriter $ filterM keepSmall [9,1,5,2,10,3]  
 [1,2,3]  
 }}
 
-要檢查``Writer``的結果，
-我們想要印出log看看裡面有什麼東西：
+要檢查``Writer``的結果，我們想要印出log看看裡面有什麼東西：
 
 {{
 ghci> mapM_ putStrLn $ snd $ runWriter $ filterM keepSmall [9,1,5,2,10,3]  
@@ -1230,13 +1144,9 @@ Keeping 2
 Keeping 3  
 }}
 
-提供monadic predicate給``filterM``，
-我們便能夠做filter的動作，同時還能保有monadic context。
+提供monadic predicate給``filterM``，我們便能夠做filter的動作，同時還能保有monadic context。
 
-一個比較炫的技巧是用``filterM``來產生一個list的powerset。
-一個powerset就是一個集合所有子集所形成的集合。
-如果說我們的list是``[1,2,3]``，
-那他個powerset就會是：
+一個比較炫的技巧是用``filterM``來產生一個list的powerset。一個powerset就是一個集合所有子集所形成的集合。如果說我們的list是``[1,2,3]``，那他個powerset就會是：
 
 {{
 [1,2,3]  
@@ -1249,48 +1159,29 @@ Keeping 3
 []  
 }}
 
-換句話說，要產生一個powerset就是要列出所有要丟掉跟保留的組合。
-``[2,3]``只不過代表我們把``1``給丟掉而已。
+換句話說，要產生一個powerset就是要列出所有要丟掉跟保留的組合。``[2,3]``只不過代表我們把``1``給丟掉而已。
 
 
-我們要依賴non-determinism來寫我們這產生powerset的函數。
-我們接受一個list ``[1,2,3]``然後查看第一個元素，
-這個例子中是``1``，我們會問：我們要保留他呢？還是丟掉他呢？
-答案是我們都要做。
-所以我們會用一個non-determinism的predicate來過濾我的list。
-也就是我們的``powerset``函數：
+我們要依賴non-determinism來寫我們這產生powerset的函數。我們接受一個list ``[1,2,3]``然後查看第一個元素，這個例子中是``1``，我們會問：我們要保留他呢？還是丟掉他呢？答案是我們都要做。所以我們會用一個non-determinism的predicate來過濾我的list。也就是我們的``powerset``函數：
 
 {{
 powerset :: [a] -> [[a]]  
 powerset xs = filterM (\x -> [True, False]) xs 
 }}
 
-等等，我們已經寫完了嗎？
-沒錯，就這麼簡單，我們可以同時丟掉跟保留每個元素。
-只要我們用non-deterministic predicate，
-那結果也就是一個non-deterministic value，
-也便是一個list的list。
-試著跑跑看：
+等等，我們已經寫完了嗎？沒錯，就這麼簡單，我們可以同時丟掉跟保留每個元素。只要我們用non-deterministic predicate，那結果也就是一個non-deterministic value，也便是一個list的list。試著跑跑看：
 
 {{
 ghci> powerset [1,2,3]  
 [[1,2,3],[1,2],[1,3],[1],[2,3],[2],[3],[]]  
 }}
 
-這樣的寫法需要讓你好好想一下，
-但如果你能接受list其實就是non-deterministic value的話，
-那要想通會比較容易一些。
+這樣的寫法需要讓你好好想一下，但如果你能接受list其實就是non-deterministic value的話，那要想通會比較容易一些。
 
 
 ===foldM
 
-``foldl``的monadic的版本叫做``foldM``。
-如果你還有印象的話，``foldl``會接受一個binary函數，一個起始累加值跟一串list，
-他會從左邊開始用binary函數每次帶進一個值來fold。
-``foldM``也是做同樣的事，
-只是他接受的這個binary函數會產生monadic value。
-不意外的，他的結果也會是monadic value。
-``foldl``的型態是：
+``foldl``的monadic的版本叫做``foldM``。如果你還有印象的話，``foldl``會接受一個binary函數，一個起始累加值跟一串list，他會從左邊開始用binary函數每次帶進一個值來fold。``foldM``也是做同樣的事，只是他接受的這個binary函數會產生monadic value。不意外的，他的結果也會是monadic value。``foldl``的型態是：
 
 {{
 foldl :: (a -> b -> a) -> a -> [b] -> a 
@@ -1302,23 +1193,16 @@ foldl :: (a -> b -> a) -> a -> [b] -> a
 foldM :: (Monad m) => (a -> b -> m a) -> a -> [b] -> m a  
 }}
 
-binary函數的回傳值是monadic，所以結果也會是monadic。
-我們來試著把list的值用fold全部加起來：
+binary函數的回傳值是monadic，所以結果也會是monadic。我們來試著把list的值用fold全部加起來：
 
 {{
 ghci> foldl (\acc x -> acc + x) 0 [2,8,3,1]  
 14  
 }}
 
-這邊起始的累加值是``0``，首先``2``會被加進去，變成``2``。
-然後``8``被加進去變成``10``，
-直到我們沒有值可以再加，那便是最終的結果。
+這邊起始的累加值是``0``，首先``2``會被加進去，變成``2``。然後``8``被加進去變成``10``，直到我們沒有值可以再加，那便是最終的結果。
 
-但如果我們想額外加一個條件，也就是當碰到一個數字大於``9``時候，整個運算就算失敗呢？
-一種合理的修改就是用一個binary函數，他會檢查現在這個數是否大於``9``，
-如果是便引發失敗，如果不是就繼續。
-由於有失敗的可能性，我們便需要這個binary函數回傳一個``Maybe``，而不是一個普通的值。
-我們來看看這個函數：
+但如果我們想額外加一個條件，也就是當碰到一個數字大於``9``時候，整個運算就算失敗呢？一種合理的修改就是用一個binary函數，他會檢查現在這個數是否大於``9``，如果是便引發失敗，如果不是就繼續。由於有失敗的可能性，我們便需要這個binary函數回傳一個``Maybe``，而不是一個普通的值。我們來看看這個函數：
 
 {{
 binSmalls :: Int -> Int -> Maybe Int  
@@ -1327,8 +1211,7 @@ binSmalls acc x
     | otherwise = Just (acc + x)  
 }}
 
-由於這邊的binary函數是monadic function，
-我們不能用普通的``foldl``，我們必須用``foldM``：
+由於這邊的binary函數是monadic function，我們不能用普通的``foldl``，我們必須用``foldM``：
 
 {{
 ghci> foldM binSmalls 0 [2,8,3,1]  
@@ -1337,22 +1220,14 @@ ghci> foldM binSmalls 0 [2,11,3,1]
 Nothing  
 }}
 
-由於這串list中有一個數值大於``9``，所以整個結果會是``Nothing``。
-另外你也可以嘗試fold一個回傳``Writer``的binary函數，
-他會在fold的過程中紀錄你想紀錄的資訊。
+由於這串list中有一個數值大於``9``，所以整個結果會是``Nothing``。另外你也可以嘗試fold一個回傳``Writer``的binary函數，他會在fold的過程中紀錄你想紀錄的資訊。
 
 
 ===Making a safe RPN calculator
 
-之前的章節我們實作了一個RPN計算機，但我們沒有做錯誤的處理。
-他只有在輸入是合法的時候才會運算正確。
-假如有東西出錯了，整個程式便會當掉。
-我們在這章看到了要怎樣把程式碼轉換成monadic的版本，
-我們先嘗適用``Maybe`` monad來幫我們的RPN計算機加上些錯誤處理。
+之前的章節我們實作了一個RPN計算機，但我們沒有做錯誤的處理。他只有在輸入是合法的時候才會運算正確。假如有東西出錯了，整個程式便會當掉。我們在這章看到了要怎樣把程式碼轉換成monadic的版本，我們先嘗適用``Maybe`` monad來幫我們的RPN計算機加上些錯誤處理。
 
-我們的RPN計算機接受一個像``"1 3 + 2 *"``這樣的字串，
-把他斷成word，變成``["1","3","+","2","*"]``這樣。
-然後用一個binary函數，跟一個空的堆疊，從左邊開始或是將數值推進堆疊中，或是操作堆疊最上層的兩個元素。
+我們的RPN計算機接受一個像``"1 3 + 2 *"``這樣的字串，把他斷成word，變成``["1","3","+","2","*"]``這樣。然後用一個binary函數，跟一個空的堆疊，從左邊開始或是將數值推進堆疊中，或是操作堆疊最上層的兩個元素。
 
 以下便是程式的核心部份：
 
@@ -1363,8 +1238,7 @@ solveRPN :: String -> Double
 solveRPN = head . foldl foldingFunction [] . words  
 }}
 
-我們把輸入變成一個字串的list，從左邊開始fold，當堆疊中只剩下一個元素的時候，他便是我們要的答案。
-以下是我們的folding函數：
+我們把輸入變成一個字串的list，從左邊開始fold，當堆疊中只剩下一個元素的時候，他便是我們要的答案。以下是我們的folding函數：
 
 {{
 foldingFunction :: [Double] -> String -> [Double]  
@@ -1374,15 +1248,9 @@ foldingFunction (x:y:ys) "-" = (y - x):ys
 foldingFunction xs numberString = read numberString:xs  
 }}
 
-這邊我們的累加元素是一個堆疊，我們用一個``Double``的list來表示他。
-當我們在做folding的過程，如果當前的元素是一個operator，
-他會從堆疊上拿下兩個元素，
-用operator施行運算然後把結果放回堆疊。
-如果當前的元素是一個表示成字串的數字，
-他會把字串轉換成數字，並回傳一個新的堆疊包含了轉換後的數字。
+這邊我們的累加元素是一個堆疊，我們用一個``Double``的list來表示他。當我們在做folding的過程，如果當前的元素是一個operator，他會從堆疊上拿下兩個元素，用operator施行運算然後把結果放回堆疊。如果當前的元素是一個表示成字串的數字，他會把字串轉換成數字，並回傳一個新的堆疊包含了轉換後的數字。
 
-我們首先把我們的folding函數加上處理錯誤的case，
-所以他的型態會變成這樣：
+我們首先把我們的folding函數加上處理錯誤的case，所以他的型態會變成這樣：
 
 {{
 foldingFunction :: [Double] -> String -> Maybe [Double]  
@@ -1390,12 +1258,7 @@ foldingFunction :: [Double] -> String -> Maybe [Double]
 
 他不是回傳一個``Just``的堆疊就是回傳``Nothing``。
 
-``reads``函數就像``read``一樣，差別在於他回傳一個list。
-在成功讀取的情況下list中只工讀取的那個元素。
-如果他失敗了，他會回傳一個空的list。
-除了回傳讀取的元素，他也回傳剩下讀取失敗的元素。
-他必須要看完整串輸入，
-我們想把他弄成一個``readMaybe``的函數，好方便我們進行。
+``reads``函數就像``read``一樣，差別在於他回傳一個list。在成功讀取的情況下list中只工讀取的那個元素。如果他失敗了，他會回傳一個空的list。除了回傳讀取的元素，他也回傳剩下讀取失敗的元素。他必須要看完整串輸入，我們想把他弄成一個``readMaybe``的函數，好方便我們進行。
 
 {{
 readMaybe :: (Read a) => String -> Maybe a  
@@ -1412,8 +1275,7 @@ ghci> readMaybe "GO TO HELL" :: Maybe Int
 Nothing  
 }}
 
-看起來運作正常。
-我們再把他變成一個可以處理失敗情況的monadic函數
+看起來運作正常。我們再把他變成一個可以處理失敗情況的monadic函數
 
 {{
 foldingFunction :: [Double] -> String -> Maybe [Double]  
@@ -1423,12 +1285,7 @@ foldingFunction (x:y:ys) "-" = return ((y - x):ys)
 foldingFunction xs numberString = liftM (:xs) (readMaybe numberString)  
 }}
 
-前三種case跟前面的很像，只差在堆疊現在是包在``Just``裡面（我們常常是用``return``來做到這件事，但其實我們也可以用``Just``）。
-在最後一種情況，我們用``readMaybe numberString``然後我們用``(:xs)`` map over他。
-所以如果堆疊``xs``是``[1.0,2.0]``且``readMaybe numberString``產生``Just 3.0``，
-那結果便是``Just [3.0,1.0,2.0]``。
-如果``readyMaybe numberString``產生``Nothing``那結果便是``Nothing``。
-我們來試著跑跑看folding函數
+前三種case跟前面的很像，只差在堆疊現在是包在``Just``裡面（我們常常是用``return``來做到這件事，但其實我們也可以用``Just``）。在最後一種情況，我們用``readMaybe numberString``然後我們用``(:xs)`` map over他。所以如果堆疊``xs``是``[1.0,2.0]``且``readMaybe numberString``產生``Just 3.0``，那結果便是``Just [3.0,1.0,2.0]``。如果``readyMaybe numberString``產生``Nothing``那結果便是``Nothing``。我們來試著跑跑看folding函數
 
 {{
 ghci> foldingFunction [3,2] "*"  
@@ -1443,8 +1300,7 @@ ghci> foldingFunction [] "1 wawawawa"
 Nothing  
 }}
 
-看起來正常運作。
-我們可以用他來寫一個新的``solveRPN``。
+看起來正常運作。我們可以用他來寫一個新的``solveRPN``。
 
 {{
 import Data.List  
@@ -1455,15 +1311,7 @@ solveRPN st = do
   return result  
 }}
 
-我們仍是接受一個字串把他斷成一串word。
-然後我們用一個空的堆疊來作folding的動作，只差在我們用的是``foldM``而不是``foldl``。
-``foldM``的結果會是``Maybe``，``Maybe``裡面包含了一個只有一個元素的list。
-我們用``do`` expression來取出值，把他綁定到``result``上。
-當``foldM``回傳``Nothing``的時候，整個結果就變成``Nothing``。
-也特別注意我們有在``do``裡面做pattern match的動作，
-所以如果list中不是只有一個元素的話，
-最後結果便會是``Nohting``。
-最後一行我們用``return result``來展示RPN計算的結果，把他包在一個``Maybe``裡面。
+我們仍是接受一個字串把他斷成一串word。然後我們用一個空的堆疊來作folding的動作，只差在我們用的是``foldM``而不是``foldl``。``foldM``的結果會是``Maybe``，``Maybe``裡面包含了一個只有一個元素的list。我們用``do`` expression來取出值，把他綁定到``result``上。當``foldM``回傳``Nothing``的時候，整個結果就變成``Nothing``。也特別注意我們有在``do``裡面做pattern match的動作，所以如果list中不是只有一個元素的話，最後結果便會是``Nohting``。最後一行我們用``return result``來展示RPN計算的結果，把他包在一個``Maybe``裡面。
 
 {{
 ghci> solveRPN "1 2 * 4 +"  
@@ -1476,15 +1324,11 @@ ghci> solveRPN "1 8 wharglbllargh"
 Nothing  
 }}
 
-第一個例子會失敗是因為list中不是只有一個元素，
-所以``do``裡面的pattern matching失敗了。
-第二個例子會失敗是因為``readMaybe``回傳了``Nothing``。
+第一個例子會失敗是因為list中不是只有一個元素，所以``do``裡面的pattern matching失敗了。第二個例子會失敗是因為``readMaybe``回傳了``Nothing``。
 
 ===Composing monadic functions
 
-當我們介紹monad law的時候，我們說過``<=<``就像是函數合成一樣，
-只差在一個是作用在普通函數``a -> b``。
-一個是作用在monadic函數``a -> m b``。
+當我們介紹monad law的時候，我們說過``<=<``就像是函數合成一樣，只差在一個是作用在普通函數``a -> b``。一個是作用在monadic函數``a -> m b``。
 
 {{
 ghci> let f = (+1) . (*100)  
@@ -1495,11 +1339,9 @@ ghci> Just 4 >>= g
 Just 401  
 }}
 
-在這個例子中我們合成了兩個普通的函數，並餵給給他``4``。
-我們也合成了兩個monadic函數並用``>>=``餵給他``Just 4``。
+在這個例子中我們合成了兩個普通的函數，並餵給給他``4``。我們也合成了兩個monadic函數並用``>>=``餵給他``Just 4``。
 
-如果我們在list中有一大堆函數，我們可以把他們合成一個巨大的函數。
-用``id``當作累加的起點，``.``當作binary函數，用fold來作這件事。
+如果我們在list中有一大堆函數，我們可以把他們合成一個巨大的函數。用``id``當作累加的起點，``.``當作binary函數，用fold來作這件事。
 
 {{
 ghci> let f = foldr (.) id [(+1),(*100),(+1)]  
@@ -1507,16 +1349,9 @@ ghci> f 1
 201  
 }}
 
-``f``接受一個數字，然後會幫他加``1``，乘以``100``，再加``1``。
-我們也可以將monadic函數用同樣的方式做合成，
-只是不用``.``而用``<=<``，不用``id``而用``return``。
-我們不需要``foldM``，由於``<=<``只用``foldr``就足夠了。
+``f``接受一個數字，然後會幫他加``1``，乘以``100``，再加``1``。我們也可以將monadic函數用同樣的方式做合成，只是不用``.``而用``<=<``，不用``id``而用``return``。我們不需要``foldM``，由於``<=<``只用``foldr``就足夠了。
 
-當我們在之前的章節介紹list monad的時候，
-我們用他來解決一個騎士是否能在三步內走到另一點的問題。
-那個函數叫做``moveKnight``，
-他接受一個座標然後回傳所有可能的下一步。
-然後產生出所有可能三步的移動。
+當我們在之前的章節介紹list monad的時候， 我們用他來解決一個騎士是否能在三步內走到另一點的問題。 那個函數叫做``moveKnight``， 他接受一個座標然後回傳所有可能的下一步。 然後產生出所有可能三步的移動。
 
 {{
 in3 start = return start >>= moveKnight >>= moveKnight >>= moveKnight   
@@ -1529,11 +1364,7 @@ canReachIn3 :: KnightPos -> KnightPos -> Bool
 canReachIn3 start end = end `elem` in3 start  
 }}
 
-如果使用monadic版本的合成的話，
-我們也可以做一個類似的``in3``，
-但我們希望他不只有三步的版本，而希望有任意步的版本。
-如果你仔細觀察``in3``，他只不過用``>>=``跟``moveKnight``把之前所有可能結果餵到下一步。
-把他一般化，就會像下面的樣子：
+如果使用monadic版本的合成的話，我們也可以做一個類似的``in3``，但我們希望他不只有三步的版本，而希望有任意步的版本。如果你仔細觀察``in3``，他只不過用``>>=``跟``moveKnight``把之前所有可能結果餵到下一步。把他一般化，就會像下面的樣子：
 
 {{
 import Data.List  
@@ -1542,9 +1373,7 @@ inMany :: Int -> KnightPos -> [KnightPos]
 inMany x start = return start >>= foldr (<=<) return (replicate x moveKnight)  
 }}
 
-首先我們用``replicate``來做出一個list，裡面有``x``份的``moveKnight``。
-然後我們把所有函數都合成起來，就會給我們從起點走``x``步內所有可能的的位置。
-然後我們只需要把起始位置餵給他就好了。
+首先我們用``replicate``來做出一個list，裡面有``x``份的``moveKnight``。然後我們把所有函數都合成起來，就會給我們從起點走``x``步內所有可能的的位置。然後我們只需要把起始位置餵給他就好了。
 
 我們也可以一般化我們的``canReachIn3``：
 
@@ -1555,14 +1384,140 @@ canReachIn x start end = end `elem` inMany x start
 
 
 ==定義自己的Monad
-在這一章節，我們會帶你看看究竟一個型態是怎麼被辨認，確認是一個monad而且正確定義出``Monad``的instance。
-我們通常不會為了定義monad而定義。
-比較常發生的是，我們想要針對一個問題建立模型，卻稍後發現我們定義的型態其實是一個Monad，所以就定義一個``Monad``的instance。
+在這一章節，我們會帶你看看究竟一個型態是怎麼被辨認，確認是一個monad而且正確定義出``Monad``的instance。我們通常不會為了定義monad而定義。比較常發生的是，我們想要針對一個問題建立模型，卻稍後發現我們定義的型態其實是一個Monad，所以就定義一個``Monad``的instance。
 
-正如我們看到的，list是被拿來當作non-deterministic values。對於``[3,5,9]``，
-我們可以看作是一個non-deterministic value，我們不能知道究竟是哪一個。
-當我們把一個list用``>>=``餵給一個函數，
-他就是把一串可能的選擇都丟給函數，函數一個個去計算在那種情況下的結果，結果也便是一個list。
+正如我們看到的，list是被拿來當作non-deterministic values。對於``[3,5,9]``，我們可以看作是一個non-deterministic value，我們不能知道究竟是哪一個。當我們把一個list用``>>=``餵給一個函數，他就是把一串可能的選擇都丟給函數，函數一個個去計算在那種情況下的結果，結果也便是一個list。
+
+如果我們把``[3,5,9]``看作是``3``,``5``,``9``各出現一次，但這邊沒有每一種數字出現的機率。如果我們把non-deterministic的值看作是``[3,5,9]``，但``3``出現的機率是50%，``5``跟``9``出現的機率各是25%呢？我們來試著用Haskell描述看看。
+
+如果說list中的每一個元素都伴隨著他出現的機率。那下面的形式就蠻合理的：
+
+{{
+[(3,0.5),(5,0.25),(9,0.25)]  
+}}
+
+在數學上，機率通常不是用百分比表示，而是用介於0跟1的實數表示。0代表不可能會發生，而1代表絕對會發生。但浮點數很有可能很快隨著運算失去精準度，所以Haskell有提供有理數。他的型態是擺在``Data.Ratio``中，叫做``Rational``。要創造出一個``Rational``，我們會把他寫成一個分數的形式。分子跟分母用``%``分隔。這邊有幾個例子：
+
+{{
+ghci> 1%4  
+1 % 4  
+ghci> 1%2 + 1%2  
+1 % 1  
+ghci> 1%3 + 5%4  
+19 % 12  
+}}
+
+第一行代表四分之一，第二行代表兩個二分之一加起來變成一。而第三行我們把三分之一跟四分之五加起來變成十二分之十九。所以我們來用``Rational``取代浮點數來當作我們的機率值吧。
+
+{{
+ghci> [(3,1%2),(5,1%4),(9,1%4)]  
+[(3,1 % 2),(5,1 % 4),(9,1 % 4)]  
+}}
+
+所以``3``有二分之一的機會出現，而``5``跟``9``有四分之一的機會出現。
 
 
+可以看到我們幫list加上了一些額外的context。再我們繼續深入之前，我們用一個``newtype``把他包起來，好讓我們幫他寫instance。
 
+{{
+import Data.Ratio
+
+newtype Prob a = Prob { getProb :: [(a,Rational)] } deriving Show  
+}}
+
+接著我們想問，這是一個functor嗎？list是一個functor，所以很有可能他也是一個functor，畢竟我們只是在list上多加一些東西而已。在list的情況下，我們可以針對每個元素用函數做處理。這邊我們也是用函數針對每個元素做處理，只是我們是輸出機率值。所以我們就來寫個functor的instance吧。
+
+{{
+instance Functor Prob where  
+    fmap f (Prob xs) = Prob $ map (\(x,p) -> (f x,p)) xs 
+}}
+
+我們可以用pattern matching的方式把``newtype``解開來，套用函數``f``之後再包回去。過程中不會動到機率值。
+
+{{
+ghci> fmap negate (Prob [(3,1%2),(5,1%4),(9,1%4)])  
+Prob {getProb = [(-3,1 % 2),(-5,1 % 4),(-9,1 % 4)]}  
+}}
+
+要注意機率的和永遠是``1``。如果我們沒有漏掉某種情形的話，沒有道理他們加起來的值不為``1``。一個有75%機率是正面以及50%機率是反面的硬幣根本沒什麼道理。
+
+接著要問一個重要的問題，他是一個monad嗎？我們知道list是一個monad，所以他很有可能也是一個monad。首先來想想``return``。他在list是怎麼運作的？他接受一個普通的值並把他放到一個list中變成只有一個元素的list。那在這邊又如何？由於他是一個最小的context，他也應該是一個元素的list。那機率值呢？``return x``的值永遠都是``x``，所以機率值不應該是``0``，而應該是``1``。
+
+
+至於``>>=``呢？看起來有點複雜，所以我們換種方式來思考，我們知道``m >>= f``會等價於``join (fmap f m)``，所以我們來想要怎麼把一串包含probability list的list弄平。舉個例子，考慮一個list，``'a'``跟``'b'``恰出現其中一個的機率為25%，兩個出現的機率相等。而``'c'``跟``'d'``恰出現其中一個的機率為75%，兩個出現的機率也是相等。這邊有一個圖將情形畫出來。
+
+
+每個字母發生的機率有多高呢？如果我們用四個盒子來代表每個字母，那每個盒子的機率為何？每個盒子的機率是他們所裝有的機率值相乘的結果。``'a'``的機率是八分之一，``'b'``同樣也是八分之一。八分之一是因為我們把二分之一跟四分之一相乘得到的結果。而``'c'``發生的機率是八分之三，是因為二分之一乘上四分之三。``'d'``同樣也是八分之三。如果把所有的機率加起來，就會得到一，符合機率的規則。
+
+來看看怎麼用一個list表達我們要說明的東西：
+
+{{
+thisSituation :: Prob (Prob Char)  
+thisSituation = Prob  
+    [( Prob [('a',1%2),('b',1%2)] , 1%4 )  
+    ,( Prob [('c',1%2),('d',1%2)] , 3%4)  
+    ]
+}}
+
+注意到這邊的型態是``Prob (Prob Char)``。所以我們要思考的是如何把一串包含機率list的list打平。如果能成功寫出這樣的邏輯，``>>=``不過就是``join (fmap f m)``，我們便得到了一個monad。我們這邊寫了一個``flatten``來做這件事。
+
+{{
+flatten :: Prob (Prob a) -> Prob a  
+flatten (Prob xs) = Prob $ concat $ map multAll xs  
+    where multAll (Prob innerxs,p) = map (\(x,r) -> (x,p*r)) innerxs  
+}}
+
+``multAll``接受一個tuple，裡面包含一個probability list跟一個伴隨的機率值``p``，所以我們要作的事是把list裡面的機率值都乘以``p``，並回傳一個新的tuple包含新的list跟新的機率值。我們將``multAll`` map over到我們的probability list上，我們就成功地打平了我們的list。
+
+現在我們就能定義我們的``Monad`` instance。
+
+{{
+instance Monad Prob where  
+    return x = Prob [(x,1%1)]  
+    m >>= f = flatten (fmap f m)  
+    fail _ = Prob []  
+}}
+
+由於我們已經把所有苦工的做完了，定義這個instance顯得格外輕鬆。我們也定義了``fail``，我們定義他的方式跟定義list一樣。如果在``do``中發生了失敗的pattern match，那就會呼叫``fail``。
+
+檢查我們定義的instance是否遵守monad law也是很重要的。monad law的第一個定律是``return x >>= f``應該要等價於``f x``。要寫出嚴格的證明會很麻煩，但我們可以觀察到下列事實：首先用``return``做一個最小的context，然後用``fmap``將一個函數map over這個context，再將他打平。這樣做出來的probability list，每一個機率值都相當於將我們最初放到minimal context中的值乘上``1%1``。同樣的邏輯，也可以看出``m >>= return``是等價於``m``。第三個定律是``f <=< (g <=< h)``應該要等價於``(f <=< g) <=< h``。我們可以從乘法有結合律的性質，以及list monad的特性上推出probability monad也符合這個定律。``1%2 * (1%3 * 1%5)``等於``(1%2 * 1%3) * 1%5``。
+
+現在我們有了一個monad，這樣有什麼好處呢？他可以幫助我們計算機率值。我們可以把機率事件看作是具有context的value，而probability monad可以保證機率值能正確地被計算成最終的結果。
+
+好比說我們現在有兩個普通的硬幣以及一個灌鉛的硬幣。灌鉛的硬幣十次中有九次會出現正面，只有一次會出現反面。如果我們一次丟擲這三個硬幣，有多大的機會他們都會出現正面呢？讓我們先來表達丟擲硬幣這件事，分別丟的是灌鉛的跟普通的硬幣。
+
+
+{{
+data Coin = Heads | Tails deriving (Show, Eq)  
+
+coin :: Prob Coin  
+coin = Prob [(Heads,1%2),(Tails,1%2)]  
+
+loadedCoin :: Prob Coin  
+loadedCoin = Prob [(Heads,1%10),(Tails,9%10)]  
+}}
+
+最後，來看看擲硬幣的函數：
+
+{{
+import Data.List (all)  
+  
+flipThree :: Prob Bool  
+flipThree = do  
+  a <- coin  
+  b <- coin  
+  c <- loadedCoin  
+  return (all (==Tails) [a,b,c])  
+}}
+
+試著跑一下的話，我們會看到儘管我們用了不公平的硬幣，三個反面的機率還是不高。
+
+{{
+ghci> getProb flipThree  
+[(False,1 % 40),(False,9 % 40),(False,1 % 40),(False,9 % 40),  
+ (False,1 % 40),(False,9 % 40),(False,1 % 40),(True,9 % 40)]  
+}}
+
+同時出現正面的機率是四十分之九，差不多是25%的機會。我們的monad並沒有辦法join所有都是``False``的情形，也就是所有硬幣都是出現反面的情況。不過那不是個嚴重的問題，可以寫個函數來將同樣的結果變成一種結果，這就留給讀者當作習題。
+
+在這章節中，我們從提出問題到真的寫出型態，並確認這個型態是一個monad，寫出他的instance並實際操作他。這是個很棒的經驗。現在讀者們應該對於monad有不少的了解才是。
