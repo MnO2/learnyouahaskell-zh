@@ -24,6 +24,7 @@
 
 ==Forum
     # [http://stackoverflow.com/questions/tagged/haskell Stackoverflow]: 著名stackoverflow上的#haskell tag
+    # [http://www.reddit.com/r/haskell/ Reddit]
     
 ==Online Judge
     # [http://www.haskell.org/haskellwiki/99_questions H-99: Ninety-Nine Haskell Problems] 
@@ -44,6 +45,8 @@
 
 ==Interesting Projects
     # [http://fay-lang.org/ Fay Programming Langauge] 用Haskell語言的子集，直接轉譯成Javascript
+    # [http://leksah.org/ Leksah]: Haskell IDE
+    # [https://github.com/Mokehehe/Monao/ Super Manao Bros]: 超級瑪利歐
 
 ==Taiwan Functional Programming User Group
     # [http://vimeo.com/groups/140878 TW-FPUG on Vimeo]
