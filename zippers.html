@@ -139,15 +139,35 @@ fsTo name (Folder folderName items, bs) =
     
 nameIs :: Name -> FSItem -> Bool  
 nameIs name (Folder folderName _) = name == folderName  
-nameIs name (File fileName _) = name == fileName</pre><p><code>fsTo</code>接受一個<code>Name</code>跟<code>FSZipper</code>，回傳一個新的<code>FSZipper</code>鎖定在某個檔案上。那個檔案必須在現在身處的資料夾才行。這函數不會四處找尋這檔案，他只會看現在的資料夾。</p><p>首先我們用<code>break</code>來把身處資料夾中的檔案們分成在我們要找的檔案前的，跟之後的。</p><p>如果記性好，<code>break</code>會接受一個predicate跟一個list，並回傳兩個list組成的pair。</p><p>第一個list裝有predicate會回傳<code>False</code>的元素，</p><p>而一旦碰到一個元素回傳<code>True</code>，他就把剩下的所有元素都放進第二個list中。</p><p>我們用了一個輔助函數叫做<code>nameIs</code>，他接受一個名字跟一個檔案系統的元素，</p><p>如果名字相符的話他就會回傳<code>True</code>。</p><p>現在<code>ls</code>一個包含我們要找的元素之前元素的list。</p><p><code>item</code>就是我們要找的元素，而<code>rs</code>是剩下的部份。</p><p>有了這些，我們不過就是把<code>break</code>傳回來的東西當作鎖定的目標，來建造一個麵包屑來包含所有必須的資訊。</p><p>如果我們要找的元素不在資料夾中，那<code>item:rs</code>這個模式會福豪到一個空的list，便會造成錯誤。</p><p>如果我們現在的鎖定不是一個資料夾而是一個檔案，</p><p>我們也會造成一個錯誤而讓程式當掉。</p><p>現在我們有能力在我們的檔案系統中移上移下，</p><p>我們就來嘗試從root走到<code>"skull_man(scary).bmp"</code>這個檔案吧：</p><pre class="code">ghci> let newFocus = (myDisk,[]) -: fsTo "pics" -: fsTo "skull_man(scary).bmp"</pre><p><code>newFocus</code>現在是一個鎖定在"skull_man(scary).bmp"的Zipper。</p><p>我們把zipper的第一個部份拿出來看看：</p><pre class="code">ghci> fst newFocus  
+nameIs name (File fileName _) = name == fileName</pre><p><code>fsTo</code>接受一個<code>Name</code>跟<code>FSZipper</code>，回傳一個新的<code>FSZipper</code>鎖定在某個檔案上。那個檔案必須在現在身處的資料夾才行。這函數不會四處找尋這檔案，他只會看現在的資料夾。</p><p>首先我們用<code>break</code>來把身處資料夾中的檔案們分成在我們要找的檔案前的，跟之後的。如果記性好，<code>break</code>會接受一個predicate跟一個list，並回傳兩個list組成的pair。第一個list裝有predicate會回傳<code>False</code>的元素，而一旦碰到一個元素回傳<code>True</code>，他就把剩下的所有元素都放進第二個list中。我們用了一個輔助函數叫做<code>nameIs</code>，他接受一個名字跟一個檔案系統的元素，如果名字相符的話他就會回傳<code>True</code>。</p><p>現在<code>ls</code>一個包含我們要找的元素之前元素的list。<code>item</code>就是我們要找的元素，而<code>rs</code>是剩下的部份。有了這些，我們不過就是把<code>break</code>傳回來的東西當作鎖定的目標，來建造一個麵包屑來包含所有必須的資訊。</p><p>如果我們要找的元素不在資料夾中，那<code>item:rs</code>這個模式會福豪到一個空的list，便會造成錯誤。如果我們現在的鎖定不是一個資料夾而是一個檔案，我們也會造成一個錯誤而讓程式當掉。</p><p>現在我們有能力在我們的檔案系統中移上移下，我們就來嘗試從root走到<code>"skull_man(scary).bmp"</code>這個檔案吧：</p><pre class="code">ghci> let newFocus = (myDisk,[]) -: fsTo "pics" -: fsTo "skull_man(scary).bmp"</pre><p><code>newFocus</code>現在是一個鎖定在"skull_man(scary).bmp"的Zipper。我們把zipper的第一個部份拿出來看看：</p><pre class="code">ghci> fst newFocus  
 File "skull_man(scary).bmp" "Yikes!"</pre><p>我們接著往上移動並鎖定在一個鄰近的檔案<code>"watermelon_smash.gif"</code>：</p><pre class="code">ghci> let newFocus2 = newFocus -: fsUp -: fsTo "watermelon_smash.gif"  
 ghci> fst newFocus2  
-File "watermelon_smash.gif" "smash!!"</pre><a name="Manipulating our file system"></a><h3>Manipulating our file system</h3><p>現在我們知道如何遍歷我們的檔案系統，因此操作也並不是難事。</p><p>這邊便來寫個重新命名目前鎖定檔案或資料夾的函數：</p><pre class="code">fsRename :: Name -> FSZipper -> FSZipper  
+File "watermelon_smash.gif" "smash!!"</pre><a name="Manipulating our file system"></a><h3>Manipulating our file system</h3><p>現在我們知道如何遍歷我們的檔案系統，因此操作也並不是難事。這邊便來寫個重新命名目前鎖定檔案或資料夾的函數：</p><pre class="code">fsRename :: Name -> FSZipper -> FSZipper  
 fsRename newName (Folder name items, bs) = (Folder newName items, bs)  
 fsRename newName (File name dat, bs) = (File newName dat, bs)</pre><p>我們可以重新命名<code>"pics"</code>資料夾為<code>"cspi"</code>：</p><pre class="code">ghci> let newFocus = (myDisk,[]) -: fsTo "pics" -: fsRename "cspi" -: fsUp</pre><p>我們走到<code>"pics"</code>這個資料夾，重新命名他然後再往回走。</p><p>那寫一個新的元素在我們目前的資料夾呢？</p><pre class="code">fsNewFile :: FSItem -> FSZipper -> FSZipper  
 fsNewFile item (Folder folderName items, bs) =   
-    (Folder folderName (item:items), bs)</pre><p>注意這個函數會沒辦法處理當我們在鎖定在一個檔案卻要新增元素的情況。</p><p>現在要在<code>"pics"</code>資料夾中加一個檔案然後走回root：</p><pre class="code">ghci> let newFocus = (myDisk,[]) -: fsTo "pics" -: fsNewFile (File "heh.jpg" "lol") -: fsUp</pre><p>當我們修改我們的檔案系統，他不會真的修改原本的檔案系統，而是回傳一份新的檔案系統。</p><p>這樣我們就可以存取我們舊有的系統（也就是<code>myDisk</code>）跟新的系統（<code>newFocus</code>的第一個部份）</p><p>使用一個Zippers，我們就能自動獲得版本控制，</p><p>代表我們能存取到舊的資料結構。</p><p>這也不僅限於Zippers，</p><p>也是由於Haskell的資料結構有immutable的特性。</p><p>但有了Zipper，對於操作會變得更容易，我們可以自由地在資料結構中走動。</p><a name="小心每一步"></a><h2>小心每一步</h2><p>到目前為止，我們並沒有特別留意我們在走動時是否會超出界線。</p><p>不論資料結構是二元樹，List或檔案系統。</p><p>舉例來說，我們的<code>goLeft</code>函數接受一個二元樹的Zipper並鎖定到他的左子樹：</p><pre class="code">goLeft :: Zipper a -> Zipper a  
-goLeft (Node x l r, bs) = (l, LeftCrumb x r:bs)</pre>
+    (Folder folderName (item:items), bs)</pre><p>注意這個函數會沒辦法處理當我們在鎖定在一個檔案卻要新增元素的情況。</p><p>現在要在<code>"pics"</code>資料夾中加一個檔案然後走回root：</p><pre class="code">ghci> let newFocus = (myDisk,[]) -: fsTo "pics" -: fsNewFile (File "heh.jpg" "lol") -: fsUp</pre><p>當我們修改我們的檔案系統，他不會真的修改原本的檔案系統，而是回傳一份新的檔案系統。這樣我們就可以存取我們舊有的系統（也就是<code>myDisk</code>）跟新的系統（<code>newFocus</code>的第一個部份）使用一個Zippers，我們就能自動獲得版本控制，代表我們能存取到舊的資料結構。這也不僅限於Zippers，也是由於Haskell的資料結構有immutable的特性。但有了Zipper，對於操作會變得更容易，我們可以自由地在資料結構中走動。</p><a name="小心每一步"></a><h2>小心每一步</h2><p>到目前為止，我們並沒有特別留意我們在走動時是否會超出界線。不論資料結構是二元樹，List或檔案系統。舉例來說，我們的<code>goLeft</code>函數接受一個二元樹的Zipper並鎖定到他的左子樹：</p><pre class="code">goLeft :: Zipper a -> Zipper a  
+goLeft (Node x l r, bs) = (l, LeftCrumb x r:bs)</pre><p>但如果我們走的樹其實是空的樹呢？也就是說，如果他不是<code>Node</code>而是<code>Empty</code>？再這情況，我們會因為模式匹配不到東西而造成runtime error。我們沒有處理空的樹的情形，也就是沒有子樹的情形。到目前為止，我們並沒有試著在左子樹不存在的情形下鎖定左子樹。但要走到一棵空的樹的左子樹並不合理，只是到目前為止我們視而不見而已。</p><p>如果我們已經在樹的root但仍舊試著往上走呢？這種情形也同樣會造成錯誤。。用了Zipper讓我們每一步都好像是我們的最後一步一樣。也就是說每一步都有可能會師拜。這讓你想起什麼嗎？沒錯，就是Monad。更正確的說是<code>Maybe</code>monad，也就是有可能失敗的context。</p><p>我們用<code>Maybe</code>monad來加入可能失敗的context。我們要把原本接受Zipper的函數都改成monadic的版本。首先，我們來處理<code>goLeft</code>跟<code>goRight</code>。函數的失敗有可能反應在他們的結果，這個情況也不利外。所以來看下面的版本：</p><pre class="code">goLeft :: Zipper a -> Maybe (Zipper a)  
+goLeft (Node x l r, bs) = Just (l, LeftCrumb x r:bs)  
+goLeft (Empty, _) = Nothing  
+  
+goRight :: Zipper a -> Maybe (Zipper a)  
+goRight (Node x l r, bs) = Just (r, RightCrumb x l:bs)  
+goRight (Empty, _) = Nothing</pre><p>然後我們試著在一棵空的樹往左走，我們會得到<code>Nothing</code>:</p><pre class="code">ghci> goLeft (Empty, [])  
+Nothing  
+ghci> goLeft (Node 'A' Empty Empty, [])  
+Just (Empty,[LeftCrumb 'A' Empty])</pre><p>看起來不錯。之前的問題是我們在麵包屑用完的情形下想往上走，那代表我們已經在樹的root。如果我們不注意的話那<code>goUp</code>函數就會丟出錯誤。</p><pre class="code">goUp :: Zipper a -> Zipper a  
+goUp (t, LeftCrumb x r:bs) = (Node x t r, bs)  
+goUp (t, RightCrumb x l:bs) = (Node x l t, bs)</pre><p>我們改一改讓他可以失敗得好看些：</p><pre class="code">goUp :: Zipper a -> Maybe (Zipper a)  
+goUp (t, LeftCrumb x r:bs) = Just (Node x t r, bs)  
+goUp (t, RightCrumb x l:bs) = Just (Node x l t, bs)  
+goUp (_, []) = Nothing</pre><p>如果我們有麵包屑，那我們就能成功鎖定新的節點，</p><p>如果沒有，就造成一個失敗。</p><p>之前這些函數是接受Zipper並回傳Zipper，</p><p>這代表我們可以這樣操作：</p><pre class="code">gchi> let newFocus = (freeTree,[]) -: goLeft -: goRight</pre><p>但現在我們不回傳<code>Zipper a</code>而回傳<code>Maybe (Zipper a)</code>。</p><p>所以沒辦法像上面串起來。</p><p>我們在之前章節也有類似的問題。</p><p>他是每次走一步，而他的每一步都有可能失敗。</p><p>幸運的是我們可以從之前的經驗中學習，</p><p>也就是使用<code>>>=</code>，他接受一個有context的值（也就是<code>Maybe (Zipper a)</code>），</p><p>會把值餵進函數並保持其他context的。</p><p>所以就像之前的例子，</p><p>我們把<code>-:</code>換成<code>>>=</code>。</p><pre class="code">ghci> let coolTree = Node 1 Empty (Node 3 Empty Empty)  
+ghci> return (coolTree,[]) >>= goRight  
+Just (Node 3 Empty Empty,[RightCrumb 1 Empty])  
+ghci> return (coolTree,[]) >>= goRight >>= goRight  
+Just (Empty,[RightCrumb 3 Empty,RightCrumb 1 Empty])  
+ghci> return (coolTree,[]) >>= goRight >>= goRight >>= goRight  
+Nothing</pre>
             <ul class="nav">
                 <li class="left">  <img src="img/prv.png"></img><a href="for-a-few-monads-more.html">再來看看更多Monad</a></li>
                 <li class="center"><a href="chapters.html">Index</a></li>
