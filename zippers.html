@@ -161,13 +161,13 @@ goUp (t, LeftCrumb x r:bs) = (Node x t r, bs)
 goUp (t, RightCrumb x l:bs) = (Node x l t, bs)</pre><p>我們改一改讓他可以失敗得好看些：</p><pre class="code">goUp :: Zipper a -> Maybe (Zipper a)  
 goUp (t, LeftCrumb x r:bs) = Just (Node x t r, bs)  
 goUp (t, RightCrumb x l:bs) = Just (Node x l t, bs)  
-goUp (_, []) = Nothing</pre><p>如果我們有麵包屑，那我們就能成功鎖定新的節點，</p><p>如果沒有，就造成一個失敗。</p><p>之前這些函數是接受Zipper並回傳Zipper，</p><p>這代表我們可以這樣操作：</p><pre class="code">gchi> let newFocus = (freeTree,[]) -: goLeft -: goRight</pre><p>但現在我們不回傳<code>Zipper a</code>而回傳<code>Maybe (Zipper a)</code>。</p><p>所以沒辦法像上面串起來。</p><p>我們在之前章節也有類似的問題。</p><p>他是每次走一步，而他的每一步都有可能失敗。</p><p>幸運的是我們可以從之前的經驗中學習，</p><p>也就是使用<code>>>=</code>，他接受一個有context的值（也就是<code>Maybe (Zipper a)</code>），</p><p>會把值餵進函數並保持其他context的。</p><p>所以就像之前的例子，</p><p>我們把<code>-:</code>換成<code>>>=</code>。</p><pre class="code">ghci> let coolTree = Node 1 Empty (Node 3 Empty Empty)  
+goUp (_, []) = Nothing</pre><p>如果我們有麵包屑，那我們就能成功鎖定新的節點，如果沒有，就造成一個失敗。</p><p>之前這些函數是接受Zipper並回傳Zipper，這代表我們可以這樣操作：</p><pre class="code">gchi> let newFocus = (freeTree,[]) -: goLeft -: goRight</pre><p>但現在我們不回傳<code>Zipper a</code>而回傳<code>Maybe (Zipper a)</code>。所以沒辦法像上面串起來。我們在之前章節也有類似的問題。他是每次走一步，而他的每一步都有可能失敗。</p><p>幸運的是我們可以從之前的經驗中學習，也就是使用<code>>>=</code>，他接受一個有context的值（也就是<code>Maybe (Zipper a)</code>），會把值餵進函數並保持其他context的。所以就像之前的例子，我們把<code>-:</code>換成<code>>>=</code>。</p><pre class="code">ghci> let coolTree = Node 1 Empty (Node 3 Empty Empty)  
 ghci> return (coolTree,[]) >>= goRight  
 Just (Node 3 Empty Empty,[RightCrumb 1 Empty])  
 ghci> return (coolTree,[]) >>= goRight >>= goRight  
 Just (Empty,[RightCrumb 3 Empty,RightCrumb 1 Empty])  
 ghci> return (coolTree,[]) >>= goRight >>= goRight >>= goRight  
-Nothing</pre>
+Nothing</pre><p>我們用<code>return</code>來把Zipper放到一個<code>Just</code>裡面。然後用<code>>>=</code>來餵到<code>goRight</code>的函數中。首先我們做了一棵樹他的左子樹是空的，而右邊是有兩顆空子樹的一個節點。當我們嘗試往右走一步，便會得到成功的結果。往右走兩步也還可以，只是會鎖定在一棵空的子樹上。但往右走三步就沒辦法了，因為我們不能在一棵空子樹上往右走，這也是為什麼結果會是<code>Nothing</code>。</p><p>現在我們具備了安全網，能夠在出錯的時候通知我們。</p><p>我們的檔案系統仍有許多情況會造成錯誤，例如試著鎖定一個檔案，或是不存在的資料夾。剩下的就留作習題。</p>
             <ul class="nav">
                 <li class="left">  <img src="img/prv.png"></img><a href="for-a-few-monads-more.html">再來看看更多Monad</a></li>
                 <li class="center"><a href="chapters.html">Index</a></li>
