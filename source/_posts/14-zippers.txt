@@ -413,30 +413,19 @@ nameIs name (File fileName _) = name == fileName
 
 ``fsTo``接受一個``Name``跟``FSZipper``，回傳一個新的``FSZipper``鎖定在某個檔案上。那個檔案必須在現在身處的資料夾才行。這函數不會四處找尋這檔案，他只會看現在的資料夾。
 
-首先我們用``break``來把身處資料夾中的檔案們分成在我們要找的檔案前的，跟之後的。
-如果記性好，``break``會接受一個predicate跟一個list，並回傳兩個list組成的pair。
-第一個list裝有predicate會回傳``False``的元素，
-而一旦碰到一個元素回傳``True``，他就把剩下的所有元素都放進第二個list中。
-我們用了一個輔助函數叫做``nameIs``，他接受一個名字跟一個檔案系統的元素，
-如果名字相符的話他就會回傳``True``。
+首先我們用``break``來把身處資料夾中的檔案們分成在我們要找的檔案前的，跟之後的。如果記性好，``break``會接受一個predicate跟一個list，並回傳兩個list組成的pair。第一個list裝有predicate會回傳``False``的元素，而一旦碰到一個元素回傳``True``，他就把剩下的所有元素都放進第二個list中。我們用了一個輔助函數叫做``nameIs``，他接受一個名字跟一個檔案系統的元素，如果名字相符的話他就會回傳``True``。
 
-現在``ls``一個包含我們要找的元素之前元素的list。
-``item``就是我們要找的元素，而``rs``是剩下的部份。
-有了這些，我們不過就是把``break``傳回來的東西當作鎖定的目標，來建造一個麵包屑來包含所有必須的資訊。
+現在``ls``一個包含我們要找的元素之前元素的list。``item``就是我們要找的元素，而``rs``是剩下的部份。有了這些，我們不過就是把``break``傳回來的東西當作鎖定的目標，來建造一個麵包屑來包含所有必須的資訊。
 
-如果我們要找的元素不在資料夾中，那``item:rs``這個模式會福豪到一個空的list，便會造成錯誤。
-如果我們現在的鎖定不是一個資料夾而是一個檔案，
-我們也會造成一個錯誤而讓程式當掉。
+如果我們要找的元素不在資料夾中，那``item:rs``這個模式會福豪到一個空的list，便會造成錯誤。如果我們現在的鎖定不是一個資料夾而是一個檔案，我們也會造成一個錯誤而讓程式當掉。
 
-現在我們有能力在我們的檔案系統中移上移下，
-我們就來嘗試從root走到``"skull_man(scary).bmp"``這個檔案吧：
+現在我們有能力在我們的檔案系統中移上移下，我們就來嘗試從root走到``"skull_man(scary).bmp"``這個檔案吧：
 
 {{
 ghci> let newFocus = (myDisk,[]) -: fsTo "pics" -: fsTo "skull_man(scary).bmp"      
 }}
 
-``newFocus``現在是一個鎖定在``"skull_man(scary).bmp"的Zipper。
-我們把zipper的第一個部份拿出來看看：
+``newFocus``現在是一個鎖定在``"skull_man(scary).bmp"的Zipper。我們把zipper的第一個部份拿出來看看：
 
 {{
 ghci> fst newFocus  
@@ -454,8 +443,7 @@ File "watermelon_smash.gif" "smash!!"
 
 ===Manipulating our file system
 
-現在我們知道如何遍歷我們的檔案系統，因此操作也並不是難事。
-這邊便來寫個重新命名目前鎖定檔案或資料夾的函數：
+現在我們知道如何遍歷我們的檔案系統，因此操作也並不是難事。這邊便來寫個重新命名目前鎖定檔案或資料夾的函數：
 
 {{
 fsRename :: Name -> FSZipper -> FSZipper  
@@ -487,22 +475,83 @@ fsNewFile item (Folder folderName items, bs) =
 ghci> let newFocus = (myDisk,[]) -: fsTo "pics" -: fsNewFile (File "heh.jpg" "lol") -: fsUp      
 }}
 
-當我們修改我們的檔案系統，他不會真的修改原本的檔案系統，而是回傳一份新的檔案系統。
-這樣我們就可以存取我們舊有的系統（也就是``myDisk``）跟新的系統（``newFocus``的第一個部份）
-使用一個Zippers，我們就能自動獲得版本控制，
-代表我們能存取到舊的資料結構。
-這也不僅限於Zippers，
-也是由於Haskell的資料結構有immutable的特性。
-但有了Zipper，對於操作會變得更容易，我們可以自由地在資料結構中走動。
+當我們修改我們的檔案系統，他不會真的修改原本的檔案系統，而是回傳一份新的檔案系統。這樣我們就可以存取我們舊有的系統（也就是``myDisk``）跟新的系統（``newFocus``的第一個部份）使用一個Zippers，我們就能自動獲得版本控制，代表我們能存取到舊的資料結構。這也不僅限於Zippers，也是由於Haskell的資料結構有immutable的特性。但有了Zipper，對於操作會變得更容易，我們可以自由地在資料結構中走動。
 
 ==小心每一步
 
-到目前為止，我們並沒有特別留意我們在走動時是否會超出界線。
-不論資料結構是二元樹，List或檔案系統。
-舉例來說，我們的``goLeft``函數接受一個二元樹的Zipper並鎖定到他的左子樹：
+到目前為止，我們並沒有特別留意我們在走動時是否會超出界線。不論資料結構是二元樹，List或檔案系統。舉例來說，我們的``goLeft``函數接受一個二元樹的Zipper並鎖定到他的左子樹：
 
 {{
 goLeft :: Zipper a -> Zipper a  
 goLeft (Node x l r, bs) = (l, LeftCrumb x r:bs)  
 }}
 
+但如果我們走的樹其實是空的樹呢？也就是說，如果他不是``Node``而是``Empty``？再這情況，我們會因為模式匹配不到東西而造成runtime error。我們沒有處理空的樹的情形，也就是沒有子樹的情形。到目前為止，我們並沒有試著在左子樹不存在的情形下鎖定左子樹。但要走到一棵空的樹的左子樹並不合理，只是到目前為止我們視而不見而已。
+
+如果我們已經在樹的root但仍舊試著往上走呢？這種情形也同樣會造成錯誤。。用了Zipper讓我們每一步都好像是我們的最後一步一樣。也就是說每一步都有可能會師拜。這讓你想起什麼嗎？沒錯，就是Monad。更正確的說是``Maybe`` monad，也就是有可能失敗的context。
+
+我們用``Maybe`` monad來加入可能失敗的context。我們要把原本接受Zipper的函數都改成monadic的版本。首先，我們來處理``goLeft``跟``goRight``。函數的失敗有可能反應在他們的結果，這個情況也不利外。所以來看下面的版本：
+
+{{
+goLeft :: Zipper a -> Maybe (Zipper a)  
+goLeft (Node x l r, bs) = Just (l, LeftCrumb x r:bs)  
+goLeft (Empty, _) = Nothing  
+  
+goRight :: Zipper a -> Maybe (Zipper a)  
+goRight (Node x l r, bs) = Just (r, RightCrumb x l:bs)  
+goRight (Empty, _) = Nothing  
+}}
+
+然後我們試著在一棵空的樹往左走，我們會得到``Nothing``:
+
+{{
+ghci> goLeft (Empty, [])  
+Nothing  
+ghci> goLeft (Node 'A' Empty Empty, [])  
+Just (Empty,[LeftCrumb 'A' Empty])  
+}}
+
+看起來不錯。之前的問題是我們在麵包屑用完的情形下想往上走，那代表我們已經在樹的root。如果我們不注意的話那``goUp``函數就會丟出錯誤。
+
+{{
+goUp :: Zipper a -> Zipper a  
+goUp (t, LeftCrumb x r:bs) = (Node x t r, bs)  
+goUp (t, RightCrumb x l:bs) = (Node x l t, bs) 
+}}
+
+我們改一改讓他可以失敗得好看些：
+
+{{
+goUp :: Zipper a -> Maybe (Zipper a)  
+goUp (t, LeftCrumb x r:bs) = Just (Node x t r, bs)  
+goUp (t, RightCrumb x l:bs) = Just (Node x l t, bs)  
+goUp (_, []) = Nothing  
+}}
+
+如果我們有麵包屑，那我們就能成功鎖定新的節點，如果沒有，就造成一個失敗。
+
+之前這些函數是接受Zipper並回傳Zipper，這代表我們可以這樣操作：
+
+{{
+gchi> let newFocus = (freeTree,[]) -: goLeft -: goRight
+}}
+
+但現在我們不回傳``Zipper a``而回傳``Maybe (Zipper a)``。所以沒辦法像上面串起來。我們在之前章節也有類似的問題。他是每次走一步，而他的每一步都有可能失敗。
+
+幸運的是我們可以從之前的經驗中學習，也就是使用``>>=``，他接受一個有context的值（也就是``Maybe (Zipper a)``），會把值餵進函數並保持其他context的。所以就像之前的例子，我們把``-:``換成``>>=``。
+
+{{
+ghci> let coolTree = Node 1 Empty (Node 3 Empty Empty)  
+ghci> return (coolTree,[]) >>= goRight  
+Just (Node 3 Empty Empty,[RightCrumb 1 Empty])  
+ghci> return (coolTree,[]) >>= goRight >>= goRight  
+Just (Empty,[RightCrumb 3 Empty,RightCrumb 1 Empty])  
+ghci> return (coolTree,[]) >>= goRight >>= goRight >>= goRight  
+Nothing  
+}}
+
+我們用``return``來把Zipper放到一個``Just``裡面。然後用``>>=``來餵到``goRight``的函數中。首先我們做了一棵樹他的左子樹是空的，而右邊是有兩顆空子樹的一個節點。當我們嘗試往右走一步，便會得到成功的結果。往右走兩步也還可以，只是會鎖定在一棵空的子樹上。但往右走三步就沒辦法了，因為我們不能在一棵空子樹上往右走，這也是為什麼結果會是``Nothing``。
+
+現在我們具備了安全網，能夠在出錯的時候通知我們。
+
+我們的檔案系統仍有許多情況會造成錯誤，例如試著鎖定一個檔案，或是不存在的資料夾。剩下的就留作習題。

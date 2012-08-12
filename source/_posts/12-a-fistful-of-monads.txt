@@ -1,4 +1,4 @@
-=來看看幾種Moand #a-fistful-of-monads
+=來看看幾種Monad #a-fistful-of-monads
 
 當我們第一次談到Functor的時候，我們了解到他是一個抽象概念，代表是一種可以被map over的值。然後我們再將其概念提升到Applicative Functor，他代表一種帶有context的型態，我們可以用函數操作他而且同時還保有他的context。
 
@@ -34,10 +34,129 @@ ghci> (-) <$> [3,4] <*> [1,2,3]
 
 所以我們可以視他們為aaplicative values，``Maybe a``代表可能會失敗的computation，``[a]``代表同時有好多結果的computation (non-deterministic computation)，而``IO a``代表會有side-effects的computation。
 
+Monad是一個從Applicative functors很自然的一個演進結果。對於他們我們主要考量的點是：如果你有一個具有context的值``m a``，你能如何把他丟進一個只接受普通值``a``的函數中，並回傳一個具有context的值？也就是說，你如何套用一個型態為``a -> m b``的函數至``m a``？基本上，我們要求的函數是：
+
+{{
+(>>=) :: (Monad m) => m a -> (a -> m b) -> m b
+}}
+
+如果我們有一個漂亮的值跟一個函數接受普通的值但回傳漂亮的值，那我們要如何要把漂亮的值丟進函數中？這就是我們使用Monad時所要考量的事情。我們不寫成``f a``而寫成``m a``是因為``m``代表的是``Monad``，但monad不過就是支援``>>=``操作的applicative functors。``>>=``我們稱呼他為bind。
+
+當我們有一個普通值``a``跟一個普通函數``a -> b``，要套用函數是一件很簡單的事。但當你在處理具有context的值時，就需要多考慮些東西，要如何把漂亮的值餵進函數中，並如何考慮他們的行為，但你將會了解到他們其實不難。
 
 ==動手做做看: Maybe Monad
 
+現在對於什麼是Monad已經有了些模糊的概念，
+我們來看看要如何讓這概念更具體一些。
+
+不意外地，``Maybe``是一個Monad，
+所以讓我們對於他多探討些，看看是否能跟我們所知的Monad概念結合起來。
+
+    到這邊要確定你了解什麼是Applicatives。如果你知道好幾種``Applicative``的instance還有他們代表的意含就更好了，因為monad不過就是對applicative的概念進行一次升級。
+
+
+一個``Maybe a``型態的值代表型態為``a``的值而且具備一個可能造成錯誤的context。而``Just "dharma"``的值代表他不是一個``"dharma"``的字串就是字串不見時的``Nothing``。如果你把字串當作計算的結果，``Nothing``就代表計算失敗了。
+
+當我們把``Maybe``視作functor，我們其實要的是一個``fmap``來把一個函數針對其中的元素做套用。他會對``Just``中的元素進行套用，要不然就是保留``Nothing``的狀態，其代表裡面根本沒有元素。
+
+{{
+ghci> fmap (++"!") (Just "wisdom")  
+Just "wisdom!"  
+ghci> fmap (++"!") Nothing  
+Nothing  
+}}
+
+或者視為一個applicative functor，他也有類似的作用。只是applicative也把函數包了起來。``Maybe``作為一個applicative functor，我們能用``<*>``來套用一個存在``Maybe``中的函數至包在另外一個``Maybe``中的值。他們都必須是包在``Just``來代表值存在，要不然其實就是``Nothing``。當你在想套用函數到值上面的時候，缺少了函數或是值都會造成錯誤，所以這樣做是很合理的。
+
+{{
+ghci> Just (+3) <*> Just 3  
+Just 6  
+ghci> Nothing <*> Just "greed"  
+Nothing  
+ghci> Just ord <*> Nothing  
+Nothing  
+}}
+
+當我們用applicative的方式套用函數至``Maybe``型態的值時，就跟上面描述的差不多。過程中所有值都必須是``Just``，要不然結果一定會是``Nothing``。
+
+{{
+ghci> max <$> Just 3 <*> Just 6  
+Just 6  
+ghci> max <$> Just 3 <*> Nothing  
+Nothing  
+}}
+
+我們來思考一下要怎麼為``Maybe``實作``>>=``。正如我們之前提到的，``>>=``接受一個monadic value，以及一個接受普通值的函數，這函數會回傳一個monadic value。``>>=``會幫我們套用這個函數到這個monadic value。在函數只接受普通值的情況俠，函數是如何作到這件事的呢？要作到這件事，他必須要考慮到monadic value的context。
+
+在這個案例中，``>>=``會接受一個``Maybe a``以及一個型態為``a -> Maybe b``的函數。他會套用函數到``Maybe a``。要釐清他怎麼作到的，首先我們注意到``Maybe``的applicative functor特性。假設我們有一個函數``\x -> Just (x+1)``。他接受一個數字，把他加``1``後再包回``Just``。
+
+{{
+ghci> (\x -> Just (x+1)) 1  
+Just 2  
+ghci> (\x -> Just (x+1)) 100  
+Just 101 
+}}
+
+如果我們餵給函數``1``，他會計算成``Just 2``。如果我們餵給函數``100``，那結果便是``Just 101``。但假如我們餵一個``Maybe``的值給函數呢？如果我們把``Maybe``想成一個applicative functor，那答案便很清楚。如果我們拿到一個``Just``，就把包在``Just``裡面的值餵給函數。如果我們拿到一個``Nothing``，我們就說結果是``Nothing``。
+
+我們呼叫``applyMaybe``而不呼叫``>>=``。他接受``Maybe a``跟一個回傳``Maybe b``的函數，並套用函數至``Maybe a``。
+
+{{
+applyMaybe :: Maybe a -> (a -> Maybe b) -> Maybe b  
+applyMaybe Nothing f  = Nothing  
+applyMaybe (Just x) f = f x  
+}}
+
+我們套用一個infix函數，這樣``Maybe``的值可以寫在左邊且函數是在右邊：
+
+{{
+ghci> Just 3 `applyMaybe` \x -> Just (x+1)  
+Just 4  
+ghci> Just "smile" `applyMaybe` \x -> Just (x ++ " :")""  
+Just "smile :""  
+ghci> Nothing `applyMaybe` \x -> Just (x+1)  
+Nothing  
+ghci> Nothing `applyMaybe` \x -> Just (x ++ " :")")  
+Nothing 
+}}
+
+在上述的範例中，我們看到在套用``applyMaybe``的時候，函數是套用在``Just``裡面的值。當我們試圖套用到``Nothing``，那整個結果便是``Nothing``。假如函數回傳``Nothing``呢？
+
+{{
+ghci> Just 3 `applyMaybe` \x -> if x > 2 then Just x else Nothing  
+Just 3  
+ghci> Just 1 `applyMaybe` \x -> if x > 2 then Just x else Nothing  
+Nothing  
+}}
+
+這正是我們期待的結果。如果左邊的monadic value是``Nothing``，那整個結果就是``Nothing``。如果右邊的函數是``Nothing``，那結果也會是``Nothing``。這跟我們之前把``Maybe``當作aaplicative時，過程中有任何一個``Nothing``整個結果就會是``Nothing``一樣。
+
+對於``Maybe``而言，我們已經找到一個方法處理漂亮值的方式。我們作到這件事的同時，也保留了``Maybe``代表可能造成錯誤的計算的意義。
+
+你可能會問，這樣的結果有用嗎？由於applicative functors讓我們可以拿一個接受普通值的函數，並讓他可以操作具有context的值，這樣看起來applicative functors好像比monad強。但我們會看到monad也能作到，因為他只是applicative functors的升級版。他們同時也能作到applicative functors不能作到的事情。
+
+稍候我們會再繼續探討``Maybe``，但我們先來看看monad的type class。
+
+
 ==Monad type class
+
+正如functors有``Functor``這個type class，而applicative functors有一個``Applicative`` 這個type class，monad也有他自己的type class：``Monad``他看起來像這樣：
+
+{{
+class Monad m where  
+    return :: a -> m a  
+
+    (>>=) :: m a -> (a -> m b) -> m b  
+
+    (>>) :: m a -> m b -> m b  
+    x >> y = x >>= \_ -> y  
+
+    fail :: String -> m a  
+    fail msg = error msg  
+}}
+
+我們從第一行開始看。他說``class Monad m where``。但我們之前不是提到monad是applicative functors的加強版嗎？不是應該有一個限制說一個型態必須先是一個applicative functor才可能是一個monad嗎？像是``class (Applicative m) = > Monad m where``。他的確應該要有，但當Haskell被創造的早期，人們沒有想到applicative functor適合被放進語言中，所以最後沒有這個限制。但的確每個monad都是applicative functor，即使``Monad``並沒有這麼宣告。
+
 
 ==走鋼索
 
