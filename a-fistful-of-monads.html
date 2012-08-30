@@ -87,7 +87,73 @@ Nothing</pre><p>這正是我們期待的結果。如果左邊的monadic value是
     x >> y = x >>= \_ -> y  
 
     fail :: String -> m a  
-    fail msg = error msg</pre><p>我們從第一行開始看。他說<code>class Monad m where</code>。但我們之前不是提到monad是applicative functors的加強版嗎？不是應該有一個限制說一個型態必須先是一個applicative functor才可能是一個monad嗎？像是<code>class (Applicative m) = > Monad m where</code>。他的確應該要有，但當Haskell被創造的早期，人們沒有想到applicative functor適合被放進語言中，所以最後沒有這個限制。但的確每個monad都是applicative functor，即使<code>Monad</code>並沒有這麼宣告。</p><a name="走鋼索"></a><h2>走鋼索</h2><a name="do表示法"></a><h2>do表示法</h2><a name="List Monad"></a><h2>List Monad</h2><a name="Monad laws (單子律)"></a><h2>Monad laws (單子律)</h2>
+    fail msg = error msg</pre><p>我們從第一行開始看。他說<code>class Monad m where</code>。但我們之前不是提到monad是applicative functors的加強版嗎？不是應該有一個限制說一個型態必須先是一個applicative functor才可能是一個monad嗎？像是<code>class (Applicative m) = > Monad m where</code>。他的確應該要有，但當Haskell被創造的早期，人們沒有想到applicative functor適合被放進語言中，所以最後沒有這個限制。但的確每個monad都是applicative functor，即使<code>Monad</code>並沒有這麼宣告。</p><p>在<code>Monad</code>typeclass中定義的第一個函數是<code>return</code>。</p><p>他其實等價於<code>pure</code>，只是名字不同罷了。</p><p>他的型態是<code>(Monad m) => a -> m a</code>。</p><p>他接受一個普通值並把他放進一個最小的context中。</p><p>也就是說他把普通值包進一個monad裡面。</p><p>他跟<code>Applicative</code>裡面<code>pure</code>函數做的事情一樣，</p><p>所以說其實我們已經認識了<code>return</code>。</p><p>我們已經用過<code>return</code>來處理一些I/O。</p><p>我們用他來做一些假的I/O，印出一些值。</p><p>對於<code>Maybe</code>來說他就是接受一個普通值然後包進<code>Just</code>。</p><blockquote><p>提醒一下：<code>return</code>跟其他語言中的<code>return</code>是完全不一樣的。他並不是結束一個函數的執行，他只不過是把一個普通值包進一個context裡面。</p></blockquote><p>接下來定義的函數是bind:<code>>>=</code>。他就像是函數套用一樣，只差在他不接受普通值，他是接受一個monadic value（也就是具有context的值）並且把他餵給一個接受普通值得函數，並回傳一個monadic value。</p><p>接下來，我們定義了<code>>></code>。我們不會介紹他，因為他有一個事先定義好的實作，基本上我們在實作<code>Monad</code>typeclass的時候都不會去理他。</p><p>最後一個函數是<code>fail</code>。我們通常在我們程式中不會具體寫出來。他是被Haskell用在處理語法錯誤的情況。我們目前不需要太在意<code>fail</code>。</p><p>我們知道了<code>Monad</code>typeclass長什麼樣子，我們來看一下<code>Maybe</code>的<code>Monad</code>instance。</p><pre class="code">ghci> return "WHAT" :: Maybe String  
+Just "WHAT"  
+ghci> Just 9 >>= \x -> return (x*10)  
+Just 90  
+ghci> Nothing >>= \x -> return (x*10)  
+Nothing</pre><p>第一行沒什麼了不起，我們已經知道<code>return</code>就是<code>pure</code>而我們又對<code>Maybe</code>操作過<code>pure</code>了。至於下兩行就比較有趣點。</p><p>留意我們是如何把<code>Just 9</code>餵給<code>\x -> return (x*10)</code>。在函數中<code>x</code>綁定到<code>9</code>。他看起好像我們能不用pattern matching的方式就從<code>Maybe</code>中抽取出值。但我們並沒有喪失掉<code>Maybe</code>的context，當他是<code>Nothing</code>的時候，<code>>>=</code>的結果也會是<code>Nothing</code>。</p><a name="走鋼索"></a><h2>走鋼索</h2><p>我們已經知道要如何把<code>Maybe a</code>餵進<code>a -> Maybe b</code>這樣的函數。我們可以看看我們如何重複使用<code>>>=</code>來處理多個<code>Maybe a</code>的值。</p><p>首先來說個小故事。</p><p>皮爾斯決定要辭掉他的工作改行試著走鋼索。</p><p>他對走鋼索蠻在行的，不過仍有個小問題。</p><p>就是鳥會停在他拿的平衡竿上。</p><p>他們會飛過來停一小會兒，然後再飛走。</p><p>這樣的情況在兩邊的鳥的數量一樣時並不是個太大的問題。</p><p>但有時候，所有的鳥都會想要停在同一邊，皮爾斯就失去了平衡，</p><p>就會讓他從鋼索上掉下去。</p><p>我們這邊假設兩邊的鳥差異在三個之內的時候，皮爾斯仍能保持平衡。</p><p>所以如果是右邊有一隻，左邊有四隻的話，那還撐得住。</p><p>但如果左邊有五隻，那就會失去平衡。</p><p>我們要寫個程式來模擬整個情況。</p><p>我們想看看皮爾斯究竟在好幾隻鳥來來去去後是否還能撐住。</p><p>例如說，我們想看看先來了一隻鳥停在左邊，然後來了四隻停在右邊，</p><p>然後左邊那隻飛走了。之後會是什麼情形。</p><p>我們用一對整數來代表我們的平衡竿狀態。</p><p>頭一個位置代表左邊的鳥的數量，第二個位置代表右邊的鳥的數量。</p><pre class="code">{
+type Birds = Int  
+type Pole = (Birds,Birds)  
+}</pre><p>由於我們用整數來代表有多少隻鳥，我們便先來定義<code>Int</code>的同義型態，叫做<code>Birds</code>。</p><p>然後我們把<code>(Birds, Birds)</code>定義成<code>Pole</code>。</p><p>接下來，我們定義一個函數他接受一個數字，然後把他放在竿子的左邊，</p><p>還有另外一個函數放在右邊。</p><pre class="code">{
+landLeft :: Birds -> Pole -> Pole  
+landLeft n (left,right) = (left + n,right)  
+  
+landRight :: Birds -> Pole -> Pole  
+landRight n (left,right) = (left,right + n)  
+}</pre><p>我們來試著執行看看：</p><pre class="code">{
+ghci> landLeft 2 (0,0)  
+(2,0)  
+ghci> landRight 1 (1,2)  
+(1,3)  
+ghci> landRight (-1) (1,2)  
+(1,1)  
+}</pre><p>要模擬鳥飛走的話我們只要給定一個負數就好了。</p><p>由於這些操作是接受<code>Pole</code>並回傳<code>Pole</code>，</p><p>所以我們可以把函數串在一起。</p><pre class="code">{
+ghci> landLeft 2 (landRight 1 (landLeft 1 (0,0)))  
+(3,1)
+}</pre><p>當我們餵<code>(0,0)</code>給<code>landLeft 1</code>時，我們會得到<code>(1,0)</code>。</p><p>接著我們模擬右邊又停了一隻鳥，狀態就變成<code>(1,1)</code>。</p><p>最後又有兩隻鳥停在左邊，狀態變成<code>(3,1)</code>。</p><p>我們這邊的寫法是先寫函數名稱，然後再套用參數。</p><p>但如果先寫pole再寫函數名稱會比較清楚，</p><p>所以我們會想定義一個函數</p><pre class="code">{
+x -: f = f x
+}</pre><p>我們能先套用參數然後再寫函數名稱：</p><pre class="code">{
+ghci> 100 -: (*3)  
+300  
+ghci> True -: not  
+False  
+ghci> (0,0) -: landLeft 2  
+(2,0)  
+}</pre><p>有了這個函數，我們便能寫得比較好讀一些：</p><pre class="code">{
+ghci> (0,0) -: landLeft 1 -: landRight 1 -: landLeft 2  
+(3,1)  
+}</pre><p>這個範例跟先前的範例是等價的，只不過好讀許多。</p><p>很清楚的看出我們是從<code>(0,0)</code>開始，然後停了一隻在左邊，接著右邊又有一隻，</p><p>最後左邊多了兩隻。</p><p>到目前為止沒什麼問題，</p><p>但如果我們要停10隻在左邊呢？</p><pre class="code">{ 
+ghci> landLeft 10 (0,3)  
+(10,3)  
+}</pre><p>你說左邊有10隻右邊卻只有3隻？那不是早就應該掉下去了？</p><p>這個例子太明顯了，如果換個比較不明顯的例子。</p><pre class="code">{
+ghci> (0,0) -: landLeft 1 -: landRight 4 -: landLeft (-1) -: landRight (-2)  
+(0,2)  
+}</pre><p>表面看起來沒什麼問題，但如果你仔細看的話，有一瞬間是右邊有四隻，但左邊沒有鳥。</p><p>要修正這個錯誤，我們要重新檢視<code>landLeft</code>跟<code>landRight</code>。</p><p>我們其實是希望這些函數產生失敗的情況。</p><p>那就是在維持平衡的時候回傳新的pole，但失敗的時候告訴我們失敗了。</p><p>這時候<code>Maybe</code>就剛剛好是我們要的context了。</p><p>我們用<code>Maybe</code>重新寫一次：</p><pre class="code">{
+landLeft :: Birds -> Pole -> Maybe Pole  
+landLeft n (left,right)  
+    | abs ((left + n) - right) < 4 = Just (left + n, right)  
+    | otherwise                    = Nothing  
+          
+landRight :: Birds -> Pole -> Maybe Pole  
+landRight n (left,right)  
+    | abs (left - (right + n)) < 4 = Just (left, right + n)  
+    | otherwise                    = Nothing  
+}</pre><p>現在這些函數不回傳<code>Pole</code>而回傳<code>Maybe Pole</code>了。</p><p>他們仍接受鳥的數量跟舊的的pole，</p><p>但他們現在會檢查是否有太多鳥會造成皮爾斯失去平衡。</p><p>我們用guards來檢查是否有差異超過三的情況。</p><p>如果沒有，那就包一個在<code>Just</code>中的新的pole，</p><p>如果是，那就回傳<code>Nothing</code>。</p><p>再來執行看看：</p><pre class="code">{
+ghci> landLeft 2 (0,0)  
+Just (2,0)  
+ghci> landLeft 10 (0,3)  
+Nothing  
+}</pre><p>一如預期，當皮爾斯不會掉下去的時候，我們就得到一個包在<code>Just</code>中的新pole。</p><p>當太多鳥停在同一邊的時候，我們就會拿到<code>Nothing</code>。</p><p>這樣很棒，但我們卻不知道怎麼把東西串在一起了。</p><p>我們不能做<code>landLeft 1 (landRight 1 (0,0))</code>，</p><p>因為當我們對<code>(0,0)</code>使用<code>landRight 1</code>時，我們不是拿到<code>Pole</code>而是拿到<code>Maybe Pole</code>。</p><p><code>landLeft 1</code>會拿到<code>Pole</code>而不是拿到<code>Maybe Pole</code>。</p><p>我們需要一種方法可以把拿到的<code>Maybe Pole</code>塞到拿<code>Pole</code>的函數中，然後回傳<code>Maybe Pole</code>。</p><p>而我們有<code>>>=</code>，他對<code>Maybe</code>做的事就是我們要的</p><pre class="code">{
+ghci> landRight 1 (0,0) >>= landLeft 2  
+Just (2,1)  
+}</pre><p><code>landLeft 2的型態是</code>Pole -> Maybe Pole。</p><p>我們不能餵給他<code>Maybe Pole</code>的東西。</p><p>而<code>landRight 1 (0,0)</code>的結果就是<code>Maybe Pole</code>，</p><p>所以我們用<code>>>=</code>來接受一個有context的值然後拿給<code>landLeft 2</code>。</p><p><code>>>=</code>的確讓我們把<code>Maybe</code>當作有context的值，</p><p>因為當我們丟<code>Nothing</code>給<code>landLeft 2</code>的時候，結果會是<code>Nothing</code>。</p><pre class="code">{ 
+ghci> Nothing >>= landLeft 2  
+Nothing  
+}</pre><p>這樣我們可以把這些新寫的用<code>>>=</code>串在一起。</p><p>讓monadic value可以餵進只吃普通值的函數。</p><p>來看看些例子：</p><pre class="code">{
+ghci> return (0,0) >>= landRight 2 >>= landLeft 2 >>= landRight 2  
+Just (2,4)  
+}</pre><a name="do表示法"></a><h2>do表示法</h2><a name="List Monad"></a><h2>List Monad</h2><a name="Monad laws (單子律)"></a><h2>Monad laws (單子律)</h2>
             <ul class="nav">
                 <li class="left">  <img src="img/prv.png"></img><a href="functors-applicative-functors-and-monoids.html">Functors, Applicative Functors與Monoids</a></li>
                 <li class="center"><a href="chapters.html">Index</a></li>
