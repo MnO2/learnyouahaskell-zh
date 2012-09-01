@@ -139,8 +139,26 @@ fmap (replicate 3) :: (Functor f) => f a -> f [a]
 
 ``fmap (*2)``接受一個functor ``f``，並回傳一個基於數字的functor。那個functor可以是list，可以是``Maybe``，可以是``Either String``。``fmap (replicate 3)``可以接受一個基於任何型態的functor，並回傳一個基於list的functor。
 
+    當我們提到functor over numbers的時候，你可以想像他是一個functor包含有許多數字在裡面。前面一種說法其實比較正確，但後面一種說法比較容易讓人理解。
 
+這樣的觀察在我們只有綁定一個部份套用的函數，像是``fmap (++"!")``，的時候會顯得更清楚，
 
+你可以把``fmap``想做是一個函數，他接受另一個函數跟一個functor，然後把函數對functor每一個元素做映射，或你可以想做他是一個函數，他接受一個函數並把他lift到可以在functors上面操作。兩種想法都是正確的，而且在Haskell中是等價。
+
+``fmap (replicate 3) :: (Functor f) => f a -> f [a]``這樣的型態代表這個函數可以運作在任何functor上。至於確切的行為則要看究竟我們操作的是什麼樣的functor。如果我們是用``fmap (replicate 3)``對一個list操作，那我們會選擇``fmap``針對list的實作，也就是只是一個``map``。如果我們是碰到``Maybe a``。那他在碰到``Just``型態的時候，會對裡面的值套用``replicate 3``。而碰到``Nothing``的時候就回傳``Nothing``。
+
+{{
+ghci> fmap (replicate 3) [1,2,3,4]  
+[[1,1,1],[2,2,2],[3,3,3],[4,4,4]]  
+ghci> fmap (replicate 3) (Just 4)  
+Just [4,4,4]  
+ghci> fmap (replicate 3) (Right "blah")  
+Right ["blah","blah","blah"]  
+ghci> fmap (replicate 3) Nothing  
+Nothing  
+ghci> fmap (replicate 3) (Left "foo")  
+Left "foo"  
+}}
 
 [^img/justice.png]
 
