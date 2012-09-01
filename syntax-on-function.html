@@ -47,7 +47,7 @@
                 <li class="center"><a href="chapters.html">Index</a></li>
                 <li class="right"> <a href="recursion.html">遞迴</a><img src="img/nxt.png"></img></li>
             </ul>
-            <a name="函數的語法"></a><h1>函數的語法</h1><a name="模式匹配(Pattern matching)"></a><h2>模式匹配(Pattern matching)</h2><img src="img/pattern.png" style="float:right"></img><p>本章講的就是Haskell那套獨特的語法結構，先從模式匹配開始。模式匹配通過檢查數據的特定結構來檢查其是否匹配，並按模式從中取得數據。</p><p>在定義函數時，你可以為不同的模式分別定義函數本身，這就讓程式碼更加簡潔易讀。你可以匹配一切數據類型---數字，字元，List，元組，等等。我們弄個簡單函數，讓它檢查我們傳給它的數字是不是7。</p><pre class="code">lucky :: (Integral a) => a -> String  
+            <a name="函數的語法"></a><h1>函數的語法</h1><a name="模式匹配(Pattern matching)"></a><h2>模式匹配(Pattern matching)</h2><img src="img/pattern.png" style="float:right"></img><p>本章講的就是Haskell那套獨特的語法結構，先從模式匹配開始。模式匹配通過檢查數據的特定結構來檢查其是否匹配，並按模式從中取得數據。</p><p>在定義函數時，你可以為不同的模式分別定義函數本身，這就讓程式碼更加簡潔易讀。你可以匹配一切數據型別---數字，字元，List，元組，等等。我們弄個簡單函數，讓它檢查我們傳給它的數字是不是7。</p><pre class="code">lucky :: (Integral a) => a -> String  
 lucky 7 = "LUCKY NUMBER SEVEN!"  
 lucky x = "Sorry, you're out of luck, pal!"   </pre><p>在呼叫<code>lucky</code>時，模式會從上至下進行檢查，一旦有匹配，那對應的函數體就被應用了。這個模式中的唯一匹配是參數為7，如果不是7，就轉到下一個模式，它匹配一切數值並將其綁定為x。這個函數完全可以使用if實現，不過我們若要個分辨1到5中的數字，而無視其它數的函數該怎麼辦？要是沒有模式匹配的話，那可得好大一棵if-else樹了！</p><pre class="code">sayMe :: (Integral a) => a -> String  
 sayMe 1 = "One!"  
@@ -55,9 +55,9 @@ sayMe 2 = "Two!"  
 sayMe 3 = "Three!"  
 sayMe 4 = "Four!"  
 sayMe 5 = "Five!"  
-sayMe x = "Not between 1 and 5"  </pre><p>注意下，如果我們把最後匹配一切的那個模式挪到最前，它的結果就全都是<code>"Not between 1 and 5"  </code>了。因為它自己匹配了一切數字，不給後面的模式留機會。</p><p>記得前面實現的那個階乘函數麼？當時是把<code>n</code>的階乘定義成了<code>product [1..n]</code>。也可以寫出像數學那樣的遞迴實現，先說明0的階乘是1，再說明每個正整數的階乘都是這個數與它前驅(predecessor)對應的階乘的積。如下便是翻譯到haskell的樣子：</p><pre class="code">factorial :: (Integral a) => a -> a  
+sayMe x = "Not between 1 and 5"  </pre><p>注意下，如果我們把最後匹配一切的那個模式挪到最前，它的結果就全都是<code>"Not between 1 and 5"  </code>了。因為它自己匹配了一切數字，不給後面的模式留機會。</p><p>記得前面實現的那個階乘函數麼？當時是把<code>n</code>的階乘定義成了<code>product [1..n]</code>。也可以寫出像數學那樣的遞迴實現，先說明0的階乘是1，再說明每個正整數的階乘都是這個數與它前驅(predecessor)對應的階乘的積。如下便是翻譯到Haskell的樣子：</p><pre class="code">factorial :: (Integral a) => a -> a  
 factorial 0 = 1  
-factorial n = n * factorial (n - 1)  </pre><p>這就是我們定義的第一個遞迴函數。遞迴在haskell中十分重要，我們會在後面深入理解。如果拿一個數（如3）呼叫factorial函數，這就是接下來的計算步驟：先計算<code>3*factorial 2</code>，<code>factorial 2</code>等於<code>2*factorial 1</code>，也就是<code>3*(2*(factorial 1))</code>。<code>factorial 1</code>等於<code>1*factorial 0</code>，好，得<code>3*(2*(1*factorial 0))</code>，遞迴在這裡到頭了，嗯---我們在萬能匹配前面有定義，0的階乘是1.於是最終的結果等於<code>3*(2*(1*1))</code>。若是把第二個模式放在前面，它就會捕獲包括0在內的一切數字，這一來我們的計算就永遠都不會停止了。這便是為什麼說模式的順序是如此重要：它總是優先匹配最符合的那個，最後才是那個萬能的。</p><p>模式匹配也會失敗。假如這個函數：</p><pre class="code">charName :: Char -> String  
+factorial n = n * factorial (n - 1)  </pre><p>這就是我們定義的第一個遞迴函數。遞迴在Haskell中十分重要，我們會在後面深入理解。如果拿一個數（如3）呼叫factorial函數，這就是接下來的計算步驟：先計算<code>3*factorial 2</code>，<code>factorial 2</code>等於<code>2*factorial 1</code>，也就是<code>3*(2*(factorial 1))</code>。<code>factorial 1</code>等於<code>1*factorial 0</code>，好，得<code>3*(2*(1*factorial 0))</code>，遞迴在這裡到頭了，嗯---我們在萬能匹配前面有定義，0的階乘是1.於是最終的結果等於<code>3*(2*(1*1))</code>。若是把第二個模式放在前面，它就會捕獲包括0在內的一切數字，這一來我們的計算就永遠都不會停止了。這便是為什麼說模式的順序是如此重要：它總是優先匹配最符合的那個，最後才是那個萬能的。</p><p>模式匹配也會失敗。假如這個函數：</p><pre class="code">charName :: Char -> String  
 charName 'a' = "Albert"  
 charName 'b' = "Broseph"  
 charName 'c' = "Cecil"  </pre><p>拿個它沒有考慮到的字元去呼叫它，你就會看到這個：</p><pre class="code">ghci> charName 'a'  
@@ -67,7 +67,7 @@ ghci> charName 'b'  
 ghci> charName 'h'  
 "*** Exception: tut.hs:(53,0)-(55,21): Non-exhaustive patterns in function charName  </pre><p>它告訴我們說，這個模式不夠全面。因此，在定義模式時，一定要留一個萬能匹配的模式，這樣我們的程序就不會為了不可預料的輸入而崩潰了。</p><p>對Tuple同樣可以使用模式匹配。寫個函數，將二維空間中的向量相加該如何？將它們的x項和y項分別相加就是了。如果不瞭解模式匹配，我們很可能會寫出這樣的程式碼：</p><pre class="code">addVectors :: (Num a) => (a, a) -> (a, a) -> (a, a)  
 addVectors a b = (fst a + fst b, snd a + snd b)  </pre><p>嗯，可以運行。但有更好的方法，上模式匹配：</p><pre class="code">addVectors :: (Num a) => (a, a) -> (a, a) -> (a, a)  
-addVectors (x1, y1) (x2, y2) = (x1 + x2, y1 + y2)  </pre><p>there we go！好多了！注意，它已經是個萬能的匹配了。兩個addVector的類型都是<code>addVectors:: (Num a) => (a,a) -> (a,a) -> (a,a)</code>，我們就能夠保證，兩個參數都是序對(Pair)了。</p><p>fst和snd可以從序對中取出元素。三元組(Tripple)呢？嗯，沒現成的函數，得自己動手：</p><pre class="code">first :: (a, b, c) -> a  
+addVectors (x1, y1) (x2, y2) = (x1 + x2, y1 + y2)  </pre><p>there we go！好多了！注意，它已經是個萬能的匹配了。兩個addVector的型別都是<code>addVectors:: (Num a) => (a,a) -> (a,a) -> (a,a)</code>，我們就能夠保證，兩個參數都是序對(Pair)了。</p><p>fst和snd可以從序對中取出元素。三元組(Tripple)呢？嗯，沒現成的函數，得自己動手：</p><pre class="code">first :: (a, b, c) -> a  
 first (x, _, _) = x  
 
 second :: (a, b, c) -> b  
@@ -132,14 +132,14 @@ bmiTell weight height
     where bmi = weight / height ^ 2  
           skinny = 18.5  
           normal = 25.0  
-          fat = 30.0</pre><p>函數在<i>where</i>綁定中定義的名字只對本函數可見，因此我們不必擔心它會污染其他函數的命名空間。注意，其中的名字都是一列垂直排開，如果不這樣規範，haskell就搞不清楚它們在哪個地方了。</p><p><i>where</i>綁定不會在多個模式中共享。如果你在一個函數的多個模式中重複用到同一名字，就應該把它置於全局定義之中。</p><p><i>where</i>綁定也可以使用<b>模式匹配</b>！前面那段程式碼可以改成：</p><pre class="code">...  
+          fat = 30.0</pre><p>函數在<i>where</i>綁定中定義的名字只對本函數可見，因此我們不必擔心它會污染其他函數的命名空間。注意，其中的名字都是一列垂直排開，如果不這樣規範，Haskell就搞不清楚它們在哪個地方了。</p><p><i>where</i>綁定不會在多個模式中共享。如果你在一個函數的多個模式中重複用到同一名字，就應該把它置於全局定義之中。</p><p><i>where</i>綁定也可以使用<b>模式匹配</b>！前面那段程式碼可以改成：</p><pre class="code">...  
 where bmi = weight / height ^ 2  
       (skinny, normal, fat) = (18.5, 25.0, 30.0)  </pre><p>我們再搞個簡單函數，讓它告訴我們姓名的首字母：</p><pre class="code">initials :: String -> String -> String  
 initials firstname lastname = [f] ++ ". " ++ [l] ++ "."  
     where (f:_) = firstname  
-          (l:_) = lastname  </pre><p>我們完全按可以在函數的參數上直接使用模式匹配（這樣更短更簡潔），在這裡只是為了演示在where語句中同樣可以使用模式匹配：</p><p><i>where</i>綁定可以定義名字，也可以定義函數。保持健康的編程風格，我們搞個計算一組bmi的函數：</p><pre class="code">calcBmis :: (RealFloat a) => [(a, a)] -> [a]  
+          (l:_) = lastname  </pre><p>我們完全按可以在函數的參數上直接使用模式匹配（這樣更短更簡潔），在這裡只是為了演示在where語句中同樣可以使用模式匹配：</p><p><i>where</i>綁定可以定義名字，也可以定義函數。保持健康的程式語言風格，我們搞個計算一組bmi的函數：</p><pre class="code">calcBmis :: (RealFloat a) => [(a, a)] -> [a]  
 calcBmis xs = [bmi w h | (w, h) <- xs] 
-    where bmi weight height = weight / height ^ 2  </pre><p>這就全了！在這裡將<code>bmi</code>搞成一個函數，是因為我們不能依據參數直接進行計算，而必須先從傳入函數的list中取出每個序對並計算對應的值。</p><p><i>where</i>綁定還可以一層套一層地來使用。</p><p>有個常見的寫法是，在定義一個函數的時候也寫幾個輔助函數擺在<i>where</i>綁定中。</p><p>而每個輔助函數也可以透過where擁有各自的輔助函數。</p><a name="關鍵字Let"></a><h2>關鍵字Let</h2><p>let綁定與where綁定很相似。where綁定是在函數底部定義名字，對包括所有guard在內的整個函數可見。let綁定則是個表達式，允許你在任何位置定義局部變數，而對不同的guard不可見。正如haskell中所有賦值結構一樣，let綁定也可以使用模式匹配。看下它的實際應用！這是個依據半徑和高度求圓柱體表面積的函數：</p><pre class="code">cylinder :: (RealFloat a) => a -> a -> a  
+    where bmi weight height = weight / height ^ 2  </pre><p>這就全了！在這裡將<code>bmi</code>搞成一個函數，是因為我們不能依據參數直接進行計算，而必須先從傳入函數的list中取出每個序對並計算對應的值。</p><p><i>where</i>綁定還可以一層套一層地來使用。</p><p>有個常見的寫法是，在定義一個函數的時候也寫幾個輔助函數擺在<i>where</i>綁定中。</p><p>而每個輔助函數也可以透過where擁有各自的輔助函數。</p><a name="關鍵字Let"></a><h2>關鍵字Let</h2><p>let綁定與where綁定很相似。where綁定是在函數底部定義名字，對包括所有guard在內的整個函數可見。let綁定則是個表達式，允許你在任何位置定義局部變數，而對不同的guard不可見。正如Haskell中所有賦值結構一樣，let綁定也可以使用模式匹配。看下它的實際應用！這是個依據半徑和高度求圓柱體表面積的函數：</p><pre class="code">cylinder :: (RealFloat a) => a -> a -> a  
 cylinder r h = 
     let sideArea = 2 * pi * r * h  
         topArea = pi * r ^2  
@@ -158,7 +158,7 @@ ghci> zoot 3 9 2
 ghci> let boot x y z = x * y + z in boot 3 4 2  
 14  
 ghci> boot  
-< interactive>:1:0: Not in scope: `boot'</pre><p>你說既然<i>let</i>已經這麼好了，還要where幹嘛呢？嗯，let是個表達式，定義域限制的相當小，因此不能在多個guard中使用。一些朋友更喜歡<i>where</i>，因為它是跟在函數體後面，把主函數體距離類型聲明近一些會更易讀。</p><a name="Case expressions"></a><h2>Case expressions</h2><img src="img/case.png" style="float:right"></img><p>有命令式編程(<i>C, C++, Java, etc</i>)的經驗的同學一定會有所瞭解，很多命令式語言都提供了<i>case</i>語句。就是取一個變數，按照對變數的判斷選擇對應的程式碼塊。其中可能會存在一個萬能匹配以處理未預料的情況。</p><p>haskell取了這一概念融合其中。如其名，case表達式就是，嗯，一種表達式。跟<i>if..else</i>和<i>let</i>一樣的表達式。用它可以對變數的不同情況分別求值，還可以使用模式匹配。Hmm，取一個變數，對它模式匹配，執行對應的程式碼塊。好像在哪兒聽過？啊，就是函數定義時參數的模式匹配！好吧，模式匹配本質上不過就是case語句的語法糖而已。這兩段程式碼就是完全等價的：</p><pre class="code">head' :: [a] -> a  
+< interactive>:1:0: Not in scope: `boot'</pre><p>你說既然<i>let</i>已經這麼好了，還要where幹嘛呢？嗯，let是個表達式，定義域限制的相當小，因此不能在多個guard中使用。一些朋友更喜歡<i>where</i>，因為它是跟在函數體後面，把主函數體距離型別聲明近一些會更易讀。</p><a name="Case expressions"></a><h2>Case expressions</h2><img src="img/case.png" style="float:right"></img><p>有命令式程式語言(<i>C, C++, Java, etc</i>)的經驗的同學一定會有所瞭解，很多命令式語言都提供了<i>case</i>語句。就是取一個變數，按照對變數的判斷選擇對應的程式碼塊。其中可能會存在一個萬能匹配以處理未預料的情況。</p><p>Haskell取了這一概念融合其中。如其名，case表達式就是，嗯，一種表達式。跟<i>if..else</i>和<i>let</i>一樣的表達式。用它可以對變數的不同情況分別求值，還可以使用模式匹配。Hmm，取一個變數，對它模式匹配，執行對應的程式碼塊。好像在哪兒聽過？啊，就是函數定義時參數的模式匹配！好吧，模式匹配本質上不過就是case語句的語法糖而已。這兩段程式碼就是完全等價的：</p><pre class="code">head' :: [a] -> a  
 head' [] = error "No head for empty lists!"  
 head' (x:_) = x  </pre><pre class="code">head' :: [a] -> a  
 head' xs = case xs of [] -> error "No head for empty lists!"  

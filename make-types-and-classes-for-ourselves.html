@@ -47,20 +47,20 @@
                 <li class="center"><a href="chapters.html">Index</a></li>
                 <li class="right"> <a href="input-and-output.html">輸入與輸出</a><img src="img/nxt.png"></img></li>
             </ul>
-            <a name="構造我們自己的Types和Typeclasses"></a><h1>構造我們自己的Types和Typeclasses</h1><a name="Algebraic data types入門"></a><h2>Algebraic data types入門</h2><p>在前面的章節中，我們談了一些Haskell內置的類型和類型類。而在本章，我們將學習構造類型和類型類的方法。</p><p>我們以已經見識了許多數據類型，如<code>Bool</code>、<code>Int</code>、<code>Char</code>、<code>Maybe</code>等等，不過該怎樣構造自己的數據類型呢？好問題，使用data關鍵字是一種方法。我們看看<code>Bool</code>在標準庫中的定義：</p><pre class="code">data Bool = False | True</pre><p><b>data</b>表示我們要定義一個新的數據類型。=的左端標明類型的名稱即<code>Bool</code>，<code>=</code>的右端就是<b>值構造子</b>（<i>Value Constructor</i>），它們明確了該類型可能的值。<code>|</code>讀作“或”，所以可以這樣閲讀該聲明：<code>Bool</code>類型的值可以是True或False。類型名和值構造子的首字母必大寫。</p><p>相似，我們可以假想<code>Int</code>類型的聲明：</p><pre class="code">data Int = -2147483648 | -2147483647 | ... | -1 | 0 | 1 | 2 | ... | 2147483647</pre><img src="img/caveman.png" style="float:right"></img><p>首位兩個值構造子分別表示了Int類型可能的最小值和最大值，這些省略號表示我們省去了中間大段的數字。當然，真實的聲明不是這個樣子的，這樣寫只是為了便於理解。</p><p>我們想想Haskell中圖形的表示方法。表示圓可以用一個元組，如<code>(43.1,55.0,10.4)</code>，前兩項表示圓心的位置，末項表示半徑。聽著不錯，不過三維向量或其它什麼東西也可能是這種形式！更好的方法就是自己構造一個表示圖形的類型。假定圖形可以是圓（Circle）或長方形（Rectangle）：</p><pre class="code">data Shape = Circle Float Float Float | Rectangle Float Float Float Float</pre><p>這是啥，想想？<code>Circle</code>的值構造子有三個項，都是Float。可見我們在定義值構造子時，可以在後面跟幾個類型表示它包含值的類型。在這裡，前兩項表示圓心的坐標，尾項表示半徑。<code>Rectangle</code>的值構造子取四個Float項，前兩項表示其左上角的坐標，後兩項表示右下角的坐標。</p><p>談到“項”(field)，其實應為“參數”(parameters)。值構造子的本質是個函數，可以返回一個類型的值。我們看下這兩個值構造子的類型聲明：</p><pre class="code">ghci> :t Circle  
+            <a name="構造我們自己的Types和Typeclasses"></a><h1>構造我們自己的Types和Typeclasses</h1><a name="Algebraic data types入門"></a><h2>Algebraic data types入門</h2><p>在前面的章節中，我們談了一些Haskell內置的型別和型別類。而在本章，我們將學習構造型別和型別類的方法。</p><p>我們以已經見識了許多數據型別，如<code>Bool</code>、<code>Int</code>、<code>Char</code>、<code>Maybe</code>等等，不過該怎樣構造自己的數據型別呢？好問題，使用data關鍵字是一種方法。我們看看<code>Bool</code>在標準庫中的定義：</p><pre class="code">data Bool = False | True</pre><p><b>data</b>表示我們要定義一個新的數據型別。=的左端標明型別的名稱即<code>Bool</code>，<code>=</code>的右端就是<b>值構造子</b>（<i>Value Constructor</i>），它們明確了該型別可能的值。<code>|</code>讀作“或”，所以可以這樣閲讀該聲明：<code>Bool</code>型別的值可以是True或False。型別名和值構造子的首字母必大寫。</p><p>相似，我們可以假想<code>Int</code>型別的聲明：</p><pre class="code">data Int = -2147483648 | -2147483647 | ... | -1 | 0 | 1 | 2 | ... | 2147483647</pre><img src="img/caveman.png" style="float:right"></img><p>首位兩個值構造子分別表示了Int型別可能的最小值和最大值，這些省略號表示我們省去了中間大段的數字。當然，真實的聲明不是這個樣子的，這樣寫只是為了便於理解。</p><p>我們想想Haskell中圖形的表示方法。表示圓可以用一個元組，如<code>(43.1,55.0,10.4)</code>，前兩項表示圓心的位置，末項表示半徑。聽著不錯，不過三維向量或其它什麼東西也可能是這種形式！更好的方法就是自己構造一個表示圖形的型別。假定圖形可以是圓（Circle）或長方形（Rectangle）：</p><pre class="code">data Shape = Circle Float Float Float | Rectangle Float Float Float Float</pre><p>這是啥，想想？<code>Circle</code>的值構造子有三個項，都是Float。可見我們在定義值構造子時，可以在後面跟幾個型別表示它包含值的型別。在這裡，前兩項表示圓心的坐標，尾項表示半徑。<code>Rectangle</code>的值構造子取四個Float項，前兩項表示其左上角的坐標，後兩項表示右下角的坐標。</p><p>談到“項”(field)，其實應為“參數”(parameters)。值構造子的本質是個函數，可以返回一個型別的值。我們看下這兩個值構造子的型別聲明：</p><pre class="code">ghci> :t Circle  
 Circle :: Float -> Float -> Float -> Shape  
 ghci> :t Rectangle  
 Rectangle :: Float -> Float -> Float -> Float -> Shape</pre><p>Cool，這麼說值構造子就跟普通函數並無二致咯，誰想得到？我們寫個函數計算圖形面積：</p><pre class="code">surface :: Shape -> Float  
 surface (Circle _ _ r) = pi * r ^ 2  
-surface (Rectangle x1 y1 x2 y2) = (abs $ x2 - x1) * (abs $ y2 - y1)</pre><p>值得一提的是，它的類型聲明表示了該函數取一個Shape值並返回一個Float值。寫<code>Circle -> Float</code>是不可以的，因為Circle並非類型，真正的類型應該是Shape。這與不能寫<code>True->False</code>的道理是一樣的。再就是，我們使用的模式匹配針對的都是值構造子。之前我們匹配過<code>[]</code>、<code>False</code>或<code>5</code>，它們都是不包含參數的值構造子。</p><p>我們只關心圓的半徑，因此不需理會表示坐標的前兩項：</p><pre class="code">ghci> surface $ Circle 10 20 10  
+surface (Rectangle x1 y1 x2 y2) = (abs $ x2 - x1) * (abs $ y2 - y1)</pre><p>值得一提的是，它的型別聲明表示了該函數取一個Shape值並返回一個Float值。寫<code>Circle -> Float</code>是不可以的，因為Circle並非型別，真正的型別應該是Shape。這與不能寫<code>True->False</code>的道理是一樣的。再就是，我們使用的模式匹配針對的都是值構造子。之前我們匹配過<code>[]</code>、<code>False</code>或<code>5</code>，它們都是不包含參數的值構造子。</p><p>我們只關心圓的半徑，因此不需理會表示坐標的前兩項：</p><pre class="code">ghci> surface $ Circle 10 20 10  
 314.15927  
 ghci> surface $ Rectangle 0 0 100 100  
-10000.0</pre><p>Yay，it works！不過我們若嘗試輸出<code>Circle 10 20</code>到控制台，就會得到一個錯誤。這是因為Haskell還不知道該類型的字元串表示方法。想想，當我們往控制台輸出值的時候，Haskell會先呼叫show函數得到這個值的字元串表示才會輸出。因此要讓我們的Shape類型成為Show類型類的成員。可以這樣修改：</p><pre class="code">data Shape = Circle Float Float Float | Rectangle Float Float Float Float deriving (Show)</pre><p>先不去深究<b>deriving</b>（派生），可以先這樣理解：若在data聲明的後面加上<code>deriving (Show)</code>，那Haskell就會自動將該類型至于Show類型類之中。好了，由於值構造子是個函數，因此我們可以拿它交給map，拿它不全呼叫，以及普通函數能做的一切。</p><pre class="code">ghci> Circle 10 20 5  
+10000.0</pre><p>Yay，it works！不過我們若嘗試輸出<code>Circle 10 20</code>到控制台，就會得到一個錯誤。這是因為Haskell還不知道該型別的字元串表示方法。想想，當我們往控制台輸出值的時候，Haskell會先呼叫show函數得到這個值的字元串表示才會輸出。因此要讓我們的Shape型別成為Show型別類的成員。可以這樣修改：</p><pre class="code">data Shape = Circle Float Float Float | Rectangle Float Float Float Float deriving (Show)</pre><p>先不去深究<b>deriving</b>（派生），可以先這樣理解：若在data聲明的後面加上<code>deriving (Show)</code>，那Haskell就會自動將該型別至于Show型別類之中。好了，由於值構造子是個函數，因此我們可以拿它交給map，拿它不全呼叫，以及普通函數能做的一切。</p><pre class="code">ghci> Circle 10 20 5  
 Circle 10.0 20.0 5.0  
 ghci> Rectangle 50 230 60 90  
 Rectangle 50.0 230.0 60.0 90.0</pre><p>我們若要取一組不同半徑的同心圓，可以這樣：</p><pre class="code">ghci> map (Circle 10 20) [4,5,6,6]  
-[Circle 10.0 20.0 4.0,Circle 10.0 20.0 5.0,Circle 10.0 20.0 6.0,Circle 10.0 20.0 6.0]</pre><p>我們的類型還可以更好。增加加一個表示二維空間中點的類型，可以讓我們的Shape更加容易理解：</p><pre class="code">data Point = Point Float Float deriving (Show)  
-data Shape = Circle Point Float | Rectangle Point Point deriving (Show)</pre><p>注意下Point的定義，它的類型與值構造子用了相同的名字。沒啥特殊含義，實際上，在一個類型含有唯一值構造子時這種重名是很常見的。好的，如今我們的Circle含有兩個項，一個是Point類型，一個是Float類型，好作區分。Rectangle也是同樣，我們得修改surface函數以適應類型定義的變動。</p><pre class="code">surface :: Shape -> Float  
+[Circle 10.0 20.0 4.0,Circle 10.0 20.0 5.0,Circle 10.0 20.0 6.0,Circle 10.0 20.0 6.0]</pre><p>我們的型別還可以更好。增加加一個表示二維空間中點的型別，可以讓我們的Shape更加容易理解：</p><pre class="code">data Point = Point Float Float deriving (Show)  
+data Shape = Circle Point Float | Rectangle Point Point deriving (Show)</pre><p>注意下Point的定義，它的型別與值構造子用了相同的名字。沒啥特殊含義，實際上，在一個型別含有唯一值構造子時這種重名是很常見的。好的，如今我們的Circle含有兩個項，一個是Point型別，一個是Float型別，好作區分。Rectangle也是同樣，我們得修改surface函數以適應型別定義的變動。</p><pre class="code">surface :: Shape -> Float  
 surface (Circle _ r) = pi * r ^ 2  
 surface (Rectangle (Point x1 y1) (Point x2 y2)) = (abs $ x2 - x1) * (abs $ y2 - y1)</pre><p>唯一需要修改的地方就是模式。在Circle的模式中，我們無視了整個Point。而在Rectangle的模式中，我們用了一個嵌套的模式來取得Point中的項。若出於某原因而需要整個Point，那麼直接匹配就是了。</p><pre class="code">ghci> surface (Rectangle (Point 0 0) (Point 100 100))  
 10000.0  
@@ -73,14 +73,14 @@ baseCircle r = Circle (Point 0 0) r
 
 baseRect :: Float -> Float -> Shape  
 baseRect width height = Rectangle (Point 0 0) (Point width height)</pre><pre class="code">ghci> nudge (baseRect 40 100) 60 23  
-Rectangle (Point 60.0 23.0) (Point 100.0 123.0)</pre><p>毫無疑問，你可以把你的數據類型導出到模組中。只要把你的類型與要導出的函數寫到一起就是了。再在後面跟個括號，列出要導出的值構造子，用逗號隔開。如要導出所有的值構造子，那就寫個..。</p><p>若要將這裡定義的所有函數和類型都導出到一個模組中，可以這樣：</p><pre class="code">module Shapes   
+Rectangle (Point 60.0 23.0) (Point 100.0 123.0)</pre><p>毫無疑問，你可以把你的數據型別導出到模組中。只要把你的型別與要導出的函數寫到一起就是了。再在後面跟個括號，列出要導出的值構造子，用逗號隔開。如要導出所有的值構造子，那就寫個..。</p><p>若要將這裡定義的所有函數和型別都導出到一個模組中，可以這樣：</p><pre class="code">module Shapes   
 ( Point(..)  
 , Shape(..)  
 , surface  
 , nudge  
 , baseCircle  
 , baseRect  
-) where</pre><p>一個Shape (..)，我們就導出了<code>Shape</code>的所有值構造子。這一來無論誰導入我們的模組，都可以用<code>Rectangle</code>和<code>Circle</code>值構造子來構造Shape了。這與寫<code>Shape(Rectangle,Circle)</code>等價。</p><p>我們可以選擇不導出任何Shape的值構造子，這一來使用我們模組的人就只能用輔助函數<code>baseCircle</code>和<code>baseRect</code>來得到<code>Shape</code>了。<code>Data.Map</code>就是這一套，沒有<code>Map.Map [(1,2),(3,4)]</code>，因為它沒有導出任何一個值構造子。但你可以用，像<code>Map.fromList</code>這樣的輔助函數得到map。應該記住，值構造子只是函數而已，如果不導出它們，就拒絶了使用我們模組的人呼叫它們。但可以使用其他返回該類型的函數，來取得這一類型的值。</p><p>不導出數據類型的值構造子隱藏了他們的內部實現，令類型的抽象度更高。同時，我們模組的使用者也就無法使用該值構造子進行模式匹配了。</p><a name="Record Syntax"></a><h2>Record Syntax</h2><p>OK，我們需要一個數據類型來描述一個人，得包含他的姓、名、年齡、身高、體重、電話號碼以及最愛的冰激淋。我不知你的想法，不過我覺得要瞭解一個人，這些資料就夠了。就這樣，實現出來！</p><pre class="code">data Person = Person String String Int Float String String deriving (Show)</pre><p>O~Kay，第一項是名，第二項是姓，第三項是年齡，等等。我們造一個人：</p><pre class="code">ghci> let guy = Person "Buddy" "Finklestein" 43 184.2 "526-2928" "Chocolate"  
+) where</pre><p>一個Shape (..)，我們就導出了<code>Shape</code>的所有值構造子。這一來無論誰導入我們的模組，都可以用<code>Rectangle</code>和<code>Circle</code>值構造子來構造Shape了。這與寫<code>Shape(Rectangle,Circle)</code>等價。</p><p>我們可以選擇不導出任何Shape的值構造子，這一來使用我們模組的人就只能用輔助函數<code>baseCircle</code>和<code>baseRect</code>來得到<code>Shape</code>了。<code>Data.Map</code>就是這一套，沒有<code>Map.Map [(1,2),(3,4)]</code>，因為它沒有導出任何一個值構造子。但你可以用，像<code>Map.fromList</code>這樣的輔助函數得到map。應該記住，值構造子只是函數而已，如果不導出它們，就拒絶了使用我們模組的人呼叫它們。但可以使用其他返回該型別的函數，來取得這一型別的值。</p><p>不導出數據型別的值構造子隱藏了他們的內部實現，令型別的抽象度更高。同時，我們模組的使用者也就無法使用該值構造子進行模式匹配了。</p><a name="Record Syntax"></a><h2>Record Syntax</h2><p>OK，我們需要一個數據型別來描述一個人，得包含他的姓、名、年齡、身高、體重、電話號碼以及最愛的冰激淋。我不知你的想法，不過我覺得要瞭解一個人，這些資料就夠了。就這樣，實現出來！</p><pre class="code">data Person = Person String String Int Float String String deriving (Show)</pre><p>O~Kay，第一項是名，第二項是姓，第三項是年齡，等等。我們造一個人：</p><pre class="code">ghci> let guy = Person "Buddy" "Finklestein" 43 184.2 "526-2928" "Chocolate"  
 ghci> guy  
 Person "Buddy" "Finklestein" 43 184.2 "526-2928" "Chocolate"</pre><p>貌似很酷，就是難讀了點兒。弄個函數得人的某項資料又該如何？如姓的函數，名的函數，等等。好吧，我們只能這樣：</p><pre class="code">firstName :: Person -> String  
 firstName (Person firstname _ _ _ _ _) = firstname  
@@ -104,18 +104,18 @@ ghci> firstName guy
 ghci> height guy  
 184.2  
 ghci> flavor guy  
-"Chocolate"</pre><p>你可能會說，一定有更好的方法！呃，抱歉，沒有。</p><p>開個玩笑，其實有的，哈哈哈～Haskell的發明者都是天才，早就料到了此類情形。他們引入了一個特殊的類型，也就是剛纔提到的更好的方法--<b>Record Syntax</b>。</p><pre class="code">data Person = Person { firstName :: String  
+"Chocolate"</pre><p>你可能會說，一定有更好的方法！呃，抱歉，沒有。</p><p>開個玩笑，其實有的，哈哈哈～Haskell的發明者都是天才，早就料到了此類情形。他們引入了一個特殊的型別，也就是剛纔提到的更好的方法--<b>Record Syntax</b>。</p><pre class="code">data Person = Person { firstName :: String  
                      , lastName :: String  
                      , age :: Int  
                      , height :: Float  
                      , phoneNumber :: String  
                      , flavor :: String  
-                     } deriving (Show)</pre><p>與原先讓那些項一個挨一個的空格隔開不同，這裡用了花括號{}。先寫出項的名字，如firstName，後跟兩個冒號（也叫Raamayim Nekudotayim，哈哈~(譯者不知道什麼意思~囧)），標明其類型，返回的數據類型仍與以前相同。這樣的好處就是，可以用函數從中直接按項取值。通過Record Syntax，haskell就自動生成了這些函數：<code>firstName</code>,<code>lastName</code>,<code>age</code>,<code>height</code>,<code>phoneNumber</code>和<code>flavor</code>。</p><pre class="code">ghci> :t flavor  
+                     } deriving (Show)</pre><p>與原先讓那些項一個挨一個的空格隔開不同，這裡用了花括號{}。先寫出項的名字，如firstName，後跟兩個冒號（也叫Raamayim Nekudotayim，哈哈~(譯者不知道什麼意思~囧)），標明其型別，返回的數據型別仍與以前相同。這樣的好處就是，可以用函數從中直接按項取值。通過Record Syntax，haskell就自動生成了這些函數：<code>firstName</code>,<code>lastName</code>,<code>age</code>,<code>height</code>,<code>phoneNumber</code>和<code>flavor</code>。</p><pre class="code">ghci> :t flavor  
 flavor :: Person -> String  
 ghci> :t firstName  
-firstName :: Person -> String</pre><p>還有個好處，就是若派生(deriving)到<code>Show</code>類型類，它的顯示是不同的。假如我們有個類型表示一輛車，要包含生產商、型號以及出場年份：</p><pre class="code">data Car = Car String String Int deriving (Show)</pre><pre class="code">ghci> Car "Ford" "Mustang" 1967  
+firstName :: Person -> String</pre><p>還有個好處，就是若派生(deriving)到<code>Show</code>型別類，它的顯示是不同的。假如我們有個型別表示一輛車，要包含生產商、型號以及出場年份：</p><pre class="code">data Car = Car String String Int deriving (Show)</pre><pre class="code">ghci> Car "Ford" "Mustang" 1967  
 Car "Ford" "Mustang" 1967</pre><p>若用Record Syntax，就可以得到像這樣的新車：</p><pre class="code">data Car = Car {company :: String, model :: String, year :: Int} deriving (Show)</pre><pre class="code">ghci> Car {company="Ford", model="Mustang", year=1967}  
-Car {company = "Ford", model = "Mustang", year = 1967}</pre><p>這一來在造車時我們就不必關心各項的順序了。</p><p>表示三維向量之類簡單數據，<code>Vector = Vector Int Int Int</code>就足夠明白了。但一個值構造子中若含有很多個項且不易區分，如一個人或者一輛車啥的，就應該使用Record Syntax。</p><a name="Type parameters"></a><h2>Type parameters</h2><p>值構造子可以取幾個參數產生一個新值，如Car的構造子是取三個參數返回一個Car。與之相似，類型構造子可以取類型作參數，產生新的類型。這咋一聽貌似有點深奧，不過實際上並不複雜。如果你對C++的模板有瞭解，就會看到很多相似的地方。我們看一個熟悉的類型，好對類型參數有個大致印象：</p><pre class="code">data Maybe a = Nothing | Just a</pre><img src="img/yeti.png" style="float:right"></img><p>這裡的a就是個類型參數。也正因為有了它，Maybe就成為了一個類型構造子。在它的值不是Nothing時，它的類型構造子可以搞出Maybe Int，Maybe String等等諸多類型。但只一個Maybe是不行的，因為它不是類型，而是類型構造子。要成為真正的類型，必須得把它需要的類型參數全部填滿。</p><p>所以，如果拿<code>Char</code>作參數交給<code>Maybe</code>，就可以得到一個<code>Maybe Char</code>的類型。如，<code>Just 'a'</code>的類型就是<code>Maybe Char</code>。</p><p>你可能並未察覺，在遇見Maybe之前我們早就接觸到類型參數了。它便是List類型。這裡面有點語法糖，List類型實際上就是取一個參數來生成一個特定類型，這類型可以是<a href="Int">Int</a>，<a href="Char">Char</a>也可以是<a href="String">String</a>，但不會跟在[]的後面。</p><p>把玩一下<code>Maybe</code>！</p><pre class="code">ghci> Just "Haha"  
+Car {company = "Ford", model = "Mustang", year = 1967}</pre><p>這一來在造車時我們就不必關心各項的順序了。</p><p>表示三維向量之類簡單數據，<code>Vector = Vector Int Int Int</code>就足夠明白了。但一個值構造子中若含有很多個項且不易區分，如一個人或者一輛車啥的，就應該使用Record Syntax。</p><a name="Type parameters"></a><h2>Type parameters</h2><p>值構造子可以取幾個參數產生一個新值，如Car的構造子是取三個參數返回一個Car。與之相似，型別構造子可以取型別作參數，產生新的型別。這咋一聽貌似有點深奧，不過實際上並不複雜。如果你對C++的模板有瞭解，就會看到很多相似的地方。我們看一個熟悉的型別，好對型別參數有個大致印象：</p><pre class="code">data Maybe a = Nothing | Just a</pre><img src="img/yeti.png" style="float:right"></img><p>這裡的a就是個型別參數。也正因為有了它，Maybe就成為了一個型別構造子。在它的值不是Nothing時，它的型別構造子可以搞出Maybe Int，Maybe String等等諸多型別。但只一個Maybe是不行的，因為它不是型別，而是型別構造子。要成為真正的型別，必須得把它需要的型別參數全部填滿。</p><p>所以，如果拿<code>Char</code>作參數交給<code>Maybe</code>，就可以得到一個<code>Maybe Char</code>的型別。如，<code>Just 'a'</code>的型別就是<code>Maybe Char</code>。</p><p>你可能並未察覺，在遇見Maybe之前我們早就接觸到型別參數了。它便是List型別。這裡面有點語法糖，List型別實際上就是取一個參數來生成一個特定型別，這型別可以是<a href="Int">Int</a>，<a href="Char">Char</a>也可以是<a href="String">String</a>，但不會跟在[]的後面。</p><p>把玩一下<code>Maybe</code>！</p><pre class="code">ghci> Just "Haha"  
 Just "Haha"  
 ghci> Just 84  
 Just 84  
@@ -126,29 +126,29 @@ Just 84 :: (Num t) => Maybe t
 ghci> :t Nothing  
 Nothing :: Maybe a  
 ghci> Just 10 :: Maybe Double  
-Just 10.0</pre><p>類型參數很實用。有了它，我們就可以按照我們的需要構造出不同的類型。若執行<code>:t Just "Haha"</code>，類型推導引擎就會認出它是個<code>Maybe [Char]</code>，由於<code>Just a</code>裡的<code>a</code>是個字元串，那麼<code>Maybe a</code>裡的<code>a</code>一定也是個字元串。</p><img src="img/meekrat.png" style="float:right"></img><p>注意下，<code>Nothing</code>的類型為<code>Maybe a</code>。它是多態的，若有函數取<code>Maybe Int</code>類型的參數，就一概可以傳給它一個Nothing，因為Nothing中不包含任何值。<code>Maybe a</code>類型可以有<code>Maybe Int</code>的行為，正如<code>5</code>可以是<code>Int</code>也可以是<code>Double</code>。與之相似，空List的類型是<code>[a]</code>，可以與一切List打交道。因此，我們可以<code>[1,2,3]++[]</code>，也可以<code>["ha","ha,","ha"]++[]</code>。</p><p>類型參數有很多好處，但前提是用對了地方纔行。一般都是不關心類型裡面的內容，如Maybe a。一個類型的行為若有點像是容器，那麼使用類型參數會是個不錯的選擇。我們完全可以把我們的Car類型從</p><pre class="code">data Car = Car { company :: String
+Just 10.0</pre><p>型別參數很實用。有了它，我們就可以按照我們的需要構造出不同的型別。若執行<code>:t Just "Haha"</code>，型別推導引擎就會認出它是個<code>Maybe [Char]</code>，由於<code>Just a</code>裡的<code>a</code>是個字元串，那麼<code>Maybe a</code>裡的<code>a</code>一定也是個字元串。</p><img src="img/meekrat.png" style="float:right"></img><p>注意下，<code>Nothing</code>的型別為<code>Maybe a</code>。它是多態的，若有函數取<code>Maybe Int</code>型別的參數，就一概可以傳給它一個Nothing，因為Nothing中不包含任何值。<code>Maybe a</code>型別可以有<code>Maybe Int</code>的行為，正如<code>5</code>可以是<code>Int</code>也可以是<code>Double</code>。與之相似，空List的型別是<code>[a]</code>，可以與一切List打交道。因此，我們可以<code>[1,2,3]++[]</code>，也可以<code>["ha","ha,","ha"]++[]</code>。</p><p>型別參數有很多好處，但前提是用對了地方纔行。一般都是不關心型別裡面的內容，如Maybe a。一個型別的行為若有點像是容器，那麼使用型別參數會是個不錯的選擇。我們完全可以把我們的Car型別從</p><pre class="code">data Car = Car { company :: String
                  , model :: String
                  , year :: Int
                  } deriving (Show)</pre><p>改成：</p><pre class="code">data Car a b c = Car { company :: a
                        , model :: b
                        , year :: c
-                        } deriving (Show)</pre><p>但是，這樣我們又得到了什麼好處？回答很可能是，一無所得。因為我們只定義了處理<code>Car String String Int</code>類型的函數，像以前，我們還可以弄個簡單函數來描述車的屬性。</p><pre class="code">tellCar :: Car -> String
+                        } deriving (Show)</pre><p>但是，這樣我們又得到了什麼好處？回答很可能是，一無所得。因為我們只定義了處理<code>Car String String Int</code>型別的函數，像以前，我們還可以弄個簡單函數來描述車的屬性。</p><pre class="code">tellCar :: Car -> String
 tellCar (Car {company = c, model = m, year = y}) = "This " ++ c ++ " " ++ m ++ " was made in " ++ show y</pre><pre class="code">ghci> let stang = Car {company="Ford", model="Mustang", year=1967}  
-ghci> tellCar stang  "This Ford Mustang was made in 1967"</pre><p>可愛的小函數！它的類型聲明得很漂亮，而且工作良好。好，如果改成Car a b c又會怎樣？</p><pre class="code">tellCar :: (Show a) => Car String String a -> String  
-tellCar (Car {company = c, model = m, year = y}) = "This " ++ c ++ " " ++ m ++ " was made in " ++ show y</pre><p>我們只能強制性地給這個函數安一個(Show a) => Car String String a 的類型約束。看得出來，這要繁複得多。而唯一的好處貌似就是，我們可以使用Show類型類的實例來作a的類型。</p><pre class="code">ghci> tellCar (Car "Ford" "Mustang" 1967)  
+ghci> tellCar stang  "This Ford Mustang was made in 1967"</pre><p>可愛的小函數！它的型別聲明得很漂亮，而且工作良好。好，如果改成Car a b c又會怎樣？</p><pre class="code">tellCar :: (Show a) => Car String String a -> String  
+tellCar (Car {company = c, model = m, year = y}) = "This " ++ c ++ " " ++ m ++ " was made in " ++ show y</pre><p>我們只能強制性地給這個函數安一個(Show a) => Car String String a 的型別約束。看得出來，這要繁複得多。而唯一的好處貌似就是，我們可以使用Show型別類的實例來作a的型別。</p><pre class="code">ghci> tellCar (Car "Ford" "Mustang" 1967)  
 "This Ford Mustang was made in 1967"  
 ghci> tellCar (Car "Ford" "Mustang" "nineteen sixty seven")  
 "This Ford Mustang was made in \"nineteen sixty seven\""  
 ghci> :t Car "Ford" "Mustang" 1967  
 Car "Ford" "Mustang" 1967 :: (Num t) => Car [Char] [Char] t  
 ghci> :t Car "Ford" "Mustang" "nineteen sixty seven"  
-Car "Ford" "Mustang" "nineteen sixty seven" :: Car [Char] [Char] [Char]</pre><p>其實在現實生活中，使用Car String String Int在大多數情況下已經滿夠了。所以給Car類型加類型參數貌似並沒有什麼必要。通常我們都是都是在一個類型中包含的類型並不影響它的行為時才引入類型參數。一組什麼東西組成的List就是一個List，它不關心裡面東西的類型是啥，然而總是工作良好。若取一組數字的和，我們可以在後面的函數體中明確是一組數字的List。Maybe與之相似，它表示可以有什麼東西可以沒有，而不必關心這東西是啥。</p><p>我們之前還遇見過一個類型參數的應用，就是Data.Map中的Map k v。k表示Map中鍵的類型，v表示值的類型。這是個好例子，map中類型參數的使用允許我們能夠用一個類型索引另一個類型，只要鍵的類型在Ord類型類就行。如果叫我們自己定義一個map類型，可以在data聲明中加上一個類型類的約束。</p><pre class="code">data (Ord k) => Map k v = ...</pre><p>然而haskell中有一個嚴格的約定，那就是永遠不要在data聲明中添加類型約束。為啥？嗯，因為這樣沒好處，反而得寫更多不必要的類型約束。Map k v要是有Ord k的約束，那就相當於假定每個map的相關函數都認為k是可排序的。若不給數據類型加約束，我們就不必給那些不關心鍵是否可排序的函數另加約束了。這類函數的一個例子就是toList，它只是把一個map轉換為關聯List罷了，類型聲明為<code>toList :: Map k v -> [(k, v)]</code>。要是加上類型約束，就只能是<code>toList :: (Ord k) =>Map k a -> [(k,v)]</code>，明顯沒必要嘛。</p><p>所以說，永遠不要在data聲明中加類型約束---即便看起來沒問題。免得在函數聲明中寫出過多無畏的類型約束。</p><p>我們實現個表示三維向量的類型，再給它加幾個處理函數。我麼那就給它個類型參數，雖然大多數情況都是數值型，不過這一來它就支持了多種數值類型。</p><pre class="code">data Vector a = Vector a a a deriving (Show)    
+Car "Ford" "Mustang" "nineteen sixty seven" :: Car [Char] [Char] [Char]</pre><p>其實在現實生活中，使用Car String String Int在大多數情況下已經滿夠了。所以給Car型別加型別參數貌似並沒有什麼必要。通常我們都是都是在一個型別中包含的型別並不影響它的行為時才引入型別參數。一組什麼東西組成的List就是一個List，它不關心裡面東西的型別是啥，然而總是工作良好。若取一組數字的和，我們可以在後面的函數體中明確是一組數字的List。Maybe與之相似，它表示可以有什麼東西可以沒有，而不必關心這東西是啥。</p><p>我們之前還遇見過一個型別參數的應用，就是Data.Map中的Map k v。k表示Map中鍵的型別，v表示值的型別。這是個好例子，map中型別參數的使用允許我們能夠用一個型別索引另一個型別，只要鍵的型別在Ord型別類就行。如果叫我們自己定義一個map型別，可以在data聲明中加上一個型別類的約束。</p><pre class="code">data (Ord k) => Map k v = ...</pre><p>然而haskell中有一個嚴格的約定，那就是永遠不要在data聲明中添加型別約束。為啥？嗯，因為這樣沒好處，反而得寫更多不必要的型別約束。Map k v要是有Ord k的約束，那就相當於假定每個map的相關函數都認為k是可排序的。若不給數據型別加約束，我們就不必給那些不關心鍵是否可排序的函數另加約束了。這類函數的一個例子就是toList，它只是把一個map轉換為關聯List罷了，型別聲明為<code>toList :: Map k v -> [(k, v)]</code>。要是加上型別約束，就只能是<code>toList :: (Ord k) =>Map k a -> [(k,v)]</code>，明顯沒必要嘛。</p><p>所以說，永遠不要在data聲明中加型別約束---即便看起來沒問題。免得在函數聲明中寫出過多無畏的型別約束。</p><p>我們實現個表示三維向量的型別，再給它加幾個處理函數。我麼那就給它個型別參數，雖然大多數情況都是數值型，不過這一來它就支持了多種數值型別。</p><pre class="code">data Vector a = Vector a a a deriving (Show)    
 vplus :: (Num t) => Vector t -> Vector t -> Vector t  
 (Vector i j k) `vplus` (Vector l m n) = Vector (i+l) (j+m) (k+n)    
 vectMult :: (Num t) => Vector t -> t -> Vector t  
 (Vector i j k) `vectMult` m = Vector (i*m) (j*m) (k*m)    
 scalarMult :: (Num t) => Vector t -> Vector t -> t  
-(Vector i j k) `scalarMult` (Vector l m n) = i*l + j*m + k*n</pre><p>vplus用來相加兩個向量，即將其所有對應的項相加。<code>scalarMult</code>用來求兩個向量的標量積，<code>vectMult</code>求一個向量和一個標量的積。這些函數可以處理<code>Vector Int</code>，<code>Vector Integer</code>，<code>Vector Float</code>等等類型，只要<code>Vector a</code>裡的這個<code>a</code>在Num類型類中就行。同樣，如果你看下這些函數的類型聲明就會發現，它們只能處理相同類型的向量，其中包含的數字類型必須與另一個向量一致。注意，我們並沒有在data聲明中添加Num的類約束。反正無論怎麼著都是給函數加約束。</p><p>再度重申，類型構造子和值構造子的區分是相當重要的。在聲明數據類型時，等號=左端的那個是類型構造子，右端的（中間可能有|分隔）都是值構造子。拿<code>Vector t t t -> Vector t t t -> t</code>作函數的類型就會產生一個錯誤，因為在類型聲明中只能寫類型，而Vector的類型構造子只有個參數，它的值構造子才是有三個。我們就慢慢耍：</p><pre class="code">ghci> Vector 3 5 8 `vplus` Vector 9 2 8  
+(Vector i j k) `scalarMult` (Vector l m n) = i*l + j*m + k*n</pre><p>vplus用來相加兩個向量，即將其所有對應的項相加。<code>scalarMult</code>用來求兩個向量的標量積，<code>vectMult</code>求一個向量和一個標量的積。這些函數可以處理<code>Vector Int</code>，<code>Vector Integer</code>，<code>Vector Float</code>等等型別，只要<code>Vector a</code>裡的這個<code>a</code>在Num型別類中就行。同樣，如果你看下這些函數的型別聲明就會發現，它們只能處理相同型別的向量，其中包含的數字型別必須與另一個向量一致。注意，我們並沒有在data聲明中添加Num的類約束。反正無論怎麼著都是給函數加約束。</p><p>再度重申，型別構造子和值構造子的區分是相當重要的。在聲明數據型別時，等號=左端的那個是型別構造子，右端的（中間可能有|分隔）都是值構造子。拿<code>Vector t t t -> Vector t t t -> t</code>作函數的型別就會產生一個錯誤，因為在型別聲明中只能寫型別，而Vector的型別構造子只有個參數，它的值構造子才是有三個。我們就慢慢耍：</p><pre class="code">ghci> Vector 3 5 8 `vplus` Vector 9 2 8  
 Vector 12 7 16  
 ghci> Vector 3 5 8 `vplus` Vector 9 2 8 `vplus` Vector 0 2 3  
 Vector 12 9 19  
@@ -157,13 +157,13 @@ Vector 30 90 70
 ghci> Vector 4 9 5 `scalarMult` Vector 9.0 2.0 4.0  
 74.0  
 ghci> Vector 2 9 3 `vectMult` (Vector 4 9 5 `scalarMult` Vector 9 2 4)  
-Vector 148 666 222</pre><a name="Derived instances"></a><h2>Derived instances</h2><p>在typeclass 101那節裡面，我們瞭解了typeclass的基礎內容。裡面提到，類型類就是定義了某些行為的介面。例如，Int類型是Eq類型類的一個實例，Eq類就定義了判定相等性的行為。Int值可以判斷相等性，所以Int就是Eq類型類的成員。它的真正威力體現在作為Eq介面的函數中，即==和/=。只要一個類型是Eq類型類的成員，我們就可以使用==函數來處理這一類型。這便是為何<code>4==4</code>和<code>"foo"/="bar"</code>這樣的表達式都需要作類型檢查。</p><img src="img/gob.png" style="float:right"></img><p>我們也曾提到，人們很容易把類型類與Java，python，C++等語言的類混淆。很多人對此都倍感不解，在原先那些語言中，類就像是藍圖，我們可以根據它來創造對象、保存狀態並執行操作。而類型類更像是介面，我們不是靠它構造數據，而是給既有的數據類型描述行為。什麼東西若可以判定相等性，我們就可以讓它成為Eq類型類的實例。什麼東西若可以比較大小，那就可以讓它成為Ord類型類的實例。</p><p>在下一節，我們將看一下如何手工實現類型類中定義函數來構造實例。現在呢，我們先瞭解下Haskell是如何自動生成這幾個類型類的實例，<code>Eq</code>,<code>Ord</code>,<code>Enum</code>,<code>Bounded</code>,<code>Show</code>,<code>Read</code>。只要我們在構造類型時在後面加個deriving（派生）關鍵字，Haskell就可以自動地給我們的類型加上這些行為。</p><p>看這個數據類型：</p><pre class="code">data Person = Person { firstName :: String  
+Vector 148 666 222</pre><a name="Derived instances"></a><h2>Derived instances</h2><p>在typeclass 101那節裡面，我們瞭解了typeclass的基礎內容。裡面提到，型別類就是定義了某些行為的介面。例如，Int型別是Eq型別類的一個實例，Eq類就定義了判定相等性的行為。Int值可以判斷相等性，所以Int就是Eq型別類的成員。它的真正威力體現在作為Eq介面的函數中，即==和/=。只要一個型別是Eq型別類的成員，我們就可以使用==函數來處理這一型別。這便是為何<code>4==4</code>和<code>"foo"/="bar"</code>這樣的表達式都需要作型別檢查。</p><img src="img/gob.png" style="float:right"></img><p>我們也曾提到，人們很容易把型別類與Java，python，C++等語言的類混淆。很多人對此都倍感不解，在原先那些語言中，類就像是藍圖，我們可以根據它來創造對象、保存狀態並執行操作。而型別類更像是介面，我們不是靠它構造數據，而是給既有的數據型別描述行為。什麼東西若可以判定相等性，我們就可以讓它成為Eq型別類的實例。什麼東西若可以比較大小，那就可以讓它成為Ord型別類的實例。</p><p>在下一節，我們將看一下如何手工實現型別類中定義函數來構造實例。現在呢，我們先瞭解下Haskell是如何自動生成這幾個型別類的實例，<code>Eq</code>,<code>Ord</code>,<code>Enum</code>,<code>Bounded</code>,<code>Show</code>,<code>Read</code>。只要我們在構造型別時在後面加個deriving（派生）關鍵字，Haskell就可以自動地給我們的型別加上這些行為。</p><p>看這個數據型別：</p><pre class="code">data Person = Person { firstName :: String  
                      , lastName :: String  
                      , age :: Int  
-                     }</pre><p>這描述了一個人。我們先假定世界上沒有重名重姓又同齡的人存在，好，假如有兩個record，有沒有可能是描述同一個人呢？當然可能，我麼可以判定姓名年齡的相等性，來判斷它倆是否相等。這一來，讓這個類型成為Eq的成員就很靠譜了。直接derive這個實例：</p><pre class="code">data Person = Person { firstName :: String  
+                     }</pre><p>這描述了一個人。我們先假定世界上沒有重名重姓又同齡的人存在，好，假如有兩個record，有沒有可能是描述同一個人呢？當然可能，我麼可以判定姓名年齡的相等性，來判斷它倆是否相等。這一來，讓這個型別成為Eq的成員就很靠譜了。直接derive這個實例：</p><pre class="code">data Person = Person { firstName :: String  
                      , lastName :: String  
                      , age :: Int  
-                     } deriving (Eq)</pre><p>在一個類型派生為Eq的實例後，就可以直接使用==或/=來判斷它們的相等性了。Haskell會先看下這兩個值的值構造子是否一致（這裡只是單值構造子），再用==來檢查其中的所有數據（必須都是Eq的成員）是否一致。在這裡只有String和Int，所以是沒有問題的。測試下我們的Eq實例：</p><pre class="code">ghci> let mikeD = Person {firstName = "Michael", lastName = "Diamond", age = 43}  
+                     } deriving (Eq)</pre><p>在一個型別派生為Eq的實例後，就可以直接使用==或/=來判斷它們的相等性了。Haskell會先看下這兩個值的值構造子是否一致（這裡只是單值構造子），再用==來檢查其中的所有數據（必須都是Eq的成員）是否一致。在這裡只有String和Int，所以是沒有問題的。測試下我們的Eq實例：</p><pre class="code">ghci> let mikeD = Person {firstName = "Michael", lastName = "Diamond", age = 43}  
 ghci> let adRock = Person {firstName = "Adam", lastName = "Horovitz", age = 41}  
 ghci> let mca = Person {firstName = "Adam", lastName = "Yauch", age = 44}  
 ghci> mca == adRock  
@@ -173,31 +173,31 @@ False
 ghci> mikeD == mikeD  
 True  
 ghci> mikeD == Person {firstName = "Michael", lastName = "Diamond", age = 43}  
-True</pre><p>自然，Person如今已經成為了Eq的成員，我們就可以將其應用於所有在類型聲明中用到Eq類約束的函數了，如elem。</p><pre class="code">ghci> let beastieBoys = [mca, adRock, mikeD]  
+True</pre><p>自然，Person如今已經成為了Eq的成員，我們就可以將其應用於所有在型別聲明中用到Eq類約束的函數了，如elem。</p><pre class="code">ghci> let beastieBoys = [mca, adRock, mikeD]  
 ghci> mikeD `elem` beastieBoys  
-True</pre><p>Show和Read類型類處理可與字元串相互轉換的東西。同Eq相似，如果一個類型的構造子含有參數，那所有參數的類型必須都得屬於Show或Read才能讓該類型成為其實例。就讓我們的Person也成為Read和Show的一員吧。</p><pre class="code">data Person = Person { firstName :: String  
+True</pre><p>Show和Read型別類處理可與字元串相互轉換的東西。同Eq相似，如果一個型別的構造子含有參數，那所有參數的型別必須都得屬於Show或Read才能讓該型別成為其實例。就讓我們的Person也成為Read和Show的一員吧。</p><pre class="code">data Person = Person { firstName :: String  
                      , lastName :: String  
                      , age :: Int  
                      } deriving (Eq, Show, Read)</pre><p>然後就可以輸出一個Person到控制台了。</p><pre class="code">ghci> let mikeD = Person {firstName = "Michael", lastName = "Diamond", age = 43}  
 ghci> mikeD  
 Person {firstName = "Michael", lastName = "Diamond", age = 43}  
 ghci> "mikeD is: " ++ show mikeD  
-"mikeD is: Person {firstName = \"Michael\", lastName = \"Diamond\", age = 43}"</pre><p>如果我們還沒讓Person類型作為Show的成員就嘗試輸出它，haskell就會向我們抱怨，說它不知道該怎麼把它表示成一個字元串。不過現在既然已經派生成為了Show的一個實例，它就知道了。</p><p>Read几乎就是與Show相對的類型類，show是將一個值轉換成字元串，而read則是將一個字元串轉成某類型的值。還記得，使用read函數時我們必須得用類型註釋註明想要的類型，否則haskell就不會知道如何轉換。</p><pre class="code">ghci> read "Person {firstName =\"Michael\", lastName =\"Diamond\", age = 43}" :: Person  
+"mikeD is: Person {firstName = \"Michael\", lastName = \"Diamond\", age = 43}"</pre><p>如果我們還沒讓Person型別作為Show的成員就嘗試輸出它，haskell就會向我們抱怨，說它不知道該怎麼把它表示成一個字元串。不過現在既然已經派生成為了Show的一個實例，它就知道了。</p><p>Read几乎就是與Show相對的型別類，show是將一個值轉換成字元串，而read則是將一個字元串轉成某型別的值。還記得，使用read函數時我們必須得用型別註釋註明想要的型別，否則haskell就不會知道如何轉換。</p><pre class="code">ghci> read "Person {firstName =\"Michael\", lastName =\"Diamond\", age = 43}" :: Person  
 Person {firstName = "Michael", lastName = "Diamond", age = 43}</pre><p>如果我們read的結果會在後面用到參與計算，Haskell就可以推導出是一個Person的行為，不加註釋也是可以的。</p><pre class="code">ghci> read "Person {firstName =\"Michael\", lastName =\"Diamond\", age = 43}" == mikeD  
-True</pre><p>也可以read帶參數的類型，但必須填滿所有的參數。因此<code>read "Just 't'" :: Maybe a</code>是不可以的，<code>read "Just 't'" :: Maybe Char</code>才對。</p><p>很容易想象Ord類派生實例的行為。首先，判斷兩個值構造子是否一致，如果是，再判斷它們的參數，前提是它們的參數都得是Ord的實例。Bool類型可以有兩種值，False和True。為了瞭解在比較中程序的行為，我們可以這樣想象：</p><pre class="code">data Bool = False | True deriving (Ord)</pre><p>由於值構造子False安排在True的前面，我們可以認為True比False大。</p><pre class="code">ghci> True `compare` False  
+True</pre><p>也可以read帶參數的型別，但必須填滿所有的參數。因此<code>read "Just 't'" :: Maybe a</code>是不可以的，<code>read "Just 't'" :: Maybe Char</code>才對。</p><p>很容易想象Ord類派生實例的行為。首先，判斷兩個值構造子是否一致，如果是，再判斷它們的參數，前提是它們的參數都得是Ord的實例。Bool型別可以有兩種值，False和True。為了瞭解在比較中程序的行為，我們可以這樣想象：</p><pre class="code">data Bool = False | True deriving (Ord)</pre><p>由於值構造子False安排在True的前面，我們可以認為True比False大。</p><pre class="code">ghci> True `compare` False  
 GT  
 ghci> True > False  
 True  
 ghci> True 
-False</pre><p>在Maybe a數據類型中，值構造子Nothing在Just值構造子前面，所以一個<code>Nothing</code>總要比<code>Just something</code>的值小。即便這個<code>something</code>是<code>100000000</code>也是如此。</p><pre class="code">ghci> Nothing 
+False</pre><p>在Maybe a數據型別中，值構造子Nothing在Just值構造子前面，所以一個<code>Nothing</code>總要比<code>Just something</code>的值小。即便這個<code>something</code>是<code>100000000</code>也是如此。</p><pre class="code">ghci> Nothing 
 True  
 ghci> Nothing > Just (-49999)  
 False  
 ghci> Just 3 `compare` Just 2  
 GT  
 ghci> Just 100 > Just 50  
-True</pre><p>不過類似Just (<b>3), Just(</b>2)之類的程式碼是不可以的。因為(<b>3)和(</b>2)都是函數，而函數不是Ord類的成員。</p><p>作枚舉，使用數字類型就能輕易做到。不過使用Enmu和Bounded類型類會更好，看下這個類型：</p><pre class="code">data Day = Monday | Tuesday | Wednesday | Thursday | Friday | Saturday | Sunday</pre><p>所有的值構造子都是nullary的（也就是沒有參數），每個東西都有前置子和後繼子，我們可以讓它成為Enmu類型類的成員。同樣，每個東西都有可能的最小值和最大值，我們也可以讓它成為Bounded類型類的成員。在這裡，我們就同時將它搞成其它可派生類型類的實例。再看看我們能拿它做啥：</p><pre class="code">data Day = Monday | Tuesday | Wednesday | Thursday | Friday | Saturday | Sunday   
-           deriving (Eq, Ord, Show, Read, Bounded, Enum)</pre><p>由於它是Show和Read類型類的成員，我們可以將這個類型的值與字元串相互轉換。</p><pre class="code">ghci> Wednesday  
+True</pre><p>不過類似Just (<b>3), Just(</b>2)之類的程式碼是不可以的。因為(<b>3)和(</b>2)都是函數，而函數不是Ord類的成員。</p><p>作枚舉，使用數字型別就能輕易做到。不過使用Enmu和Bounded型別類會更好，看下這個型別：</p><pre class="code">data Day = Monday | Tuesday | Wednesday | Thursday | Friday | Saturday | Sunday</pre><p>所有的值構造子都是nullary的（也就是沒有參數），每個東西都有前置子和後繼子，我們可以讓它成為Enmu型別類的成員。同樣，每個東西都有可能的最小值和最大值，我們也可以讓它成為Bounded型別類的成員。在這裡，我們就同時將它搞成其它可派生型別類的實例。再看看我們能拿它做啥：</p><pre class="code">data Day = Monday | Tuesday | Wednesday | Thursday | Friday | Saturday | Sunday   
+           deriving (Eq, Ord, Show, Read, Bounded, Enum)</pre><p>由於它是Show和Read型別類的成員，我們可以將這個型別的值與字元串相互轉換。</p><pre class="code">ghci> Wednesday  
 Wednesday  
 ghci> show Wednesday  
 "Wednesday"  
@@ -219,7 +219,7 @@ Friday
 ghci> [Thursday .. Sunday]  
 [Thursday,Friday,Saturday,Sunday]  
 ghci> [minBound .. maxBound] :: [Day]  
-[Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday]</pre><p>那是相當的棒。</p><a name="Type synonyms"></a><h2>Type synonyms</h2><p>在前面我們提到在寫類型名的時候，<code>[Char]</code>和<code>String</code>等價，可以互換。這就是由類型別名實現的。類型別名實際上什麼也沒做，只是給類型提供了不同的名字，讓我們的程式碼更容易理解。這就是<code>[Char]</code>的別名<code>String</code>的由來。</p><pre class="code">type String = [Char]</pre><p>我們已經介紹過了type關鍵字，這個關鍵字有一定誤導性，它並不是用來創造新類（這是data關鍵字做的事情），而是給一個既有類型提供一個別名。</p><p>如果我們隨便搞個函數toUpperString或其他什麼名字，將一個字元串變成大寫，可以用這樣的類型聲明<code>toUpperString :: [Char] -> [Char]</code>， 也可以這樣<code>toUpperString :: String -> String</code>，二者在本質上是完全相同的。後者要更易讀些。</p><p>在前面Data.Map那部分，我們用了一個關聯List來表示<code>phoneBook</code>，之後才改成的Map。我們已經發現了，一個關聯List就是一組鍵值對組成的List。再看下我們phoneBook的樣子：</p><pre class="code">phoneBook :: [(String,String)]  
+[Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday]</pre><p>那是相當的棒。</p><a name="Type synonyms"></a><h2>Type synonyms</h2><p>在前面我們提到在寫型別名的時候，<code>[Char]</code>和<code>String</code>等價，可以互換。這就是由型別別名實現的。型別別名實際上什麼也沒做，只是給型別提供了不同的名字，讓我們的程式碼更容易理解。這就是<code>[Char]</code>的別名<code>String</code>的由來。</p><pre class="code">type String = [Char]</pre><p>我們已經介紹過了type關鍵字，這個關鍵字有一定誤導性，它並不是用來創造新類（這是data關鍵字做的事情），而是給一個既有型別提供一個別名。</p><p>如果我們隨便搞個函數toUpperString或其他什麼名字，將一個字元串變成大寫，可以用這樣的型別聲明<code>toUpperString :: [Char] -> [Char]</code>， 也可以這樣<code>toUpperString :: String -> String</code>，二者在本質上是完全相同的。後者要更易讀些。</p><p>在前面Data.Map那部分，我們用了一個關聯List來表示<code>phoneBook</code>，之後才改成的Map。我們已經發現了，一個關聯List就是一組鍵值對組成的List。再看下我們phoneBook的樣子：</p><pre class="code">phoneBook :: [(String,String)]  
 phoneBook =      
     [("betty","555-2938")     
     ,("bonnie","452-2928")     
@@ -227,29 +227,29 @@ phoneBook =
     ,("lucille","205-2928")     
     ,("wendy","939-8282")     
     ,("penny","853-2492")     
-    ]</pre><p>可以看出，phoneBook的類型就是<code>[(String,String)]</code>，這表示一個關聯List僅是String到String的映射關係。我們就弄個類型別名，好讓它類型聲明中能夠表達更多信息。</p><pre class="code">type PhoneBook = [(String,String)]</pre><p>現在我們phoneBook的類型聲明就可以是phoneBook :: PhoneBook了。再給字元串加上別名：</p><pre class="code">type PhoneNumber = String  
+    ]</pre><p>可以看出，phoneBook的型別就是<code>[(String,String)]</code>，這表示一個關聯List僅是String到String的映射關係。我們就弄個型別別名，好讓它型別聲明中能夠表達更多信息。</p><pre class="code">type PhoneBook = [(String,String)]</pre><p>現在我們phoneBook的型別聲明就可以是phoneBook :: PhoneBook了。再給字元串加上別名：</p><pre class="code">type PhoneNumber = String  
 type Name = String  
-type PhoneBook = [(Name,PhoneNumber)]</pre><p>Haskell程序員給String加別名是為了讓函數中字元串的表達方式及用途更加明確。</p><p>好的，我們實現了一個函數，它可以取一名字和號碼檢查它是否存在於電話本。現在可以給它加一個相當好看明了的類型聲明：</p><pre class="code">inPhoneBook :: Name -> PhoneNumber -> PhoneBook -> Bool  
-inPhoneBook name pnumber pbook = (name,pnumber) `elem` pbook</pre><img src="img/chicken.png" style="float:left"></img><p>如果不用類型別名，我們函數的類型聲明就只能是<code>String -> String -> [(String ,String)] -> Bool</code>了。在這裡使用類型別名是為了讓類型聲明更加易讀，但你也不必拘泥于它。引入類型別名的動機既非單純表示我們函數中的既有類型，也不是為了替換掉那些重複率高的長名字類型(如<code>[(String,String)]</code>)，而是為了讓類型對事物的描述更加明確。</p><p>類型別名也是可以有參數的，如果你想搞個類型來表示關聯List，但依然要它保持通用，好讓它可以使用任意類型作key和value，我們可以這樣：</p><pre class="code">type AssocList k v = [(k,v)]</pre><p>好的，現在一個從關聯List中按鍵索值的函數類型可以定義為<code>(Eq k) => k -> AssocList k v -> Maybe v. AssocList i</code>。AssocList是個取兩個類型做參數生成一個具體類型的類型構造子，如<code>Assoc Int String</code>等等。</p><blockquote><p><b>Fronzie說</b>：Hey！當我提到具體類型，那我就是說它是完全呼叫的，就像<code>Map Int String</code>。要不就是多態函數中的<code>[a]</code>或<code>(Ord a) => Maybe a</code>之類。有時我和孩子們會說“Maybe類型”，但我們的意思並不是按字面來，傻瓜都知道Maybe是類型構造子嘛。只要用一個明確的類型呼叫Maybe，如<code>Maybe String</code>可得一個具體類型。你知道，只有具體類型才可以儲存值。</p></blockquote><p>我們可以用不全呼叫來得到新的函數，同樣也可以使用不全呼叫得到新的類型構造子。同函數一樣，用不全的類型參數呼叫類型構造子就可以得到一個不全呼叫的類型構造子，如果我們要一個表示從整數到某東西間映射關係的類型，我們可以這樣：</p><pre class="code">type IntMap v = Map Int v</pre><p>也可以這樣：</p><pre class="code">type IntMap = Map Int</pre><p>無論怎樣，IntMap的類型構造子都是取一個參數，而它就是這整數指向的類型。</p><p>Oh yeah，如果要你去實現它，很可能會用個qualified import來導入Data.Map。這時，類型構造子前面必須得加上模組名。所以應該寫個<code>type IntMap = Map.Map Int</code></p><p>你得保證真正弄明白了類型構造子和值構造子的區別。我們有了個叫IntMap或者AssocList的別名並不意味着我們可以執行類似<code>AssocList [(1,2),(4,5),(7,9)]</code>的程式碼，而是可以用不同的名字來表示原先的List，就像<code>[(1,2),(4,5),(7,9)] :: AssocList Int Int</code>讓它裡面的類型都是Int。而像處理普通的二元組構成的那種List處理它也是可以的。類型別名（類型依然不變），只可以在Haskell的類型部分中使用，像定義新類型或類型聲明或類型註釋中跟在::後面的部分。</p><p>另一個很酷的二參類型就是<code>Either a b</code>了，它大約是這樣定義的：</p><pre class="code">data Either a b = Left a | Right b deriving (Eq, Ord, Read, Show)</pre><p>它有兩個值構造子。如果用了Left，那它內容的類型就是a；用了Right，那它內容的類型就是b。我們可以用它來將可能是兩種類型的值封裝起來，從裡面取值時就同時提供Left和Right的模式匹配。</p><pre class="code">ghci> Right 20  
+type PhoneBook = [(Name,PhoneNumber)]</pre><p>Haskell程序員給String加別名是為了讓函數中字元串的表達方式及用途更加明確。</p><p>好的，我們實現了一個函數，它可以取一名字和號碼檢查它是否存在於電話本。現在可以給它加一個相當好看明了的型別聲明：</p><pre class="code">inPhoneBook :: Name -> PhoneNumber -> PhoneBook -> Bool  
+inPhoneBook name pnumber pbook = (name,pnumber) `elem` pbook</pre><img src="img/chicken.png" style="float:left"></img><p>如果不用型別別名，我們函數的型別聲明就只能是<code>String -> String -> [(String ,String)] -> Bool</code>了。在這裡使用型別別名是為了讓型別聲明更加易讀，但你也不必拘泥于它。引入型別別名的動機既非單純表示我們函數中的既有型別，也不是為了替換掉那些重複率高的長名字型別(如<code>[(String,String)]</code>)，而是為了讓型別對事物的描述更加明確。</p><p>型別別名也是可以有參數的，如果你想搞個型別來表示關聯List，但依然要它保持通用，好讓它可以使用任意型別作key和value，我們可以這樣：</p><pre class="code">type AssocList k v = [(k,v)]</pre><p>好的，現在一個從關聯List中按鍵索值的函數型別可以定義為<code>(Eq k) => k -> AssocList k v -> Maybe v. AssocList i</code>。AssocList是個取兩個型別做參數生成一個具體型別的型別構造子，如<code>Assoc Int String</code>等等。</p><blockquote><p><b>Fronzie說</b>：Hey！當我提到具體型別，那我就是說它是完全呼叫的，就像<code>Map Int String</code>。要不就是多態函數中的<code>[a]</code>或<code>(Ord a) => Maybe a</code>之類。有時我和孩子們會說“Maybe型別”，但我們的意思並不是按字面來，傻瓜都知道Maybe是型別構造子嘛。只要用一個明確的型別呼叫Maybe，如<code>Maybe String</code>可得一個具體型別。你知道，只有具體型別才可以儲存值。</p></blockquote><p>我們可以用不全呼叫來得到新的函數，同樣也可以使用不全呼叫得到新的型別構造子。同函數一樣，用不全的型別參數呼叫型別構造子就可以得到一個不全呼叫的型別構造子，如果我們要一個表示從整數到某東西間映射關係的型別，我們可以這樣：</p><pre class="code">type IntMap v = Map Int v</pre><p>也可以這樣：</p><pre class="code">type IntMap = Map Int</pre><p>無論怎樣，IntMap的型別構造子都是取一個參數，而它就是這整數指向的型別。</p><p>Oh yeah，如果要你去實現它，很可能會用個qualified import來導入Data.Map。這時，型別構造子前面必須得加上模組名。所以應該寫個<code>type IntMap = Map.Map Int</code></p><p>你得保證真正弄明白了型別構造子和值構造子的區別。我們有了個叫IntMap或者AssocList的別名並不意味着我們可以執行類似<code>AssocList [(1,2),(4,5),(7,9)]</code>的程式碼，而是可以用不同的名字來表示原先的List，就像<code>[(1,2),(4,5),(7,9)] :: AssocList Int Int</code>讓它裡面的型別都是Int。而像處理普通的二元組構成的那種List處理它也是可以的。型別別名（型別依然不變），只可以在Haskell的型別部分中使用，像定義新型別或型別聲明或型別註釋中跟在::後面的部分。</p><p>另一個很酷的二參型別就是<code>Either a b</code>了，它大約是這樣定義的：</p><pre class="code">data Either a b = Left a | Right b deriving (Eq, Ord, Read, Show)</pre><p>它有兩個值構造子。如果用了Left，那它內容的型別就是a；用了Right，那它內容的型別就是b。我們可以用它來將可能是兩種型別的值封裝起來，從裡面取值時就同時提供Left和Right的模式匹配。</p><pre class="code">ghci> Right 20  
 Right 20  
 ghci> Left "w00t"  
 Left "w00t"  
 ghci> :t Right 'a'  
 Right 'a' :: Either a Char  
 ghci> :t Left True  
-Left True :: Either Bool b</pre><p>到現在為止，Maybe是最常見的表示可能失敗的計算的類型了。但有時Maybe也並不是十分的好用，因為Nothing中包含的信息還是太少。要是我們不關心函數失敗的原因，它還是不錯的。就像Data.Map的lookup只有在搜尋的項不在map時才會失敗，對此我們一清二楚。但我們若想知道函數失敗的原因，那還得使用Either a b，用a來表示可能的錯誤的類型，用b來表示一個成功運算的類型。從現在開始，錯誤一律用Left值構造子，而結果一律用Right。</p><p>一個例子：有個學校提供了不少壁櫥，好給學生們地方放他們的Gun'N'Rose海報。每個壁櫥都有個密碼，哪個學生想用個壁櫥，就告訴管理員壁櫥的號碼，管理員就會告訴他壁櫥的密碼。但如果這個壁櫥已經讓別人用了，管理員就不能告訴他密碼了，得換一個壁櫥。我們就用Data.Map的一個map來表示這些壁櫥，把一個號碼映射到一個表示壁櫥占用情況及密碼的二元組裡。</p><pre class="code">import qualified Data.Map as Map  
+Left True :: Either Bool b</pre><p>到現在為止，Maybe是最常見的表示可能失敗的計算的型別了。但有時Maybe也並不是十分的好用，因為Nothing中包含的信息還是太少。要是我們不關心函數失敗的原因，它還是不錯的。就像Data.Map的lookup只有在搜尋的項不在map時才會失敗，對此我們一清二楚。但我們若想知道函數失敗的原因，那還得使用Either a b，用a來表示可能的錯誤的型別，用b來表示一個成功運算的型別。從現在開始，錯誤一律用Left值構造子，而結果一律用Right。</p><p>一個例子：有個學校提供了不少壁櫥，好給學生們地方放他們的Gun'N'Rose海報。每個壁櫥都有個密碼，哪個學生想用個壁櫥，就告訴管理員壁櫥的號碼，管理員就會告訴他壁櫥的密碼。但如果這個壁櫥已經讓別人用了，管理員就不能告訴他密碼了，得換一個壁櫥。我們就用Data.Map的一個map來表示這些壁櫥，把一個號碼映射到一個表示壁櫥占用情況及密碼的二元組裡。</p><pre class="code">import qualified Data.Map as Map  
 
 data LockerState = Taken | Free deriving (Show, Eq)  
 
 type Code = String  
 
-type LockerMap = Map.Map Int (LockerState, Code)</pre><p>很簡單，我們引入了一個新的類型來表示壁櫥的占用情況。併為壁櫥密碼及按號碼找壁櫥的map分別設置了一個別名。好，現在我們實現這個按號碼找壁櫥的函數，就用<code>Either String Code</code>類型表示我們的結果，因為lookup可能會以兩種原因失敗。廚子已經讓別人用了或者壓根就沒有這個櫥子。如果lookup失敗，就用字元串表明失敗的原因。</p><pre class="code">lockerLookup :: Int -> LockerMap -> Either String Code  
+type LockerMap = Map.Map Int (LockerState, Code)</pre><p>很簡單，我們引入了一個新的型別來表示壁櫥的占用情況。併為壁櫥密碼及按號碼找壁櫥的map分別設置了一個別名。好，現在我們實現這個按號碼找壁櫥的函數，就用<code>Either String Code</code>型別表示我們的結果，因為lookup可能會以兩種原因失敗。廚子已經讓別人用了或者壓根就沒有這個櫥子。如果lookup失敗，就用字元串表明失敗的原因。</p><pre class="code">lockerLookup :: Int -> LockerMap -> Either String Code  
 lockerLookup lockerNumber map =   
     case Map.lookup lockerNumber map of   
         Nothing -> Left $ "Locker number " ++ show lockerNumber ++ " doesn't exist!"  
         Just (state, code) -> if state /= Taken   
                                 then Right code  
-                                else Left $ "Locker " ++ show lockerNumber ++ " is already taken!"</pre><p>我們在這裡個map中執行一次普通的<code>lookup</code>，如果得到一個<code>Nothing</code>，就返回一個<code>Left String</code>的值，告訴他壓根就沒這個號碼的櫥子。如果找到了，就再檢查下，看這櫥子是不是已經讓別人用了，如果是，就返回個<code>Left String</code>說它已經讓別人用了。否則就返回個Right Code的值，通過它來告訴學生壁櫥的密碼。它實際上就是個<code>Right String</code>，我們引入了個類型別名讓它這類型聲明更好看。</p><p>如下是個map的例子：</p><pre class="code">lockers :: LockerMap  
+                                else Left $ "Locker " ++ show lockerNumber ++ " is already taken!"</pre><p>我們在這裡個map中執行一次普通的<code>lookup</code>，如果得到一個<code>Nothing</code>，就返回一個<code>Left String</code>的值，告訴他壓根就沒這個號碼的櫥子。如果找到了，就再檢查下，看這櫥子是不是已經讓別人用了，如果是，就返回個<code>Left String</code>說它已經讓別人用了。否則就返回個Right Code的值，通過它來告訴學生壁櫥的密碼。它實際上就是個<code>Right String</code>，我們引入了個型別別名讓它這型別聲明更好看。</p><p>如下是個map的例子：</p><pre class="code">lockers :: LockerMap  
 lockers = Map.fromList   
     [(100,(Taken,"ZD39I"))  
     ,(101,(Free,"JAH3I"))  
@@ -266,7 +266,28 @@ Left "Locker number 102 doesn't exist!"
 ghci> lockerLookup 110 lockers  
 Left "Locker 110 is already taken!"  
 ghci> lockerLookup 105 lockers  
-Right "QOTSA"</pre><p>我們完全可以用<code>Maybe a</code>來表示它的結果，但這樣一來我們就對得不到密碼的原因不得而知了。而在這裡，我們的新類型可以告訴我們失敗的原因。</p><a name="Recursive data structures (遞迴地定義資料結構)"></a><h2>Recursive data structures (遞迴地定義資料結構)</h2><a name="Typeclasses的第二堂課"></a><h2>Typeclasses的第二堂課</h2><a name="yes-no typeclass"></a><h2>yes-no typeclass</h2><a name="Functor typeclass"></a><h2>Functor typeclass</h2><a name="Kind"></a><h2>Kind</h2>
+Right "QOTSA"</pre><p>我們完全可以用<code>Maybe a</code>來表示它的結果，但這樣一來我們就對得不到密碼的原因不得而知了。而在這裡，我們的新型別可以告訴我們失敗的原因。</p><a name="Recursive data structures (遞迴地定義資料結構)"></a><h2>Recursive data structures (遞迴地定義資料結構)</h2><p>如我們先前看到的，一個algebraic data type的構造子可以有好幾個field，其中每個field都必須有具體的型態。有了那個概念，我們能定義一個型態，其中他的構造子的field的型態是他自己。這樣我們可以遞迴地定義下去，某個型態的值便可能包含同樣型態的值，進一步下去他還可以再包含同樣型態的值。</p><p>考慮一下list:<code>[5]</code>。他其實是<code>5:[]</code>的語法糖。在<code>:</code>的左邊是一個普通值，而在右邊是一串list。只是在這個案例中是空的list。再考慮<code>[4,5]</code>。他可以看作<code>4:(5:[])</code>。看看第一個<code>:</code>，我們看到他也有一個元素在左邊，一串list<code>5:[]</code>在右邊。同樣的道理<code>3:(4:(5:6:[]))</code>也是這樣。</p><p>我們可以說一個list的定義是要碼是空的list或是一個元素，後面用<code>:</code>接了另一串list。</p><p>我們用algebraic data type來實作我們自己的list！</p><pre class="code">data List a = Empty | Cons a (List a) deriving (Show, Read, Eq, Ord)</pre><p>這讀起來好像我們前一段提及的定義。他要碼是空的list，或是一個元素跟一串list的結合。如果你被搞混了，看看用record syntax定義的可能比較清楚。</p><pre class="code">data List a = Empty | Cons { listHead :: a, listTail :: List a} deriving (Show, Read, Eq, Ord)</pre><p>你可能也對這邊的<code>Cons</code>構造子不太清楚。cons其實就是指<code>:</code>。對list而言，<code>:</code>其實是一個構造子，他接受一個值跟另一串list來構造一個list。現在我們可以使用我們新定義的list型態。換句話說，他有兩個field，其中一個field具有型態<code>a</code>，另一個有型態<code>[a]</code>。</p><pre class="code">ghci> Empty  
+Empty  
+ghci> 5 `Cons` Empty  
+Cons 5 Empty  
+ghci> 4 `Cons` (5 `Cons` Empty)  
+Cons 4 (Cons 5 Empty)  
+ghci> 3 `Cons` (4 `Cons` (5 `Cons` Empty))  
+Cons 3 (Cons 4 (Cons 5 Empty))</pre><p>我們用中綴的方式呼叫<code>Cons</code>構造子，這樣你可以很清楚地看到他就是<code>:</code>。<code>Empty</code>代表<code>[]</code>，而<code>4 `Cons` (5 `Cons` Empty)</code>就是<code>4:(5:[])</code>。</p><p>我們可以只用特殊字元來定義函數，這樣他們就會自動具有中綴的性質。我們也能同樣的手法套用在構造子上，畢竟他們不過是回傳型態的函數而已。</p><pre class="code">infixr 5 :-:  
+data List a = Empty | a :-: (List a) deriving (Show, Read, Eq, Ord)</pre><p>首先我們留意新的語法結構：fixity宣告。當我們定義函數成operator，我們能同時指定fixity（但並不是必須的）。fixity指定了他應該是left-associative或是right-associative，還有他的優先順序。例如說，<code>*</code>的fixity是<code>infixl 7 *</code>，而<code>+</code>的fixity是<code>infixl 6</code>。代表他們都是left-associative。<code>(4 * 3 * 2)</code>等於<code>((4 * 3) * 2)</code>。但<code>*</code>擁有比<code>+</code>更高的優先順序。所以<code>5 * 4 + 3</code>會是<code>(5 * 4) + 3</code>。</p><p>這樣我們就可以寫成<code>a :-: (List a)</code>而不是<code>Cons a (List a)</code>：</p><pre class="code">ghci> 3 :-: 4 :-: 5 :-: Empty  
+(:-:) 3 ((:-:) 4 ((:-:) 5 Empty))  
+ghci> let a = 3 :-: 4 :-: 5 :-: Empty  
+ghci> 100 :-: a  
+(:-:) 100 ((:-:) 3 ((:-:) 4 ((:-:) 5 Empty)))</pre><p>Haskell在宣告deriving<code>Show</code>的時候，他會仍視構造子為前綴函數，因此必須要用括號括起來。</p><p>我們在來寫個函數來把兩個list連起來。一般<code>++</code>在操作普通list的時候是這樣的：</p><pre class="code">infixr 5  ++ 
+(++) :: [a] -> [a] -> [a]  
+[]     ++ ys = ys  
+(x:xs) ++ ys = x : (xs ++ ys)</pre><p>我們把他偷過來用在我們的list上，把函數命名成<code>.++</code>：</p><pre class="code">infixr 5  .++  
+(.++) :: List a -> List a -> List a   
+Empty .++ ys = ys  
+(x :-: xs) .++ ys = x :-: (xs .++ ys)</pre><p>來看看他如何運作：</p><pre class="code">ghci> let a = 3 :-: 4 :-: 5 :-: Empty  
+ghci> let b = 6 :-: 7 :-: Empty  
+ghci> a .++ b  
+(:-:) 3 ((:-:) 4 ((:-:) 5 ((:-:) 6 ((:-:) 7 Empty))))</pre><p>如果我們想要的話，我們可以定義其他操作我們list的函數。</p><a name="Typeclasses的第二堂課"></a><h2>Typeclasses的第二堂課</h2><a name="yes-no typeclass"></a><h2>yes-no typeclass</h2><a name="Functor typeclass"></a><h2>Functor typeclass</h2><a name="Kind"></a><h2>Kind</h2>
             <ul class="nav">
                 <li class="left">  <img src="img/prv.png"></img><a href="modules.html">模組(Modules)</a></li>
                 <li class="center"><a href="chapters.html">Index</a></li>
