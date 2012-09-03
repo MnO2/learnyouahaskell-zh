@@ -98,7 +98,7 @@ ghci> fmap id []
 ghci> fmap id Nothing  
 Nothing</pre><p>如果我們看看<code>Maybe</code>的<code>fmap</code>的實作，我們不難發現第一定律為何被遵守。</p><pre class="code">instance Functor Maybe where  
     fmap f (Just x) = Just (f x)  
-    fmap f Nothing = Nothing</pre><p>我們可以想像在<code>f</code>的位置擺上<code>id</code>。我們看到<code>fmap id</code>拿到<code>Just x</code>的時候，結果只不過是<code>Just (id x)</code>，而<code>id</code>有只回傳他拿到的東西，所以可以知道<code>Just (id x)</code>等價於<code>Just x</code>。所以說我們可以知道對<code>Maybe</code>中的<code>Just</code>用<code>id</code>去做map over的動作，會拿回一樣的值。</p><p>而將<code>id</code>map over<code>Nothing</code>會拿回<code>Nothing</code>並不稀奇。所以從這兩個<code>fmap</code>的實作，我們可以看到的確<code>fmap id = id</code>有被遵守。</p><img src="img/justice.png" style="float:left"></img><pre class="code">ghci> CNothing  
+    fmap f Nothing = Nothing</pre><p>我們可以想像在<code>f</code>的位置擺上<code>id</code>。我們看到<code>fmap id</code>拿到<code>Just x</code>的時候，結果只不過是<code>Just (id x)</code>，而<code>id</code>有只回傳他拿到的東西，所以可以知道<code>Just (id x)</code>等價於<code>Just x</code>。所以說我們可以知道對<code>Maybe</code>中的<code>Just</code>用<code>id</code>去做map over的動作，會拿回一樣的值。</p><p>而將<code>id</code>map over<code>Nothing</code>會拿回<code>Nothing</code>並不稀奇。所以從這兩個<code>fmap</code>的實作，我們可以看到的確<code>fmap id = id</code>有被遵守。</p><img src="img/justice.png" style="float:left"></img><pre class="code">data CMaybe a = CNothing | CJust Int a deriving (Show)</pre><pre class="code">ghci> CNothing  
 CNothing  
 ghci> CJust 0 "haha"  
 CJust 0 "haha"  
@@ -107,19 +107,148 @@ CNothing :: CMaybe a
 ghci> :t CJust 0 "haha"  
 CJust 0 "haha" :: CMaybe [Char]  
 ghci> CJust 100 [1,2,3]  
-CJust 100 [1,2,3]</pre><a name="Applicative functors"></a><h2>Applicative functors</h2><img src="img/present.png" style="float:right"></img><pre class="code">ghci> :t fmap (++) (Just "hey")  
+CJust 100 [1,2,3]</pre><pre class="code">instance Functor CMaybe where  
+    fmap f CNothing = CNothing  
+    fmap f (CJust counter x) = CJust (counter+1) (f x)</pre><pre class="code">ghci> fmap (++"ha") (CJust 0 "ho")  
+CJust 1 "hoha"  
+ghci> fmap (++"he") (fmap (++"ha") (CJust 0 "ho"))  
+CJust 2 "hohahe"  
+ghci> fmap (++"blah") CNothing  
+CNothing</pre><pre class="code">ghci> fmap id (CJust 0 "haha")  
+CJust 1 "haha"  
+ghci> id (CJust 0 "haha")  
+CJust 0 "haha"</pre><a name="Applicative functors"></a><h2>Applicative functors</h2><img src="img/present.png" style="float:right"></img><pre class="code">ghci> :t fmap (++) (Just "hey")  
 fmap (++) (Just "hey") :: Maybe ([Char] -> [Char])  
 ghci> :t fmap compare (Just 'a')  
 fmap compare (Just 'a') :: Maybe (Char -> Ordering)  
 ghci> :t fmap compare "A LIST OF CHARS"  
 fmap compare "A LIST OF CHARS" :: [Char -> Ordering]  
 ghci> :t fmap (\x y z -> x + y / z) [3,4,5,6]  
-fmap (\x y z -> x + y / z) [3,4,5,6] :: (Fractional a) => [a -> a -> a]</pre><img src="img/whale.png" style="float:right"></img><pre class="code">instance Applicative IO where  
+fmap (\x y z -> x + y / z) [3,4,5,6] :: (Fractional a) => [a -> a -> a]</pre><pre class="code">ghci> let a = fmap (*) [1,2,3,4]  
+ghci> :t a  
+a :: [Integer -> Integer]  
+ghci> fmap (\f -> f 9) a  
+[9,18,27,36]</pre><pre class="code">class (Functor f) => Applicative f where  
+    pure :: a -> f a  
+    (<*>) :: f (a -> b) -> f a -> f b</pre><pre class="code">instance Applicative Maybe where  
+    pure = Just  
+    Nothing <*> _ = Nothing  
+    (Just f) <*> something = fmap f something</pre><pre class="code">ghci> Just (+3) <*> Just 9  
+Just 12  
+ghci> pure (+3) <*> Just 10  
+Just 13  
+ghci> pure (+3) <*> Just 9  
+Just 12  
+ghci> Just (++"hahah") <*> Nothing  
+Nothing  
+ghci> Nothing <*> Just "woot"  
+Nothing</pre><pre class="code">ghci> pure (+) <*> Just 3 <*> Just 5  
+Just 8  
+ghci> pure (+) <*> Just 3 <*> Nothing  
+Nothing  
+ghci> pure (+) <*> Nothing <*> Just 5  
+Nothing</pre><img src="img/whale.png" style="float:right"></img><pre class="code">(<$>) :: (Functor f) => (a -> b) -> f a -> f b  
+f <$> x = fmap f x</pre><pre class="code">ghci> (++) <$> Just "johntra" <*> Just "volta"  
+Just "johntravolta"</pre><pre class="code">ghci> (++) "johntra" "volta"  
+"johntravolta"</pre><pre class="code">instance Applicative [] where  
+    pure x = [x]  
+    fs <*> xs = [f x | f <- fs, x <- xs]</pre><pre class="code">ghci> pure "Hey" :: [String]  
+["Hey"]  
+ghci> pure "Hey" :: Maybe String  
+Just "Hey"</pre><pre class="code">ghci> [(*0),(+100),(^2)] <*> [1,2,3]  
+[0,0,0,101,102,103,1,4,9]</pre><pre class="code">ghci> [(+),(*)] <*> [1,2] <*> [3,4]  
+[4,5,5,6,3,4,6,8]</pre><pre class="code">ghci> (++) <$> ["ha","heh","hmm"] <*> ["?","!","."]  
+["ha?","ha!","ha.","heh?","heh!","heh.","hmm?","hmm!","hmm."]</pre><pre class="code">ghci> [ x*y | x <- [2,5,10], y <- [8,10,11]]     
+[16,20,22,40,50,55,80,100,110]</pre><pre class="code">ghci> (*) <$> [2,5,10] <*> [8,10,11]  
+[16,20,22,40,50,55,80,100,110]</pre><pre class="code">ghci> filter (>50) $ (*) <$> [2,5,10] <*> [8,10,11]  
+[55,80,100,110]</pre><pre class="code">instance Applicative IO where  
     pure = return  
     a <*> b = do  
         f <- a  
         x <- b  
-        return (f x)</pre><img src="img/knight.png" style="float:left"></img><img src="img/jazzb.png" style="float:right"></img><a name="關鍵字"newtype""></a><h2>關鍵字"newtype"</h2><img src="img/maoi.png" style="float:left"></img><img src="img/krakatoa.png" style="float:right"></img><img src="img/shamrock.png" style="float:right"></img><a name="Monoids"></a><h2>Monoids</h2><img src="img/pirateship.png" style="float:right"></img><img src="img/balloondog.png" style="float:right"></img><img src="img/smug.png" style="float:left"></img><img src="img/bear.png" style="float:right"></img><img src="img/accordion.png" style="float:right"></img>
+        return (f x)</pre><img src="img/knight.png" style="float:left"></img><pre class="code">myAction :: IO String  
+myAction = do  
+    a <- getLine  
+    b <- getLine  
+    return $ a ++ b</pre><pre class="code">myAction :: IO String  
+myAction = (++) <$> getLine <*> getLine</pre><pre class="code">main = do  
+    a <- (++) <$> getLine <*> getLine  
+    putStrLn $ "The two lines concatenated turn out to be: " ++ a</pre><pre class="code">instance Applicative ((->) r) where  
+    pure x = (\_ -> x)  
+    f <*> g = \x -> f x (g x)</pre><pre class="code">ghci> (pure 3) "blah"  
+3</pre><pre class="code">ghci> pure 3 "blah"  
+3</pre><pre class="code">ghci> :t (+) <$> (+3) <*> (*100)  
+(+) <$> (+3) <*> (*100) :: (Num a) => a -> a  
+ghci> (+) <$> (+3) <*> (*100) $ 5  
+508</pre><pre class="code">ghci> (\x y z -> [x,y,z]) <$> (+3) <*> (*2) <*> (/2) $ 5  
+[8.0,10.0,2.5]</pre><img src="img/jazzb.png" style="float:right"></img><pre class="code">instance Applicative ZipList where  
+        pure x = ZipList (repeat x)  
+        ZipList fs <*> ZipList xs = ZipList (zipWith (\f x -> f x) fs xs)</pre><pre class="code">ghci> getZipList $ (+) <$> ZipList [1,2,3] <*> ZipList [100,100,100]  
+[101,102,103]  
+ghci> getZipList $ (+) <$> ZipList [1,2,3] <*> ZipList [100,100..]  
+[101,102,103]  
+ghci> getZipList $ max <$> ZipList [1,2,3,4,5,3] <*> ZipList [5,3,1,2]  
+[5,3,3,4]  
+ghci> getZipList $ (,,) <$> ZipList "dog" <*> ZipList "cat" <*> ZipList "rat"  
+[('d','c','r'),('o','a','a'),('g','t','t')]</pre><pre class="code">liftA2 :: (Applicative f) => (a -> b -> c) -> f a -> f b -> f c  
+liftA2 f a b = f <$> a <*> b</pre><pre class="code">ghci> fmap (\x -> [x]) (Just 4)  
+Just [4]</pre><pre class="code">ghci> liftA2 (:) (Just 3) (Just [4])  
+Just [3,4]  
+ghci> (:) <$> Just 3 <*> Just [4]  
+Just [3,4]</pre><pre class="code">sequenceA :: (Applicative f) => [f a] -> f [a]  
+sequenceA [] = pure []  
+sequenceA (x:xs) = (:) <$> x <*> sequenceA xs</pre><pre class="code">sequenceA :: (Applicative f) => [f a] -> f [a]  
+sequenceA = foldr (liftA2 (:)) (pure [])</pre><pre class="code">ghci> sequenceA [Just 3, Just 2, Just 1]  
+Just [3,2,1]  
+ghci> sequenceA [Just 3, Nothing, Just 1]  
+Nothing  
+ghci> sequenceA [(+3),(+2),(+1)] 3  
+[6,5,4]  
+ghci> sequenceA [[1,2,3],[4,5,6]]  
+[[1,4],[1,5],[1,6],[2,4],[2,5],[2,6],[3,4],[3,5],[3,6]]  
+ghci> sequenceA [[1,2,3],[4,5,6],[3,4,4],[]]  
+[]</pre><pre class="code">ghci> map (\f -> f 7) [(>4),(<10),odd]  
+[True,True,True]  
+ghci> and $ map (\f -> f 7) [(>4),(<10),odd]  
+True</pre><pre class="code">ghci> sequenceA [(>4),(<10),odd] 7  
+[True,True,True]  
+ghci> and $ sequenceA [(>4),(<10),odd] 7  
+True</pre><pre class="code">ghci> sequenceA [[1,2,3],[4,5,6]]  
+[[1,4],[1,5],[1,6],[2,4],[2,5],[2,6],[3,4],[3,5],[3,6]]  
+ghci> [[x,y] | x <- [1,2,3], y <- [4,5,6]]  
+[[1,4],[1,5],[1,6],[2,4],[2,5],[2,6],[3,4],[3,5],[3,6]]  
+ghci> sequenceA [[1,2],[3,4]]  
+[[1,3],[1,4],[2,3],[2,4]]  
+ghci> [[x,y] | x <- [1,2], y <- [3,4]]  
+[[1,3],[1,4],[2,3],[2,4]]  
+ghci> sequenceA [[1,2],[3,4],[5,6]]  
+[[1,3,5],[1,3,6],[1,4,5],[1,4,6],[2,3,5],[2,3,6],[2,4,5],[2,4,6]]  
+ghci> [[x,y,z] | x <- [1,2], y <- [3,4], z <- [5,6]]  
+[[1,3,5],[1,3,6],[1,4,5],[1,4,6],[2,3,5],[2,3,6],[2,4,5],[2,4,6]]</pre><pre class="code">ghci> sequenceA [getLine, getLine, getLine]  
+heyh  
+ho  
+woo  
+["heyh","ho","woo"]</pre><a name="關鍵字"newtype""></a><h2>關鍵字"newtype"</h2><img src="img/maoi.png" style="float:left"></img><pre class="code">ghci> [(+1),(*100),(*5)] <*> [1,2,3]  
+[2,3,4,100,200,300,5,10,15]</pre><pre class="code">ghci> getZipList $ ZipList [(+1),(*100),(*5)] <*> ZipList [1,2,3]  
+[2,200,15]</pre><pre class="code">data ZipList a = ZipList [a]</pre><pre class="code">data ZipList a = ZipList { getZipList :: [a] }</pre><pre class="code">newtype ZipList a = ZipList { getZipList :: [a] }</pre><pre class="code">data Profession = Fighter | Archer | Accountant  
+  
+data Race = Human | Elf | Orc | Goblin  
+
+data PlayerCharacter = PlayerCharacter Race Profession</pre><pre class="code">newtype CharList = CharList { getCharList :: [Char] } deriving (Eq, Show)</pre><pre class="code">ghci> CharList "this will be shown!"  
+CharList {getCharList = "this will be shown!"}  
+ghci> CharList "benny" == CharList "benny"  
+True  
+ghci> CharList "benny" == CharList "oisters"  
+False</pre><pre class="code">CharList :: [Char] -> CharList</pre><pre class="code">getCharList :: CharList -> [Char]</pre><img src="img/krakatoa.png" style="float:right"></img><pre class="code">class Functor f where  
+    fmap :: (a -> b) -> f a -> f b</pre><pre class="code">instance Functor Maybe where</pre><pre class="code">fmap :: (a -> b) -> Maybe a -> Maybe b</pre><img src="img/shamrock.png" style="float:right"></img><pre class="code">newtype Pair b a = Pair { getPair :: (a,b) }</pre><pre class="code">instance Functor (Pair c) where  
+    fmap f (Pair (x,y)) = Pair (f x, y)</pre><pre class="code">fmap :: (a -> b) -> Pair c a -> Pair c b</pre><pre class="code">class Functor f where  
+    fmap :: (a -> b) -> f a -> f b</pre><pre class="code">ghci> getPair $ fmap (*100) (Pair (2,3))  
+(200,3)  
+ghci> getPair $ fmap reverse (Pair ("london calling", 3))  
+("gnillac nodnol",3)</pre><pre class="code">ghci> undefined  
+*** Exception: Prelude.undefined</pre><pre class="code">ghci> head [3,4,5,undefined,2,undefined]  
+3</pre><pre class="code">data CoolBool = CoolBool { getCoolBool :: Bool }</pre><pre class="code">helloMe :: CoolBool -> String  
+helloMe (CoolBool _) = "hello"</pre><a name="Monoids"></a><h2>Monoids</h2><img src="img/pirateship.png" style="float:right"></img><img src="img/balloondog.png" style="float:right"></img><img src="img/smug.png" style="float:left"></img><img src="img/bear.png" style="float:right"></img><img src="img/accordion.png" style="float:right"></img>
             <ul class="nav">
                 <li class="left">  <img src="img/prv.png"></img><a href="functionally-solving-problems.html">函數式地思考來解決問題</a></li>
                 <li class="center"><a href="chapters.html">Index</a></li>
