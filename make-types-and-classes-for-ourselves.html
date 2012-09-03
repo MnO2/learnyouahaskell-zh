@@ -110,7 +110,7 @@ ghci> flavor guy
                      , height :: Float  
                      , phoneNumber :: String  
                      , flavor :: String  
-                     } deriving (Show)</pre><p>與原先讓那些項一個挨一個的空格隔開不同，這裡用了花括號{}。先寫出項的名字，如firstName，後跟兩個冒號（也叫Raamayim Nekudotayim，哈哈~(譯者不知道什麼意思~囧)），標明其型別，返回的數據型別仍與以前相同。這樣的好處就是，可以用函數從中直接按項取值。通過Record Syntax，haskell就自動生成了這些函數：<code>firstName</code>,<code>lastName</code>,<code>age</code>,<code>height</code>,<code>phoneNumber</code>和<code>flavor</code>。</p><pre class="code">ghci> :t flavor  
+                     } deriving (Show)</pre><p>與原先讓那些項一個挨一個的空格隔開不同，這裡用了花括號{}。先寫出項的名字，如firstName，後跟兩個冒號（也叫Raamayim Nekudotayim，哈哈~(譯者不知道什麼意思~囧)），標明其型別，返回的數據型別仍與以前相同。這樣的好處就是，可以用函數從中直接按項取值。通過Record Syntax，Haskell就自動生成了這些函數：<code>firstName</code>,<code>lastName</code>,<code>age</code>,<code>height</code>,<code>phoneNumber</code>和<code>flavor</code>。</p><pre class="code">ghci> :t flavor  
 flavor :: Person -> String  
 ghci> :t firstName  
 firstName :: Person -> String</pre><p>還有個好處，就是若派生(deriving)到<code>Show</code>型別類，它的顯示是不同的。假如我們有個型別表示一輛車，要包含生產商、型號以及出場年份：</p><pre class="code">data Car = Car String String Int deriving (Show)</pre><pre class="code">ghci> Car "Ford" "Mustang" 1967  
@@ -135,14 +135,14 @@ Just 10.0</pre><p>型別參數很實用。有了它，我們就可以按照我�
                         } deriving (Show)</pre><p>但是，這樣我們又得到了什麼好處？回答很可能是，一無所得。因為我們只定義了處理<code>Car String String Int</code>型別的函數，像以前，我們還可以弄個簡單函數來描述車的屬性。</p><pre class="code">tellCar :: Car -> String
 tellCar (Car {company = c, model = m, year = y}) = "This " ++ c ++ " " ++ m ++ " was made in " ++ show y</pre><pre class="code">ghci> let stang = Car {company="Ford", model="Mustang", year=1967}  
 ghci> tellCar stang  "This Ford Mustang was made in 1967"</pre><p>可愛的小函數！它的型別聲明得很漂亮，而且工作良好。好，如果改成Car a b c又會怎樣？</p><pre class="code">tellCar :: (Show a) => Car String String a -> String  
-tellCar (Car {company = c, model = m, year = y}) = "This " ++ c ++ " " ++ m ++ " was made in " ++ show y</pre><p>我們只能強制性地給這個函數安一個(Show a) => Car String String a 的型別約束。看得出來，這要繁複得多。而唯一的好處貌似就是，我們可以使用Show型別類的實例來作a的型別。</p><pre class="code">ghci> tellCar (Car "Ford" "Mustang" 1967)  
+tellCar (Car {company = c, model = m, year = y}) = "This " ++ c ++ " " ++ m ++ " was made in " ++ show y</pre><p>我們只能強制性地給這個函數安一個(Show a) => Car String String a 的型別約束。看得出來，這要繁複得多。而唯一的好處貌似就是，我們可以使用Show型別類的instance來作a的型別。</p><pre class="code">ghci> tellCar (Car "Ford" "Mustang" 1967)  
 "This Ford Mustang was made in 1967"  
 ghci> tellCar (Car "Ford" "Mustang" "nineteen sixty seven")  
 "This Ford Mustang was made in \"nineteen sixty seven\""  
 ghci> :t Car "Ford" "Mustang" 1967  
 Car "Ford" "Mustang" 1967 :: (Num t) => Car [Char] [Char] t  
 ghci> :t Car "Ford" "Mustang" "nineteen sixty seven"  
-Car "Ford" "Mustang" "nineteen sixty seven" :: Car [Char] [Char] [Char]</pre><p>其實在現實生活中，使用Car String String Int在大多數情況下已經滿夠了。所以給Car型別加型別參數貌似並沒有什麼必要。通常我們都是都是在一個型別中包含的型別並不影響它的行為時才引入型別參數。一組什麼東西組成的List就是一個List，它不關心裡面東西的型別是啥，然而總是工作良好。若取一組數字的和，我們可以在後面的函數體中明確是一組數字的List。Maybe與之相似，它表示可以有什麼東西可以沒有，而不必關心這東西是啥。</p><p>我們之前還遇見過一個型別參數的應用，就是Data.Map中的Map k v。k表示Map中鍵的型別，v表示值的型別。這是個好例子，map中型別參數的使用允許我們能夠用一個型別索引另一個型別，只要鍵的型別在Ord型別類就行。如果叫我們自己定義一個map型別，可以在data聲明中加上一個型別類的約束。</p><pre class="code">data (Ord k) => Map k v = ...</pre><p>然而haskell中有一個嚴格的約定，那就是永遠不要在data聲明中添加型別約束。為啥？嗯，因為這樣沒好處，反而得寫更多不必要的型別約束。Map k v要是有Ord k的約束，那就相當於假定每個map的相關函數都認為k是可排序的。若不給數據型別加約束，我們就不必給那些不關心鍵是否可排序的函數另加約束了。這類函數的一個例子就是toList，它只是把一個map轉換為關聯List罷了，型別聲明為<code>toList :: Map k v -> [(k, v)]</code>。要是加上型別約束，就只能是<code>toList :: (Ord k) =>Map k a -> [(k,v)]</code>，明顯沒必要嘛。</p><p>所以說，永遠不要在data聲明中加型別約束---即便看起來沒問題。免得在函數聲明中寫出過多無畏的型別約束。</p><p>我們實現個表示三維向量的型別，再給它加幾個處理函數。我麼那就給它個型別參數，雖然大多數情況都是數值型，不過這一來它就支持了多種數值型別。</p><pre class="code">data Vector a = Vector a a a deriving (Show)    
+Car "Ford" "Mustang" "nineteen sixty seven" :: Car [Char] [Char] [Char]</pre><p>其實在現實生活中，使用Car String String Int在大多數情況下已經滿夠了。所以給Car型別加型別參數貌似並沒有什麼必要。通常我們都是都是在一個型別中包含的型別並不影響它的行為時才引入型別參數。一組什麼東西組成的List就是一個List，它不關心裡面東西的型別是啥，然而總是工作良好。若取一組數字的和，我們可以在後面的函數體中明確是一組數字的List。Maybe與之相似，它表示可以有什麼東西可以沒有，而不必關心這東西是啥。</p><p>我們之前還遇見過一個型別參數的應用，就是Data.Map中的Map k v。k表示Map中鍵的型別，v表示值的型別。這是個好例子，map中型別參數的使用允許我們能夠用一個型別索引另一個型別，只要鍵的型別在Ord型別類就行。如果叫我們自己定義一個map型別，可以在data聲明中加上一個型別類的約束。</p><pre class="code">data (Ord k) => Map k v = ...</pre><p>然而Haskell中有一個嚴格的約定，那就是永遠不要在data聲明中添加型別約束。為啥？嗯，因為這樣沒好處，反而得寫更多不必要的型別約束。Map k v要是有Ord k的約束，那就相當於假定每個map的相關函數都認為k是可排序的。若不給數據型別加約束，我們就不必給那些不關心鍵是否可排序的函數另加約束了。這類函數的一個例子就是toList，它只是把一個map轉換為關聯List罷了，型別聲明為<code>toList :: Map k v -> [(k, v)]</code>。要是加上型別約束，就只能是<code>toList :: (Ord k) =>Map k a -> [(k,v)]</code>，明顯沒必要嘛。</p><p>所以說，永遠不要在data聲明中加型別約束---即便看起來沒問題。免得在函數聲明中寫出過多無畏的型別約束。</p><p>我們實現個表示三維向量的型別，再給它加幾個處理函數。我麼那就給它個型別參數，雖然大多數情況都是數值型，不過這一來它就支持了多種數值型別。</p><pre class="code">data Vector a = Vector a a a deriving (Show)    
 vplus :: (Num t) => Vector t -> Vector t -> Vector t  
 (Vector i j k) `vplus` (Vector l m n) = Vector (i+l) (j+m) (k+n)    
 vectMult :: (Num t) => Vector t -> t -> Vector t  
@@ -157,13 +157,13 @@ Vector 30 90 70
 ghci> Vector 4 9 5 `scalarMult` Vector 9.0 2.0 4.0  
 74.0  
 ghci> Vector 2 9 3 `vectMult` (Vector 4 9 5 `scalarMult` Vector 9 2 4)  
-Vector 148 666 222</pre><a name="Derived instances"></a><h2>Derived instances</h2><p>在typeclass 101那節裡面，我們瞭解了typeclass的基礎內容。裡面提到，型別類就是定義了某些行為的介面。例如，Int型別是Eq型別類的一個實例，Eq類就定義了判定相等性的行為。Int值可以判斷相等性，所以Int就是Eq型別類的成員。它的真正威力體現在作為Eq介面的函數中，即==和/=。只要一個型別是Eq型別類的成員，我們就可以使用==函數來處理這一型別。這便是為何<code>4==4</code>和<code>"foo"/="bar"</code>這樣的表達式都需要作型別檢查。</p><img src="img/gob.png" style="float:right"></img><p>我們也曾提到，人們很容易把型別類與Java，python，C++等語言的類混淆。很多人對此都倍感不解，在原先那些語言中，類就像是藍圖，我們可以根據它來創造對象、保存狀態並執行操作。而型別類更像是介面，我們不是靠它構造數據，而是給既有的數據型別描述行為。什麼東西若可以判定相等性，我們就可以讓它成為Eq型別類的實例。什麼東西若可以比較大小，那就可以讓它成為Ord型別類的實例。</p><p>在下一節，我們將看一下如何手工實現型別類中定義函數來構造實例。現在呢，我們先瞭解下Haskell是如何自動生成這幾個型別類的實例，<code>Eq</code>,<code>Ord</code>,<code>Enum</code>,<code>Bounded</code>,<code>Show</code>,<code>Read</code>。只要我們在構造型別時在後面加個deriving（派生）關鍵字，Haskell就可以自動地給我們的型別加上這些行為。</p><p>看這個數據型別：</p><pre class="code">data Person = Person { firstName :: String  
+Vector 148 666 222</pre><a name="Derived instances"></a><h2>Derived instances</h2><p>在typeclass 101那節裡面，我們瞭解了typeclass的基礎內容。裡面提到，型別類就是定義了某些行為的介面。例如，Int型別是Eq型別類的一個instance，Eq類就定義了判定相等性的行為。Int值可以判斷相等性，所以Int就是Eq型別類的成員。它的真正威力體現在作為Eq介面的函數中，即==和/=。只要一個型別是Eq型別類的成員，我們就可以使用==函數來處理這一型別。這便是為何<code>4==4</code>和<code>"foo"/="bar"</code>這樣的表達式都需要作型別檢查。</p><img src="img/gob.png" style="float:right"></img><p>我們也曾提到，人們很容易把型別類與Java，python，C++等語言的類混淆。很多人對此都倍感不解，在原先那些語言中，類就像是藍圖，我們可以根據它來創造對象、保存狀態並執行操作。而型別類更像是介面，我們不是靠它構造數據，而是給既有的數據型別描述行為。什麼東西若可以判定相等性，我們就可以讓它成為Eq型別類的instance。什麼東西若可以比較大小，那就可以讓它成為Ord型別類的instance。</p><p>在下一節，我們將看一下如何手工實現型別類中定義函數來構造instance。現在呢，我們先瞭解下Haskell是如何自動生成這幾個型別類的instance，<code>Eq</code>,<code>Ord</code>,<code>Enum</code>,<code>Bounded</code>,<code>Show</code>,<code>Read</code>。只要我們在構造型別時在後面加個deriving（派生）關鍵字，Haskell就可以自動地給我們的型別加上這些行為。</p><p>看這個數據型別：</p><pre class="code">data Person = Person { firstName :: String  
                      , lastName :: String  
                      , age :: Int  
-                     }</pre><p>這描述了一個人。我們先假定世界上沒有重名重姓又同齡的人存在，好，假如有兩個record，有沒有可能是描述同一個人呢？當然可能，我麼可以判定姓名年齡的相等性，來判斷它倆是否相等。這一來，讓這個型別成為Eq的成員就很靠譜了。直接derive這個實例：</p><pre class="code">data Person = Person { firstName :: String  
+                     }</pre><p>這描述了一個人。我們先假定世界上沒有重名重姓又同齡的人存在，好，假如有兩個record，有沒有可能是描述同一個人呢？當然可能，我麼可以判定姓名年齡的相等性，來判斷它倆是否相等。這一來，讓這個型別成為Eq的成員就很靠譜了。直接derive這個instance：</p><pre class="code">data Person = Person { firstName :: String  
                      , lastName :: String  
                      , age :: Int  
-                     } deriving (Eq)</pre><p>在一個型別派生為Eq的實例後，就可以直接使用==或/=來判斷它們的相等性了。Haskell會先看下這兩個值的值構造子是否一致（這裡只是單值構造子），再用==來檢查其中的所有數據（必須都是Eq的成員）是否一致。在這裡只有String和Int，所以是沒有問題的。測試下我們的Eq實例：</p><pre class="code">ghci> let mikeD = Person {firstName = "Michael", lastName = "Diamond", age = 43}  
+                     } deriving (Eq)</pre><p>在一個型別derive為Eq的instance後，就可以直接使用==或/=來判斷它們的相等性了。Haskell會先看下這兩個值的值構造子是否一致（這裡只是單值構造子），再用==來檢查其中的所有數據（必須都是Eq的成員）是否一致。在這裡只有String和Int，所以是沒有問題的。測試下我們的Eqinstance：</p><pre class="code">ghci> let mikeD = Person {firstName = "Michael", lastName = "Diamond", age = 43}  
 ghci> let adRock = Person {firstName = "Adam", lastName = "Horovitz", age = 41}  
 ghci> let mca = Person {firstName = "Adam", lastName = "Yauch", age = 44}  
 ghci> mca == adRock  
@@ -175,16 +175,16 @@ True
 ghci> mikeD == Person {firstName = "Michael", lastName = "Diamond", age = 43}  
 True</pre><p>自然，Person如今已經成為了Eq的成員，我們就可以將其應用於所有在型別聲明中用到Eq類約束的函數了，如elem。</p><pre class="code">ghci> let beastieBoys = [mca, adRock, mikeD]  
 ghci> mikeD `elem` beastieBoys  
-True</pre><p>Show和Read型別類處理可與字元串相互轉換的東西。同Eq相似，如果一個型別的構造子含有參數，那所有參數的型別必須都得屬於Show或Read才能讓該型別成為其實例。就讓我們的Person也成為Read和Show的一員吧。</p><pre class="code">data Person = Person { firstName :: String  
+True</pre><p>Show和Read型別類處理可與字元串相互轉換的東西。同Eq相似，如果一個型別的構造子含有參數，那所有參數的型別必須都得屬於Show或Read才能讓該型別成為其instance。就讓我們的Person也成為Read和Show的一員吧。</p><pre class="code">data Person = Person { firstName :: String  
                      , lastName :: String  
                      , age :: Int  
                      } deriving (Eq, Show, Read)</pre><p>然後就可以輸出一個Person到控制台了。</p><pre class="code">ghci> let mikeD = Person {firstName = "Michael", lastName = "Diamond", age = 43}  
 ghci> mikeD  
 Person {firstName = "Michael", lastName = "Diamond", age = 43}  
 ghci> "mikeD is: " ++ show mikeD  
-"mikeD is: Person {firstName = \"Michael\", lastName = \"Diamond\", age = 43}"</pre><p>如果我們還沒讓Person型別作為Show的成員就嘗試輸出它，haskell就會向我們抱怨，說它不知道該怎麼把它表示成一個字元串。不過現在既然已經派生成為了Show的一個實例，它就知道了。</p><p>Read几乎就是與Show相對的型別類，show是將一個值轉換成字元串，而read則是將一個字元串轉成某型別的值。還記得，使用read函數時我們必須得用型別註釋註明想要的型別，否則haskell就不會知道如何轉換。</p><pre class="code">ghci> read "Person {firstName =\"Michael\", lastName =\"Diamond\", age = 43}" :: Person  
+"mikeD is: Person {firstName = \"Michael\", lastName = \"Diamond\", age = 43}"</pre><p>如果我們還沒讓Person型別作為Show的成員就嘗試輸出它，Haskell就會向我們抱怨，說它不知道該怎麼把它表示成一個字元串。不過現在既然已經derive成為了Show的一個instance，它就知道了。</p><p>Read几乎就是與Show相對的型別類，show是將一個值轉換成字元串，而read則是將一個字元串轉成某型別的值。還記得，使用read函數時我們必須得用型別註釋註明想要的型別，否則Haskell就不會知道如何轉換。</p><pre class="code">ghci> read "Person {firstName =\"Michael\", lastName =\"Diamond\", age = 43}" :: Person  
 Person {firstName = "Michael", lastName = "Diamond", age = 43}</pre><p>如果我們read的結果會在後面用到參與計算，Haskell就可以推導出是一個Person的行為，不加註釋也是可以的。</p><pre class="code">ghci> read "Person {firstName =\"Michael\", lastName =\"Diamond\", age = 43}" == mikeD  
-True</pre><p>也可以read帶參數的型別，但必須填滿所有的參數。因此<code>read "Just 't'" :: Maybe a</code>是不可以的，<code>read "Just 't'" :: Maybe Char</code>才對。</p><p>很容易想象Ord類派生實例的行為。首先，判斷兩個值構造子是否一致，如果是，再判斷它們的參數，前提是它們的參數都得是Ord的實例。Bool型別可以有兩種值，False和True。為了瞭解在比較中程序的行為，我們可以這樣想象：</p><pre class="code">data Bool = False | True deriving (Ord)</pre><p>由於值構造子False安排在True的前面，我們可以認為True比False大。</p><pre class="code">ghci> True `compare` False  
+True</pre><p>也可以read帶參數的型別，但必須填滿所有的參數。因此<code>read "Just 't'" :: Maybe a</code>是不可以的，<code>read "Just 't'" :: Maybe Char</code>才對。</p><p>很容易想象Ord型別類derive instance的行為。首先，判斷兩個值構造子是否一致，如果是，再判斷它們的參數，前提是它們的參數都得是Ord的instance。Bool型別可以有兩種值，False和True。為了瞭解在比較中程序的行為，我們可以這樣想象：</p><pre class="code">data Bool = False | True deriving (Ord)</pre><p>由於值構造子False安排在True的前面，我們可以認為True比False大。</p><pre class="code">ghci> True `compare` False  
 GT  
 ghci> True > False  
 True  
@@ -196,7 +196,7 @@ False
 ghci> Just 3 `compare` Just 2  
 GT  
 ghci> Just 100 > Just 50  
-True</pre><p>不過類似Just (<b>3), Just(</b>2)之類的程式碼是不可以的。因為(<b>3)和(</b>2)都是函數，而函數不是Ord類的成員。</p><p>作枚舉，使用數字型別就能輕易做到。不過使用Enmu和Bounded型別類會更好，看下這個型別：</p><pre class="code">data Day = Monday | Tuesday | Wednesday | Thursday | Friday | Saturday | Sunday</pre><p>所有的值構造子都是nullary的（也就是沒有參數），每個東西都有前置子和後繼子，我們可以讓它成為Enmu型別類的成員。同樣，每個東西都有可能的最小值和最大值，我們也可以讓它成為Bounded型別類的成員。在這裡，我們就同時將它搞成其它可派生型別類的實例。再看看我們能拿它做啥：</p><pre class="code">data Day = Monday | Tuesday | Wednesday | Thursday | Friday | Saturday | Sunday   
+True</pre><p>不過類似Just (<b>3), Just(</b>2)之類的程式碼是不可以的。因為(<b>3)和(</b>2)都是函數，而函數不是Ord類的成員。</p><p>作枚舉，使用數字型別就能輕易做到。不過使用Enmu和Bounded型別類會更好，看下這個型別：</p><pre class="code">data Day = Monday | Tuesday | Wednesday | Thursday | Friday | Saturday | Sunday</pre><p>所有的值構造子都是nullary的（也就是沒有參數），每個東西都有前置子和後繼子，我們可以讓它成為Enmu型別類的成員。同樣，每個東西都有可能的最小值和最大值，我們也可以讓它成為Bounded型別類的成員。在這裡，我們就同時將它搞成其它可derive型別類的instance。再看看我們能拿它做啥：</p><pre class="code">data Day = Monday | Tuesday | Wednesday | Thursday | Friday | Saturday | Sunday   
            deriving (Eq, Ord, Show, Read, Bounded, Enum)</pre><p>由於它是Show和Read型別類的成員，我們可以將這個型別的值與字元串相互轉換。</p><pre class="code">ghci> Wednesday  
 Wednesday  
 ghci> show Wednesday  
@@ -212,7 +212,7 @@ ghci> Monday `compare` Wednesday
 LT</pre><p>它也是Bounded的成員，因此有最早和最晚的一天。</p><pre class="code">ghci> minBound :: Day  
 Monday  
 ghci> maxBound :: Day  
-Sunday</pre><p>它也是Enmu的實例，可以得到前一天和後一天，並且可以對此使用List的區間。</p><pre class="code">ghci> succ Monday  
+Sunday</pre><p>它也是Enum的instance，可以得到前一天和後一天，並且可以對此使用List的區間。</p><pre class="code">ghci> succ Monday  
 Tuesday  
 ghci> pred Saturday  
 Friday  
@@ -287,7 +287,15 @@ Empty .++ ys = ys
 (x :-: xs) .++ ys = x :-: (xs .++ ys)</pre><p>來看看他如何運作：</p><pre class="code">ghci> let a = 3 :-: 4 :-: 5 :-: Empty  
 ghci> let b = 6 :-: 7 :-: Empty  
 ghci> a .++ b  
-(:-:) 3 ((:-:) 4 ((:-:) 5 ((:-:) 6 ((:-:) 7 Empty))))</pre><p>如果我們想要的話，我們可以定義其他操作我們list的函數。</p><a name="Typeclasses的第二堂課"></a><h2>Typeclasses的第二堂課</h2><a name="yes-no typeclass"></a><h2>yes-no typeclass</h2><a name="Functor typeclass"></a><h2>Functor typeclass</h2><a name="Kind"></a><h2>Kind</h2>
+(:-:) 3 ((:-:) 4 ((:-:) 5 ((:-:) 6 ((:-:) 7 Empty))))</pre><p>如果我們想要的話，我們可以定義其他操作我們list的函數。</p><p>注意到我們是如何利用<code>(x :-: xs)</code>做模式匹配的。</p><p>他運作的原理實際上就是利用到構造子。</p><p>我們可以利用<code>:-:</code>做模式匹配原因就是他是構造子，</p><p>同樣的<code>:</code>也是構造子所以可以用他做匹配。</p><p><code>[]</code>也是同樣道理。</p><p>由於模式匹配是用構造子來作的，所以我們才能對像<code>8</code>,<code>'a'</code>之類的做模式匹配。</p><p>他們是數值與字元的構造子。</p><p>接下來我們要實作二元搜尋樹(binary search tree)。</p><p>如果你對二元搜尋樹不太清楚，</p><p>我們來快速地解釋一遍。</p><p>他的結構是每個節點指向兩個其他節點，</p><p>一個在左邊一個在右邊。</p><p>在左邊節點的元素會比這個節點的元素要小。</p><p>在右邊的話則比較大。</p><p>每個節點最多可以有兩棵子樹。</p><p>而我們知道譬如說一棵包含5的節點的左子樹，</p><p>裡面所有的元素都會小於5。</p><p>而節點的右子樹裡面的元素都會大於5。</p><p>如果我們想找找看8是不是在我們的樹裡面，我們就從5那個節點找起，</p><p>由於8比5要大，</p><p>很自然地就會往右搜尋。</p><p>接著我們走到7，又由於8比7要大，所以我們再往右走。</p><p>我們在三步就找到了我們要的元素。</p><p>如果這不是棵樹而是list的話，</p><p>那就會需要花到七步才能找到8。</p><p><code>Data.Set</code>跟<code>Data.Map</code>中的set和map都是用樹來實現的，</p><p>只是他們是用平衡二元搜尋樹而不是隨意的二元搜尋樹。</p><p>不過這邊我們就只先寫一棵普通的二元搜尋樹就好了。</p><p>這邊我們來定義一棵樹的結構：他不是一棵空的樹就是帶有值並含有兩棵子樹。</p><p>聽起來非常符合algebraic data type的結構！</p><pre class="code">data Tree a = EmptyTree | Node a (Tree a) (Tree a) deriving (Show, Read, Eq)</pre><p>我們不太想手動來建顆二元搜尋樹，所以我們要來寫一個函數，他接受一棵樹還有一個元素，把這個元素安插到這棵二元搜尋樹中。當拿這個元素跟樹的節點比較結果比較小的話，我們就往左走，如果比較大，就往右走。重複這個動作直到我們走到一棵空的樹。一旦碰到空的樹的話，我們就把元素插入節點。</p><p>在C語言中，我們是用修改指標的方式來達成這件事。但在Haskell中，我們沒辦法修改我們的樹。所以我們在決定要往左或往右走的時候就做一棵新的子樹，走到最後要安插節點的時候也是做一棵新的樹。因此我們插入函數的型態會是<code>a -> Tree a -> Tree a</code>。他接受一個元素跟一棵樹，並回傳一棵包含了新元素的新的樹。這看起來很沒效率的樣子，但別擔心，惰性的特性可以讓我們不用擔心這個。</p><p>來看下列兩個函數。第一個做了一個單節點的樹，而第二個插入一個元素到一棵樹中。</p><pre class="code">singleton :: a -> Tree a  
+singleton x = Node x EmptyTree EmptyTree  
+  
+treeInsert :: (Ord a) => a -> Tree a -> Tree a  
+treeInsert x EmptyTree = singleton x  
+treeInsert x (Node a left right)   
+      | x == a = Node x left right  
+      | x < a  = Node a (treeInsert x left) right  
+      | x > a  = Node a left (treeInsert x right)</pre><p><code>singleton</code>函數只是一個做一個含有兩棵空子樹的節點的函數的別名。</p><a name="Typeclasses的第二堂課"></a><h2>Typeclasses的第二堂課</h2><a name="yes-no typeclass"></a><h2>yes-no typeclass</h2><a name="Functor typeclass"></a><h2>Functor typeclass</h2><a name="Kind"></a><h2>Kind</h2>
             <ul class="nav">
                 <li class="left">  <img src="img/prv.png"></img><a href="modules.html">模組(Modules)</a></li>
                 <li class="center"><a href="chapters.html">Index</a></li>
