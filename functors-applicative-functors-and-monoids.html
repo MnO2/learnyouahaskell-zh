@@ -248,7 +248,166 @@ ghci> getPair $ fmap reverse (Pair ("london calling", 3))
 ("gnillac nodnol",3)</pre><pre class="code">ghci> undefined  
 *** Exception: Prelude.undefined</pre><pre class="code">ghci> head [3,4,5,undefined,2,undefined]  
 3</pre><pre class="code">data CoolBool = CoolBool { getCoolBool :: Bool }</pre><pre class="code">helloMe :: CoolBool -> String  
-helloMe (CoolBool _) = "hello"</pre><a name="Monoids"></a><h2>Monoids</h2><img src="img/pirateship.png" style="float:right"></img><img src="img/balloondog.png" style="float:right"></img><img src="img/smug.png" style="float:left"></img><img src="img/bear.png" style="float:right"></img><img src="img/accordion.png" style="float:right"></img>
+helloMe (CoolBool _) = "hello"</pre><pre class="code">type IntList = [Int]</pre><pre class="code">ghci> ([1,2,3] :: IntList) ++ ([1,2,3] :: [Int])  
+[1,2,3,1,2,3]</pre><pre class="code">newtype CharList = CharList { getCharList :: [Char] }</pre><a name="Monoids"></a><h2>Monoids</h2><img src="img/pirateship.png" style="float:right"></img><pre class="code">ghci> 4 * 1  
+4  
+ghci> 1 * 9  
+9  
+ghci> [1,2,3] ++ []  
+[1,2,3]  
+ghci> [] ++ [0.5, 2.5]  
+[0.5,2.5]</pre><pre class="code">ghci> (3 * 2) * (8 * 5)  
+240  
+ghci> 3 * (2 * (8 * 5))  
+240  
+ghci> "la" ++ ("di" ++ "da")  
+"ladida"  
+ghci> ("la" ++ "di") ++ "da"  
+"ladida"</pre><pre class="code">class Monoid m where  
+    mempty :: m  
+    mappend :: m -> m -> m  
+    mconcat :: [m] -> m  
+    mconcat = foldr mappend mempty</pre><img src="img/balloondog.png" style="float:right"></img><a name="List are monoids"></a><h3>List are monoids</h3><pre class="code">instance Monoid [a] where  
+    mempty = []  
+    mappend = (++)</pre><pre class="code">ghci> [1,2,3] `mappend` [4,5,6]  
+[1,2,3,4,5,6]  
+ghci> ("one" `mappend` "two") `mappend` "tree"  
+"onetwotree"  
+ghci> "one" `mappend` ("two" `mappend` "tree")  
+"onetwotree"  
+ghci> "one" `mappend` "two" `mappend` "tree"  
+"onetwotree"  
+ghci> "pang" `mappend` mempty  
+"pang"  
+ghci> mconcat [[1,2],[3,6],[9]]  
+[1,2,3,6,9]  
+ghci> mempty :: [a]  
+[]</pre><img src="img/smug.png" style="float:left"></img><pre class="code">ghci> "one" `mappend` "two"  
+"onetwo"  
+ghci> "two" `mappend` "one"  
+"twoone"</pre><pre class="code">ghci> 0 + 4  
+4  
+ghci> 5 + 0  
+5  
+ghci> (1 + 3) + 5  
+9  
+ghci> 1 + (3 + 5)  
+9</pre><pre class="code">newtype Product a =  Product { getProduct :: a }  
+    deriving (Eq, Ord, Read, Show, Bounded)</pre><pre class="code">instance Num a => Monoid (Product a) where  
+    mempty = Product 1  
+    Product x `mappend` Product y = Product (x * y)</pre><pre class="code">ghci> getProduct $ Product 3 `mappend` Product 9  
+27  
+ghci> getProduct $ Product 3 `mappend` mempty  
+3  
+ghci> getProduct $ Product 3 `mappend` Product 4 `mappend` Product 2  
+24  
+ghci> getProduct . mconcat . map Product $ [3,4,2]  
+24</pre><pre class="code">ghci> getSum $ Sum 2 `mappend` Sum 9  
+11  
+ghci> getSum $ mempty `mappend` Sum 3  
+3  
+ghci> getSum . mconcat . map Sum $ [1,2,3]  
+6</pre><a name="Any and All"></a><h3>Any and All</h3><pre class="code">newtype Any = Any { getAny :: Bool }  
+    deriving (Eq, Ord, Read, Show, Bounded)</pre><pre class="code">instance Monoid Any where  
+    mempty = Any False  
+    Any x `mappend` Any y = Any (x || y)</pre><pre class="code">ghci> getAny $ Any True `mappend` Any False  
+True  
+ghci> getAny $ mempty `mappend` Any True  
+True  
+ghci> getAny . mconcat . map Any $ [False, False, False, True]  
+True  
+ghci> getAny $ mempty `mappend` mempty  
+False</pre><pre class="code">newtype All = All { getAll :: Bool }  
+        deriving (Eq, Ord, Read, Show, Bounded)</pre><pre class="code">instance Monoid All where  
+        mempty = All True  
+        All x `mappend` All y = All (x && y)</pre><pre class="code">ghci> getAll $ mempty `mappend` All True  
+True  
+ghci> getAll $ mempty `mappend` All False  
+False  
+ghci> getAll . mconcat . map All $ [True, True, True]  
+True  
+ghci> getAll . mconcat . map All $ [True, True, False]  
+False</pre><a name="The Ordering monoid"></a><h3>The Ordering monoid</h3><pre class="code">ghci> 1 `compare` 2  
+LT  
+ghci> 2 `compare` 2  
+EQ  
+ghci> 3 `compare` 2  
+GT</pre><pre class="code">instance Monoid Ordering where  
+    mempty = EQ  
+    LT `mappend` _ = LT  
+    EQ `mappend` y = y  
+    GT `mappend` _ = GT</pre><img src="img/bear.png" style="float:right"></img><pre class="code">ghci> LT `mappend` GT  
+LT  
+ghci> GT `mappend` LT  
+GT  
+ghci> mempty `mappend` LT  
+LT  
+ghci> mempty `mappend` GT  
+GT</pre><pre class="code">import Data.Monoid  
+  
+lengthCompare :: String -> String -> Ordering  
+lengthCompare x y = (length x `compare` length y) `mappend`  
+                    (x `compare` y)</pre><pre class="code">import Data.Monoid  
+  
+lengthCompare :: String -> String -> Ordering  
+lengthCompare x y = (length x `compare` length y) `mappend`  
+                    (vowels x `compare` vowels y) `mappend`  
+                    (x `compare` y)  
+    where vowels = length . filter (`elem` "aeiou")</pre><pre class="code">ghci> lengthCompare "zen" "anna"  
+LT  
+ghci> lengthCompare "zen" "ana"  
+LT  
+ghci> lengthCompare "zen" "ann"  
+GT</pre><a name="Maybe the monoid"></a><h3>Maybe the monoid</h3><pre class="code">instance Monoid a => Monoid (Maybe a) where  
+    mempty = Nothing  
+    Nothing `mappend` m = m  
+    m `mappend` Nothing = m  
+    Just m1 `mappend` Just m2 = Just (m1 `mappend` m2)</pre><pre class="code">ghci> Nothing `mappend` Just "andy"  
+Just "andy"  
+ghci> Just LT `mappend` Nothing  
+Just LT  
+ghci> Just (Sum 3) `mappend` Just (Sum 4)  
+Just (Sum {getSum = 7})</pre><pre class="code">newtype First a = First { getFirst :: Maybe a }  
+    deriving (Eq, Ord, Read, Show)</pre><pre class="code">instance Monoid (First a) where  
+    mempty = First Nothing  
+    First (Just x) `mappend` _ = First (Just x)  
+    First Nothing `mappend` x = x</pre><pre class="code">ghci> getFirst $ First (Just 'a') `mappend` First (Just 'b')  
+Just 'a'  
+ghci> getFirst $ First Nothing `mappend` First (Just 'b')  
+Just 'b'  
+ghci> getFirst $ First (Just 'a') `mappend` First Nothing  
+Just 'a'</pre><pre class="code">ghci> getFirst . mconcat . map First $ [Nothing, Just 9, Just 10]  
+Just 9</pre><pre class="code">ghci> getLast . mconcat . map Last $ [Nothing, Just 9, Just 10]  
+Just 10  
+ghci> getLast $ Last (Just "one") `mappend` Last (Just "two")  
+Just "two"</pre><a name="Using monoids to fold data structures"></a><h3>Using monoids to fold data structures</h3><pre class="code">import qualified Foldable as F</pre><pre class="code">ghci> :t foldr  
+foldr :: (a -> b -> b) -> b -> [a] -> b  
+ghci> :t F.foldr  
+F.foldr :: (F.Foldable t) => (a -> b -> b) -> b -> t a -> b</pre><pre class="code">ghci> foldr (*) 1 [1,2,3]  
+6  
+ghci> F.foldr (*) 1 [1,2,3]  
+6</pre><pre class="code">ghci> F.foldl (+) 2 (Just 9)  
+11  
+ghci> F.foldr (||) False (Just True)  
+True</pre><pre class="code">data Tree a = Empty | Node a (Tree a) (Tree a) deriving (Show, Read, Eq)</pre><pre class="code">foldMap :: (Monoid m, Foldable t) => (a -> m) -> t a -> m</pre><pre class="code">instance F.Foldable Tree where  
+    foldMap f Empty = mempty  
+    foldMap f (Node x l r) = F.foldMap f l `mappend`  
+                                f x           `mappend`  
+                                F.foldMap f r</pre><img src="img/accordion.png" style="float:right"></img><pre class="code">testTree = Node 5  
+            (Node 3  
+             (Node 1 Empty Empty)  
+             (Node 6 Empty Empty)  
+            )  
+            (Node 9  
+             (Node 8 Empty Empty)  
+             (Node 10 Empty Empty)  
+            )</pre><pre class="code">ghci> F.foldl (+) 0 testTree  
+42  
+ghci> F.foldl (*) 1 testTree  
+64800</pre><pre class="code">ghci> getAny $ F.foldMap (\x -> Any $ x == 3) testTree  
+True</pre><pre class="code">ghci> getAny $ F.foldMap (\x -> Any $ x > 15) testTree  
+False</pre><pre class="code">ghci> F.foldMap (\x -> [x]) testTree  
+[1,3,6,5,8,9,10]</pre>
             <ul class="nav">
                 <li class="left">  <img src="img/prv.png"></img><a href="functionally-solving-problems.html">函數式地思考來解決問題</a></li>
                 <li class="center"><a href="chapters.html">Index</a></li>

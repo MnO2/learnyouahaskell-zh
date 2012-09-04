@@ -47,7 +47,113 @@
                 <li class="center"><a href="chapters.html">Index</a></li>
                 <li class="right"> <a href="functors-applicative-functors-and-monoids.html">Functors, Applicative Functors與Monoids</a><img src="img/nxt.png"></img></li>
             </ul>
-            <a name="函數式地思考來解決問題"></a><h1>函數式地思考來解決問題</h1><p>在這一章中，我們會檢視幾個有趣的問題，並嘗試用函數式的方式來漂亮地解決他們。我們並不會介紹新的概念，我們只是練習我們剛學到的寫程式的技巧。每一節都會探討不同的問題。會先描述問題，然後用最好的方式解決他。</p><a name="運算逆波蘭表示法(Reverse Polish notation form)"></a><h2>運算逆波蘭表示法(Reverse Polish notation form)</h2><p>我們在學校學習數學的時候，我們多半都是用中置(infix)的方式來寫數學式。例如說，我們會寫<code>10 - (4 + 3) * 2</code>。<code>+</code>,<code>*</code>,<code>-</code>是中置運算子(infix operators)。在Haskell中就像是<code>+</code>或<code>elem</code>一樣。這種寫法對於人類來說很容易閱讀與理解，但缺點是我們必須用括號來描述運算的優先順序。</p><p>逆波蘭表示法是另外一種數學式的描述方法。</p><p>乍看之下顯得怪異，但他其實很容易理解並使用。</p><p>因為我們不需要括弧來描述，也很容易放進計算機裡面運算。</p><p>儘管現在的計算機都是用中置的方式讓你輸入，有些人仍堅持用RPN的計算機。</p><p>前述的算式如果表達成RPN的話會是<code>10 4 3 + 2 * -</code>。</p><p>我們要如何計算他的結果呢？</p><p>可以想想堆疊，基本上你是從左向右閱讀算式。</p><p>每當碰到一個數值，就把他堆上堆疊。</p><p>當我們碰到一個運算子。</p><p>就把兩個數值從堆疊上拿下來，</p><p>用運算子運算兩個數值然後把結果推回堆疊中。</p><p>當你消耗完整個算式的時候，</p><p>而且假設你的算式是合法的，</p><p>那你就應該只剩一個數值在堆疊中，</p><img src="img/rpn.png" style="float:left"></img><img src="img/calculator.png" style="float:left"></img><img src="img/roads.png" style="float:left"></img><a name="路徑規劃"></a><h2>路徑規劃</h2>
+            <a name="函數式地思考來解決問題"></a><h1>函數式地思考來解決問題</h1><p>在這一章中，我們會檢視幾個有趣的問題，並嘗試用函數式的方式來漂亮地解決他們。我們並不會介紹新的概念，我們只是練習我們剛學到的寫程式的技巧。每一節都會探討不同的問題。會先描述問題，然後用最好的方式解決他。</p><a name="運算逆波蘭表示法(Reverse Polish notation form)"></a><h2>運算逆波蘭表示法(Reverse Polish notation form)</h2><p>我們在學校學習數學的時候，我們多半都是用中置(infix)的方式來寫數學式。例如說，我們會寫<code>10 - (4 + 3) * 2</code>。<code>+</code>,<code>*</code>,<code>-</code>是中置運算子(infix operators)。在Haskell中就像是<code>+</code>或<code>elem</code>一樣。這種寫法對於人類來說很容易閱讀與理解，但缺點是我們必須用括號來描述運算的優先順序。</p><p>逆波蘭表示法是另外一種數學式的描述方法。</p><p>乍看之下顯得怪異，但他其實很容易理解並使用。</p><p>因為我們不需要括弧來描述，也很容易放進計算機裡面運算。</p><p>儘管現在的計算機都是用中置的方式讓你輸入，有些人仍堅持用RPN的計算機。</p><p>前述的算式如果表達成RPN的話會是<code>10 4 3 + 2 * -</code>。</p><p>我們要如何計算他的結果呢？</p><p>可以想想堆疊，基本上你是從左向右閱讀算式。</p><p>每當碰到一個數值，就把他堆上堆疊。</p><p>當我們碰到一個運算子。</p><p>就把兩個數值從堆疊上拿下來，</p><p>用運算子運算兩個數值然後把結果推回堆疊中。</p><p>當你消耗完整個算式的時候，</p><p>而且假設你的算式是合法的，</p><p>那你就應該只剩一個數值在堆疊中，</p><img src="img/rpn.png" style="float:left"></img><img src="img/calculator.png" style="float:left"></img><pre class="code">import Data.List  
+  
+solveRPN :: (Num a) => String -> a  
+solveRPN expression = head (foldl foldingFunction [] (words expression))  
+    where   foldingFunction stack item = ...</pre><pre class="code">import Data.List  
+  
+solveRPN :: (Num a) => String -> a  
+solveRPN = head . foldl foldingFunction [] . words  
+      where   foldingFunction stack item = ...</pre><pre class="code">solveRPN :: (Num a, Read a) => String -> a  
+solveRPN = head . foldl foldingFunction [] . words  
+    where   foldingFunction (x:y:ys) "*" = (x * y):ys  
+            foldingFunction (x:y:ys) "+" = (x + y):ys  
+            foldingFunction (x:y:ys) "-" = (y - x):ys  
+            foldingFunction xs numberString = read numberString:xs</pre><pre class="code">ghci> solveRPN "10 4 3 + 2 * -"  
+-4  
+ghci> solveRPN "2 3 +"  
+5  
+ghci> solveRPN "90 34 12 33 55 66 + * - +"  
+-3947  
+ghci> solveRPN "90 34 12 33 55 66 + * - + -"  
+4037  
+ghci> solveRPN "90 34 12 33 55 66 + * - + -"  
+4037  
+ghci> solveRPN "90 3 -"  
+87</pre><pre class="code">import Data.List  
+  
+solveRPN :: String -> Float  
+solveRPN = head . foldl foldingFunction [] . words  
+where   foldingFunction (x:y:ys) "*" = (x * y):ys  
+        foldingFunction (x:y:ys) "+" = (x + y):ys  
+        foldingFunction (x:y:ys) "-" = (y - x):ys  
+        foldingFunction (x:y:ys) "/" = (y / x):ys  
+        foldingFunction (x:y:ys) "^" = (y ** x):ys  
+        foldingFunction (x:xs) "ln" = log x:xs  
+        foldingFunction xs "sum" = [sum xs]  
+        foldingFunction xs numberString = read numberString:xs</pre><pre class="code">ghci> solveRPN "2.7 ln"  
+0.9932518  
+ghci> solveRPN "10 10 10 10 sum 4 /"  
+10.0  
+ghci> solveRPN "10 10 10 10 10 sum 4 /"  
+12.5  
+ghci> solveRPN "10 2 ^"  
+100.0</pre><pre class="code">ghci> solveRPN "43.2425 0.5 ^"  
+6.575903</pre><a name="路徑規劃"></a><h2>路徑規劃</h2><img src="img/roads.png" style="float:left"></img><pre class="code">50  
+10  
+30  
+5  
+90  
+20  
+40  
+2  
+25  
+10  
+8  
+0</pre><pre class="code">data Node = Node Road Road | EndNode Road  
+data Road = Road Int Node</pre><pre class="code">data Node = Node Road (Maybe Road)  
+data Road = Road Int Node</pre><pre class="code">data Section = Section { getA :: Int, getB :: Int, getC :: Int } deriving (Show)  
+type RoadSystem = [Section]</pre><pre class="code">heathrowToLondon :: RoadSystem  
+heathrowToLondon = [Section 50 10 30, Section 5 90 20, Section 40 2 25, Section 10 8 0]</pre><pre class="code">data Label = A | B | C deriving (Show)  
+type Path = [(Label, Int)]</pre><pre class="code">[(B,10),(C,30),(A,5),(C,20),(B,2),(B,8)]</pre><pre class="code">roadStep :: (Path, Path) -> Section -> (Path, Path)  
+roadStep (pathA, pathB) (Section a b c) =   
+    let priceA = sum $ map snd pathA  
+        priceB = sum $ map snd pathB  
+        forwardPriceToA = priceA + a  
+        crossPriceToA = priceB + b + c  
+        forwardPriceToB = priceB + b  
+        crossPriceToB = priceA + a + c  
+        newPathToA = if forwardPriceToA <= crossPriceToA  
+                        then (A,a):pathA  
+                        else (C,c):(B,b):pathB  
+        newPathToB = if forwardPriceToB <= crossPriceToB  
+                        then (B,b):pathB  
+                        else (C,c):(A,a):pathA  
+    in  (newPathToA, newPathToB)</pre><pre class="code">ghci> roadStep ([], []) (head heathrowToLondon)  
+([(C,30),(B,10)],[(B,10)])</pre><pre class="code">optimalPath :: RoadSystem -> Path  
+optimalPath roadSystem = 
+    let (bestAPath, bestBPath) = foldl roadStep ([],[]) roadSystem  
+    in  if sum (map snd bestAPath) <= sum (map snd bestBPath)  
+                then reverse bestAPath  
+                else reverse bestBPath</pre><pre class="code">ghci> optimalPath heathrowToLondon  
+[(B,10),(C,30),(A,5),(C,20),(B,2),(B,8),(C,0)]</pre><pre class="code">groupsOf :: Int -> [a] -> [[a]]  
+groupsOf 0 _ = undefined  
+groupsOf _ [] = []  
+groupsOf n xs = take n xs : groupsOf n (drop n xs)</pre><pre class="code">import Data.List  
+  
+main = do  
+    contents <- getContents  
+    let threes = groupsOf 3 (map read $ lines contents)  
+        roadSystem = map (\[a,b,c] -> Section a b c) threes  
+        path = optimalPath roadSystem  
+        pathString = concat $ map (show . fst) path  
+        pathPrice = sum $ map snd path  
+    putStrLn $ "The best path to take is: " ++ pathString  
+    putStrLn $ "The price is: " ++ show pathPrice</pre><pre class="code">50  
+10  
+30  
+5  
+90  
+20  
+40  
+2  
+25  
+10  
+8  
+0</pre><pre class="code">$ cat paths.txt | runhaskell heathrow.hs  
+The best path to take is: BCACBBC  
+The price is: 75</pre>
             <ul class="nav">
                 <li class="left">  <img src="img/prv.png"></img><a href="input-and-output.html">輸入與輸出</a></li>
                 <li class="center"><a href="chapters.html">Index</a></li>

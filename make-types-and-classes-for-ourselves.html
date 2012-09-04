@@ -295,7 +295,135 @@ treeInsert x EmptyTree = singleton x
 treeInsert x (Node a left right)   
       | x == a = Node x left right  
       | x < a  = Node a (treeInsert x left) right  
-      | x > a  = Node a left (treeInsert x right)</pre><p><code>singleton</code>函數只是一個做一個含有兩棵空子樹的節點的函數的別名。</p><a name="Typeclasses的第二堂課"></a><h2>Typeclasses的第二堂課</h2><a name="yes-no typeclass"></a><h2>yes-no typeclass</h2><a name="Functor typeclass"></a><h2>Functor typeclass</h2><a name="Kind"></a><h2>Kind</h2>
+      | x > a  = Node a left (treeInsert x right)</pre><p><code>singleton</code>函數只是一個做一個含有兩棵空子樹的節點的函數的別名。</p><pre class="code">treeElem :: (Ord a) => a -> Tree a -> Bool  
+treeElem x EmptyTree = False  
+treeElem x (Node a left right)  
+    | x == a = True  
+    | x < a  = treeElem x left  
+    | x > a  = treeElem x right</pre><pre class="code">ghci> let nums = [8,6,4,1,7,3,5]  
+ghci> let numsTree = foldr treeInsert EmptyTree nums  
+ghci> numsTree  
+Node 5 (Node 3 (Node 1 EmptyTree EmptyTree) (Node 4 EmptyTree EmptyTree)) (Node 7 (Node 6 EmptyTree EmptyTree) (Node 8 EmptyTree EmptyTree))</pre><pre class="code">ghci> 8 `treeElem` numsTree  
+True  
+ghci> 100 `treeElem` numsTree  
+False  
+ghci> 1 `treeElem` numsTree  
+True  
+ghci> 10 `treeElem` numsTree  
+False</pre><a name="Typeclasses的第二堂課"></a><h2>Typeclasses的第二堂課</h2><pre class="code">class Eq a where  
+    (==) :: a -> a -> Bool  
+    (/=) :: a -> a -> Bool  
+    x == y = not (x /= y)  
+    x /= y = not (x == y)</pre><pre class="code">data TrafficLight = Red | Yellow | Green</pre><pre class="code">instance Eq TrafficLight where  
+    Red == Red = True  
+    Green == Green = True  
+    Yellow == Yellow = True  
+    _ == _ = False</pre><pre class="code">class Eq a where  
+    (==) :: a -> a -> Bool  
+    (/=) :: a -> a -> Bool</pre><pre class="code">instance Show TrafficLight where  
+    show Red = "Red light"  
+    show Yellow = "Yellow light"  
+    show Green = "Green light"</pre><pre class="code">ghci> Red == Red  
+True  
+ghci> Red == Yellow  
+False  
+ghci> Red `elem` [Red, Yellow, Green]  
+True  
+ghci> [Red, Yellow, Green]  
+[Red light,Yellow light,Green light]</pre><pre class="code">class (Eq a) => Num a where  
+   ...</pre><pre class="code">class Eq a where  
+    (==) :: a -> a -> Bool  
+    (/=) :: a -> a -> Bool  
+    x == y = not (x /= y)  
+    x /= y = not (x == y)</pre><pre class="code">instance Eq Maybe where  
+    ...</pre><pre class="code">instance Eq (Maybe m) where  
+    Just x == Just y = x == y  
+    Nothing == Nothing = True  
+    _ == _ = False</pre><pre class="code">instance (Eq m) => Eq (Maybe m) where  
+    Just x == Just y = x == y  
+    Nothing == Nothing = True  
+    _ == _ = False</pre><a name="yes-no typeclass"></a><h2>yes-no typeclass</h2><pre class="code">class YesNo a where  
+    yesno :: a -> Bool</pre><pre class="code">instance YesNo Int where  
+    yesno 0 = False  
+    yesno _ = True</pre><pre class="code">instance YesNo [a] where  
+    yesno [] = False  
+    yesno _ = True</pre><pre class="code">instance YesNo Bool where  
+    yesno = id</pre><pre class="code">instance YesNo (Maybe a) where  
+    yesno (Just _) = True  
+    yesno Nothing = False</pre><pre class="code">instance YesNo (Tree a) where  
+    yesno EmptyTree = False  
+    yesno _ = True</pre><pre class="code">instance YesNo TrafficLight where  
+    yesno Red = False  
+    yesno _ = True</pre><pre class="code">ghci> yesno $ length []  
+False  
+ghci> yesno "haha"  
+True  
+ghci> yesno ""  
+False  
+ghci> yesno $ Just 0  
+True  
+ghci> yesno True  
+True  
+ghci> yesno EmptyTree  
+False  
+ghci> yesno []  
+False  
+ghci> yesno [0,0,0]  
+True  
+ghci> :t yesno  
+yesno :: (YesNo a) => a -> Bool</pre><pre class="code">yesnoIf :: (YesNo y) => y -> a -> a -> a  
+yesnoIf yesnoVal yesResult noResult = if yesno yesnoVal then yesResult else noResult</pre><pre class="code">ghci> yesnoIf [] "YEAH!" "NO!"  
+"NO!"  
+ghci> yesnoIf [2,3,4] "YEAH!" "NO!"  
+"YEAH!"  
+ghci> yesnoIf True "YEAH!" "NO!"  
+"YEAH!"  
+ghci> yesnoIf (Just 500) "YEAH!" "NO!"  
+"YEAH!"  
+ghci> yesnoIf Nothing "YEAH!" "NO!"  
+"NO!"</pre><a name="Functor typeclass"></a><h2>Functor typeclass</h2><pre class="code">class Functor f where  
+    fmap :: (a -> b) -> f a -> f b</pre><pre class="code">instance Functor [] where  
+    fmap = map</pre><pre class="code">map :: (a -> b) -> [a] -> [b]  
+ghci> fmap (*2) [1..3]  
+[2,4,6]  
+ghci> map (*2) [1..3]  
+[2,4,6]</pre><pre class="code">instance Functor Maybe where  
+    fmap f (Just x) = Just (f x)  
+    fmap f Nothing = Nothing</pre><pre class="code">ghci> fmap (++ " HEY GUYS IM INSIDE THE JUST") (Just "Something serious.")  
+Just "Something serious. HEY GUYS IM INSIDE THE JUST"  
+ghci> fmap (++ " HEY GUYS IM INSIDE THE JUST") Nothing  
+Nothing  
+ghci> fmap (*2) (Just 200)  
+Just 400  
+ghci> fmap (*2) Nothing  
+Nothing</pre><pre class="code">instance Functor Tree where  
+    fmap f EmptyTree = EmptyTree  
+    fmap f (Node x leftsub rightsub) = Node (f x) (fmap f leftsub) (fmap f rightsub)</pre><pre class="code">ghci> fmap (*2) EmptyTree  
+EmptyTree  
+ghci> fmap (*4) (foldr treeInsert EmptyTree [5,7,3,2,1,7])  
+Node 28 (Node 4 EmptyTree (Node 8 EmptyTree (Node 12 EmptyTree (Node 20 EmptyTree EmptyTree)))) EmptyTree</pre><pre class="code">instance Functor (Either a) where  
+    fmap f (Right x) = Right (f x)  
+    fmap f (Left x) = Left x</pre><pre class="code">data Either a b = Left a | Right b</pre><a name="Kind"></a><h2>Kind</h2><pre class="code">ghci> :k Int  
+Int :: *</pre><pre class="code">ghci> :k Maybe  
+Maybe :: * -> *</pre><pre class="code">ghci> :k Maybe Int  
+Maybe Int :: *</pre><pre class="code">ghci> :k Either  
+Either :: * -> * -> *</pre><pre class="code">ghci> :k Either String  
+Either String :: * -> *  
+ghci> :k Either String Int  
+Either String Int :: *</pre><pre class="code">class Functor f where   
+    fmap :: (a -> b) -> f a -> f b</pre><pre class="code">class Tofu t where  
+    tofu :: j a -> t a j</pre><pre class="code">data Frank a b  = Frank {frankField :: b a} deriving (Show)</pre><pre class="code">ghci> :t Frank {frankField = Just "HAHA"}  
+Frank {frankField = Just "HAHA"} :: Frank [Char] Maybe  
+ghci> :t Frank {frankField = Node 'a' EmptyTree EmptyTree}  
+Frank {frankField = Node 'a' EmptyTree EmptyTree} :: Frank Char Tree  
+ghci> :t Frank {frankField = "YES"}  
+Frank {frankField = "YES"} :: Frank Char []</pre><pre class="code">instance Tofu Frank where  
+    tofu x = Frank x</pre><pre class="code">ghci> tofu (Just 'a') :: Frank Char Maybe  
+Frank {frankField = Just 'a'}  
+ghci> tofu ["HELLO"] :: Frank [Char] []  
+Frank {frankField = ["HELLO"]}</pre><pre class="code">data Barry t k p = Barry { yabba :: p, dabba :: t k }</pre><pre class="code">ghci> :k Barry  
+Barry :: (* -> *) -> * -> * -> *</pre><pre class="code">instance Functor (Barry a b) where  
+    fmap f (Barry {yabba = x, dabba = y}) = Barry {yabba = f x, dabba = y}</pre>
             <ul class="nav">
                 <li class="left">  <img src="img/prv.png"></img><a href="modules.html">模組(Modules)</a></li>
                 <li class="center"><a href="chapters.html">Index</a></li>
