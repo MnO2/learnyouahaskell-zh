@@ -287,7 +287,7 @@ Empty .++ ys = ys
 (x :-: xs) .++ ys = x :-: (xs .++ ys)</pre><p>來看看他如何運作：</p><pre class="code">ghci> let a = 3 :-: 4 :-: 5 :-: Empty  
 ghci> let b = 6 :-: 7 :-: Empty  
 ghci> a .++ b  
-(:-:) 3 ((:-:) 4 ((:-:) 5 ((:-:) 6 ((:-:) 7 Empty))))</pre><p>如果我們想要的話，我們可以定義其他操作我們list的函數。</p><p>注意到我們是如何利用<code>(x :-: xs)</code>做模式匹配的。</p><p>他運作的原理實際上就是利用到構造子。</p><p>我們可以利用<code>:-:</code>做模式匹配原因就是他是構造子，</p><p>同樣的<code>:</code>也是構造子所以可以用他做匹配。</p><p><code>[]</code>也是同樣道理。</p><p>由於模式匹配是用構造子來作的，所以我們才能對像<code>8</code>,<code>'a'</code>之類的做模式匹配。</p><p>他們是數值與字元的構造子。</p><p>接下來我們要實作二元搜尋樹(binary search tree)。</p><p>如果你對二元搜尋樹不太清楚，</p><p>我們來快速地解釋一遍。</p><p>他的結構是每個節點指向兩個其他節點，</p><p>一個在左邊一個在右邊。</p><p>在左邊節點的元素會比這個節點的元素要小。</p><p>在右邊的話則比較大。</p><p>每個節點最多可以有兩棵子樹。</p><p>而我們知道譬如說一棵包含5的節點的左子樹，</p><p>裡面所有的元素都會小於5。</p><p>而節點的右子樹裡面的元素都會大於5。</p><p>如果我們想找找看8是不是在我們的樹裡面，我們就從5那個節點找起，</p><p>由於8比5要大，</p><p>很自然地就會往右搜尋。</p><p>接著我們走到7，又由於8比7要大，所以我們再往右走。</p><p>我們在三步就找到了我們要的元素。</p><p>如果這不是棵樹而是list的話，</p><p>那就會需要花到七步才能找到8。</p><p><code>Data.Set</code>跟<code>Data.Map</code>中的set和map都是用樹來實現的，</p><p>只是他們是用平衡二元搜尋樹而不是隨意的二元搜尋樹。</p><p>不過這邊我們就只先寫一棵普通的二元搜尋樹就好了。</p><p>這邊我們來定義一棵樹的結構：他不是一棵空的樹就是帶有值並含有兩棵子樹。</p><p>聽起來非常符合algebraic data type的結構！</p><pre class="code">data Tree a = EmptyTree | Node a (Tree a) (Tree a) deriving (Show, Read, Eq)</pre><p>我們不太想手動來建顆二元搜尋樹，所以我們要來寫一個函數，他接受一棵樹還有一個元素，把這個元素安插到這棵二元搜尋樹中。當拿這個元素跟樹的節點比較結果比較小的話，我們就往左走，如果比較大，就往右走。重複這個動作直到我們走到一棵空的樹。一旦碰到空的樹的話，我們就把元素插入節點。</p><p>在C語言中，我們是用修改指標的方式來達成這件事。但在Haskell中，我們沒辦法修改我們的樹。所以我們在決定要往左或往右走的時候就做一棵新的子樹，走到最後要安插節點的時候也是做一棵新的樹。因此我們插入函數的型態會是<code>a -> Tree a -> Tree a</code>。他接受一個元素跟一棵樹，並回傳一棵包含了新元素的新的樹。這看起來很沒效率的樣子，但別擔心，惰性的特性可以讓我們不用擔心這個。</p><p>來看下列兩個函數。第一個做了一個單節點的樹，而第二個插入一個元素到一棵樹中。</p><pre class="code">singleton :: a -> Tree a  
+(:-:) 3 ((:-:) 4 ((:-:) 5 ((:-:) 6 ((:-:) 7 Empty))))</pre><p>如果我們想要的話，我們可以定義其他操作我們list的函數。</p><p>注意到我們是如何利用<code>(x :-: xs)</code>做模式匹配的。他運作的原理實際上就是利用到構造子。我們可以利用<code>:-:</code>做模式匹配原因就是他是構造子，同樣的<code>:</code>也是構造子所以可以用他做匹配。<code>[]</code>也是同樣道理。由於模式匹配是用構造子來作的，所以我們才能對像<code>8</code>,<code>'a'</code>之類的做模式匹配。他們是數值與字元的構造子。</p><p>接下來我們要實作二元搜尋樹(binary search tree)。如果你對二元搜尋樹不太清楚，我們來快速地解釋一遍。他的結構是每個節點指向兩個其他節點，一個在左邊一個在右邊。在左邊節點的元素會比這個節點的元素要小。在右邊的話則比較大。每個節點最多可以有兩棵子樹。而我們知道譬如說一棵包含5的節點的左子樹，裡面所有的元素都會小於5。而節點的右子樹裡面的元素都會大於5。如果我們想找找看8是不是在我們的樹裡面，我們就從5那個節點找起，由於8比5要大，很自然地就會往右搜尋。接著我們走到7，又由於8比7要大，所以我們再往右走。我們在三步就找到了我們要的元素。如果這不是棵樹而是list的話，那就會需要花到七步才能找到8。</p><p><code>Data.Set</code>跟<code>Data.Map</code>中的set和map都是用樹來實現的，只是他們是用平衡二元搜尋樹而不是隨意的二元搜尋樹。不過這邊我們就只先寫一棵普通的二元搜尋樹就好了。</p><p>這邊我們來定義一棵樹的結構：他不是一棵空的樹就是帶有值並含有兩棵子樹。聽起來非常符合algebraic data type的結構！</p><pre class="code">data Tree a = EmptyTree | Node a (Tree a) (Tree a) deriving (Show, Read, Eq)</pre><p>我們不太想手動來建顆二元搜尋樹，所以我們要來寫一個函數，他接受一棵樹還有一個元素，把這個元素安插到這棵二元搜尋樹中。當拿這個元素跟樹的節點比較結果比較小的話，我們就往左走，如果比較大，就往右走。重複這個動作直到我們走到一棵空的樹。一旦碰到空的樹的話，我們就把元素插入節點。</p><p>在C語言中，我們是用修改指標的方式來達成這件事。但在Haskell中，我們沒辦法修改我們的樹。所以我們在決定要往左或往右走的時候就做一棵新的子樹，走到最後要安插節點的時候也是做一棵新的樹。因此我們插入函數的型態會是<code>a -> Tree a -> Tree a</code>。他接受一個元素跟一棵樹，並回傳一棵包含了新元素的新的樹。這看起來很沒效率的樣子，但別擔心，惰性的特性可以讓我們不用擔心這個。</p><p>來看下列兩個函數。第一個做了一個單節點的樹，而第二個插入一個元素到一棵樹中。</p><pre class="code">singleton :: a -> Tree a  
 singleton x = Node x EmptyTree EmptyTree  
   
 treeInsert :: (Ord a) => a -> Tree a -> Tree a  
@@ -295,22 +295,22 @@ treeInsert x EmptyTree = singleton x
 treeInsert x (Node a left right)   
       | x == a = Node x left right  
       | x < a  = Node a (treeInsert x left) right  
-      | x > a  = Node a left (treeInsert x right)</pre><p><code>singleton</code>函數只是一個做一個含有兩棵空子樹的節點的函數的別名。</p><pre class="code">treeElem :: (Ord a) => a -> Tree a -> Bool  
+      | x > a  = Node a left (treeInsert x right)</pre><p><code>singleton</code>函數只是一個做一個含有兩棵空子樹的節點的函數的別名。在插入的操作中，我們先為終端條件定義了一個模式匹配。如果我們走到了一棵空的子樹，這表示我們到達了我們想要的地方，我們便建造一棵空的單元素的樹來放在那個位置。如果我們還沒走到一棵空的樹來插入我們的元素。那就必須要做一些檢查來往下走。如果我們要安插的元素跟root所含有的元素相等，那就直接回傳這棵樹。如果安插的元素比較小，就回傳一棵新的樹。這棵樹的root跟原來的相同，右子樹也相同，只差在我們要安插新的元素到左子樹中。如果安插的元素反而比較大，那整個過程就相反。</p><p>接下來，我們要寫一個函數來檢查某個元素是否已經在這棵樹中。首先我們定義終端條件。如果我們已經走到一棵空的樹，那這個元素一定不在這棵樹中。這跟我們搜尋list的情形是一致的。如果我們要在空的list中搜尋某一元素，那就代表他不在這個list裡面。假設我們現在搜尋一棵非空的樹，而且root中的元素剛好就是我們要的，那就找到了。那如果不是呢？我們就要利用在root節點左邊的元素都比root小的這個性質。如果我們的元素比root小，那就往左子樹中找。如果比較大，那就往右子樹中找。</p><pre class="code">treeElem :: (Ord a) => a -> Tree a -> Bool  
 treeElem x EmptyTree = False  
 treeElem x (Node a left right)  
     | x == a = True  
     | x < a  = treeElem x left  
-    | x > a  = treeElem x right</pre><pre class="code">ghci> let nums = [8,6,4,1,7,3,5]  
+    | x > a  = treeElem x right</pre><p>我們要作的就是把之前段落所描述的事轉換成程式碼。首先我們不想手動一個個來創造一棵樹。我們想用一個fold來從一個list創造一棵樹。要知道走遍一個list並回傳某種值的操作都可以用fold來實現。我們先從一棵空的樹開始，然後從右邊走過list的每一個元素，一個一個丟到樹裡面。</p><pre class="code">ghci> let nums = [8,6,4,1,7,3,5]  
 ghci> let numsTree = foldr treeInsert EmptyTree nums  
 ghci> numsTree  
-Node 5 (Node 3 (Node 1 EmptyTree EmptyTree) (Node 4 EmptyTree EmptyTree)) (Node 7 (Node 6 EmptyTree EmptyTree) (Node 8 EmptyTree EmptyTree))</pre><pre class="code">ghci> 8 `treeElem` numsTree  
+Node 5 (Node 3 (Node 1 EmptyTree EmptyTree) (Node 4 EmptyTree EmptyTree)) (Node 7 (Node 6 EmptyTree EmptyTree) (Node 8 EmptyTree EmptyTree))</pre><p>在<code>foldr</code>中，<code>treeInsert</code>是做folding操作的函數，而<code>EmptyTree</code>是起始的accumulator，<code>nums</code>則是要被走遍的list。</p><p>當我們想把我們的樹印出來的時候，印出來的形式會不太容易讀。但如果我們能有結構地印出來呢？我們知道root是5，他有兩棵子樹，其中一個的root是3另一個則是7。</p><pre class="code">ghci> 8 `treeElem` numsTree  
 True  
 ghci> 100 `treeElem` numsTree  
 False  
 ghci> 1 `treeElem` numsTree  
 True  
 ghci> 10 `treeElem` numsTree  
-False</pre><a name="Typeclasses的第二堂課"></a><h2>Typeclasses的第二堂課</h2><pre class="code">class Eq a where  
+False</pre><p>檢查元素是否屬於某棵樹的函數現在能正常運作了！</p><p>你可以看到algebraic data structures是非常有力的概念。我們可以使用這個結構來構造出布林值，週一到週五的概念，甚至還有二元樹。</p><a name="Typeclasses的第二堂課"></a><h2>Typeclasses的第二堂課</h2><p>到目前為止我們學到了一些Haskell中的標準typeclass，也學到了某些已經定義為他們instance的型別。我們知道如何讓我們自己定義的型別自動被Haskell所推導成標準typeclass的instance。在這個章節中，我們會學到如何構造我們自己的typeclass，並且如何構造這些typeclass的type instancee。</p><pre class="code">class Eq a where  
     (==) :: a -> a -> Bool  
     (/=) :: a -> a -> Bool  
     x == y = not (x /= y)  
