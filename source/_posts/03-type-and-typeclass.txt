@@ -8,7 +8,7 @@
 
 與java和pascal不同，Haskell支持型別推導。寫下一個數字，你就沒必要另告訴Haskell說“它是個數字”，它自己能推導出來。這樣我們就不必在每個函數或表達式上都標明其型別了。在前面我們只簡單涉及一下Haskell的型別方面的知識，但是理解這一型別系統對於Haskell 的學習是至關重要的。
 
-型別是每個表達式都有的某種標籤，它標明了這一表達式所屬的範疇。例如，表達式True是boolean型，"hello"是個字元串，等等。
+型別是每個表達式都有的某種標籤，它標明了這一表達式所屬的範疇。例如，表達式True是boolean型，"hello"是個字串，等等。
 
 可以使用ghci來檢測表達式的型別。使用:t命令後跟任何可用的表達式，即可得到該表達式的型別，先試一下：
 
@@ -36,7 +36,7 @@ removeNonUppercase :: [Char] -> [Char]
 removeNonUppercase st = [ c | c <- st, c `elem` ['A'..'Z']]   
 }}
 
- ``removeNonUppercase``的型別為``[Char]->[Char]``，從它的參數和回傳值的型別上可以看出，它將一個字元串映射為另一個字元串。``[Char]``與``String``是等價的，但使用String會更清晰：``removeNonUppercase :: String -> String``。編譯器會自動檢測出它的型別，我們還是標明了它的型別聲明。要是多個參數的函數該怎樣？如下便是一個將三個整數相加的簡單函數。
+ ``removeNonUppercase``的型別為``[Char]->[Char]``，從它的參數和回傳值的型別上可以看出，它將一個字串映射為另一個字串。``[Char]``與``String``是等價的，但使用String會更清晰：``removeNonUppercase :: String -> String``。編譯器會自動檢測出它的型別，我們還是標明了它的型別聲明。要是多個參數的函數該怎樣？如下便是一個將三個整數相加的簡單函數。
 
 {{
 addThree :: Int -> Int -> Int -> Int  
@@ -90,7 +90,7 @@ ghci> circumference' 4.0
 
 **Bool**表示布林值，它只有兩種值：True和False。
 
-**Char**表示一個字元。一個字元由單引號括起，一組字元的List即為字元串。
+**Char**表示一個字元。一個字元由單引號括起，一組字元的List即為字串。
 
 Tuple的型別取決於它的長度及其中項的型別。注意，空Tuple同樣也是個型別，它只有一種值：``()``。
 
@@ -178,7 +178,7 @@ ghci> 5 `compare` 3
 GT  
 }}
 
-**Show**的成員為可用字元串表示的型別。目前為止，除函數以外的所有型別都是Show的成員。操作ShowTypeclass，最常用的函數表示show。它可以取任一Show的成員型別並將其轉為字元串。
+**Show**的成員為可用字串表示的型別。目前為止，除函數以外的所有型別都是Show的成員。操作ShowTypeclass，最常用的函數表示show。它可以取任一Show的成員型別並將其轉為字串。
 
 {{
 ghci> show 3  
@@ -189,7 +189,7 @@ ghci> show True
 "True"  
 }}
 
-**Read**是與Show相反的Typeclass。read函數可以將一個字元串轉為Read的某成員型別。
+**Read**是與Show相反的Typeclass。read函數可以將一個字串轉為Read的某成員型別。
 
 {{
 ghci> read "True" || False  

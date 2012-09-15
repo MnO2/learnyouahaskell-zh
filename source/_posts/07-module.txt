@@ -379,7 +379,7 @@ ghci> zip4 [2,3,3] [2,2,2] [5,5,3] [2,2,2]
 
 與普通的``zip``操作相似，以返回的List中長度最短的那個為準.
 
-在處理來自檔案或其它地方的輸入時，**lines**會非常有用。它取一個字元串作參數。並返回由其中的每一行組成的List.
+在處理來自檔案或其它地方的輸入時，**lines**會非常有用。它取一個字串作參數。並返回由其中的每一行組成的List.
 
 {{
 ghci> lines "first line\nsecond line\nthird line"  
@@ -388,14 +388,14 @@ ghci> lines "first line\nsecond line\nthird line"
 
 '\n'表示unix下的換行符，在haskell的字元中，反斜杠表示特殊字元.
 
-**unlines**是lines的反函數，它取一組字元串的List，並將其通過'\n'合併到一塊.
+**unlines**是lines的反函數，它取一組字串的List，並將其通過'\n'合併到一塊.
 
 {{
 ghci> unlines ["first line"，"second line"，"third line"]  
 "first line\nsecond line\nthird line\n" 
 }}
 
-**words**和**unwords**可以把一個字元串分為一組單詞或執行相反的操作，很有用.
+**words**和**unwords**可以把一個字串分為一組單詞或執行相反的操作，很有用.
 
 {{
 ghci> words "hey these are the words in this sentence"  
@@ -508,7 +508,7 @@ ghci> sortBy (compare `on` length) xs
 == Data.Char
 
 
-如其名，``Data.Char``模組包含了一組用於處理字元的函數。由於字元串的本質就是一組字元的List，所以往往會在filter或是map字元串時用到它.
+如其名，``Data.Char``模組包含了一組用於處理字元的函數。由於字串的本質就是一組字元的List，所以往往會在filter或是map字串時用到它.
 
 ``Data.Char``模組中含有一系列用於判定字元範圍的函數，如下:
 
@@ -535,7 +535,7 @@ ghci> sortBy (compare `on` length) xs
 **isAsciiUpper** 判斷一個字元是否為大寫的ascii字元.
 **isAsciiLower** 判斷一個字元是否為小寫的ascii字元.
 
-以上所有判斷函數的型別聲明皆為``Char -> Bool``，用到它們的絶大多數情況都無非就是過濾字元串或類似操作。假設我們在寫個程序，它需要一個由字元和數字組成的用戶名。要實現對用戶名的檢驗，我們可以結合使用``Data.List``模組的all函數與``Data.Char``的判斷函數.
+以上所有判斷函數的型別聲明皆為``Char -> Bool``，用到它們的絶大多數情況都無非就是過濾字串或類似操作。假設我們在寫個程序，它需要一個由字元和數字組成的用戶名。要實現對用戶名的檢驗，我們可以結合使用``Data.List``模組的all函數與``Data.Char``的判斷函數.
 
 {{
 ghci> all isAlphaNum "bobby283"  
@@ -623,7 +623,7 @@ encode shift msg =
   in map chr shifted  
 }}
 
-先將一個字元串轉為一組數字，然後給它加上某數，再轉回去。如果你是標準的組合牛仔，大可將函數寫為: ``map (chr 。(+ shift) 。ord) msg``。試一下它的效果:
+先將一個字串轉為一組數字，然後給它加上某數，再轉回去。如果你是標準的組合牛仔，大可將函數寫為: ``map (chr 。(+ shift) 。ord) msg``。試一下它的效果:
 
 {{
 ghci> encode 3 "Heeeeey"  
@@ -875,7 +875,7 @@ import qualified Data.Set as Set
 
 然後在GHci中裝載
 
-假定我們有兩個字元串，要找出同時存在於兩個字元串的字元
+假定我們有兩個字串，要找出同時存在於兩個字串的字元
 
 {{
 text1 = "I just had an anime dream。Anime..。Reality..。Are they so different?"  
