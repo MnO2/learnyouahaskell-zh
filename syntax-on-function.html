@@ -81,7 +81,7 @@ head' [] = error "Can't call head on an empty list, dummy!"  
 head' (x:_) = x  </pre><p>看看管不管用：</p><pre class="code">ghci> head' [4,5,6]  
 4  
 ghci> head' "Hello"  
-'H'  </pre><p>漂亮！注意下，你若要綁定多個變數（用_也是如此），我們必須用括號將其括起。同時注意下我們用的這個error函數，它可以生成一個運行時錯誤，用參數中的字元串表示對錯誤的描述。它會直接導致程序崩潰，因此應謹慎使用。可是對一個空list取head真的不靠譜哇。</p><p>弄個簡單函數，讓它用非標準的英語給我們展示list的前幾項。</p><pre class="code">tell :: (Show a) => [a] -> String  
+'H'  </pre><p>漂亮！注意下，你若要綁定多個變數（用_也是如此），我們必須用括號將其括起。同時注意下我們用的這個error函數，它可以生成一個運行時錯誤，用參數中的字串表示對錯誤的描述。它會直接導致程序崩潰，因此應謹慎使用。可是對一個空list取head真的不靠譜哇。</p><p>弄個簡單函數，讓它用非標準的英語給我們展示list的前幾項。</p><pre class="code">tell :: (Show a) => [a] -> String  
 tell [] = "The list is empty"  
 tell (x:[]) = "The list has one element: " ++ show x  
 tell (x:y:[]) = "The list has two elements: " ++ show x ++ " and " ++ show y  
@@ -97,7 +97,7 @@ bmiTell bmi
     | bmi <= 18.5 = "You're underweight, you emo, you!"  
     | bmi <= 25.0 = "You're supposedly normal. Pffft, I bet you're ugly!"  
     | bmi <= 30.0 = "You're fat! Lose some weight, fatty!"  
-    | otherwise   = "You're a whale, congratulations!"  </pre><p>guard由跟在函數名及參數後面的豎綫標誌，通常他們都是靠右一個縮進排成一列。一個guard就是一個布爾表達式，如果為真，就使用其對應的函數體。如果為假，就送去見下一個guard，如之繼續。如果我們用24.3呼叫這個函數，它就會先檢查它是否小於等於18.5，顯然不是，於是見下一個guard。24.3小於25.0，因此通過了第二個guard的檢查，就返回第二個字元串。</p><p>在這裡則是相當的簡潔，不過不難想象這在命令式語言中又會是怎樣的一棵if-else樹。由於if-else的大樹比較雜亂，若是出現問題會很難發現，guard對此則十分清楚。</p><p>最後的那個guard往往都是<code>otherwise</code>，它的定義就是簡單一個<code>otherwise = True</code>，捕獲一切。這與模式很相像，只是模式檢查的是匹配，而它們檢查的是布爾表達式 。如果一個函數的所有guard都沒有通過（而且沒有提供otherwise作萬能匹配），就轉入下一模式。這便是guard與模式契合的地方。如果始終沒有找到合適的guard或模式，就會發生一個錯誤。</p><p>當然，guard可以在含有任意數量參數的函數中使用。省得用戶在使用這函數之前每次都自己計算bmi。我們修改下這個函數，讓它取身高體重為我們計算。</p><pre class="code">bmiTell :: (RealFloat a) => a -> a -> String  
+    | otherwise   = "You're a whale, congratulations!"  </pre><p>guard由跟在函數名及參數後面的豎綫標誌，通常他們都是靠右一個縮進排成一列。一個guard就是一個布爾表達式，如果為真，就使用其對應的函數體。如果為假，就送去見下一個guard，如之繼續。如果我們用24.3呼叫這個函數，它就會先檢查它是否小於等於18.5，顯然不是，於是見下一個guard。24.3小於25.0，因此通過了第二個guard的檢查，就返回第二個字串。</p><p>在這裡則是相當的簡潔，不過不難想象這在命令式語言中又會是怎樣的一棵if-else樹。由於if-else的大樹比較雜亂，若是出現問題會很難發現，guard對此則十分清楚。</p><p>最後的那個guard往往都是<code>otherwise</code>，它的定義就是簡單一個<code>otherwise = True</code>，捕獲一切。這與模式很相像，只是模式檢查的是匹配，而它們檢查的是布爾表達式 。如果一個函數的所有guard都沒有通過（而且沒有提供otherwise作萬能匹配），就轉入下一模式。這便是guard與模式契合的地方。如果始終沒有找到合適的guard或模式，就會發生一個錯誤。</p><p>當然，guard可以在含有任意數量參數的函數中使用。省得用戶在使用這函數之前每次都自己計算bmi。我們修改下這個函數，讓它取身高體重為我們計算。</p><pre class="code">bmiTell :: (RealFloat a) => a -> a -> String  
 bmiTell weight height  
     | weight / height ^ 2 <= 18.5 = "You're underweight, you emo, you!"  
     | weight / height ^ 2 <= 25.0 = "You're supposedly normal. Pffft, I bet you're ugly!"  
