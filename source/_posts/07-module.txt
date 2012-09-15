@@ -4,9 +4,9 @@
 
 [$img/modules.png]
 
-haskell中的模組是含有一組相關的函數，類型和類型類的組合。而haskell程序的本質便是從主模組中引用其它模組並呼叫其中的函數來執行操作。這樣可以把程式碼分成多塊，只要一個模組足夠的獨立，它裡面的函數便可以被不同的程序反覆重用。這就讓不同的程式碼各司其職，提高了程式碼的健壯性。
+haskell中的模組是含有一組相關的函數，型別和型別類的組合。而haskell程序的本質便是從主模組中引用其它模組並呼叫其中的函數來執行操作。這樣可以把程式碼分成多塊，只要一個模組足夠的獨立，它裡面的函數便可以被不同的程序反覆重用。這就讓不同的程式碼各司其職，提高了程式碼的健壯性。
 
-haskell的標準庫就是一組模組，每個模組都含有一組功能相近或相關的函數和類型。有處理List的模組，有處理並發的模組，也有處理複數的模組，等等。目前為止我們談及的所有函數,類型以及類型類都是Prelude模組的一部分，它預設自動裝載。在本章，我們看一下幾個常用的模組，在開始瀏覽其中的函數之前，我們先得知道如何裝載模組.
+haskell的標準庫就是一組模組，每個模組都含有一組功能相近或相關的函數和型別。有處理List的模組，有處理並發的模組，也有處理複數的模組，等等。目前為止我們談及的所有函數,型別以及型別類都是Prelude模組的一部分，它預設自動裝載。在本章，我們看一下幾個常用的模組，在開始瀏覽其中的函數之前，我們先得知道如何裝載模組.
 
 在haskell中，裝載模組的語法為 _import_ ，這必須得在函數的定義之前，所以一般都是將它置於程式碼的頂部。無疑，一段程式碼中可以裝載很多模組，只要將import語句分行寫開即可。裝載Data.List試下，它裡面有很多實用的List處理函數.
 
@@ -61,7 +61,7 @@ import qualified Data.Map as M
 
 要瀏覽所有的標準庫模組，參考這個手冊。翻閲標準庫中的模組和函數是提升個人haskell水平的重要途徑。你也可以各個模組的原始碼，這對haskell的深入學習及掌握都是大有好處的.
 
-檢索函數或搜尋函數位置就用[http://www.haskell.org/hoogle/ Hoogle]，相當了不起的Haskell搜索引擎! 你可以用函數名，模組名甚至類型聲明來作為檢索的條件.
+檢索函數或搜尋函數位置就用[http://www.haskell.org/hoogle/ Hoogle]，相當了不起的Haskell搜索引擎! 你可以用函數名，模組名甚至型別聲明來作為檢索的條件.
 
 
 
@@ -235,7 +235,7 @@ ghci> span (/=4) [1,2,3,4,5,6,7]
 
 **break**返回的第二個List就會以第一個符合條件的元素開頭。
 
-**sort**可以排序一個List，因為只有能夠作比較的元素才可以被排序，所以這一List的元素必須是Ord類型類的實例類型。
+**sort**可以排序一個List，因為只有能夠作比較的元素才可以被排序，所以這一List的元素必須是Ord型別類的實例型別。
 
 {{
 ghci> sort [8,5,3,2,1,6,4,2]  
@@ -335,7 +335,7 @@ ghci> :t find
 find :: (a -> Bool) -> [a] -> Maybe a  
 }}
 
-注意一下``find``的類型，它的返回結果為``Maybe a··，這與``[a]``的寫法有點像，只是Maybe型的值只能為空或者單一元素，而List可以為空,一個元素，也可以是多個元素.
+注意一下``find``的型別，它的返回結果為``Maybe a··，這與``[a]``的寫法有點像，只是Maybe型的值只能為空或者單一元素，而List可以為空,一個元素，也可以是多個元素.
 
 想想前面那段找股票的程式碼，``head (dropWhile (\(val,y,m,d) -> val < 1000) stock)`` 。但head並不安全! 如果我們的股票沒漲過$1000會怎樣? ``dropWhile``會返回一個空List，而對空List取head就會引發一個錯誤。把它改成``find (\(val,y,m,d) -> val > 1000) stock`` 就安全多啦，若存在合適的結果就得到它,像``Just (1001.4,2008,9,4)``，若不存在合適的元素(即我們的股票沒有漲到過$1000)，就會得到一個Nothing.
 
@@ -462,7 +462,7 @@ ghci> insert 3 [1,2,4,3,2,1]
 [1,2,3,4,3,2,1]  
 }}
 
-length，take，drop，splitAt和replace之類的函數有個共同點。那就是它們的參數中都有個Int值，我覺得使用Intergal或Num類型類會更好，但出於歷史原因，修改這些會破壞掉許多既有的程式碼。在Data.List中包含了更通用的替代版，如:genericLength，genericTake，genericDrop，genericSplitAt，genericIndex 和 genericReplicate。length的類型聲明為`` length :: [a] -> Int``，而我們若要像這樣求它的平均值，``let xs = [1..6] in sum xs / length xs`` ，就會得到一個類型錯誤，因為``/``運算符不能對Int型使用! 而``genericLength``的類型聲明則``為genericLength :: (Num a) => [b] -> a``，Num既可以是整數又可以是浮點數，``let xs = [1..6] in sum xs / genericLength xs ``這樣再求平均數就不會有問題了.
+length，take，drop，splitAt和replace之類的函數有個共同點。那就是它們的參數中都有個Int值，我覺得使用Intergal或Num型別類會更好，但出於歷史原因，修改這些會破壞掉許多既有的程式碼。在Data.List中包含了更通用的替代版，如:genericLength，genericTake，genericDrop，genericSplitAt，genericIndex 和 genericReplicate。length的型別聲明為`` length :: [a] -> Int``，而我們若要像這樣求它的平均值，``let xs = [1..6] in sum xs / length xs`` ，就會得到一個型別錯誤，因為``/``運算符不能對Int型使用! 而``genericLength``的型別聲明則``為genericLength :: (Num a) => [b] -> a``，Num既可以是整數又可以是浮點數，``let xs = [1..6] in sum xs / genericLength xs ``這樣再求平均數就不會有問題了.
 
 ``nub``,``delete``,``union``,``intsect``和``group``函數也有各自的通用替代版``nubBy``，``deleteBy``，``unionBy``，``intersectBy``和 ``groupBy``，它們的區別就是前一組函數使用(==)來測試是否相等，而帶By的那組則取一個函數作參數來判定相等性，group就與groupBy (==)等價.
 
@@ -490,7 +490,7 @@ ghci> groupBy ((==) `on` (> 0)) values
 
 可讀性很高! 你可以大聲念出來: 按照元素是否大於零，給它分類！
 
-同樣，``sort``，``insert ``，``maximum``和``min``都有各自的通用版本。如``groupBy``類似，**sortBy**，**insertBy**，**maximumBy **和**minimumBy**都取一個函數來比較兩個元素的大小。像sortBy的類型聲明為: ``sortBy :: (a -> a -> Ordering) -> [a] -> [a]``。前面提過，Ordering類型可以有三個值,`` LT``，``EQ``和``GT``。``compare``取兩個Ord類型類的元素作參數，所以``sort``與``sortBy compare``等價.
+同樣，``sort``，``insert ``，``maximum``和``min``都有各自的通用版本。如``groupBy``類似，**sortBy**，**insertBy**，**maximumBy **和**minimumBy**都取一個函數來比較兩個元素的大小。像sortBy的型別聲明為: ``sortBy :: (a -> a -> Ordering) -> [a] -> [a]``。前面提過，Ordering型別可以有三個值,`` LT``，``EQ``和``GT``。``compare``取兩個Ord型別類的元素作參數，所以``sort``與``sortBy compare``等價.
 
 List是可以比較大小的，且比較的依據就是其中元素的大小。如果按照其子List的長度為標準當如何? 很好，你可能已經猜到了，sortBy函數.
 
@@ -535,7 +535,7 @@ ghci> sortBy (compare `on` length) xs
 **isAsciiUpper** 判斷一個字元是否為大寫的ascii字元.
 **isAsciiLower** 判斷一個字元是否為小寫的ascii字元.
 
-以上所有判斷函數的類型聲明皆為``Char -> Bool``，用到它們的絶大多數情況都無非就是過濾字元串或類似操作。假設我們在寫個程序，它需要一個由字元和數字組成的用戶名。要實現對用戶名的檢驗，我們可以結合使用``Data.List``模組的all函數與``Data.Char``的判斷函數.
+以上所有判斷函數的型別聲明皆為``Char -> Bool``，用到它們的絶大多數情況都無非就是過濾字元串或類似操作。假設我們在寫個程序，它需要一個由字元和數字組成的用戶名。要實現對用戶名的檢驗，我們可以結合使用``Data.List``模組的all函數與``Data.Char``的判斷函數.
 
 {{
 ghci> all isAlphaNum "bobby283"  
@@ -560,7 +560,7 @@ Hmm，不錯，有點``words``的樣子了。只是還有空格在裡面，恩�
 
 啊哈.
 
-``Data.Char``中也含有與``Ordering``相似的類型。``Ordering``可以有兩個值，``LT``，``GT``和``EQ``。這就是個枚舉，它表示了兩個元素作比較可能的結果.GeneralCategory類型也是個枚舉，它表示了一個字元可能所在的分類。而得到一個字元所在分類的主要方法就是使用``generalCategory``函數.它的類型為: ``generalCategory :: Char -> GeneralCategory``。那31個分類就不在此一一列出了，試下這個函數先:
+``Data.Char``中也含有與``Ordering``相似的型別。``Ordering``可以有兩個值，``LT``，``GT``和``EQ``。這就是個枚舉，它表示了兩個元素作比較可能的結果.GeneralCategory型別也是個枚舉，它表示了一個字元可能所在的分類。而得到一個字元所在分類的主要方法就是使用``generalCategory``函數.它的型別為: ``generalCategory :: Char -> GeneralCategory``。那31個分類就不在此一一列出了，試下這個函數先:
 
 {{
 ghci> generalCategory ' '  
@@ -577,7 +577,7 @@ ghci> map generalCategory " \t\nA9?|"
 [Space,Control,Control,UppercaseLetter,DecimalNumber,OtherPunctuation,MathSymbol]
 }}
 
-由於``GeneralCategory``類型是Eq類型類的一部分，使用類似``generalCategory c == Space``的程式碼也是可以的.
+由於``GeneralCategory``型別是Eq型別類的一部分，使用類似``generalCategory c == Space``的程式碼也是可以的.
 
 **toUpper**將一個字元轉為大寫字母，若該字元不是小寫字母，就按原值返回.
 **toLower**將一個字元轉為小寫字母，若該字元不是大寫字母，就按原值返回.
@@ -678,7 +678,7 @@ findKey key xs = snd . head . filter (\(k,v) -> key == k) $ xs
 
 [$img/legomap.png]
 
-簡潔漂亮。這個函數取一個鍵和List做參數，過濾這一List僅保留鍵匹配的項，並返迴首個鍵值對。但若該關聯列表中不存在這個鍵那會怎樣? 哼，那就會在試圖從空List中取head時引發一個運行時錯誤。無論如何也不能讓程序就這麼輕易地崩潰吧，所以就應該用Maybe類型。如果沒找到相應的鍵，就返回Nothing。而找到了就返回``Just something``。而這something就是鍵對應的值。
+簡潔漂亮。這個函數取一個鍵和List做參數，過濾這一List僅保留鍵匹配的項，並返迴首個鍵值對。但若該關聯列表中不存在這個鍵那會怎樣? 哼，那就會在試圖從空List中取head時引發一個運行時錯誤。無論如何也不能讓程序就這麼輕易地崩潰吧，所以就應該用Maybe型別。如果沒找到相應的鍵，就返回Nothing。而找到了就返回``Just something``。而這something就是鍵對應的值。
 
 {{
 findKey :: (Eq k) => k -> [(k,v)] -> Maybe v 
@@ -689,7 +689,7 @@ findKey key [] = Nothing findKey key ((k,v):xs) =
          findKey key xs
 }}
 
-看這類型聲明，它取一個可判斷相等性的鍵和一個關聯列表做參數，可能(Maybe)得到一個值。聽起來不錯.這便是個標準的處理List的遞歸函數，邊界條件，分割List，遞歸呼叫，都有了 -- 經典的fold模式。
+看這型別聲明，它取一個可判斷相等性的鍵和一個關聯列表做參數，可能(Maybe)得到一個值。聽起來不錯.這便是個標準的處理List的遞歸函數，邊界條件，分割List，遞歸呼叫，都有了 -- 經典的fold模式。
 看看用fold怎樣實現吧。
 
 {{
@@ -720,13 +720,13 @@ ghci> Map.fromList [(1,2),(3,4),(3,2),(5,5)]
 fromList [(1,2),(3,2),(5,5)]
 }}
 
-若其中存在重複的鍵,就將其忽略。如下即``fromList``的類型聲明。
+若其中存在重複的鍵,就將其忽略。如下即``fromList``的型別聲明。
 
 {{
 Map.fromList :: (Ord k) => [(k，v)] -> Map.Map k v
 }}
 
-這表示它取一組鍵值對的List，並返回一個將k映射為v的map。注意一下，當使用普通的關聯列表時，只需要鍵的可判斷相等性就行了。而在這裡，它還必須得是可排序的。這在Data.Map模組中是強制的。因為它會按照某順序將其組織在一棵樹中.在處理鍵值對時，只要鍵的類型屬於Ord類型類，就應該儘量使用Data.Map.empty返回一個空map.
+這表示它取一組鍵值對的List，並返回一個將k映射為v的map。注意一下，當使用普通的關聯列表時，只需要鍵的可判斷相等性就行了。而在這裡，它還必須得是可排序的。這在Data.Map模組中是強制的。因為它會按照某順序將其組織在一棵樹中.在處理鍵值對時，只要鍵的型別屬於Ord型別類，就應該儘量使用Data.Map.empty返回一個空map.
 
 {{
 ghci> Map.empty 
@@ -963,7 +963,7 @@ False
 }}
 
 
-集合有一常見用途，那就是先``fromList``刪掉重複元素後再``toList``轉回去。儘管Data.List模組的``nub``函數完全可以完成這一工作，但在對付大List時則會明顯的力不從心。使用集合則會快很多，``nub``函數只需List中的元素屬於Eq類型類就行了，而若要使用集合，它必須得屬於Ord類型類  
+集合有一常見用途，那就是先``fromList``刪掉重複元素後再``toList``轉回去。儘管Data.List模組的``nub``函數完全可以完成這一工作，但在對付大List時則會明顯的力不從心。使用集合則會快很多，``nub``函數只需List中的元素屬於Eq型別類就行了，而若要使用集合，它必須得屬於Ord型別類  
 
 {{
 ghci> Set.filter odd $ Set.fromList [3,4,5,6,7,2,3,4]  
@@ -978,7 +978,7 @@ fromList [3,4,5,6,7,8]
 
 == 建立自己的模組 #build-your-own-module
 
-我們已經見識過了幾個很酷的模組，但怎樣才能構造自己的模組呢? 几乎所有的編程語言都允許你將程式碼分成多個檔案，haskell也不例外。在編程時，將功能相近的函數和類型至于同一模組中會是個很好的習慣。這樣一來，你就可以輕鬆地一個import來重用其中的函數.
+我們已經見識過了幾個很酷的模組，但怎樣才能構造自己的模組呢? 几乎所有的編程語言都允許你將程式碼分成多個檔案，haskell也不例外。在編程時，將功能相近的函數和型別至于同一模組中會是個很好的習慣。這樣一來，你就可以輕鬆地一個import來重用其中的函數.
 
 接下來我們將構造一個由計算機幾何圖形體積和麵積組成的模組，先從新建一個``Geometry.hs``的檔案開始.
 
