@@ -310,51 +310,51 @@ False
 ghci> 1 `treeElem` numsTree  
 True  
 ghci> 10 `treeElem` numsTree  
-False</pre><p>檢查元素是否屬於某棵樹的函數現在能正常運作了！</p><p>你可以看到algebraic data structures是非常有力的概念。我們可以使用這個結構來構造出布林值，週一到週五的概念，甚至還有二元樹。</p><a name="Typeclasses的第二堂課"></a><h2>Typeclasses的第二堂課</h2><p>到目前為止我們學到了一些Haskell中的標準typeclass，也學到了某些已經定義為他們instance的型別。我們知道如何讓我們自己定義的型別自動被Haskell所推導成標準typeclass的instance。在這個章節中，我們會學到如何構造我們自己的typeclass，並且如何構造這些typeclass的type instancee。</p><pre class="code">class Eq a where  
+False</pre><p>檢查元素是否屬於某棵樹的函數現在能正常運作了！</p><p>你可以看到algebraic data structures是非常有力的概念。我們可以使用這個結構來構造出布林值，週一到週五的概念，甚至還有二元樹。</p><a name="Typeclasses的第二堂課"></a><h2>Typeclasses的第二堂課</h2><p>到目前為止我們學到了一些Haskell中的標準typeclass，也學到了某些已經定義為他們instance的型別。我們知道如何讓我們自己定義的型別自動被Haskell所推導成標準typeclass的instance。在這個章節中，我們會學到如何構造我們自己的typeclass，並且如何構造這些typeclass的type instancee。</p><p>來快速複習一下什麼是typeclass:</p><p>typeclass就像是interface。</p><p>一個typeclass定義了一些行為（像是比較相不相等，比較大小順序，能否窮舉）</p><p>而我們會把希望滿足這些性質的型別定義成這些typeclass的instance。</p><p>typeclass的行為是由定義的函數來描述。</p><p>並寫出對應的實做。</p><p>當我們把一個型別定義成某個typeclass的instance，</p><p>就表示我們可以對那個型別使用typeclass中定義的函數。</p><p>Typeclass跟Java或Python中的class一點關係也沒有。</p><p>這個概念讓很多人混淆，</p><p>所以我希望你先忘掉所有在命令式語言中學到有關class的所有東西。</p><p>例如說，<code>Eq</code>這個typeclass是描述可以比較相等的事物。</p><p>他定義了<code>==</code>跟<code>/=</code>兩個函數。</p><p>如果我們有一個型別<code>Car</code>，</p><p>而且對他們做相等比較是有意義的，</p><p>那把<code>Car</code>作成是<code>Eq</code>的一個instance是非常合理的。</p><p>這邊來看看在prelude之中<code>Eq</code>是怎麼被定義的。</p><pre class="code">class Eq a where  
     (==) :: a -> a -> Bool  
     (/=) :: a -> a -> Bool  
     x == y = not (x /= y)  
-    x /= y = not (x == y)</pre><pre class="code">data TrafficLight = Red | Yellow | Green</pre><pre class="code">instance Eq TrafficLight where  
+    x /= y = not (x == y)</pre><p>我們在這邊看到了一些奇怪的語法跟關鍵字。</p><p>別擔心，你一下子就會瞭解他們的。</p><p>首先，我們看到<code>class Eq a where</code>，</p><p>那代表我們定義了一個新的typeclass叫做<code>Eq</code>。</p><p><code>a</code>是一個型別變數，他代表<code>a</code>是任何我們在定義instance時的型別。</p><p>他不一定要叫做<code>a</code>。</p><p>他也不一定非要一個字母不可，只要他是小寫就好。</p><p>然後我們又定義了幾個函數。</p><p>我們並不一定要實做函數的本體，不過必須要寫出函數的型別宣告。</p><blockquote><p>如果我們寫成<code>class Eq equatable where</code>還有<code>(==) :: equatable -> equatable -> Bool</code>這樣的形式，對一些人可能比較容易理解。</p></blockquote><p>總之我們實做了<code>Eq</code>中需要定義的函數本體，只是我們定義他的方式是用交互遞迴的形式。</p><p>我們描述兩個<code>Eq</code>的instance藥箱等，那他們就不能不一樣，而他們如果不一樣，那他們就是不相等。</p><p>我們其實不必這樣寫，但很快你會看到這其實是有用的。</p><blockquote><p>如果我們說<code>class Eq a where</code>然後定義<code>(==) :: a -> a -> Bool</code>，那我們之後檢查函數的型別時會發現他的型別是<code>(Eq a) => a -> a -> Bool</code>。</p></blockquote><p>所以一旦我們有了class，那我們能拿他來做些什?？</p><p>我們可以定義些type instance，並可以得到些好的性質。</p><p>來看看下面這個型別：</p><pre class="code">data TrafficLight = Red | Yellow | Green</pre><p>他定義了紅綠燈的狀態。</p><p>注意到這邊，儘管我們可以用derive來自動生成<code>Eq</code>跟<code>Show</code>的instance，我們並使用他。</p><p>那是因為我們想要用手寫來演練。</p><p>下面是我們如何定義<code>Eq</code>的instance的：</p><pre class="code">instance Eq TrafficLight where  
     Red == Red = True  
     Green == Green = True  
     Yellow == Yellow = True  
-    _ == _ = False</pre><pre class="code">class Eq a where  
+    _ == _ = False</pre><p>首先我們使用了<code>instance</code>這個關鍵字。</p><p>class是用來定義新的typeclass，而instance是用來說明我們要定義某個typeclass的instance。</p><p>當我們要定義<code>Eq</code>，我們會寫<code>class Eq a where</code>，</p><p>其中<code>a</code>代表任何型態。</p><p>我們可以從instance的寫法：<code>instance Eq TrafficLight where</code>看出來。</p><p>我們會把<code>a</code>換成實際的型別。</p><p>由於<code>==</code>是用<code>/=</code>來定義的，同樣的<code>/=</code>也是用<code>==</code>來定義。</p><p>所以我們只需要在instance定義中複寫其中一個就好了。</p><p>我們這樣叫做定義了一個minimal complete definition。</p><p>這是說能讓型別符合class行為所最小需要實做的函數數量。</p><p>而<code>Eq</code>的minimal complete definition需要<code>==</code>或<code>/=</code>其中一個，。</p><p>而如果<code>Eq</code>是這樣定義的：</p><pre class="code">class Eq a where  
     (==) :: a -> a -> Bool  
-    (/=) :: a -> a -> Bool</pre><pre class="code">instance Show TrafficLight where  
+    (/=) :: a -> a -> Bool</pre><p>當我們定義instance的時候必須要兩個函數都實做，</p><p>因為Haskell並不知道這兩個函數是怎麼關聯在一起的。</p><p>所以minimal complete definition在這邊是<code>==</code>跟<code>/=</code>。</p><p>你可以看到我們是用模式匹配來實做<code>==</code>。</p><p>由於不相等的情況比較多，所以我們只寫出相等的，</p><p>最後再用一個case接住說你不在前面相等的case的話，那就是不相等。</p><p>我們再來寫<code>Show</code>的instance。</p><p>要滿足<code>Show</code>的minimal complete definition，</p><p>我們必須實做<code>show</code>函數，</p><p>他接受一個值並把他轉成字串。</p><pre class="code">instance Show TrafficLight where  
     show Red = "Red light"  
     show Yellow = "Yellow light"  
-    show Green = "Green light"</pre><pre class="code">ghci> Red == Red  
+    show Green = "Green light"</pre><p>再一次地，我們用模式匹配來完成我們的任務。</p><p>我們來看看他是如何運作的。</p><pre class="code">ghci> Red == Red  
 True  
 ghci> Red == Yellow  
 False  
 ghci> Red `elem` [Red, Yellow, Green]  
 True  
 ghci> [Red, Yellow, Green]  
-[Red light,Yellow light,Green light]</pre><pre class="code">class (Eq a) => Num a where  
-   ...</pre><pre class="code">class Eq a where  
+[Red light,Yellow light,Green light]</pre><p>如果我們用derive來自動產生<code>Eq</code>的話，效果是一樣的。</p><p>不過用derive來產生<code>show</code>的話，他會把值構造子轉換成字串。</p><p>但我們這邊要的不太一樣，我們希望印出像<code>"Red light"</code>這樣的字串，</p><p>所以我們就必須手動來寫出instance。</p><p>你也可以把typeclass定義成其他typeclass的subclass。</p><p>像是<code>Num</code>的class宣告就有點冗長，</p><p>但我們先看個雛型。</p><pre class="code">class (Eq a) => Num a where  
+   ...</pre><p>正如我們先前提到的，我們可以在很多地方加上class constraints。</p><p>這不過就是在<code>class Num a where</code>中的<code>a</code>上，加上他必需要是<code>Eq</code>的instance的限制。</p><p>這基本上就是在說我們在定義一個型別為<code>Num</code>之前，必須先為他定義<code>Eq</code>的instance。</p><p>在某個型別可以被視作Number之前，必須先能被比較相不相等其實是蠻合理的。</p><p>這就是subclass在做的事：幫classs declaration加上限制。</p><p>也就是說當我們定義typeclass中的函數本體時，</p><p>我們可以預設<code>a</code>是屬於<code>Eq</code>，因此能使用<code>==</code>。</p><p>但像是<code>Maybe</code>或是list是如何被定義成typeclass的instance呢？</p><p><code>Maybe</code>的特別之處在於他跟<code>TrafficLight</code>不一樣，他不是一個具體的型別。</p><p>他是一個型別構造子，接受一個型別參數（像是<code>Char</code>）</p><p>而構造出一個具體的型別（像是<code>Maybe Char</code>）</p><p>我們來看一下<code>Eq</code>這個typeclass：</p><pre class="code">class Eq a where  
     (==) :: a -> a -> Bool  
     (/=) :: a -> a -> Bool  
     x == y = not (x /= y)  
-    x /= y = not (x == y)</pre><pre class="code">instance Eq Maybe where  
+    x /= y = not (x == y)</pre><p>從型別宣告來看，可以看到<code>a</code>必須是一個具體型別，</p><p>因為所有在函數中的型別都必須是具體型別。</p><p>（你沒辦法寫一個函數，他的型別是<code>a -> Maybe</code>，但你可以寫一個函數，他的型別是<code>a -> Maybe a</code>，</p><p>或是<code>Maybe Int -> Maybe String</code>）</p><p>這就是為什?我們不能寫成像這樣：</p><pre class="code">instance Eq Maybe where  
     ...</pre><pre class="code">instance Eq (Maybe m) where  
     Just x == Just y = x == y  
     Nothing == Nothing = True  
-    _ == _ = False</pre><pre class="code">instance (Eq m) => Eq (Maybe m) where  
+    _ == _ = False</pre><p>這就好像在說我們要把<code>Maybe something</code>這種東西全部都做成<code>Eq</code>的instance。</p><p>我們的確可以寫成<code>(Maybe something)</code>，</p><p>但我們通常是只用一個字母，這樣比較像是Haskell的風格。</p><p><code>(Maybe m)</code>這邊則取代了<code>a</code>在<code>class Eq a where</code>的位置。</p><p>儘管<code>Maybe</code>不是一個具體的型別。</p><p><code>Maybe m</code>卻是。</p><p>指定一個型別參數（在這邊是小寫的<code>m</code>），</p><p>我們說我們想要所有像是<code>Maybe m</code>的都成為<code>Eq</code>的instance。</p><p>不過這仍然有一個問題。你能看出來嗎？</p><p>我們用<code>==</code>來比較<code>Maybe</code>包含的東西，</p><p>但我們並沒有任何保證說<code>Maybe</code>裝的東西可以是<code>Eq</code>。</p><p>這就是為什?我們需要修改我們的instance定義：</p><pre class="code">instance (Eq m) => Eq (Maybe m) where  
     Just x == Just y = x == y  
     Nothing == Nothing = True  
-    _ == _ = False</pre><a name="yes-no typeclass"></a><h2>yes-no typeclass</h2><pre class="code">class YesNo a where  
-    yesno :: a -> Bool</pre><pre class="code">instance YesNo Int where  
+    _ == _ = False</pre><p>這邊我們必須要加上限制。</p><p>在這個instance的宣告中，</p><p>我們希望所有<code>Maybe m</code>形式的型別都屬於<code>Eq</code>，</p><p>但只有當<code>m</code>也屬於<code>Eq</code>的時候。</p><p>這也是Haskell在derive的時候做的事。</p><p>在大部份情形下，在typeclass宣告中的class constraints都是要讓一個typeclass成為另一個typeclass的subclass。</p><p>而在instance宣告中的class constraint則是要表達型別的要求限制。</p><p>舉裡來說，我們要求<code>Maybe</code>的內容物也要屬於<code>Eq</code>。</p><p>當定義instance的時候，如果你需要提供具體型別（像是在<code>a -> a -> Bool</code>中的<code>a</code>），</p><p>那你必須要加上括號跟型別參數來構造一個具體型別。</p><p>要知道你在定義instnace的時候，型別參數會被取代。<code>class Eq a where</code>中的<code>a</code>會被取代成真實的型別。所以試著想像把型別放進型別宣告中。<code>(==) :: Maybe -> Maybe -> Bool</code>並非合法。但<code>(==) :: (Eq m) => Maybe m -> Maybe m -> Bool</code>則是。這是不論我們要定義什麼，通用的型別宣告都是<code>(==) :: (Eq a) => a -> a -> Bool</code></p><p>還有一件事要確認。</p><p>如果你想看看一個typeclass有定義哪些instance。</p><p>可以在GHCi中輸入<code>:info YourTypeClass</code>。</p><p>所以輸入<code>info Num</code>會告訴你這個typeclass定義了哪些函數，還有哪些型別屬於這個typeclass。</p><p><code>:info</code>也可以查詢型別跟型別構造子的資訊。</p><p>如果你輸入<code>:info Maybe</code>。</p><p>他會顯示<code>Maybe</code>所屬的所有typeclass。</p><p><code>:info</code>也能告訴你函數的型別宣告。</p><a name="yes-no typeclass"></a><h2>yes-no typeclass</h2><p>在Javascript或是其他弱型別的程式語言，你能在if expression鐘擺上任何東西。</p><p>舉例來說，你可以做像下列的事：</p><p><code>if (0) alert("YEAH!") else alert("NO!")</code>。</p><p><code>if ("") alert ("YEAH!") else alert("NO!")</code>。</p><p><code>if (false) alert("YEAH") else alert("NO!)</code>等等，</p><p>而上述所有的片段執行後都會跳出<code>NO!</code>。</p><p>如果你寫<code>if ("WHAT") alert ("YEAH") else alert("NO!")</code>，</p><p>他會跳出<code>YEAH!</code>。</p><p>因為Javascript認為非空字串會是true。</p><p>儘管使用<code>Bool</code>來表達布林的語意是比較好的作法。為了有趣起見，我們來試試看模仿Javascript的行為。</p><p>我們先從typeclass宣告開始看：</p><pre class="code">class YesNo a where  
+    yesno :: a -> Bool</pre><p><code>YesNo</code>typeclass定義了一個函數。</p><p>這個函數接受一個可以判斷為真否的型別的值。</p><p>而從我們寫<code>a</code>的位置，可以看出來<code>a</code>必須是一個具體型別。</p><p>接下來我們來定義一些instance。</p><p>對於數字，我們會假設任何非零的數字都會被當作true，而0則當作false。</p><pre class="code">instance YesNo Int where  
     yesno 0 = False  
-    yesno _ = True</pre><pre class="code">instance YesNo [a] where  
+    yesno _ = True</pre><p>空的list（包含字串）代表false，而非空的list則代表true。</p><pre class="code">instance YesNo [a] where  
     yesno [] = False  
-    yesno _ = True</pre><pre class="code">instance YesNo Bool where  
-    yesno = id</pre><pre class="code">instance YesNo (Maybe a) where  
+    yesno _ = True</pre><p>留意到我們加了一個型別參數<code>a</code>來讓整個list是一個具體型別，</p><p>不過我們並沒有對包涵在list中的元素的型別做任何額外假設。</p><p>我們還剩下<code>Bool</code>可以被作為真假值，要定義他們也很容易：</p><pre class="code">instance YesNo Bool where  
+    yesno = id</pre><p>你說<code>id</code>是什?？</p><p>他不過是標準函式庫中的一個函數，</p><p>他接受一個參數並回傳相同的東西。</p><p>我們也讓<code>Maybe a</code>成為YesNo的instance。</p><pre class="code">instance YesNo (Maybe a) where  
     yesno (Just _) = True  
-    yesno Nothing = False</pre><pre class="code">instance YesNo (Tree a) where  
+    yesno Nothing = False</pre><p>由於我們不需要對於<code>Maybe</code>的內容做任何假設，因此不需要class constraints。</p><p>我們只說他如果是<code>Just</code>就是true，如果是<code>Nothing</code>就是false。</p><p>我們仍和必須要寫成<code>(Maybe a)</code>而不是<code>Maybe</code>。</p><p>畢竟你想想看，如果<code>Maybe -> Bool</code>是不合理的，而<code>Maybe a -> Bool</code>卻是合理的。</p><p>有了這個定義，現在<code>Maybe something</code>都屬於<code>YesNo</code>，不論<code>somehing</code>是什?。</p><p>之前我們定義了<code>Tree a</code>，</p><p>那代表一個二元搜尋樹。</p><p>我們可以說一棵空的樹是false，而非空的樹則是true。</p><pre class="code">instance YesNo (Tree a) where  
     yesno EmptyTree = False  
-    yesno _ = True</pre><pre class="code">instance YesNo TrafficLight where  
+    yesno _ = True</pre><p>而一個紅綠燈可以代表yes or no嗎？</p><p>當然可以。如果他是紅燈，那你就會停下來，如果他是綠燈，那你就能走。</p><p>但如果是黃燈呢？只能說我通常會闖黃燈。</p><pre class="code">instance YesNo TrafficLight where  
     yesno Red = False  
-    yesno _ = True</pre><pre class="code">ghci> yesno $ length []  
+    yesno _ = True</pre><p>現在我們定義了許多instance，來試著跑跑看！</p><pre class="code">ghci> yesno $ length []  
 False  
 ghci> yesno "haha"  
 True  
@@ -371,8 +371,8 @@ False
 ghci> yesno [0,0,0]  
 True  
 ghci> :t yesno  
-yesno :: (YesNo a) => a -> Bool</pre><pre class="code">yesnoIf :: (YesNo y) => y -> a -> a -> a  
-yesnoIf yesnoVal yesResult noResult = if yesno yesnoVal then yesResult else noResult</pre><pre class="code">ghci> yesnoIf [] "YEAH!" "NO!"  
+yesno :: (YesNo a) => a -> Bool</pre><p>很好，統統是我們預期的結果。</p><p>我們來寫一個函數來模仿if statement的行為，</p><p>但他是運作在<code>YesNo</code>的型別上。</p><pre class="code">yesnoIf :: (YesNo y) => y -> a -> a -> a  
+yesnoIf yesnoVal yesResult noResult = if yesno yesnoVal then yesResult else noResult</pre><p>很直覺吧！</p><p>他接受一個yes or no的值還有兩個部份，如果值是代表yes，那第一個部份就會被執行，</p><p>而如果值是no，那第二個部份就會執行。</p><pre class="code">ghci> yesnoIf [] "YEAH!" "NO!"  
 "NO!"  
 ghci> yesnoIf [2,3,4] "YEAH!" "NO!"  
 "YEAH!"  
@@ -381,7 +381,7 @@ ghci> yesnoIf True "YEAH!" "NO!"
 ghci> yesnoIf (Just 500) "YEAH!" "NO!"  
 "YEAH!"  
 ghci> yesnoIf Nothing "YEAH!" "NO!"  
-"NO!"</pre><a name="Functor typeclass"></a><h2>Functor typeclass</h2><pre class="code">class Functor f where  
+"NO!"</pre><a name="Functor typeclass"></a><h2>Functor typeclass</h2><p>到目前為止我們看過了許多在標準函式庫中的typeclass。</p><p>我們操作過<code>Ord</code>，代表可以被排序的東西。</p><p>我們也操作過<code>Eq</code>，代表可以被比較相等性的事物。</p><p>也看過<code>Show</code>，代表可以被印成字串來表示的東西。</p><p>至於<code>Read</code>則是我們可以把字串轉換成型別的動作。</p><p>不過現在我們要來看一下<code>Functor</code>這個typeclass，</p><p>基本上就代表可以被map over的事物。</p><p>聽到這個詞你可能會聯想到list，</p><p>因為map over list在Haskell中是很常見的操作。</p><p>你沒想錯，list的確是屬於<code>Functor</code>這個typeclass。</p><p>來看看他的實做會是瞭解<code>Functor</code>的最佳方式：</p><pre class="code">class Functor f where  
     fmap :: (a -> b) -> f a -> f b</pre><pre class="code">instance Functor [] where  
     fmap = map</pre><pre class="code">map :: (a -> b) -> [a] -> [b]  
 ghci> fmap (*2) [1..3]  
