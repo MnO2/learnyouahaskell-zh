@@ -60,7 +60,7 @@ solveRPN = head . foldl foldingFunction [] . words
     where   foldingFunction (x:y:ys) "*" = (x * y):ys  
             foldingFunction (x:y:ys) "+" = (x + y):ys  
             foldingFunction (x:y:ys) "-" = (y - x):ys  
-            foldingFunction xs numberString = read numberString:xs</pre><pre class="code">ghci> solveRPN "10 4 3 + 2 * -"  
+            foldingFunction xs numberString = read numberString:xs</pre><p>我們用展開成四個模式匹配。模式會從第一個開始嘗試匹配。所以folding函數會看看目前的項是否是<code>"*"</code>。如果是，那就會將<code>[3,4,9,3]</code>的頭兩個元素綁定到<code>x</code>，<code>y</code>兩個名稱。所以<code>x</code>會是<code>3</code>而<code>y</code>等於<code>4</code>。<code>ys</code>便會是<code>[9,3]</code>。他會回傳一個list，只差在<code>x</code>跟<code>y</code>相乘的結果為第一個元素。也就是說會把最上層兩個元素取出，相乘後再放回去。如果第一個元素不是<code>"*"</code>，那模式匹配就會比對到<code>"+"</code>，以此類推。</p><p>如果項並未匹配到任何一個運算子，那我們就會假設這個字串是一個數值。如果他是一個數值，我們會用<code>read</code>來把字串轉換成數值。並把這個數值推到堆疊上。</p><p>另外注意到我們加了<code>Read a</code>這像class constraint，畢竟我們要使用到<code>read</code>來轉換成數值。所以我們必須要宣告成他要屬於<code>Num</code>跟<code>Read</code>兩種typeclass。（譬如說<code>Int</code>,<code>Float</code>等）</p><p>我們是從左至右走過<code>["2","3","+"]</code>。一開始堆疊的狀態是<code>[]</code>。首先他會用<code>[]</code>跟<code>"2"</code>來餵給folding函數。由於此項並不是一個運算子。他會用<code>read</code>讀取後加到<code>[]</code>的開頭。所以堆疊的狀態變成<code>[2]</code>。接下來就是用<code>[2]</code>跟<code>["3"]</code>來餵給folding函數，而得到<code>[3,2]</code>。最後再用<code>[3,2]</code>跟<code>"+"</code>來呼叫folding函數。這會堆疊頂端的兩個數值，加起來後推回堆疊。最後堆疊變成<code>[5]</code>，這就是我們回傳的數值。</p><p>我們來試試看我們新寫的函數：</p><pre class="code">ghci> solveRPN "10 4 3 + 2 * -"  
 -4  
 ghci> solveRPN "2 3 +"  
 5  
@@ -71,7 +71,7 @@ ghci> solveRPN "90 34 12 33 55 66 + * - + -"
 ghci> solveRPN "90 34 12 33 55 66 + * - + -"  
 4037  
 ghci> solveRPN "90 3 -"  
-87</pre><pre class="code">import Data.List  
+87</pre><p>看起來運作良好。這個函數有一個特色就是他很容易改寫來支持額外的運算子。他們也不一定要是二元運算子。例如說我們可以寫一個運算子叫做<code>"log"</code>，他會從堆疊取出一個數值算出他的log後推回堆疊。我們也可以用三元運算子來從堆疊取出三個數值，並把結果放回堆疊。甚至是像是<code>"sum"</code>這樣的運算子，取出所有數值並把他們的和推回堆疊。</p><p>我們來改寫一下我們的函數讓他多支援幾個運算子。為了簡單起見，我們改寫宣告讓他回傳<code>Float</code>型別。</p><pre class="code">import Data.List  
   
 solveRPN :: String -> Float  
 solveRPN = head . foldl foldingFunction [] . words  
@@ -82,15 +82,15 @@ where   foldingFunction (x:y:ys) "*" = (x * y):ys
         foldingFunction (x:y:ys) "^" = (y ** x):ys  
         foldingFunction (x:xs) "ln" = log x:xs  
         foldingFunction xs "sum" = [sum xs]  
-        foldingFunction xs numberString = read numberString:xs</pre><pre class="code">ghci> solveRPN "2.7 ln"  
+        foldingFunction xs numberString = read numberString:xs</pre><p>看起來不錯，沒有疑問地<code>/</code>是除法而<code>**</code>是取exponential。至於log運算子，我們只需要模式匹配一個元素，畢竟log只需要一個元素。而sum運算子，我們只回傳一個僅有一個元素的堆疊，包含了所有元素的和。</p><pre class="code">ghci> solveRPN "2.7 ln"  
 0.9932518  
 ghci> solveRPN "10 10 10 10 sum 4 /"  
 10.0  
 ghci> solveRPN "10 10 10 10 10 sum 4 /"  
 12.5  
 ghci> solveRPN "10 2 ^"  
-100.0</pre><pre class="code">ghci> solveRPN "43.2425 0.5 ^"  
-6.575903</pre><a name="路徑規劃"></a><h2>路徑規劃</h2><img src="img/roads.png" style="float:left"></img><pre class="code">50  
+100.0</pre><p>由於<code>read</code>知道如何轉換浮點數，我們也可在運算適中使用他。</p><pre class="code">ghci> solveRPN "43.2425 0.5 ^"  
+6.575903</pre><p>有這樣一個容易拓展到浮點數而且動到的程式碼又在十行以內的函數，我想是非常棒的。</p><p>有一件事要留意的是這個函數對於錯誤處理並不好。當我們碰到非法輸入的時候，他就會直接當掉。之後我們碰到Monad的時候我們會寫一個容錯的版本，他的型別會是<code>solveRPN :: String -> Maybe Float</code>。當然我們現在也可以寫一個，不過那會有點麻煩，因為會有一大堆檢查<code>Nothing</code>的動作。如果你希望挑戰的話，也可以盡管嘗試。（提示：你可以用<code>reads</code>來看看一次read是否會成功）</p><a name="路徑規劃"></a><h2>路徑規劃</h2><p>我們接下來的問題是：你的飛機剛剛降落在英格蘭的希思羅機場。你接下來有一個會議，你租了一台車希望盡速從機場前往倫敦市中心。</p><p>從希思羅機場到倫敦有兩條主要道路，他們中間有很多小路連接彼此。如果你要走小路的話都會花掉一定的時間。你的問題就是要選一條最佳路徑讓你可以盡快前往倫敦。你從圖的最左邊出發，中間可能穿越小路來前往右邊。</p><img src="img/roads.png" style="float:none"></img><pre class="code">50  
 10  
 30  
 5  
