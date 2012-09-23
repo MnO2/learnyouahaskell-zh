@@ -124,16 +124,16 @@ fmap compare (Just 'a') :: Maybe (Char -> Ordering)
 ghci> :t fmap compare "A LIST OF CHARS"  
 fmap compare "A LIST OF CHARS" :: [Char -> Ordering]  
 ghci> :t fmap (\x y z -> x + y / z) [3,4,5,6]  
-fmap (\x y z -> x + y / z) [3,4,5,6] :: (Fractional a) => [a -> a -> a]</pre><p>如果我們map<code>compare</code>到一個包含許多字元的list呢？他的型別是<code>(Ord a) => a -> a -> Ordering</code>，我們會得到包含許多<code>Char -> Ordering</code>型別函數的list，因為<code>compare</code>被partially apply到list中的字元。他不是包含許多<code>(Ord a) => a -> Ordering</code>的函數，因為第一個<code>a</code>碰到的型別是<code>Char</code>，所以第二個<code>a</code>也必須是<code>Char</code>。</p><pre class="code">ghci> let a = fmap (*) [1,2,3,4]  
+fmap (\x y z -> x + y / z) [3,4,5,6] :: (Fractional a) => [a -> a -> a]</pre><p>如果我們map<code>compare</code>到一個包含許多字元的list呢？他的型別是<code>(Ord a) => a -> a -> Ordering</code>，我們會得到包含許多<code>Char -> Ordering</code>型別函數的list，因為<code>compare</code>被partially apply到list中的字元。他不是包含許多<code>(Ord a) => a -> Ordering</code>的函數，因為第一個<code>a</code>碰到的型別是<code>Char</code>，所以第二個<code>a</code>也必須是<code>Char</code>。</p><p>我們看到如何用一個多參數的函數來map functor，我們會得到一個包含了函數的functor。那現在我們能對這個包含了函數的functor做什麼呢？我們能用一個吃這些函數的函數來map over這個functor，這些在functor中的函數都會被當作參數丟給我們的函數。</p><pre class="code">ghci> let a = fmap (*) [1,2,3,4]  
 ghci> :t a  
 a :: [Integer -> Integer]  
 ghci> fmap (\f -> f 9) a  
-[9,18,27,36]</pre><pre class="code">class (Functor f) => Applicative f where  
+[9,18,27,36]</pre><p>但如果我們的有一個functor裡面是<code>Just (3 *)</code>還有另一個functor裡面是<code>Just 5</code>，但我們想要把第一個<code>Just (3 *)</code>map over<code>Just 5</code>呢？如果是普通的functor，那就沒救了。因為他們只允許map一個普通的函數。即使我們用<code>\f -> f 9</code>來map一個裝了很多函數的functor，我們也是使用了普通的函數。我們是無法單純用<code>fmap</code>來把包在一個functor的函數map另一個包在functor中的值。我們能用模式匹配<code>Just</code>來把函數從裡面抽出來，然後再map<code>Just 5</code>，但我們是希望有一個一般化的作法，對任何functor都有效。</p><p>我們來看看<code>Applicative</code>這個typeclass。他位在<code>Control.Applicative</code>中，在其中定義了兩個函數<code>pure</code>跟<code><*></code>。他並沒有提供預設的實作，如果我們想使用他必須要為他們applicative functor的實作。typeclass定義如下：</p><pre class="code">class (Functor f) => Applicative f where  
     pure :: a -> f a  
-    (<*>) :: f (a -> b) -> f a -> f b</pre><pre class="code">instance Applicative Maybe where  
+    (<*>) :: f (a -> b) -> f a -> f b</pre><p>這簡簡單單的三行可以讓我們學到不少。首先來看第一行。他開啟了<code>Applicative</code>的定義，並加上class contraint。描述了一個型別構造子要是<code>Applicative</code>，他必須也是<code>Functor</code>。這就是為什麼我們說一個型別構造子屬於<code>Applicative</code>的話，他也會是<code>Functor</code>，因此我們能對他使用<code>fmap</code>。</p><p>第一個定義的是<code>pure</code>。他的型別宣告是<code>pure :: a -> f a</code>。<code>f</code>代表applicative functor的instance。由於Haskell有一個優秀的型別系統，其中函數又是將一些參數映射成結果，我們可以從型別宣告中讀出許多訊息。<code>pure</code>應該要接受一個值，然後回傳一個包含那個值的applicative functor。我們這邊是用盒子來作比喻，即使有一些比喻不完全符合現實的情況。儘管這樣，<code>a -> f a</code>仍有許多豐富的資訊，他確實告訴我們他會接受一個值並回傳一個applicative functor，裡面裝有結果。</p><p>對於<code>pure</code>比較好的書法是把一個普通值放到一個預設的context下，一個最小的context但仍然包含這個值。</p><p><code><*></code>也非常有趣。他的型別是<code>f (a -> b) -> f a -> f b</code>。這有讓你聯想到什麼嗎？沒錯！就是<code>fmap :: (a -> b) -> f a -> f b</code>。他有點像加強版的<code>fmap</code>。然而<code>fmap</code>接受一個函數跟一個functor，然後套用functor之中的函數。<code><*></code>則是接受一個裝有函數的functor跟另一個functor，然後取出第一個functor中的函數將他對第二個functor中的值做map。</p><p>我們來看看<code>Maybe</code>的<code>Applicative</code>實作：</p><pre class="code">instance Applicative Maybe where  
     pure = Just  
     Nothing <*> _ = Nothing  
-    (Just f) <*> something = fmap f something</pre><pre class="code">ghci> Just (+3) <*> Just 9  
+    (Just f) <*> something = fmap f something</pre><p>從class的定義我們可以看到<code>f</code>作為applicative functor會接受一個具體型別當作參數，所以我們是寫成<code>instance Applicative Maybe where</code>而不是寫成<code>instance Applicative (Maybe a) where</code>。</p><pre class="code">ghci> Just (+3) <*> Just 9  
 Just 12  
 ghci> pure (+3) <*> Just 10  
 Just 13  
