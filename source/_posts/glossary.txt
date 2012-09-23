@@ -1,0 +1,5 @@
+boolean algebra     布林代數
+function            函數
+monad               單子
+operator            運算子
+type                型別

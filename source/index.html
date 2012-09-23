@@ -1,20 +1,80 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
-"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
+<!DOCTYPE html>
+<html>
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        
+        <link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.1.1/css/bootstrap-combined.min.css" rel="stylesheet">
+        <link href="css/docs.css" rel="stylesheet">
 
-        <style>
-            @import url(css/style.css);
-            @import url(css/index.css);
-        </style>
+        <title>Haskell趣學指南 (Learn You a Haskell for Great Good! 繁體中文版)</title>
+    </head>
 
-        <script src="js/jquery.js"></script>
-        <script src="js/jquery.chili-2.2.js"></script>
-        <script src="js/script.js"></script>
-        <script>
-             ChiliBook.recipeFolder = "js/chili/";  
-             ChiliBook.automaticSelector = "pre";
+    <body>
+        <div class="jumbotron masthead">
+            <div class="container">
+                <h1>Haskell趣學指南</h1>
+                <p>Learn you a Haskell for Great Good 繁體中文版</p>
+                <p><a href="chapters.html" class="btn btn-primary btn-large">Read it!</a></p>
+                <ul class="masthead-links">
+                    <li><a href="https://github.com/learnyouahaskell-zh-tw/learnyouahaskell-zh-tw.github.com">GitHub</a></li>
+                    <li><a href="resource.html">Resource</a></li>
+                    <li><a href="faq.html">FAQ</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="bs-docs-social">
+            <div class="container">
+                <ul class="bs-docs-social-buttons">
+                    <li>
+                    <iframe class="github-btn" src="http://ghbtns.com/github-btn.html?user=learnyouahaskell-zh-tw&repo=learnyouahaskell-zh-tw.github.com&type=watch&count=true" allowtransparency="true" frameborder="0" scrolling="0" width="100px" height="20px"></iframe>
+                    </li>
+                    <li class="tweet-btn">
+                    <g:plusone></g:plusone>
+                    </li>
+                    <li class="tweet-btn">
+                    <a href="https://twitter.com/share" class="twitter-share-button">Tweet</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <hr class="soften">
+
+        <p class="marketing-byline">
+            這份翻譯是奠基於<a href="http://fleurer-lee.com">Fleurer</a>在2008年所翻譯的<a href="http://fleurer-lee.com/lyah/">前八章</a>，將其轉成繁體中文。並繼續翻譯第九章到第十四章，直到完成，前八章的部分也會陸續修改成繁體的一些使用習慣。可以跟<a href="http://learnyouahaskell.com">原作英文版</a>搭配閱讀
+        </p>
+        <p class="marketing-byline">
+        繁體譯者為<a href="http://blog-mno2.csie.org">MnO2</a>，電子郵件是 mno2<a href="http://www.google.com/recaptcha/mailhide/d?k=01qGZzwCO24NRGxqCCNDU8ug==&amp;c=b_FCWrgYwvBQ1KAFkIYfRPtXvoKCSAXZr4osw7fRV_g=" onclick="window.open('http://www.google.com/recaptcha/mailhide/d?k\07501qGZzwCO24NRGxqCCNDU8ug\75\75\46c\75b_FCWrgYwvBQ1KAFkIYfRPtXvoKCSAXZr4osw7fRV_g\075', '', 'toolbar=0,scrollbars=0,location=0,statusbar=0,menubar=0,resizable=0,width=500,height=300'); return false;" title="Reveal this e-mail address">...</a>@gmail.com ，或者你可以在<a href="https://plus.google.com/103925382602424793947">google plus</a>找到我。如果你對於整份教學想要更正，或者想要複製一份到自己的網站，可以從<a href="https://github.com/learnyouahaskell-zh-tw/learnyouahaskell-zh-tw.github.com/tree/source">這邊</a>用git clone一份，歡迎送patch給我或直接寫E-mail跟我說明哪些地方可以改進。工具程式的部份是直接改寫<a href="http://code.google.com/p/fdoc/">Fleurer所寫的小程式</a>，採用<a href="http://dev.perl.org/licenses/">GPL/Artistic雙授權</a>
+        </p>
+        <p class="marketing-byline">
+        如果你對Haskell十分有興趣，可以到<a href="http://zh-haskell.csie.org/">這邊</a>留下你的E-mail。或是到<a href="http://webchat.freenode.net/">freenode</a>上的頻道<span>#haskell.tw</span>加入一群Haskell的愛好者。
+        </p>
+        <p>最後更新時間: 2012/09/23</p>
+
+        <!--<a href="chapters.html"><img id="splash" src="img/splash.png"></img></a>-->
+
+        <footer class="footer">
+        <div class="container">
+            <p class="pull-right"><a href="#">Back to top</a></p>
+            <p>Designed and built with all the love in the world <a href="http://twitter.com/twitter" target="_blank">@twitter</a> by <a href="http://twitter.com/mdo" target="_blank">@mdo</a> and <a href="http://twitter.com/fat" target="_blank">@fat</a>.</p>
+            <p>Icons from <a href="http://glyphicons.com">Glyphicons Free</a>, licensed under <a href="http://creativecommons.org/licenses/by/3.0/">CC BY 3.0</a>.</p>
+            <ul class="footer-links">
+                <li><a href="https://github.com/learnyouahaskell-zh-tw/learnyouahaskell-zh-tw.github.com/issues">Submit issues</a></li>
+            </ul>
+        </div>
+        </footer>
+
+        <script src="//netdna.bootstrapcdn.com/twitter-bootstrap/2.1.1/js/bootstrap.min.js"></script>
+        <script type="text/javascript">
+            window.___gcfg = {lang: 'zh-TW'};
+            (function() {
+                var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
+                po.src = 'https://apis.google.com/js/plusone.js';
+                var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+            })();
+        </script>
+        <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");
         </script>
         <script type="text/javascript">
             var _gaq = _gaq || [];
@@ -27,39 +87,5 @@
                     var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
             })();
         </script>
-
-        <title>Haskell趣學指南 (Learn You a Haskell for Great Good! 繁體中文版)</title>
-    </head>
-
-    <body>
-        <div id="main">
-
-            <a href="chapters.html"><img id="splash" src="img/splash.png"></img></a>
-            
-            <div id="intro">
-                <p>這份翻譯是奠基於<a href="http://fleurer-lee.com">Fleurer</a>在2008年所翻譯的<a href="http://fleurer-lee.com/lyah/">前八章</a>，將其轉成繁體中文。並繼續翻譯第九章到第十四章，直到完成，前八章的部分也會陸續修改成繁體的一些使用習慣。可以跟<a href="http://learnyouahaskell.com">原作英文版</a>搭配閱讀。</p>
-                <p>繁體譯者為<a href="http://blog-mno2.csie.org">MnO2</a>，電子郵件是<img src="img/mymail.png" />，或者你可以在<a href="https://plus.google.com/103925382602424793947">google plus</a>找到我。如果你對於整份教學想要更正，或者想要複製一份到自己的網站，可以從<a href="https://github.com/learnyouahaskell-zh-tw/learnyouahaskell-zh-tw.github.com/tree/source">這邊</a>用git clone一份，歡迎送patch給我或直接寫E-mail跟我說明哪些地方可以改進。工具程式的部份是直接改寫<a href="http://code.google.com/p/fdoc/">Fleurer所寫的小程式</a>，採用<a href="http://dev.perl.org/licenses/">GPL/Artistic雙授權</a></p>
-                <p>如果你對Haskell十分有興趣，可以到<a href="http://zh-haskell.csie.org/">這邊</a>留下你的E-mail。或是到freenode上的頻道<span>#haskell.tw</span>加入一群Haskell的愛好者。</p>
-                <p>最後更新時間: 2012/09/15</p>
-                <g:plusone></g:plusone>
-                <script type="text/javascript">
-                    window.___gcfg = {lang: 'zh-TW'};
-                    (function() {
-                        var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
-                        po.src = 'https://apis.google.com/js/plusone.js';
-                        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
-                    })();
-                </script>
-
-                <a href="https://twitter.com/share" class="twitter-share-button">Tweet</a>
-                <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");
-                </script>
-            </div>
-            <div id="go">
-                <p><a id="read" href="chapters.html">Read it Online!</a></p>
-                <p><a id="faq" href="faq.html">FAQ</a></p>
-                <p><a id="resource" href="resource.html">Resource</a></p>
-            </div>
-        </div>
     </body>
 </html>

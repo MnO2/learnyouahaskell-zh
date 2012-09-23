@@ -262,21 +262,29 @@ CJust 0 "haha"
 }}
 
 
+我們知道functor law的第一定律描述當我們用``id``來map over一個functor的時候，他的結果應該跟只對functor呼叫``id``的結果一樣。但我們可以看到這個例子中，這對於``CMaybe``並不遵守。儘管他的確是``Functor`` typeclass的一個instace。但他並不遵守functor law因此不是一個functor。如果有人使用我們的``CMaybe``型別，把他當作functor用，那他就會期待functor laws會被遵守。但``CMaybe``並沒辦法滿足，便會造成錯誤的程式。當我們使用一個functor的時候，函數合成跟map over的先後順序不應該有影響。但對於``CMaybe``他是有影響的，因為他紀錄了被map over的次數。如果我們希望``CMaybe``遵守functor law，我們必須要讓``Int``欄位在做``fmap``的時候維持不變。
 
-我們知道functor law的第一定律描述當我們用``id``來map over一個functor的時候，
-他的結果應該跟只對functor呼叫``id``的結果一樣。
-但我們可以看到這個例子中，
-這對於``CMaybe``並不遵守。
-儘管他的確是``Functor`` typeclass的一個instace。
-但他並不遵守functor law因此不是一個functor。
-如果有人使用我們的``CMaybe``型別，把他當作functor用，
-那他就會期待functor laws會被遵守。
-但``CMaybe``並沒辦法滿足，便會造成錯誤的程式。
 
+乍看之下functor laws看起來不是很必要，也容易讓人搞不懂，但我們知道如果一個型別遵守functor laws，那我們就能對他作些基本的假設。如果遵守了functor laws，我們知道對他做``fmap``不會做多餘的事情，只是用一個函數做映射而已。這讓寫出來的程式碼足夠抽象也容易擴展。因為我們可以用定律來推論型別的行為。
+
+
+所有在標準函式庫中的``Functor``的instance都遵守這些定律，但你可以自己檢查一遍。下一次你定義一個型別為``Functor``的instance的時候，花點時間確認他確實遵守functor laws。一旦你操作過足夠多的functors時，你就會獲得直覺，知道他們會有什麼樣的性質跟行為。而且functor laws也會覺得顯而易見。但就算沒有這些直覺，你仍然可以一行一行地來找看看有沒有反例讓這些定律失效。
+
+
+我們可以把functor看作輸出具有context的值。例如說``Just 3``就是輸出``3``，但他又帶有一個可能沒有值的context。``[1,2,3]``輸出三個值，``1``,``2``跟``3``，同時也帶有可能有多個值或沒有值的context。``(+3)``則會帶有一個依賴於參數的context。
+
+
+如果你把functor想做是輸出值這件事，那你可以把map over一個functor這件事想成在functor輸出的後面再多加一層轉換。當我們做``fmap (+3) [1,2,3]``的時候，我們是把``(+3)``接到``[1,2,3]``後面，所以當我們檢視任何一個list的輸出的時候，``(+3)``也會被套用在上面。另一個例子是對函數做map over。當我們做``fmap (+3) (*3)``，我們是把``(+3)``這個轉換套用在``(*3)``後面。這樣想的話會很自然就會把``fmap``跟函數合成關聯起來（``fmap (+3) (*3)``等價於``(+3) . (*3)`，也等價於``\x -> ((x*3)+3)``），畢竟我們是接受一個函數``(*3)``然後套用``(+3)``轉換。最後的結果仍然是一個函數，只是當我們餵給他一個數字的時候，他會先乘上三然後做轉換加上三。這基本上就是函數合成在做的事。
 
 ==Applicative functors
 
 [$img/present.png]
+
+在這個章節中，我們會學到applicative functors，也就是加強版的functors，在Haskell中是用在``Control.Applicative``中的``Applicative``這個typeclass來定義的。
+
+你還記得Haskell中函數預設就是Curried的，那代表接受多個參數的函數實際上是接受一個參數然後回傳一個接受剩餘參數的函數，以此類推。如果一個函數的型別是``a -> b -> c``，我們通常會說這個函數接受兩個參數並回傳``c``，但他實際上是接受``a``並回傳一個``b -> c``的函數。這也是為什麼我們可以用``(f x) y``的方式呼叫``f x y``。這個機制讓我們可以partially apply一個函數，可以用比較少的參數呼叫他們。可以做成一個函數再餵給其他函數。
+
+到目前為止，當我們要對functor map over一個函數的時候，我們用的函數都是只接受一個參數的。但如果我們要map一個接受兩個參數的函數呢？我們來看幾個具體的例子。如果我們有``Just 3``然後我們做``fmap (*) (Just 3)``，那我們會獲得什麼樣的結果？從``Maybe``對``Functor``的instance實作來看，我們知道如果他是``Just something``，他會對在``Just``中的``something``做映射。因此當``fmap (*) (Just 3)``會得到``Just ((*) 3)``，也可以寫做``Just (* 3)``。我們得到了一個包在``Just``中的函數。
 
 {{
 ghci> :t fmap (++) (Just "hey")  
@@ -289,6 +297,11 @@ ghci> :t fmap (\x y z -> x + y / z) [3,4,5,6]
 fmap (\x y z -> x + y / z) [3,4,5,6] :: (Fractional a) => [a -> a -> a]  
 }}
 
+如果我們map ``compare``到一個包含許多字元的list呢？他的型別是``(Ord a) => a -> a -> Ordering``，我們會得到包含許多``Char -> Ordering``型別函數的list，因為``compare``被partially apply到list中的字元。他不是包含許多``(Ord a) => a -> Ordering``的函數，因為第一個``a``碰到的型別是``Char``，所以第二個``a``也必須是``Char``。
+
+
+我們看到如何用一個多參數的函數來map functor，我們會得到一個包含了函數的functor。那現在我們能對這個包含了函數的functor做什麼呢？我們能用一個吃這些函數的函數來map over這個functor，這些在functor中的函數都會被當作參數丟給我們的函數。
+
 {{
 ghci> let a = fmap (*) [1,2,3,4]  
 ghci> :t a  
@@ -297,12 +310,25 @@ ghci> fmap (\f -> f 9) a
 [9,18,27,36]  
 }}
 
+但如果我們的有一個functor裡面是``Just (3 *)``還有另一個functor裡面是``Just 5``，但我們想要把第一個``Just (3 *)`` map over ``Just 5``呢？如果是普通的functor，那就沒救了。因為他們只允許map一個普通的函數。即使我們用``\f -> f 9``來map一個裝了很多函數的functor，我們也是使用了普通的函數。我們是無法單純用``fmap``來把包在一個functor的函數map另一個包在functor中的值。我們能用模式匹配``Just``來把函數從裡面抽出來，然後再map ``Just 5``，但我們是希望有一個一般化的作法，對任何functor都有效。
+
+我們來看看``Applicative``這個typeclass。他位在``Control.Applicative``中，在其中定義了兩個函數``pure``跟``<*>``。他並沒有提供預設的實作，如果我們想使用他必須要為他們applicative functor的實作。typeclass定義如下：
+
 {{
 class (Functor f) => Applicative f where  
     pure :: a -> f a  
     (<*>) :: f (a -> b) -> f a -> f b  
 }}
 
+這簡簡單單的三行可以讓我們學到不少。首先來看第一行。他開啟了``Applicative``的定義，並加上class contraint。描述了一個型別構造子要是``Applicative``，他必須也是``Functor``。這就是為什麼我們說一個型別構造子屬於``Applicative``的話，他也會是``Functor``，因此我們能對他使用``fmap``。
+
+第一個定義的是``pure``。他的型別宣告是``pure :: a -> f a``。``f``代表applicative functor的instance。由於Haskell有一個優秀的型別系統，其中函數又是將一些參數映射成結果，我們可以從型別宣告中讀出許多訊息。``pure``應該要接受一個值，然後回傳一個包含那個值的applicative functor。我們這邊是用盒子來作比喻，即使有一些比喻不完全符合現實的情況。儘管這樣，``a -> f a``仍有許多豐富的資訊，他確實告訴我們他會接受一個值並回傳一個applicative functor，裡面裝有結果。
+
+對於``pure``比較好的書法是把一個普通值放到一個預設的context下，一個最小的context但仍然包含這個值。
+
+``<*>``也非常有趣。他的型別是``f (a -> b) -> f a -> f b``。這有讓你聯想到什麼嗎？沒錯！就是``fmap :: (a -> b) -> f a -> f b``。他有點像加強版的``fmap``。然而``fmap``接受一個函數跟一個functor，然後套用functor之中的函數。``<*>``則是接受一個裝有函數的functor跟另一個functor，然後取出第一個functor中的函數將他對第二個functor中的值做map。
+
+我們來看看``Maybe``的``Applicative``實作：
 
 {{
 instance Applicative Maybe where  
@@ -310,6 +336,8 @@ instance Applicative Maybe where
     Nothing <*> _ = Nothing  
     (Just f) <*> something = fmap f something  
 }}
+
+從class的定義我們可以看到``f``作為applicative functor會接受一個具體型別當作參數，所以我們是寫成``instance Applicative Maybe where``而不是寫成``instance Applicative (Maybe a) where``。
 
 
 {{

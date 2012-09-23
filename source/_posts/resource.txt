@@ -21,6 +21,11 @@
     # [http://video.s-inf.de/#FP.2005-SS-Giesl.(COt).HD_Videoaufzeichnung]: 德國大學的Functional Programming課程，語言是用FP （英文授課）
     # [http://community.haskell.org/~simonmar/slides/cadarache2012/]: Simon Marlow講解parallel haskell的投影片
     # [http://flolac.iis.sinica.edu.tw/flolac12/doku.php?id=zh-tw:start FLOLAC 2012]
+    # [http://www.youtube.com/channel/UCP9g4dLR7xt6KzCYntNqYcw?&desktop_uri=%2Fchannel%2FUCP9g4dLR7xt6KzCYntNqYcw ICFP 2012]
+    # [http://archive.org/details/ExplanationOfGeneralizedAlgebraicDataTypesgadts Explanation of Generalized Algebraic Data Types]
+    # [http://bonus500.github.com/sc2blog/#title-slide A Quick Intro to Snap]
+    # [http://www.cs.uoregon.edu/Research/summerschool/summer12/curriculum.html Logic, Languages, Compilation, and Verification 2012]
+    # [http://iba-cg.de/hal7.html  Haskell in Halle/Saale]
 
 ==Forum
     # [http://stackoverflow.com/questions/tagged/haskell Stackoverflow]: 著名stackoverflow上的#haskell tag
