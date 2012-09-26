@@ -339,6 +339,13 @@ instance Applicative Maybe where
 
 從class的定義我們可以看到``f``作為applicative functor會接受一個具體型別當作參數，所以我們是寫成``instance Applicative Maybe where``而不是寫成``instance Applicative (Maybe a) where``。
 
+首先看到``pure``。他只不過是接受一個東西然後包成applicative functor。我們寫成``pure = Just``是因為``Just``不過就是一個普通函數。我們其實也可以寫成``pure x = Just x``。
+
+接著我們定義了``<*>``。我們無法從``Nothing``中抽出一個涮，因為``Nothing``並不包含一個函數。所以我們說如果我們要嘗試從``Nothing``中取出一個函數，結果必定是``Nothing``。如果你看看``Applicative``的定義，你會看到他有``Functor``的限制，他代表``<*>``的兩個參數都會是functors。如果第一個參數不是``Nothing``，而是一個裝了函數的``Just``，而且我們希望將這個函數對第二個參數做map。這個也考慮到第二個參數是``Nothing``的情況，因為``fmap``任何一個函數至``Nothing``會回傳``Nothing``。
+
+對於``Maybe``而言，如果左邊是``Just``，那``<*>``會從其中抽出了一個函數來map右邊的值。如果有任何一個參數是``Nothing``。那結果便是``Nothing``。
+
+來試試看吧！
 
 {{
 ghci> Just (+3) <*> Just 9  
@@ -353,6 +360,9 @@ ghci> Nothing <*> Just "woot"
 Nothing  
 }}
 
+我們看到``pure (+3)``跟``Just (+3)``在這個case下是一樣的。如果你是在applicative context底下跟``Maybe``打交道的話請用``pure``，要不然就用``Just``。前四個輸入展示了函數是如何被取出並做map的動作，但在這個case底下，他們同樣也可以用unwrap函數來map over functors。最後一行比較有趣，因為我們試著從``Nothing``取出函數並將他map到某個值。結果當然是``Nothing``。
+
+對於普通的functors，你可以用一個函數map over一個functors，但你可能沒辦法拿到結果。而applicative functors則讓你可以用單一一個函數操作好幾個functors。看看下面一段程式碼：
 
 {{
 ghci> pure (+) <*> Just 3 <*> Just 5  
