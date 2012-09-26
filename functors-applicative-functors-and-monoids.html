@@ -133,7 +133,7 @@ ghci> fmap (\f -> f 9) a
     (<*>) :: f (a -> b) -> f a -> f b</pre><p>這簡簡單單的三行可以讓我們學到不少。首先來看第一行。他開啟了<code>Applicative</code>的定義，並加上class contraint。描述了一個型別構造子要是<code>Applicative</code>，他必須也是<code>Functor</code>。這就是為什麼我們說一個型別構造子屬於<code>Applicative</code>的話，他也會是<code>Functor</code>，因此我們能對他使用<code>fmap</code>。</p><p>第一個定義的是<code>pure</code>。他的型別宣告是<code>pure :: a -> f a</code>。<code>f</code>代表applicative functor的instance。由於Haskell有一個優秀的型別系統，其中函數又是將一些參數映射成結果，我們可以從型別宣告中讀出許多訊息。<code>pure</code>應該要接受一個值，然後回傳一個包含那個值的applicative functor。我們這邊是用盒子來作比喻，即使有一些比喻不完全符合現實的情況。儘管這樣，<code>a -> f a</code>仍有許多豐富的資訊，他確實告訴我們他會接受一個值並回傳一個applicative functor，裡面裝有結果。</p><p>對於<code>pure</code>比較好的書法是把一個普通值放到一個預設的context下，一個最小的context但仍然包含這個值。</p><p><code><*></code>也非常有趣。他的型別是<code>f (a -> b) -> f a -> f b</code>。這有讓你聯想到什麼嗎？沒錯！就是<code>fmap :: (a -> b) -> f a -> f b</code>。他有點像加強版的<code>fmap</code>。然而<code>fmap</code>接受一個函數跟一個functor，然後套用functor之中的函數。<code><*></code>則是接受一個裝有函數的functor跟另一個functor，然後取出第一個functor中的函數將他對第二個functor中的值做map。</p><p>我們來看看<code>Maybe</code>的<code>Applicative</code>實作：</p><pre class="code">instance Applicative Maybe where  
     pure = Just  
     Nothing <*> _ = Nothing  
-    (Just f) <*> something = fmap f something</pre><p>從class的定義我們可以看到<code>f</code>作為applicative functor會接受一個具體型別當作參數，所以我們是寫成<code>instance Applicative Maybe where</code>而不是寫成<code>instance Applicative (Maybe a) where</code>。</p><pre class="code">ghci> Just (+3) <*> Just 9  
+    (Just f) <*> something = fmap f something</pre><p>從class的定義我們可以看到<code>f</code>作為applicative functor會接受一個具體型別當作參數，所以我們是寫成<code>instance Applicative Maybe where</code>而不是寫成<code>instance Applicative (Maybe a) where</code>。</p><p>首先看到<code>pure</code>。他只不過是接受一個東西然後包成applicative functor。我們寫成<code>pure = Just</code>是因為<code>Just</code>不過就是一個普通函數。我們其實也可以寫成<code>pure x = Just x</code>。</p><p>接著我們定義了<code><*></code>。我們無法從<code>Nothing</code>中抽出一個涮，因為<code>Nothing</code>並不包含一個函數。所以我們說如果我們要嘗試從<code>Nothing</code>中取出一個函數，結果必定是<code>Nothing</code>。如果你看看<code>Applicative</code>的定義，你會看到他有<code>Functor</code>的限制，他代表<code><*></code>的兩個參數都會是functors。如果第一個參數不是<code>Nothing</code>，而是一個裝了函數的<code>Just</code>，而且我們希望將這個函數對第二個參數做map。這個也考慮到第二個參數是<code>Nothing</code>的情況，因為<code>fmap</code>任何一個函數至<code>Nothing</code>會回傳<code>Nothing</code>。</p><p>對於<code>Maybe</code>而言，如果左邊是<code>Just</code>，那<code><*></code>會從其中抽出了一個函數來map右邊的值。如果有任何一個參數是<code>Nothing</code>。那結果便是<code>Nothing</code>。</p><p>來試試看吧！</p><pre class="code">ghci> Just (+3) <*> Just 9  
 Just 12  
 ghci> pure (+3) <*> Just 10  
 Just 13  
@@ -142,7 +142,7 @@ Just 12
 ghci> Just (++"hahah") <*> Nothing  
 Nothing  
 ghci> Nothing <*> Just "woot"  
-Nothing</pre><pre class="code">ghci> pure (+) <*> Just 3 <*> Just 5  
+Nothing</pre><p>我們看到<code>pure (+3)</code>跟<code>Just (+3)</code>在這個case下是一樣的。如果你是在applicative context底下跟<code>Maybe</code>打交道的話請用<code>pure</code>，要不然就用<code>Just</code>。前四個輸入展示了函數是如何被取出並做map的動作，但在這個case底下，他們同樣也可以用unwrap函數來map over functors。最後一行比較有趣，因為我們試著從<code>Nothing</code>取出函數並將他map到某個值。結果當然是<code>Nothing</code>。</p><p>對於普通的functors，你可以用一個函數map over一個functors，但你可能沒辦法拿到結果。而applicative functors則讓你可以用單一一個函數操作好幾個functors。看看下面一段程式碼：</p><pre class="code">ghci> pure (+) <*> Just 3 <*> Just 5  
 Just 8  
 ghci> pure (+) <*> Just 3 <*> Nothing  
 Nothing  
