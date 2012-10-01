@@ -147,31 +147,31 @@ Just 8
 ghci> pure (+) <*> Just 3 <*> Nothing  
 Nothing  
 ghci> pure (+) <*> Nothing <*> Just 5  
-Nothing</pre><img src="img/whale.png" style="float:right"></img><pre class="code">(<$>) :: (Functor f) => (a -> b) -> f a -> f b  
-f <$> x = fmap f x</pre><pre class="code">ghci> (++) <$> Just "johntra" <*> Just "volta"  
-Just "johntravolta"</pre><pre class="code">ghci> (++) "johntra" "volta"  
-"johntravolta"</pre><pre class="code">instance Applicative [] where  
+Nothing</pre><img src="img/whale.png" style="float:right"></img><p>究竟我們寫了些什麽？我們來一步步看一下。<code><*></code>是left-associative，也就是說<code>pure (+) <*> Just 3 <*> Just 5</code>可以寫成<code>(pure (+) <*> Just 3) <*> Just 5</code>。首先<code>+</code>是擺在一個functor中，在這邊剛好他是一個<code>Maybe</code>。所以首先，我們有<code>pure (+)</code>，他等價於<code>Just (+)</code>。接下來由於partial application的關係，<code>Just (+) <*> Just 3</code>等價於<code>Just (3+)</code>。把一個<code>3</code>餵給<code>+</code>形成另一個只接受一個參數的函數，他的效果等於加上3。最後<code>Just (3+) <*> Just 5</code>被運算，其結果是<code>Just 8</code>。</p><p>這樣很棒吧！用applicative style的方式來使用applicative functors。像是<code>pure f <*> x <*> y <*> ...</code>就讓我們可以拿一個接受多個參數的函數，而且這些參數不一定是被包在functor中。就這樣來套用在多個在functor context的值。這個函數可以吃任意多的參數，畢竟<code><*></code>只是做partial application而已。</p><p>如果我們考慮到<code>pure f <*> x</code>等於<code>fmap f x</code>的話，這樣的用法就更方便了。這是applicative laws的其中一條。我們稍後會更仔細地檢視這條定律。現在我們先依直覺來使用他。就像我們先前所說的，<code>pure</code>把一個值放進一個預設的context中。如果我們要把一個函數放在一個預設的context，然後把他取出並套用在放在另一個applicative functor的值。我們會做的事就是把函數map over那個applicative functor。但我們不會寫成<code>pure f <*> x <*> y <*> ...</code>，而是寫成<code>fmap f x <*> y <*> ...</code>。這也是為什麽<code>Control.Aaplicative</code>會export一個函數<code><$></code>，他基本上就是中餟版的<code>fmap</code>。他是這麼被定義的：</p><pre class="code">(<$>) :: (Functor f) => (a -> b) -> f a -> f b  
+f <$> x = fmap f x</pre><blockquote><p>要記住型別變數跟參數的名字還有值綁定的名稱不衝突。<code>f</code>在函數的型別宣告中是型別變數，說名<code>f</code>應該要滿足<code>Functor</code>typeclass的條件。而在函數本體中的<code>f</code>則表示一個函數，我們將他map over x。我們同樣用<code>f</code>來表示他們並代表他們是相同的東西。</p></blockquote><p><code><$></code>的使用顯示了applicative style的好處。如果我們想要將<code>f</code>套用三個applicative functor。我們可以寫成<code>f <$> x <*> y <*> z</code>。如果參數不是applicative functor而是普通值的話。我們則寫成<code>f x y z</code>。</p><p>我們再仔細看看他是如何運作的。我們有一個<code>Just "johntra"</code>跟<code>Just "volta"</code>這樣的值，我們希望將他們結合成一個<code>String</code>，並且包含在<code>Maybe</code>中。我們會這樣做：</p><pre class="code">ghci> (++) <$> Just "johntra" <*> Just "volta"  
+Just "johntravolta"</pre><p>可以將上面的跟下面這行比較一下：</p><pre class="code">ghci> (++) "johntra" "volta"  
+"johntravolta"</pre><p>可以將一個普通的函數套用在applicative functor上真不錯。只要稍微寫一些<code><$></code>跟<code><*></code>就可以把函數變成applicative style，可以操作applicatives並回傳applicatives。</p><p>總之當我們在做<code>(++) <$> Just "johntra" <*> Just "volta"</code>時，首先我們將<code>(++)</code>map over到<code>Just "johntra"</code>，然後產生<code>Just ("johntra"++)</code>，其中<code>(++)</code>的型別為<code>(++) :: [a] -> [a] -> [a]</code>，<code>Just ("johntra"++)</code>的型別為<code>Maybe ([Char] -> [Char])</code>。注意到<code>(++)</code>是如何吃掉第一個參數，以及我們是怎麼決定<code>a</code>是<code>Char</code>的。當我們做<code>Just ("johntra"++) <*> Just "volta"</code>，他接受一個包在<code>Just</code>中的函數，然後map over<code>Just "volta"</code>，產生了<code>Just "johntravolta"</code>。如果兩個值中有任意一個為<code>Nothing</code>，那整個結果就會是<code>Nothing</code>。</p><p>到目前為止我們只有用<code>Maybe</code>當作我們的案例，你可能也會想說applicative functor差不多就等於<code>Maybe</code>。不過其實有許多其他<code>Applicative</code>的instance。我們來看看有哪些。</p><p>List也是applicative functor。很驚訝嗎？來看看我們是怎麼定義<code>[]</code>為<code>Applicative</code>的instance的。</p><pre class="code">instance Applicative [] where  
     pure x = [x]  
-    fs <*> xs = [f x | f <- fs, x <- xs]</pre><pre class="code">ghci> pure "Hey" :: [String]  
+    fs <*> xs = [f x | f <- fs, x <- xs]</pre><p>早先我們說過<code>pure</code>是把一個值放進預設的context中。換種說法就是一個會產生那個值的最小context。而對list而言最小context就是<code>[]</code>，但由於空的list並不包含一個值，所以我們沒辦法把他當作<code>pure</code>。這也是為什麼<code>pure</code>其實是接受一個值然後回傳一個包含單元素的list。同樣的，<code>Maybe</code>的最小context是<code>Nothing</code>，但他其實表示的是沒有值。所以<code>pure</code>其實是被實作成<code>Just</code>的。</p><pre class="code">ghci> pure "Hey" :: [String]  
 ["Hey"]  
 ghci> pure "Hey" :: Maybe String  
-Just "Hey"</pre><pre class="code">ghci> [(*0),(+100),(^2)] <*> [1,2,3]  
-[0,0,0,101,102,103,1,4,9]</pre><pre class="code">ghci> [(+),(*)] <*> [1,2] <*> [3,4]  
-[4,5,5,6,3,4,6,8]</pre><pre class="code">ghci> (++) <$> ["ha","heh","hmm"] <*> ["?","!","."]  
-["ha?","ha!","ha.","heh?","heh!","heh.","hmm?","hmm!","hmm."]</pre><pre class="code">ghci> [ x*y | x <- [2,5,10], y <- [8,10,11]]     
-[16,20,22,40,50,55,80,100,110]</pre><pre class="code">ghci> (*) <$> [2,5,10] <*> [8,10,11]  
-[16,20,22,40,50,55,80,100,110]</pre><pre class="code">ghci> filter (>50) $ (*) <$> [2,5,10] <*> [8,10,11]  
-[55,80,100,110]</pre><pre class="code">instance Applicative IO where  
+Just "Hey"</pre><p>至於<code><*></code>呢？如果我們假定<code><*></code>的型別是限制在list上的話，我們會得到<code>(<*>) :: [a -> b] -> [a] -> [b]</code>。他是用list comprehension來實作的。<code><*></code>必須要從左邊的參數取出函數，將他map over右邊的參數。但左邊的list有可能不包含任何函數，也可能包含一個函數，甚至是多個函數。而右邊的list有可能包含多個值。這也是為什麼我們用list comprehension的方式來從兩個list取值。我們要對左右任意的組合都做套用的動作。而得到的結果就會是左右兩者任意組合的結果。</p><pre class="code">ghci> [(*0),(+100),(^2)] <*> [1,2,3]  
+[0,0,0,101,102,103,1,4,9]</pre><p>做編的list包含三個函數，而右邊的list有三個值。所以結果會是有九個元素的list。在左邊list中的每一個函數都被套用到右邊的值。如果我們今天在list中的函數是接收兩個參數的，我們也可以套用到兩個list上。</p><pre class="code">ghci> [(+),(*)] <*> [1,2] <*> [3,4]  
+[4,5,5,6,3,4,6,8]</pre><p>由於<code><*></code>是left-associative，也就是說<code>[(+),(*)] <*> [1,2]</code>會先運作，產生<code>[(1+),(2+),(1*),(2*)]</code>。由於左邊的每一個函數都套用至右邊的每一個值。也就產生<code>[(1+),(2+),(1*),(2*)] <*> [3,4]</code>，其便是最終結果。</p><p>list的applicative style是相當有趣的：</p><pre class="code">ghci> (++) <$> ["ha","heh","hmm"] <*> ["?","!","."]  
+["ha?","ha!","ha.","heh?","heh!","heh.","hmm?","hmm!","hmm."]</pre><p>看看我們是如何將一個接受兩個字串參數的函數套用到兩個applicative functor上的，只要用適當的applicative運算子就可以達成。</p><p>你可以將list看作是一個non-deterministic的計算。而對於像<code>100</code>或是<code>"what"</code>這樣的值則是deterministic的計算，只會有一個結果。而<code>[1,2,3]</code>則可以看作是沒有確定究竟是哪一種結果。所以他代表的是所有可能的結果。當你在做<code>(+) <$> [1,2,3] <*> [4,5,6]</code>，你可以想做是是把兩個non-deterministic的計算做<code>+</code>，只是他會產生另一個non-deterministic的計算，而且結果更加不確定。</p><p>Applicative style對於list而言是一個取代list comprehension的好方式。在第二章中，我們想要看到<code>[2,5,10]</code>跟<code>[8,10,11]</code>相乘的結果，所以我們這樣做：</p><pre class="code">ghci> [ x*y | x <- [2,5,10], y <- [8,10,11]]     
+[16,20,22,40,50,55,80,100,110]</pre><p>我們只是從兩個list中取出元素，並將一個函數套用在任何元素的組合上。這也可以用applicative style的方式來寫：</p><pre class="code">ghci> (*) <$> [2,5,10] <*> [8,10,11]  
+[16,20,22,40,50,55,80,100,110]</pre><p>這寫法對我來說比較清楚。可以清楚表達我們是要對兩個non-deterministic的計算做<code>*</code>。如果我們想要所有相乘大於50可能的計算結果，我們會這樣寫：</p><pre class="code">ghci> filter (>50) $ (*) <$> [2,5,10] <*> [8,10,11]  
+[55,80,100,110]</pre><p>很容易看到<code>pure f <*> xs</code>等價於<code>fmap f xs</code>。而<code>pure f</code>就是<code>[f]</code>，而且<code>[f] <*> xs</code>可將左邊的每個函數套用至右邊的每個值。但左邊其實只有一個函數，所以他做起來就像是mapping。</p><p>另一個我們已經看過的<code>Applicative</code>的instnace是<code>IO</code>，來看看他是怎麼實作的：</p><pre class="code">instance Applicative IO where  
     pure = return  
     a <*> b = do  
         f <- a  
         x <- b  
-        return (f x)</pre><img src="img/knight.png" style="float:left"></img><pre class="code">myAction :: IO String  
+        return (f x)</pre><img src="img/knight.png" style="float:left"></img><p>由於<code>pure</code>是把一個值放進最小的context中，所以將<code>return</code>定義成<code>pure</code>是很合理的。因為<code>return</code>也是做同樣的事情。他做了一個不做任何事情的I/O action，他可以產生某些值來作為結果，但他實際上並沒有做任何I/O的動作，例如說印出結果到終端或是檔案。</p><p>如果<code><*></code>被限定在<code>IO</code>上操作的話，他的型別會是<code>(<*>) :: IO (a -> b) -> IO a -> IO b</code>。他接受一個產生函數的I/O action，還有另一個I/O action，並從以上兩者創造一個新的I/O action，也就是把第二個參數餵給第一個參數。而得到回傳的結果，然後放到新的I/O action中。我們用do的語法來實作他。你還記得的話do就是把好幾個I/O action黏在一起，變成一個大的I/O action。</p><p>而對於<code>Maybe</code>跟<code>[]</code>而言，我們可以把<code><*></code>想做是從左邊的參數取出一個函數，然後套用到右邊的參數上。至於<code>IO</code>，這種取出的類比方式仍然適用，但我們必須多加一個sequencing的概念，因為我們是從兩個I/O action中取值，也是在sequencing，把他們黏成一個。我們從第一個I/O action中取值，但要取出I/O action的結果，他必須要先被執行過。</p><p>考慮下面這個範例：</p><pre class="code">myAction :: IO String  
 myAction = do  
     a <- getLine  
     b <- getLine  
-    return $ a ++ b</pre><pre class="code">myAction :: IO String  
-myAction = (++) <$> getLine <*> getLine</pre><pre class="code">main = do  
+    return $ a ++ b</pre><p>這是一個提示使用者輸入兩行並產生將兩行輸入串接在一起結果的一個I/O action。我們先把兩個<code>getLine</code>黏在一起，然後用一個<code>return</code>，這是因為我們想要這個黏成的I/O action包含<code>a ++ b</code>的結果。我們也可以用applicative style的方式來描述：</p><pre class="code">myAction :: IO String  
+myAction = (++) <$> getLine <*> getLine</pre><p>我們先前的作法是將兩個I/O action的結果餵給函數。還記得<code>getLine</code>的型別是<code>getLine :: IO String</code>。當我們對applicative functor使用<code><*></code>的時候，結果也會是applicative functor。</p><p>如果我們再使用盒子的類比，我們可以把<code>getLine</code>想做是一個去真實世界中拿取字串的盒子。而<code>(++) <$> getLine <*> getLine</code>會創造一個比較大的盒子，這個大盒子會派兩個盒子去終端拿取字串，並把結果串接起來放進自己的盒子中。</p><p><code>(++) <$> getLine <*> getLine</code>的型別是<code>IO String</code>，他代表這個表達式式一個再普通不過的I/O action，他裡面也裝著某種值。這也是為什麼我們可以這樣寫：</p><pre class="code">main = do  
     a <- (++) <$> getLine <*> getLine  
     putStrLn $ "The two lines concatenated turn out to be: " ++ a</pre><pre class="code">instance Applicative ((->) r) where  
     pure x = (\_ -> x)  
