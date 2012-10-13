@@ -5,13 +5,13 @@ body {
 }
 
 h1 {
-    font: normal 80px georgia,Arial,serif,Courier New;
-    line-height: 95px;
+    font: normal 60px georgia,Arial,serif,Courier New;
+    line-height: 80px;
     margin-top: 30px;
 }
 
 h2 {
-    font: bold 40px Arial,serif;
+    font: bold 30px Arial,serif;
     margin-top: 40px;
 }
 

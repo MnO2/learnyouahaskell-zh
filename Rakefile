@@ -14,11 +14,14 @@ desc "Generate site"
 task :generate do
   raise "### You haven't set anything up yet. First run `rake install` to set up an Octopress theme." unless File.directory?(source_dir)
   puts "## Generating Site"
+  mkdir "#{public_dir}/zh-tw" unless Dir.exists?("#{public_dir}/zh-tw")
+  mkdir "#{public_dir}/zh-cn" unless Dir.exists?("#{public_dir}/zh-cn")
   system "ruby parse.rb"
   cp_r "#{source_dir}/img", public_dir
   cp_r "#{source_dir}/css", public_dir
   cp_r "#{source_dir}/js", public_dir
   cp "#{source_dir}/CNAME", "#{public_dir}/CNAME"
+  cp "#{source_dir}/img/favicon.png", "#{public_dir}/favicon.ico"
   cp "#{source_dir}/index.html", "#{public_dir}/index.html"
 end
 

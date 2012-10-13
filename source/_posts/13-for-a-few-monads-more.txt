@@ -1,6 +1,6 @@
 =再來看看更多Monad #for-a-few-monads-more
 
-[$img/clint.png]
+[$/img/clint.png]
 
 我們已經看過Monad是如何接受具有context的值，並如何用函數操作他們 還有如何用``>>=``跟``do``來減輕我們對context的關注，集中精神在value本身。
 
@@ -39,7 +39,7 @@ ghci> isBigGang 30
 (True,"Compared gang size to 9.")  
 }}
 
-[^img/tuco.png]
+[^/img/tuco.png]
 
 到目前為止都還不錯，``isBigGang``回傳一個值跟他的context。對於正常的數值來說這樣的寫法都能運作良好。但如果我們想要把一個已經具有context的值，像是``(3, "Smallish gang.")``，餵給``isBigGang``呢？我們又面對了同樣的問題：如果我們有一個能接受正常數值並回傳一個具有context值的function，那我們要如何餵給他一個具有context的值？
 
@@ -166,7 +166,7 @@ instance (Monoid w) => Monad (Writer w) where
     (Writer (x,v)) >>= f = let (Writer (y, v')) = f x in Writer (y, v `mappend` v')  
 }}
 
-[$img/angeleyes.png]
+[$/img/angeleyes.png]
 
 首先，我們來看看``>>=``。他的實作基本上就是``applyLog``，只是我們的tuple現在是包在一個``Writer``的``newtype``中，我們可以用pattern matching的方式把他給unwrap。我們將``x``餵給``f``。這會回給我們``Writer w a``。接著可以用``let`` expression來做pattern matching。把結果綁定到``y``這個名字上，然後用``mappend``來結合舊的monoid值跟新的monoid值。最後把結果跟monoid值用``Writer`` constructor包起來，形成我們最後的``Writer`` value。
 
@@ -345,7 +345,7 @@ Finished with 1
 
 ===Difference lists
 
-[^img/cactus.png]
+[^/img/cactus.png]
 
 由於list在重複append的時候顯得低效，我們最好能使用一種支援高效appending的資料結構。其中一種就是difference list。difference list很類似list，只是他是一個函數。他接受一個list並prepend另一串list到他前面。一個等價於``[1,2,3]``的difference list是這樣一個函數``\xs -> [1,2,3] ++ xs``。一個等價於``[]``的difference list則是``\xs -> [] ++ xs``。
 
@@ -473,7 +473,7 @@ ghci> mapM_ putStrLn . snd . runWriter $ finalCountDown 500000
 
 ==Reader Monad
 
-[^img/revolver.png]
+[^/img/revolver.png]
 
 在講Applicative的章節中，我們說過了``(->) r``的型態只是``Functor``的一個instance。要將一個函數``f`` map over一個函數``g``，基本上等價於一個函數，他可以接受原本``g``接受的參數，先套用``g``然後再把其結果丟給``f``。
 
@@ -540,7 +540,7 @@ addStuff x = let
 
 ==State Monad
 
-[^img/texas.png]
+[^/img/texas.png]
 
 Haskell是一個純粹的語言，正因為如此，我們的程式是有一堆沒辦法改變全域狀態或變數的函數所組成，他們只會作些處理並回傳結果。這樣的性質讓我們很容易思考我們的程式在幹嘛，因為我們不需要擔心變數在某一個時間點的值是什麼。然而，有一些領域的問題根本上就是依賴於隨著時間而改變的狀態。雖然我們也可以用Haskell寫出這樣的程式，但有時候寫起來蠻痛苦的。這也是為什麼Haskell要加進State Monad這個特性。這讓我們在Haskell中可以容易地處理狀態性的問題，並讓其他部份的程式還是保持純粹性。
 
@@ -649,7 +649,7 @@ instance Monad (State s) where
 
 我們先來看看``return``那一行。我們``return``要作的事是接受一個值，並做出一個改變狀態的操作，讓他永遠回傳那個值。所以我們才做了一個lambda函數，``\s -> (x,s)``。我們把``x``當成是結果，並且狀態仍然是``s``。這就是``return``要完成的minimal context。
 
-[$img/badge.png]
+[$/img/badge.png]
 
 那``>>=``的實作呢？很明顯的把改變狀態的操作餵進``>>=``也必須要丟出另一個改變狀態的操作。所以我們用``State``這個``newtype`` wrapper來把一個lambda函數包住。這個lambda會是新的一個改變狀態的操作。但裡面的內容是什麼？首先我們應該要從接受的操作取出結果。由於lambda是在一個大的操作中，所以我們可以餵給``h``我們現在的狀態，也就是``s``。那會產生``(a, newState)``。到目前為止每次我們在實作``>>=``的時候，我們都會先從monadic value中取出結果，然後餵給``f``來得到新的monadic value。在寫``Writer``的時候，我們除了這樣作還要確保context是用``mappend``把舊的monoid value跟新的接起來。在這邊我們則是用``f a``得到一個新的操作``g``。現在我們有了新的操作跟新的狀態（叫做``newState``），我們就把``newState``餵給``g``。結果便是一個tuple，裡面包含了最後的結果跟最終的狀態。
 
