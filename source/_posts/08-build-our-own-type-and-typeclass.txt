@@ -497,7 +497,7 @@ ghci> True
 False  
 }}
 
-在Maybe a數據型別中，值構造子Nothing在Just值構造子前面，所以一個``Nothing``總要比``Just something``的值小。即便這個``something``是``100000000``也是如此。
+在Maybe a數據型別中，值構造子Nothing在Just值構造子前面，所以一個``Nothing``總要比``Just something``的值小。即便這個``something``是``-100000000``也是如此。
 
 {{
 ghci> Nothing 

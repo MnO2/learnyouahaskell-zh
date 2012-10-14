@@ -594,7 +594,7 @@ ghci> (\x y z -> [x,y,z]) <$> (+3) <*> (*2) <*> (/2) $ 5
 一個我們之前還沒碰過的``Applicative``的instance是``ZipList``，他是包含在``Control.Applicative``中。
 
 
-對於list要作為一個applicative functor可以有多種方式。我們已經介紹過其中一種。如果套用``<*>``，左邊是許多函數，而右邊是許多值，那結果會是函數套用到值的所以盒。如果我們做``[(+3),(*2)] <*> [1,2]``。那``(+3)``會先套用至``1``跟``2``。接著``(*2)``套用至``1``跟``2``。而得到``[4,5,2,4]``。
+對於list要作為一個applicative functor可以有多種方式。我們已經介紹過其中一種。如果套用``<*>``，左邊是許多函數，而右邊是許多值，那結果會是函數套用到值的所有組合。如果我們做``[(+3),(*2)] <*> [1,2]``。那``(+3)``會先套用至``1``跟``2``。接著``(*2)``套用至``1``跟``2``。而得到``[4,5,2,4]``。
 
 
 然而``[(+3),(*2)] <*> [1,2]``也可以這樣運作:把左邊第一個函數套用至右邊第一個值，接著左邊第二個函數套用右邊第二個值，以此類推。這樣得到的會是``[4,4]``。或是``[1 + 3, 2 * 2]``。
@@ -643,7 +643,7 @@ liftA2 f a b = f <$> a <*> b
 
 並沒有太難理解的東西，他不過就是對兩個applicatives套用函數而已，而不用我們剛剛熟悉的applicative style。我們提及他的理由只是要展示為什麼applicative functors比起一般的普通functor要強。如果只是普通的functor的話，我們只能將一個函數map over這個functor。但有了applicative functor，我們可以對好多個functor套用一個函數。看看這個函數的型別，他會是``(a -> b -> c) -> (f a -> f b -> f c)``。當我們從這樣的角度來看他的話，我們可以說``liftA2``接受一個普通的二元函數，並將他升級成一個函數可以運作在兩個functor之上。
 
-另外一個有趣的概念是，我們可以接受兩個applicative functor並把他們結合成一個applicative functor，這個新的將這兩個applicative functor裝在list中。舉裡來說，我們現在有``Just 3``跟``Just 4``。我們假設後者是一個只包含單元素的list。
+另外一個有趣的概念是，我們可以接受兩個applicative functor並把他們結合成一個applicative functor，這個新的將這兩個applicative functor裝在list中。舉例來說，我們現在有``Just 3``跟``Just 4``。我們假設後者是一個只包含單元素的list。
 
 {{
 ghci> fmap (\x -> [x]) (Just 4)  
@@ -734,7 +734,7 @@ True
 由於list要求裡面元素的型別要一致，所以包含在list中的所有函數都是同樣型別。你不能創造一個像是``[ord, (+3)]``這樣的list，因為``ord``接受一個字元並回傳一個數值，然而``(+3)``接受一個數值並回傳一個數值。
 
 
-當跟``[]``一起使用的時候，``sequenceA``接受一串list，並回傳另一串list。他實際上是創見一個包含所有可能組合的list。為了方便說明，我們比較一下使用``sequenceA``跟list comprehension的差異：
+當跟``[]``一起使用的時候，``sequenceA``接受一串list，並回傳另一串list。他實際上是創建一個包含所有可能組合的list。為了方便說明，我們比較一下使用``sequenceA``跟list comprehension的差異：
 
 {{
 ghci> sequenceA [[1,2,3],[4,5,6]]  
@@ -836,7 +836,7 @@ newtype ZipList a = ZipList { getZipList :: [a] }
 這邊我們不用``data``關鍵字反而是用``newtype``關鍵字。這是為什麽呢？第一個理由是``newtype``比較快速。如果你用``data``關鍵字來包一個型別的話，在你執行的時候會有一些包起來跟解開來的成本。但如果你用``newtype``的話，Haskell會知道你只是要將一個現有的型別包成一個新的型別，你想要內部運作完全一樣但只是要一個全新的型別而已。有了這個概念，Haskell可以將包裹跟解開來的成本都去除掉。
 
 
-那為什麽我們不是一直使用``newtype``呢？當你用``newtype``來製作一個新的型別時，你只能定義單一一個值構造子，而且那個構造子只能有一個欄位。但使用``data``的話，你可以讓那個型別友好幾個值構造子，並且每個構造子可以有零個或多個欄位。
+那為什麽我們不是一直使用``newtype``呢？當你用``newtype``來製作一個新的型別時，你只能定義單一一個值構造子，而且那個構造子只能有一個欄位。但使用``data``的話，你可以讓那個型別有好幾個值構造子，並且每個構造子可以有零個或多個欄位。
 
 {{
 data Profession = Fighter | Archer | Accountant  
@@ -1047,7 +1047,7 @@ newtype CharList = CharList { getCharList :: [Char] }
 ==Monoids
 
 
-Haskell中typeclass是用來表示一個型別之間共有的行為，是一種interace。我們介紹過``Eq``，他定義型別是否可以比較相等性，以及``Ord``，他表示可以被排序的型別。還介紹了更有去的像是``Functor``跟``Applicative``。
+Haskell中typeclass是用來表示一個型別之間共有的行為，是一種interace。我們介紹過``Eq``，他定義型別是否可以比較相等性，以及``Ord``，他表示可以被排序的型別。還介紹了更有趣的像是``Functor``跟``Applicative``。
 
 
 當我們定義一個型別時，我們會想說他應該要支援的行為。也就是表現的行為是什麽，並且要讓他屬於哪些typeclass。如果希望他可以比較相等與否，那我們就應該定義他成為``Eq``的一個instance。如果我們想要看看型別是否是一種functor，我們可以定義他是``Functor``的一個instance。以此類推。
@@ -1211,7 +1211,7 @@ instance Num a => Monoid (Product a) where
     Product x `mappend` Product y = Product (x * y)  
 }}
 
-``mempty``只不過是將``1``包在``Product``中。``mappend``則對``Product``的構造子做模式匹配，將兩個取出的數值相乘後再將結果放回去。就如擬看到的，typeclass定義前面有``Num a``的條件限制。所以他代表``Product a``對於所有屬於``Num``的``a``是一個``Monoid``。要將``Product a``作為一個monoid使用，我們需要用newtype來做包裹跟解開的動作。
+``mempty``只不過是將``1``包在``Product``中。``mappend``則對``Product``的構造子做模式匹配，將兩個取出的數值相乘後再將結果放回去。就如你看到的，typeclass定義前面有``Num a``的條件限制。所以他代表``Product a``對於所有屬於``Num``的``a``是一個``Monoid``。要將``Product a``作為一個monoid使用，我們需要用newtype來做包裹跟解開的動作。
 
 {{
 ghci> getProduct $ Product 3 `mappend` Product 9  
@@ -1240,7 +1240,7 @@ ghci> getSum . mconcat . map Sum $ [1,2,3]
 
 ===Any and ALL
 
-另一種可以有兩種表示成monoid方式的型別是``Bool``。第一種方式是將``||``當作二元樹，而``False``作為identity。這樣的意思是只要有任何一個參數是``True``他就回傳``True``，否則回傳``Falsse``。所以如果我們使用``False``作為identity，他會在跟``False``做OR時回傳``False``，跟``True``做OR時回傳``True``。``Any``這個newtype是``Monoid``的一個instance，並定義如下：
+另一種可以有兩種表示成monoid方式的型別是``Bool``。第一種方式是將``||``當作二元函數，而``False``作為identity。這樣的意思是只要有任何一個參數是``True``他就回傳``True``，否則回傳``Falsse``。所以如果我們使用``False``作為identity，他會在跟``False``做OR時回傳``False``，跟``True``做OR時回傳``True``。``Any``這個newtype是``Monoid``的一個instance，並定義如下：
 
 {{
 newtype Any = Any { getAny :: Bool }  
