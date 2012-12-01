@@ -923,9 +923,9 @@ main = do
     action args  V
 }}
 
-首先，我們取出引數並把他們綁定到``(command:args)``。如果你還記得pattern matching，這麼做會把第一個引數綁定到``command``，把其他的綁定到``args``。如果我們像這樣執行程式``todo add todo.txt "Spank the monkey"``，``command``會變成``"add"``，而``args``會變成``["todo.xt", "Spank the monkey"]``。
+首先，我們取出引數並把他們綁定到``(command:args)``。如果你還記得pattern matching，這麼做會把第一個引數綁定到``command``，把其他的綁定到``args``。如果我們像這樣執行程式``todo add todo.txt "Spank the monkey"``，``command``會變成``"add"``，而``args``會變成``["todo.txt", "Spank the monkey"]``。
 
-在下一行，我們在一個分派的的串列中尋到我們的指令是哪個。由於``"add"``指向``add``，我們的結果便是``Just add``。我們再度使用了pattern matching來把我們的函數從``Maybe``中取出。但如果我們想要的指令不在分派的串列中呢？那樣lookup就會回傳``Nothing``，但我們這邊並不特別處裡失敗的情況，所以pattern matching會失敗然後我們的程式就會當掉。
+在下一行，我們在一個分派的串列中尋到我們的指令是哪個。由於``"add"``指向``add``，我們的結果便是``Just add``。我們再度使用了pattern matching來把我們的函數從``Maybe``中取出。但如果我們想要的指令不在分派的串列中呢？那樣lookup就會回傳``Nothing``，但我們這邊並不特別處裡失敗的情況，所以pattern matching會失敗然後我們的程式就會當掉。
 
 最後，我們用剩下的引數呼叫``action``這個函數。他會還傳一個加入item，顯示所有items或者刪除item的I/O action。由於這個I/O action是在``main``的do block中，他最後會被執行。如果我們的``action``函數是``add``，他就會被餵``args``然後回傳一個加入``Spank the monkey``到todo.txt中的I/O action。
 
