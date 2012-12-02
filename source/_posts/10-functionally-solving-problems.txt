@@ -244,7 +244,7 @@ heathrowToLondon :: RoadSystem
 heathrowToLondon = [Section 50 10 30, Section 5 90 20, Section 40 2 25, Section 10 8 0]  
 }}
 
-我們現在要做的就是用Haskell實做我們先前的解法。所以我們應該怎樣宣告我們計算最短路徑函數的型別呢？他應該接受一個道路系統作為參數，然後回傳一個路徑。我們會用一個list來代表我們的路靜。我們定義了``Label``來表示``A``, ``B``或``C``。並且也定義一個同義詞``Path``：
+我們現在要做的就是用Haskell實做我們先前的解法。所以我們應該怎樣宣告我們計算最短路徑函數的型別呢？他應該接受一個道路系統作為參數，然後回傳一個路徑。我們會用一個list來代表我們的路徑。我們定義了``Label``來表示``A``, ``B``或``C``。並且也定義一個同義詞``Path``：
 
 {{
 data Label = A | B | C deriving (Show)  
@@ -293,7 +293,7 @@ roadStep (pathA, pathB) (Section a b c) =
 最後我們回傳``newPathToA``跟``newPathToB``這一對結果。
 
 
-我們把``heathrowToLondon``的第一個section餵給我們的函數。猶豫他是第一個section，所以到A跟B的最佳路徑就是一對空的list。
+我們把``heathrowToLondon``的第一個section餵給我們的函數。由於他是第一個section，所以到A跟B的最佳路徑就是一對空的list。
 
 
 {{
