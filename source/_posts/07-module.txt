@@ -711,7 +711,7 @@ Nothing
 如魔咒般靈驗! 只要我們有這姑娘的號碼就 ``Just`` 可以得到，否則就是 ``Nothing``. 方纔我們實現的函數便是 ``Data.List`` 模組的 ``lookup``，如果要按鍵去尋找相應的值，它就必須得遍歷整個 List，直到找到為止。而 ``Data.Map`` 模組提供了更高效的方式(通過樹實現)，並提供了一組好用的函數。從現在開始，我們扔掉關聯列表，改用map.由於``Data.Map``中的一些函數與Prelude和``Data.List`` 模組存在命名衝突，所以我們使用 ``qualified import``。``import qualified Data.Map as Map`` 在程式碼中加上這句，並 ``load`` 到 ghci 中.繼續前進，看看 ``Data.Map`` 是如何的一座寶庫! 
 如下便是其中函數的一瞥:
 
-**fromList** 取一個關聯列表，返回一個與之等價的 ``map``。
+**fromList** 取一個關聯列表，返回一個與之等價的 Map。
 
 {{
 ghci> Map.fromList [("betty","555-2938"),("bonnie","452-2928"),("lucille","205-2928")] 
