@@ -438,7 +438,7 @@ ghci> take 10 (repeat 5)  
 
 [$/img/kermit.png]
 
-學過數學的你對集合的 comprehension(Set Comprehension) 概念一定不會陌生。通過它，可以從既有的集合中按照規則產生一個新集合。前十個偶數的 set comprehension 可以表示為[/img/setnotation.png]，豎綫左端的部分是輸出函數，``x`` 是變數，``N`` 是輸入集合。在 Haskell`` 下，我們可以通過類似 ``take 10 [2,4..]`` 的程式碼來實現。但若是把簡單的乘 2 改成更複雜的函數操作該怎麼辦呢？用 list comprehension，它與 set comprehension 十分的相似，用它取前十個偶數輕而易舉。這個 list comprehension 可以表示為：
+學過數學的你對集合的 comprehension(Set Comprehension) 概念一定不會陌生。通過它，可以從既有的集合中按照規則產生一個新集合。前十個偶數的 set comprehension 可以表示為[/img/setnotation.png]，豎綫左端的部分是輸出函數，``x`` 是變數，``N`` 是輸入集合。在 Haskell 下，我們可以通過類似 ``take 10 [2,4..]`` 的程式碼來實現。但若是把簡單的乘 2 改成更複雜的函數操作該怎麼辦呢？用 list comprehension，它與 set comprehension 十分的相似，用它取前十個偶數輕而易舉。這個 list comprehension 可以表示為：
 
 {{
 ghci> [x*2 | x <- [1..10]]  
