@@ -260,28 +260,28 @@ True 
 
 還可以對 List 做啥？如下是幾個常用的函數:
 
-``head`` 返回一個 List 的頭部，也就是 List 的首個元素。
+**head** 返回一個 List 的頭部，也就是 List 的首個元素。
 
 {{
 ghci> head [5,4,3,2,1] 
 5
 }}
 
-``tail`` 返回一個 List 的尾部，也就是 List 除去頭部之後的部分。
+**tail** 返回一個 List 的尾部，也就是 List 除去頭部之後的部分。
 
 {{
 ghci> tail [5,4,3,2,1]  
 [4,3,2,1]   
 }}
 
-``last`` 返回一個 List 的最後一個元素。
+**last** 返回一個 List 的最後一個元素。
 
 {{
 ghci> last [5,4,3,2,1]  
 1   
 }}
 
-``init`` 返回一個 List 除去最後一個元素的部分。
+**init** 返回一個 List 除去最後一個元素的部分。
 
 {{
 ghci> init [5,4,3,2,1]  
@@ -301,14 +301,14 @@ ghci> head []  
 
 糟糕，程式直接跳出錯誤。如果怪獸都不存在的話，那他的頭也不會存在。在使用 ``head``，``tail``，``last`` 和 ``init`` 時要小心別用到空的 List 上，這個錯誤不會在編譯時被捕獲。所以說做些工作以防止從空 List 中取值會是個好的做法。
 
-``length`` 返回一個 List 的長度。
+**length** 返回一個 List 的長度。
 
 {{
 ghci> length [5,4,3,2,1]  
 5  
 }}
 
-``null`` 檢查一個 List 是否為空。如果是，則返回 ``True``，否則返回 ``False``。應當避免使用 ``xs==[]`` 之類的語句來判斷 List 是否為空，使用 null 會更好。
+**null** 檢查一個 List 是否為空。如果是，則返回 ``True``，否則返回 ``False``。應當避免使用 ``xs==[]`` 之類的語句來判斷 List 是否為空，使用 null 會更好。
 
 {{
 ghci> null [1,2,3]  
@@ -317,14 +317,14 @@ ghci> null []  
 True  
 }}
 
-``reverse`` 將一個 List 反轉:
+**reverse** 將一個 List 反轉:
 
 {{
 ghci> reverse [5,4,3,2,1]  
 [1,2,3,4,5]  
 }}
 
-``take`` 返回一個 List 的前幾個元素，看：
+**take** 返回一個 List 的前幾個元素，看：
 
 {{
 ghci> take 3 [5,4,3,2,1]  
@@ -348,7 +348,7 @@ ghci> drop 100 [1,2,3,4]  
 []   
 }}
 
-``maximum`` 返回一個 List 中最大的那個元素。``minimun`` 返回最小的。
+****maximum** 返回一個 List 中最大的那個元素。``minimun`` 返回最小的。
 
 {{
 ghci> minimum [8,4,2,1,5,6]  
@@ -357,7 +357,7 @@ ghci> maximum [1,9,2,3,4]  
 9   
 }}
 
-``sum`` 返回一個 List 中所有元素的和。``product`` 返回一個 List 中所有元素的積。
+**sum** 返回一個 List 中所有元素的和。``product`` 返回一個 List 中所有元素的積。
 
 {{
 ghci> sum [5,2,1,6,3,2,5,7]  
@@ -368,7 +368,7 @@ ghci> product [1,2,5,6,7,9,2,0]  
 0   
 }}
 
-``elem`` 判斷一個元素是否在包含于一個 List，通常以中綴函數的形式呼叫它。
+**elem** 判斷一個元素是否在包含于一個 List，通常以中綴函數的形式呼叫它。
 
 {{
 ghci> 4 `elem` [3,4,5,6]  
@@ -425,7 +425,7 @@ ghci> take 12 (cycle "LOL ")  
 "LOL LOL LOL "   
 }}
 
-``repeat`` 接受一個值作參數，並返回一個僅包含該值的無限 List。這與用 ``cycle`` 處理單元素 List 差不多。
+**repeat** 接受一個值作參數，並返回一個僅包含該值的無限 List。這與用 ``cycle`` 處理單元素 List 差不多。
 
 {{
 ghci> take 10 (repeat 5)  
@@ -562,7 +562,7 @@ In the definition of `it': it = [(1, 2), (8, 11, 5), (4, 5)]
 
 同 List 相同，只要其中的項是可比較的，Tuple 也可以比較大小，只是你不可以像比較不同長度的 List 那樣比較不同長度的 Tuple 。如下是兩個有用的序對操作函數：
 
-``fst`` 返回一個序對的首項。
+**fst** 返回一個序對的首項。
 
 {{
 ghci> fst (8,11)  
@@ -571,7 +571,7 @@ ghci> fst ("Wow", False)
 "Wow" 
 }}
 
-``snd`` 返回序對的尾項。
+**snd** 返回序對的尾項。
 
 {{
 ghci> snd (8,11)  
