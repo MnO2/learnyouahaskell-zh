@@ -14,6 +14,7 @@ desc "Generate site"
 task :generate do
   raise "### You haven't set anything up yet. First run `rake install` to set up an Octopress theme." unless File.directory?(source_dir)
   puts "## Generating Site"
+  mkdir "#{public_dir}/" unless Dir.exists?("#{public_dir}/")
   mkdir "#{public_dir}/zh-tw" unless Dir.exists?("#{public_dir}/zh-tw")
   mkdir "#{public_dir}/zh-cn" unless Dir.exists?("#{public_dir}/zh-cn")
   system "ruby parse.rb"
