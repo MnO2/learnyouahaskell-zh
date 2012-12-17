@@ -1,9 +1,16 @@
+@font-face {
+  font-family: 'Inder';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Inder Regular'), local('Inder-Regular'), url(Inder.woff) format('woff');
+}
+
 ol {
     margin: 20px 0 40px 0;
     padding-left: 40px;
 }
 ol li{
-    font: 30px normal arial;
+    font: 30px normal Inder, "wenquanyi micro hei", Arial, serif;
     color: #408156;
 }
 ol li a {
@@ -16,7 +23,7 @@ ol ul {
     margin: 20px;
 }
 ol ul li {
-    font: 15px normal arial;
+    font: 15px normal Inder, "wenquanyi micro hei", Arial, serif;
     margin: 0 0 0 0;
     padding: 0;
     border:none;
