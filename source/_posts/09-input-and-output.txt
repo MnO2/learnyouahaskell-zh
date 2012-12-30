@@ -155,7 +155,7 @@ main = do
     if null line
         then return ()
         else do
-            putStrLn $ revverseWords line
+            putStrLn $ reverseWords line
             main
 
 reverseWords :: String -> String
