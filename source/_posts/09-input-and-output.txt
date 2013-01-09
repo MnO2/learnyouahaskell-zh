@@ -547,7 +547,7 @@ main = interact $ unlines . filter ((<10) . length) . lines
 我們再來寫另一個程式，它不斷地讀取一行行並告訴我們那一行字串是不是一個回文字串(palindrome)。我們當然可以用 ``getLine`` 讀取一行然後再呼叫 ``main`` 作同樣的事。不過同樣的事情可以用 ``interact`` 更簡潔地達成。當使用 ``interact`` 的時候，想像你是將輸入經有某些轉換成輸出。在這個情況當中，我們要將每一行輸入轉換成 ``"palindrome"`` 或 ``"not a palindrome"``。所以我們必須寫一個函數將 ``"elephant\nABCBA\nwhatever"`` 轉換成 ``not a palindrome\npalindrome\nnot a palindrome"``。來動手吧！
 
 {{
-respondPalindromes contents = unlines (map \xs ->
+respondPalindromes contents = unlines (map (\xs ->
     if isPalindrome xs then "palindrome" else "not a palindrome") (lines contents))
         where isPalindrome xs = xs == reverse xs
 }}
