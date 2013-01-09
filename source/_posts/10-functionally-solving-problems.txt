@@ -185,6 +185,8 @@ ghci> solveRPN "43.2425 0.5 ^"
 
 所以那並不是一個好作法。這邊有一張簡化過後的圖。
 
+[^/img/roads_simple.png]
+
 你能想出來到道路 A 上第一個交叉點的最短路徑嗎？（標記成 A1 的點）這太容易了。我們只要看看從道路 A 出發或是從道路 B 出發穿越至道路 A 兩種作法哪種比較短就好。很明顯的，從道路 B 出發的比較短，只要花費 40 分鐘，然而從道路 A 則要花費 50 分鐘。那到交叉點 B1 呢？同樣的作法可以看出從道路 B 出發只要花費 10 分鐘，遠比從道路 A 出發然後穿越小路要花費少，後者要花費 80 分鐘！
 
 
@@ -283,6 +285,8 @@ roadStep (pathA, pathB) (Section a b c) =
                         else (C,c):(A,a):pathA  
     in  (newPathToA, newPathToB)  
 }}
+
+[$/img/guycar.png]
 
 上面的程式究竟寫了些什麽？首先他根據先前 A 的最佳解計算出道路 A 的最佳解，之後也如法炮製計算 B 的最佳解。使用 ``sum $ map snd pathA``，所以如果 ``pathA`` 是 ``[(A,100),(C,20)]``。``priceA`` 就是 ``120``。``forwardPriceToA`` 就會是我們要付的成本。如果我們是從先前在 A 上的交叉點前往。那他就會等於我們至先前交叉點的最佳解加上目前 section 中 A 的部份。``crossPriceToA`` 則是我們從先前在 B 上的交叉點前往 A 所要付出的代價。他是先前 B 的最佳解加上 section 中 B 的部份加上 C 的長。同樣地方式也可以決定 ``forwardPriceToB`` 跟 ``crossPriceToB``。
 

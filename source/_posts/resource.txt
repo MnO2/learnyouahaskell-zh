@@ -26,6 +26,7 @@
     # [http://bonus500.github.com/sc2blog/#title-slide A Quick Intro to Snap]
     # [http://www.cs.uoregon.edu/Research/summerschool/summer12/curriculum.html Logic, Languages, Compilation, and Verification 2012]
     # [http://iba-cg.de/hal7.html  Haskell in Halle/Saale]
+    # [http://bos.github.com/reaktor-dev-day-2012/reaktor-talk-slides.html#(1) Fast Code Nation]
 
 ==Forum
     # [http://stackoverflow.com/questions/tagged/haskell Stackoverflow]: 著名 stackoverflow 上的#haskell tag

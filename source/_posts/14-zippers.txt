@@ -94,6 +94,8 @@ ghci> elemAt [R,L] newTree
 
 ==凡走過必留下痕跡
 
+[$/img/bread.png]
+
 我們需要一個比包含一串方向的 list 更好的聚焦的方法。如果我們能夠在從 root 走到指定地點的沿路上撒下些麵包屑，來紀錄我們的足跡呢？當我們往左走，我們便記住我們選擇了左邊，當我們往右走，便記住我們選擇了右邊。
 
 要找個東西來代表我們的麵包屑，就用一串 ``Direction`` (他可以是 ``L`` 或者是 ``R``)，只是我們叫他 ``BreadCrumb`` 而不叫 ``Direction``。這是因為現在我們把這串 direction 反過來看了：
@@ -122,6 +124,8 @@ goRight (Node _ _ r, bs) = (r, R:bs)
 ghci> goLeft (goRight (freeTree, []))  
 (Node 'W' (Node 'C' Empty Empty) (Node 'R' Empty Empty),[L,R])  
 }}
+
+[^/img/almostzipper.png]
 
 現在我們有了一棵樹，他的 root 是 ``'W'``，而他的左子樹的 root 是 ``'C'``，右子樹的 root 是 ``'R'``。而由於我們先往右走再往左走，所以麵包屑是 ``[L,R]``。
 
@@ -187,6 +191,8 @@ goUp :: (Tree a, Breadcrumbs a) -> (Tree a, Breadcrumbs a)
 goUp (t, LeftCrumb x r:bs) = (Node x t r, bs)  
 goUp (t, RightCrumb x l:bs) = (Node x l t, bs)  
 }}
+
+[^/img/asstronaut.png]
 
 我們鎖定了 ``t`` 這棵樹並檢查最新的 ``Crumb``。如果他是 ``LeftCrumb``，那我們就建立一棵新的樹，其中 ``t`` 是他的左子樹並用關於我們沒走過得右子樹的資訊來填寫其他 ``Node`` 的資訊。由於我們使用了麵包屑的資訊來建立父子樹，所以新的 list 移除了我們的麵包屑。
 
@@ -274,6 +280,8 @@ Zippers 幾乎可以套用在任何資料結構上，所以聽到他可以被套
 {{
 data List a = Empty | Cons a (List a) deriving (Show, Read, Eq, Ord)
 }}
+
+[$/img/picard.png]
 
 跟我們二元樹的定義比較，我們就可以看出我們把 list 看作樹的原則是正確的。
 
@@ -366,6 +374,8 @@ myDisk :: FSItem
 
 ===A zipper for our file system
 
+[$/img/spongedisk.png]
+
 我們有了一個檔案系統，我們需要一個 Zipper 來讓我們可以四處走動，並且增加、修改或移除檔案跟資料夾。就像二元樹或 list，我們會用麵包屑留下我們未走過路徑的資訊。正如我們說的，一個麵包屑就像是一個節點，只是他包含所有除了我們現在正鎖定的子樹的資訊。
 
 
@@ -412,6 +422,8 @@ nameIs name (File fileName _) = name == fileName
 }}
 
 ``fsTo`` 接受一個 ``Name`` 跟 ``FSZipper``，回傳一個新的 ``FSZipper`` 鎖定在某個檔案上。那個檔案必須在現在身處的資料夾才行。這函數不會四處找尋這檔案，他只會看現在的資料夾。
+
+[^/img/cool.png]
 
 首先我們用 ``break`` 來把身處資料夾中的檔案們分成在我們要找的檔案前的，跟之後的。如果記性好，``break`` 會接受一個 predicate 跟一個 list，並回傳兩個 list 組成的 pair。第一個 list 裝有 predicate 會回傳 ``False`` 的元素，而一旦碰到一個元素回傳 ``True``，他就把剩下的所有元素都放進第二個 list 中。我們用了一個輔助函數叫做 ``nameIs``，他接受一個名字跟一個檔案系統的元素，如果名字相符的話他就會回傳 ``True``。
 
@@ -485,6 +497,8 @@ ghci> let newFocus = (myDisk,[]) -: fsTo "pics" -: fsNewFile (File "heh.jpg" "lo
 goLeft :: Zipper a -> Zipper a  
 goLeft (Node x l r, bs) = (l, LeftCrumb x r:bs)  
 }}
+
+[$/img/bigtree.png]
 
 但如果我們走的樹其實是空的樹呢？也就是說，如果他不是 ``Node`` 而是 ``Empty``？再這情況，我們會因為模式匹配不到東西而造成 runtime error。我們沒有處理空的樹的情形，也就是沒有子樹的情形。到目前為止，我們並沒有試著在左子樹不存在的情形下鎖定左子樹。但要走到一棵空的樹的左子樹並不合理，只是到目前為止我們視而不見而已。
 

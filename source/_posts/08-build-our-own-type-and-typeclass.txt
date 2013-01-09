@@ -1258,9 +1258,6 @@ instance Functor Tree where
     fmap f (Node x leftsub rightsub) = Node (f x) (fmap f leftsub) (fmap f rightsub)  
 }}
 
-那 ``Eitehr a b`` 又如何？他可以是一個 functor 嗎？``Functor`` 限制型別構造子只能接受一個型別參數，但 ``Either`` 卻接受兩個。幒明得你會想到我可以 partial apply ``Either``，先餵給他一參數，並把另一個參數當作 free parameter。來看看 ``Either a`` 在標準函式庫中是如何被定義的：
-
-
 {{
 ghci> fmap (*2) EmptyTree  
 EmptyTree  
@@ -1268,14 +1265,21 @@ ghci> fmap (*4) (foldr treeInsert EmptyTree [5,7,3,2,1,7])
 Node 28 (Node 4 EmptyTree (Node 8 EmptyTree (Node 12 EmptyTree (Node 20 EmptyTree EmptyTree)))) EmptyTree  
 }}
 
-我們在這邊做了些什麼？你可以看到我們把 ``Either a`` 定義成一個 instance，而不是 ``Either``。那是因為 ``Either a`` 是一個接受單一型別參數的型別構造子，而 ``Either`` 則接受兩個。如果 ``fmap`` 是針對 ``Either a``，那他的型別宣告就會像是 ``(b -> c) -> Either a b -> Either a c``，他又等價於 ``(b -> c) -> (Either a) b -> (Either a) c``。在實作中，我們碰到一個 ``Right`` 的時候會做 ``map``，但在碰到 ``Left`` 的時候卻不這樣做，為什麼呢？如果我們回頭看看 ``Either a b`` 是怎麼定義的：
-
+那 ``Eitehr a b`` 又如何？他可以是一個 functor 嗎？``Functor`` 限制型別構造子只能接受一個型別參數，但 ``Either`` 卻接受兩個。幒明得你會想到我可以 partial apply ``Either``，先餵給他一參數，並把另一個參數當作 free parameter。來看看 ``Either a`` 在標準函式庫中是如何被定義的：
 
 {{
 instance Functor (Either a) where  
     fmap f (Right x) = Right (f x)  
     fmap f (Left x) = Left x  
 }}
+
+我們在這邊做了些什麼？你可以看到我們把 ``Either a`` 定義成一個 instance，而不是 ``Either``。那是因為 ``Either a`` 是一個接受單一型別參數的型別構造子，而 ``Either`` 則接受兩個。如果 ``fmap`` 是針對 ``Either a``，那他的型別宣告就會像是 ``(b -> c) -> Either a b -> Either a c``，他又等價於 ``(b -> c) -> (Either a) b -> (Either a) c``。在實作中，我們碰到一個 ``Right`` 的時候會做 ``map``，但在碰到 ``Left`` 的時候卻不這樣做，為什麼呢？如果我們回頭看看 ``Either a b`` 是怎麼定義的：
+
+
+{{
+data Either a b = Left a | Right b      
+}}
+
 
 如果我們希望對他們兩個都做 ``map`` 的動作，那 ``a`` 跟 ``b`` 必須要是相同的型別。也就是說，如果我們的函數是接受一個字串然後回傳另一個字串，而且 ``b`` 是字串，``a`` 是數字，這樣的情形是不可行的。而且從觀察 ``fmap`` 的型別也可以知道，當他運作在 ``Either`` 上的時候，第一個型別參數必須固定，而第二個則可以改變，而其中第一個參數正好就是 ``Left`` 用的。
 
@@ -1293,11 +1297,6 @@ instance Functor (Either a) where
 
 
 還有一件事就是 functor 應該要遵守一些定律，這樣他們的一些性質才能被保證。如果我們用 ``fmap (+1)`` 來 map over ``[1,2,3,4]``，我們會期望結果會是 ``[2,3,4,5]`` 而不是反過來變成 ``[5,4,3,2]``。如果我們使用 ``fmap (\a -> a)``來 map over 一個 list，我們會期待拿回相同的結果。例如說，如果我們給 ``Tree`` 定義了錯誤的 functor instance，對 tree 使用 ``fmap`` 可能會導致二元搜尋樹的性質喪失，也就是在 root 左邊的節點不再比 root 小，在 root 右邊的節點不再比 root 大。我們在下面幾章會多談 functor laws。
-
-
-{{
-data Either a b = Left a | Right b      
-}}
 
 
 == Kind

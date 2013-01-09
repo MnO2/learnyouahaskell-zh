@@ -892,6 +892,8 @@ Right 103
 
 ===liftM 
 
+[$/img/wolf.png]
+
 當我們開始學習 Monad 的時候，我們是先學習 functors，他代表可以被 map over 的事物。接著我們學了 functors 的加強版，也就是 applicative functors，他可以對 applicative values 做函數的套用，也可以把一個一般值放到一個預設的 context 中。最後，我們介紹在 applicative functors 上更進一步的 monad，他讓這些具有 context 的值可以被餵進一般函數中。 
 
 也就是說每一個 monad 都是個 applicative functor，而每一個 applicative functor 也都是一個 functor。``Applicative`` typeclass 中有加入限制，讓每一個 ``Applicative`` 都是 ``Functor``。但 ``Monad`` 卻沒有這樣的限制，讓每個 ``Monad`` 都是 ``Applicative``。這是因為 ``Monad`` 這個 typeclass 是在 ``Applicative`` 引入前就存在的緣故。
@@ -1079,6 +1081,8 @@ joinedMaybes = do
     m  
 }}
 
+[$/img/tipi.png]
+
 最有趣的是對於一個 monadic value 而言，用 ``>>=`` 把他餵進一個函數其實等價於對 monad 做 mapping over 的動作，然後用 ``join`` 來把值從 nested 的狀態變成扁平的狀態。也就是說 ``m >>= f`` 其實就是 ``join (fmap f m)``。如果你仔細想想的話其實很明顯。``>>=`` 的使用方式是，把一個 monadic value 餵進一個接受普通值的函數，但他卻會回傳 monadic value。如果我們 map over 一個 monadic value，我們會做成一個 monadic value 包了另外一個 monadic value。例如說，我們現在手上有 ``Just 9`` 跟 ``\x -> Just (x+1)``。如果我們把這個函數 map over ``Just 9``，我們會得到 ``Just (Just 10)``
 
 事實上 ``m >>= f`` 永遠等價於 ``join (fmap f m)`` 這性質非常有用。如果我們要定義自己的 ``Monad`` instance，要知道怎麼把 nested monadic value 變成扁平比起要定義 ``>>=`` 是比較容易的一件事。
@@ -1224,6 +1228,8 @@ Nothing
 
 
 ===Making a safe RPN calculator
+
+[^/img/miner.png]
 
 之前的章節我們實作了一個 RPN 計算機，但我們沒有做錯誤的處理。他只有在輸入是合法的時候才會運算正確。假如有東西出錯了，整個程式便會當掉。我們在這章看到了要怎樣把程式碼轉換成 monadic 的版本，我們先嘗適用 ``Maybe`` monad 來幫我們的 RPN 計算機加上些錯誤處理。
 
@@ -1384,6 +1390,9 @@ canReachIn x start end = end `elem` inMany x start
 
 
 ==定義自己的 Monad
+
+[/img/spearhead.png]
+
 在這一章節，我們會帶你看看究竟一個型態是怎麼被辨認，確認是一個 monad 而且正確定義出 ``Monad`` 的 instance。我們通常不會為了定義 monad 而定義。比較常發生的是，我們想要針對一個問題建立模型，卻稍後發現我們定義的型態其實是一個 Monad，所以就定義一個 ``Monad`` 的 instance。
 
 正如我們看到的，list 是被拿來當作 non-deterministic values。對於 ``[3,5,9]``，我們可以看作是一個 non-deterministic value，我們不能知道究竟是哪一個。當我們把一個 list 用 ``>>=`` 餵給一個函數，他就是把一串可能的選擇都丟給函數，函數一個個去計算在那種情況下的結果，結果也便是一個 list。
@@ -1447,6 +1456,8 @@ Prob {getProb = [(-3,1 % 2),(-5,1 % 4),(-9,1 % 4)]}
 至於 ``>>=`` 呢？看起來有點複雜，所以我們換種方式來思考，我們知道 ``m >>= f`` 會等價於 ``join (fmap f m)``，所以我們來想要怎麼把一串包含 probability list 的 list 弄平。舉個例子，考慮一個 list，``'a'`` 跟 ``'b'`` 恰出現其中一個的機率為 25%，兩個出現的機率相等。而 ``'c'`` 跟 ``'d'`` 恰出現其中一個的機率為 75%，兩個出現的機率也是相等。這邊有一個圖將情形畫出來。
 
 
+[^/img/prob.png]
+
 每個字母發生的機率有多高呢？如果我們用四個盒子來代表每個字母，那每個盒子的機率為何？每個盒子的機率是他們所裝有的機率值相乘的結果。``'a'`` 的機率是八分之一，``'b'`` 同樣也是八分之一。八分之一是因為我們把二分之一跟四分之一相乘得到的結果。而 ``'c'`` 發生的機率是八分之三，是因為二分之一乘上四分之三。``'d'`` 同樣也是八分之三。如果把所有的機率加起來，就會得到一，符合機率的規則。
 
 來看看怎麼用一個 list 表達我們要說明的東西：
@@ -1477,6 +1488,8 @@ instance Monad Prob where
     m >>= f = flatten (fmap f m)  
     fail _ = Prob []  
 }}
+
+[$/img/ride.png]
 
 由於我們已經把所有苦工的做完了，定義這個 instance 顯得格外輕鬆。我們也定義了 ``fail``，我們定義他的方式跟定義 list 一樣。如果在 ``do`` 中發生了失敗的 pattern match，那就會呼叫 ``fail``。
 
