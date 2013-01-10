@@ -2,7 +2,7 @@
 
 == 裝載模組
 
-[$/img/modules.png]
+[$../img/modules.png]
 
 Haskell 中的模組是含有一組相關的函數，型別和型別類的組合。而 Haskell 程序的本質便是從主模組中引用其它模組並呼叫其中的函數來執行操作。這樣可以把程式碼分成多塊，只要一個模組足夠的獨立，它裡面的函數便可以被不同的程序反覆重用。這就讓不同的程式碼各司其職，提高了程式碼的健壯性。
 
@@ -105,7 +105,7 @@ ghci> map sum $ transpose [[0,3,5,9],[10,0,0,9],[8,5,1,-1]]
 [18,8,6,17]  
 }}
 
-[^/img/legolists.png]
+[^../img/legolists.png]
 
 使用 ``transpose`` 處理這三個 List 之後，三次冪就倒了第一行，二次冪到了第二行，以此類推。在用 ``sum`` 函數將其映射，即可得到正確的結果。
 
@@ -512,7 +512,7 @@ ghci> sortBy (compare `on` length) xs
 
 ``Data.Char``模組中含有一系列用於判定字元範圍的函數，如下:
 
-[$/img/legochar.png]
+[$../img/legochar.png]
 
 **isControl **判斷一個字元是否是控制字元。
 **isSpace** 判斷一個字元是否是空格字元，包括空格，tab，換行符等.
@@ -676,7 +676,7 @@ findKey :: (Eq k) => k -> [(k,v)] -> v
 findKey key xs = snd . head . filter (\(k,v) -> key == k) $ xs   
 }}
 
-[$/img/legomap.png]
+[$../img/legomap.png]
 
 簡潔漂亮。這個函數取一個鍵和 List 做參數，過濾這一 List 僅保留鍵匹配的項，並返迴首個鍵值對。但若該關聯列表中不存在這個鍵那會怎樣? 哼，那就會在試圖從空 List 中取 ``head`` 時引發一個運行時錯誤。無論如何也不能讓程序就這麼輕易地崩潰吧，所以就應該用 ``Maybe`` 型別。如果沒找到相應的鍵，就返回 ``Nothing``。而找到了就返回 ``Just something``。而這 ``something`` 就是鍵對應的值。
 
@@ -861,7 +861,7 @@ fromList [(3,104),(5,103),(6,339)]
 
 == Data.Set
 
-[$/img/legosets.png]
+[$../img/legosets.png]
 
 ``Data.Set`` 模組提供了對數學中集合的處理。集合既像 List 也像 ``Map``: 它裡面的每個元素都是唯一的，且內部的數據由一棵樹來組織(這和 ``Data.Map`` 模組的 ``map`` 很像)，必須得是可排序的。同樣是插入,刪除,判斷從屬關係之類的操作，使用集合要比 List 快得多。對一個集合而言，最常見的操作莫過于並集，判斷從屬或是將集合轉為 List.
 
@@ -1029,7 +1029,7 @@ rectangleArea :: Float -> Float -> Float
 rectangleArea a b = a * b  
 }}
 
-[$/img/making_modules.png]
+[$../img/making_modules.png]
 
 標準的幾何公式。有幾個地方需要注意一下，由於立方體只是長方體的特殊形式，所以在求它面積和體積的時候我們就將它當作是邊長相等的長方體。在這裡還定義了一個 ``helper``函數，``rectangleArea`` 它可以通過長方體的兩條邊計算出長方體的面積。它僅僅是簡單的相乘而已，份量不大。但請注意我們可以在這一模組中呼叫這個函數，而它不會被導出! 因為我們這個模組只與三維圖形打交道.
 

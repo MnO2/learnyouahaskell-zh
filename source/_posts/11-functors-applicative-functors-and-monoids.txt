@@ -7,7 +7,7 @@ Typeclass 的運用是很隨意的。我們可以定義自己的資料型態，�
 
 ==溫習 Functors
 
-[$/img/frogtor.png]
+[$../img/frogtor.png]
 
 我們已經在之前的章節提到 functors。如果你還沒讀那個章節，也許你應該先去看看。或是你直接假裝你已經讀過了。
 
@@ -50,7 +50,7 @@ main = do line <- fmap reverse getLine
             putStrLn $ "Yes, you really said" ++ line ++ " backwards!"  
 }}
 
-[^/img/alien.png]
+[^../img/alien.png]
 
 就像我們用 ``fmap`` ``reverse`` 來 map over ``Just "blah"`` 會得到 ``Just "halb"``，我們也可以 ``fmap`` ``reverse`` 來 map over ``getLine``。``getLine`` 是一個 I/O action，他的 type 是 ``IO String``，而用 ``reverse`` 來 map over 他會回傳一個取回一個字串並 ``reverse`` 他的 I/O action。就像我們 apply 一個 function 到一個 ``Maybe`` 一樣，我們也可以 apply 一個 function 到一個 ``IO``，只是這個 ``IO`` 會跑去外面拿回某些值。然後我們把結果用 ``<-`` 綁定到某個名稱，而這個名稱綁定的值是已經 ``reverse`` 過了。
 
@@ -124,7 +124,7 @@ ghci> fmap (show . (*3)) (*100) 1
 
 ``fmap`` 等同於 function composition 這件事對我們來說並不是很實用，但至少是一個有趣的觀點。這也讓我們打開視野，看到盒子的比喻不是那麼恰當，functors 其實比較像 computation。function 被 map over 到一個 computation 會產生經由那個 function 映射過後的 computation。
 
-[$/img/lifter.png]
+[$../img/lifter.png]
 
 在我們繼續看 ``fmap`` 該遵守的規則之前，我們再看一次 ``fmap`` 的型態，他是 ``fmap :: (a -> b) -> f a -> f b``。很明顯我們是在討論 Functor，所以為了簡潔，我們就不寫 ``(Functor f) =>`` 的部份。當我們在學 curry 的時候，我們說過 Haskell 的 function 實際上只接受一個參數。一個型態是 ``a -> b -> c`` 的函數實際上是接受 ``a`` 然後回傳 ``b -> c``，而 ``b -> c`` 實際上接受一個 ``b`` 然後回傳一個 ``c``。如果我們用比較少的參數呼叫一個函數，他就會回傳一個函數需要接受剩下的參數。所以 ``a -> b -> c`` 可以寫成 ``a -> (b -> c)``。這樣 curry 可以明顯一些。
 
@@ -195,7 +195,7 @@ instance Functor Maybe where
 而將 ``id`` map over ``Nothing`` 會拿回 ``Nothing`` 並不稀奇。所以從這兩個 ``fmap`` 的實作，我們可以看到的確 ``fmap id = id`` 有被遵守。
 
 
-[^/img/justice.png]
+[^../img/justice.png]
 
 
 第二定律描述說先將兩個函數合成並將結果 map over 一個 functor 的結果，應該跟先將第一個函數 map over 一個 functor，再將第二個函數 map over 那個 functor 的結果是一樣的。正式地寫下來的話就是 ``fmap (f . g) = fmap f . fmap g``。或是用另外一種寫法，對於任何一個 functor F，下面這個式子應該要被遵守：``fmap (f . g) F = fmap f (fmap g F)``v
@@ -278,7 +278,7 @@ CJust 0 "haha"
 
 ==Applicative functors
 
-[$/img/present.png]
+[$../img/present.png]
 
 在這個章節中，我們會學到 applicative functors，也就是加強版的 functors，在 Haskell 中是用在 ``Control.Applicative`` 中的 ``Applicative`` 這個 typeclass 來定義的。
 
@@ -373,7 +373,7 @@ ghci> pure (+) <*> Nothing <*> Just 5
 Nothing  
 }}
 
-[$/img/whale.png]
+[$../img/whale.png]
 
 究竟我們寫了些什麽？我們來一步步看一下。``<*>`` 是 left-associative，也就是說 ``pure (+) <*> Just 3 <*> Just 5`` 可以寫成 ``(pure (+) <*> Just 3) <*> Just 5``。首先 ``+`` 是擺在一個 functor 中，在這邊剛好他是一個 ``Maybe``。所以首先，我們有 ``pure (+)``，他等價於 ``Just (+)``。接下來由於 partial application 的關係，``Just (+) <*> Just 3`` 等價於 ``Just (3+)``。把一個 ``3`` 餵給 ``+`` 形成另一個只接受一個參數的函數，他的效果等於加上 3。最後 ``Just (3+) <*> Just 5`` 被運算，其結果是 ``Just 8``。
 
@@ -498,7 +498,7 @@ instance Applicative IO where
 }}
 
 
-[^/img/knight.png]
+[^../img/knight.png]
 
 由於 ``pure`` 是把一個值放進最小的 context 中，所以將 ``return`` 定義成 ``pure`` 是很合理的。因為 ``return`` 也是做同樣的事情。他做了一個不做任何事情的 I/O action，他可以產生某些值來作為結果，但他實際上並沒有做任何 I/O 的動作，例如說印出結果到終端或是檔案。
 
@@ -580,7 +580,7 @@ ghci> (\x y z -> [x,y,z]) <$> (+3) <*> (*2) <*> (/2) $ 5
 [8.0,10.0,2.5]  
 }}
 
-[$/img/jazzb.png]
+[$../img/jazzb.png]
 
 這邊也一樣。我們創建了一個函數，他會呼叫 ``\x y z -> [x,y,z]``，而丟的參數是 ``(+3)``, ``(*2)`` 跟 ``(/2)``。``5`` 被丟給以上三個函數，然後他們結果又接到 `` \x y z -> [x, y, z]``。
 
@@ -791,7 +791,7 @@ woo
 
 ==關鍵字"newtype"
 
-[^/img/maoi.png]
+[^../img/maoi.png]
 
 到目前為止，我們已經看過了如何用 ``data`` 關鍵字定義自己的 algebraic data type。我們也學習到了如何用 ``type`` 來定義 type synonyms。在這個章節中，我們會看一下如何使用 ``newtype`` 來從一個現有的型別中定義出新的型別，並說明我們為什麽會想要那麼做。
 
@@ -904,7 +904,7 @@ instance Functor Maybe where
 fmap :: (a -> b) -> Maybe a -> Maybe b      
 }}
 
-[$/img/shamrock.png]
+[$../img/shamrock.png]
 
 看起來不錯吧？現在我們想要 tuple 成為 ``Functor`` 的一個 instance，所以當我們用 ``fmap`` 來 map over 一個 tuple 時，他會先套用到 tuple 中的第一個元素。這樣當我們做 ``fmap (+3) (1,1)`` 會得到 ``(4,1)``。不過要定義出這樣的 instance 有些困難。對於 ``Maybe``，我們只要寫 ``instance Functor Maybe where``，這是因為對於只吃一個參數的型別構造子我們很容易定義成 ``Functor`` 的 instance。但對於 ``(a,b)`` 這樣的就沒辦法。要繞過這樣的困境，我們可以用 ``newtype`` 來重新定義我們的 tuple，這樣第二個型別參數就代表了 tuple 中的第一個元素部份。
 
@@ -1099,7 +1099,7 @@ class Monoid m where
     mconcat = foldr mappend mempty  
 }}
 
-[$/img/balloondog.png]
+[$../img/balloondog.png]
 
 ``Monoid`` typeclass 被定義在 ``import Data.Monoid`` 中。我們來花些時間好好瞭解他。
 
@@ -1159,7 +1159,7 @@ ghci> mempty :: [a]
 []  
 }}
 
-[^/img/smug.png]
+[^../img/smug.png]
 
 注意到最後一行我們明白地標記出型別。這是因為如果只些 ``mempty`` 的話，GHCi 不會知道他是哪一個 instance 的 ``mempty``，所以我們必須清楚說出他是 list instance 的 mempty。我們可以使用一般化的型別 ``[a]``，因為空的 list 可以看作是屬於任何型別。
 
@@ -1325,7 +1325,7 @@ instance Monoid Ordering where
     GT `mappend` _ = GT  
 }}
 
-[$/img/bear.png]
+[$../img/bear.png]
 
 這個 instance 定義如下：當我們用 ``mappend`` 兩個 ``Ordering`` 型別的值時，左邊的會被保留下來。除非左邊的值是 ``EQ``，那我們就會保留右邊的當作結果。而 identity 就是 ``EQ``。乍看之下有點隨便，但實際上他是我們比較兩個英文字時所用的方法。我們先比較兩個字母是否相等，如果他們不一樣，那我們就知道那一個字在字典中會在前面。而如果兩個字母相等，那我們就繼續比較下一個字母，以此類推。
 
@@ -1549,7 +1549,7 @@ instance F.Foldable Tree where
 
 
 
-[$/img/accordion.png]
+[$../img/accordion.png]
 
 我們是這樣思考的：如果我們寫一個函數，他接受樹中的一個元素並回傳一個 monoid，那我們要怎麼簡化整棵樹到只有單一一個 monoid？當我們在對樹做 ``fmap`` 的時候，我們將那函數套用至節點上，並遞迴地套用至左子樹以及右子樹。這邊我們不只是 map 一個函數而已，我們還要求要把結果用 ``mappend`` 簡化成只有單一一個 monoid 值。首先我們考慮樹為空的情形，一棵沒有值也沒有子樹的情形。由於沒有值我們也沒辦法將他套用上面轉換成 monoid 的函數，所以當樹為空的時候，結果應該要是 ``mempty``。
 
