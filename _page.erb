@@ -4,16 +4,16 @@
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
         <style>
-            @import url(/css/style.css);
-            @import url(/css/feedback.css);
+            @import url(../css/style.css);
+            @import url(../css/feedback.css);
         </style>
-        <script src="/js/jquery.js"></script>
-        <script src="/js/jquery.chili-2.2.js"></script>
-        <script src="/js/script.js"></script>
-        <script src="/js/html2canvas.js"></script>
-        <script src="/js/jsfeedback.js"></script>
+        <script src="../js/jquery.js"></script>
+        <script src="../js/jquery.chili-2.2.js"></script>
+        <script src="../js/script.js"></script>
+        <script src="../js/html2canvas.js"></script>
+        <script src="../js/jsfeedback.js"></script>
         <script>
-             ChiliBook.recipeFolder = "/js/chili/";  
+             ChiliBook.recipeFolder = "../js/chili/";  
              ChiliBook.automaticSelector = "pre";
         </script>
         <script>
@@ -38,20 +38,20 @@
     </head>
     <body>
         <div id="header">
-            <img id="beta" alt="beta" src="/img/beta.png" />
+            <img id="beta" alt="beta" src="../img/beta.png" />
         </div>
 
         <div id="main">
             <ul class="nav">
-                <li class="left"> <%if p%> <img src="/img/prv.png"></img><a href="<%=p.anchor%>.html"><%=p.title%></a><%end%></li>
+                <li class="left"> <%if p%> <img src="../img/prv.png"></img><a href="<%=p.anchor%>.html"><%=p.title%></a><%end%></li>
                 <li class="center"><a href="chapters.html">Index</a></li>
-                <li class="right"><%if n%> <a href="<%=n.anchor%>.html"><%=n.title%></a><img src="/img/nxt.png"></img><%end%></li>
+                <li class="right"><%if n%> <a href="<%=n.anchor%>.html"><%=n.title%></a><img src="../img/nxt.png"></img><%end%></li>
             </ul>
             <%= c.to_html %>
             <ul class="nav">
-                <li class="left"> <%if p%> <img src="/img/prv.png"></img><a href="<%=p.anchor%>.html"><%=p.title%></a><%end%></li>
+                <li class="left"> <%if p%> <img src="../img/prv.png"></img><a href="<%=p.anchor%>.html"><%=p.title%></a><%end%></li>
                 <li class="center"><a href="chapters.html">Index</a></li>
-                <li class="right"><%if n%> <a href="<%=n.anchor%>.html"><%=n.title%></a><img src="/img/nxt.png"></img><%end%></li>
+                <li class="right"><%if n%> <a href="<%=n.anchor%>.html"><%=n.title%></a><img src="../img/nxt.png"></img><%end%></li>
             </ul>
         </div>
         <div id="footer">

@@ -2,7 +2,7 @@
 
 ==模式匹配 (Pattern matching)
 
-[$/img/pattern.png]
+[$../img/pattern.png]
 
 本章講的就是 Haskell 那套獨特的語法結構，先從模式匹配開始。模式匹配通過檢查數據的特定結構來檢查其是否匹配，並按模式從中取得數據。
 
@@ -179,7 +179,7 @@ ghci> capital "Dracula"  
 
 模式用來檢查一個值是否合適並從中取值，而 guard 則用來檢查一個值的某項屬性是否為真。咋一聽有點像是 ``if`` 語句，實際上也正是如此。不過處理多個條件分支時 guard 的可讀性要高些，並且與模式匹配契合的很好。
 
-[$/img/guards.png]
+[$../img/guards.png]
 
 在講解它的語法前，我們先看一個用到 guard 的函數。它會依據你的 BMI 值 (body mass index，身體質量指數)來不同程度地侮辱你。BMI 值即為體重除以身高的平方。如果小於 18.5，就是太瘦；如果在 18.5 到 25 之間，就是正常；25 到 30 之間，超重；如果超過 30，肥胖。這就是那個函數(我們目前暫不為您計算 `bmi`，它只是直接取一個 emi 值)。
 
@@ -348,7 +348,7 @@ cylinder r h = 
     in  sideArea + 2 * topArea  
 }}
 
-[$/img/letitbe.png]
+[$../img/letitbe.png]
 
 ``let`` 的格式為 ``let [bindings] in [expressions]``。在 ``let`` 中綁定的名字僅對 ``in`` 部分可見。``let`` 裡面定義的名字也得對齊到一列。不難看出，這用 ``where`` 綁定也可以做到。那麼它倆有什麼區別呢？看起來無非就是，``let`` 把綁定放在語句前面而 ``where`` 放在後面嘛。
 
@@ -424,7 +424,7 @@ ghci> boot
 
 == Case expressions
 
-[$/img/case.png]
+[$../img/case.png]
 
 有命令式程式語言 (C, C++, Java, etc.) 的經驗的同學一定會有所瞭解，很多命令式語言都提供了 ``case`` 語句。就是取一個變數，按照對變數的判斷選擇對應的程式碼塊。其中可能會存在一個萬能匹配以處理未預料的情況。
 

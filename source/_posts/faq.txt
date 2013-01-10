@@ -1,5 +1,5 @@
 =FAQ
-[$/img/turtle.png]
+[$img/turtle.png]
 
 ==我能把這份教學放在我的網站嗎？我可以更改裡面的內容嗎？
 當然。它受[http://creativecommons.org/licenses/by-nc-sa/3.0/ creative commons attribution noncommercial blah blah blah...]許可證的保護，因此你可以分享或修改它。只要你是發自內心想要這麼作，並且只將教學用於非商業目的。
