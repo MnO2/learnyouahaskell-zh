@@ -44,7 +44,7 @@ module FD
 
     class Img
         def to_html
-            "<img src=\"#{url}\"></img>"
+            "<img src=\"#{url}\" alt=\"\"></img>"
         end
     end
 
@@ -58,7 +58,7 @@ module FD
     class H
         def to_html
             i=self.rank
-            "<a name=\"#{content}\"></a><h#{i}>#{content}</h#{i}>"
+            "<a name=\"#{content.gsub /\s/, '_'}\"></a><h#{i}>#{content}</h#{i}>"
         end
     end
 
@@ -70,7 +70,7 @@ module FD
 
     class Pic
         def to_html
-            "<img src=\"#{url}\" style=\"float:#{float||'none'}\"></img>"
+            "<img src=\"#{url}\" alt=\"\" style=\"float:#{float||'none'}\"></img>"
         end
     end
 

@@ -43,7 +43,7 @@ target_dir.each do |zh|
             a "#{d.anchor.chomp('-')}.html", d.title 
             list {
               d.h2.each do |s|
-                li { a "#{d.anchor.chomp('-')}.html\##{s.anchor.chomp('-')}", s.title } 
+                li { a "#{d.anchor.chomp('-')}.html\##{s.anchor.chomp('-').gsub /\s/, '_'}", s.title } 
               end
             }
           }
