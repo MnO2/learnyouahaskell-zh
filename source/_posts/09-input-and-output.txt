@@ -63,7 +63,7 @@ putStrLn "hello, world" :: IO ()
 {{
 main = do
     putStrLn "Hello, what's your name?"
-    name <- getLine
+    name &lt;- getLine
     putStrLn ("Hey " ++ name ++ ", you rock!")
 }}
 
@@ -71,7 +71,7 @@ main = do
 
 這就是為什麼 ``main`` 的型態永遠都是 ``main :: IO something``，其中 ``something`` 是某個具體的型態。按照慣例，我們通常是不會把 ``main`` 的型態在程式中寫出來。
 
-另一個有趣的事情是第三行 ``name <- getLine``。它看起來像是從輸入讀取一行並存到一個變數 ``name`` 之中。真的是這樣嗎? 我們來看看 ``getLine`` 的型態吧
+另一個有趣的事情是第三行 ``name &lt;- getLine``。它看起來像是從輸入讀取一行並存到一個變數 ``name`` 之中。真的是這樣嗎? 我們來看看 ``getLine`` 的型態吧
 
 {{
 ghci> :t getLine
@@ -81,14 +81,14 @@ getLine :: IO String
 
 [^../img/luggage.png]
 
-我們可以看到 ``getLine`` 是一個回傳 ``String`` 的 I/O action。因為它會等使用者輸入某些字串，這很合理。那 ``name <- getLine`` 又是如何?你能這樣解讀它: 執行一個 I/O action ``getLine`` 並將它的結果綁定到 ``name`` 這個名字。``getLine`` 的型態是 ``IO String``，所以 ``name`` 的型態會是 ``String``。你能把 I/O action 想成是一個長了腳的盒子，它會跑到真實世界中替你做某些事，像是在牆壁上塗鴉，然後帶回來某些資料。一旦它帶了某些資料給你，打開盒子的唯一辦法就是用 ``<-``。而且如果我們要從 I/O action 拿出某些資料，就一定同時要在另一個 I/O action 中。這就是 Haskell 如何漂亮地分開純粹跟不純粹的程式的方法。``getLine`` 在這樣的意義下是不純粹的，因為執行兩次的時候它沒辦法保證會回傳一樣的值。這也是為什麼它需要在一個 ``IO`` 的型態建構子中，那樣我們才能在 I/O actio 中取出資料。而且任何一段程式一旦依賴著 I/O 資料的話，那段程式也會被視為 I/O code。
+我們可以看到 ``getLine`` 是一個回傳 ``String`` 的 I/O action。因為它會等使用者輸入某些字串，這很合理。那 ``name &lt;- getLine`` 又是如何?你能這樣解讀它: 執行一個 I/O action ``getLine`` 並將它的結果綁定到 ``name`` 這個名字。``getLine`` 的型態是 ``IO String``，所以 ``name`` 的型態會是 ``String``。你能把 I/O action 想成是一個長了腳的盒子，它會跑到真實世界中替你做某些事，像是在牆壁上塗鴉，然後帶回來某些資料。一旦它帶了某些資料給你，打開盒子的唯一辦法就是用 ``&lt;-``。而且如果我們要從 I/O action 拿出某些資料，就一定同時要在另一個 I/O action 中。這就是 Haskell 如何漂亮地分開純粹跟不純粹的程式的方法。``getLine`` 在這樣的意義下是不純粹的，因為執行兩次的時候它沒辦法保證會回傳一樣的值。這也是為什麼它需要在一個 ``IO`` 的型態建構子中，那樣我們才能在 I/O actio 中取出資料。而且任何一段程式一旦依賴著 I/O 資料的話，那段程式也會被視為 I/O code。
 
-但這不表示我們不能在純粹的程式碼中使用 I/O action 回傳的資料。只要我們綁定它到一個名字，我們便可以暫時地使用它。像在 ``name <-getLine`` 中 ``name`` 不過是一個普通字串，代表在盒子中的內容。我們能將這個普通的字串傳給一個極度複雜的函數，並回傳你一生會有多少財富。像是這樣。
+但這不表示我們不能在純粹的程式碼中使用 I/O action 回傳的資料。只要我們綁定它到一個名字，我們便可以暫時地使用它。像在 ``name &lt;-getLine`` 中 ``name`` 不過是一個普通字串，代表在盒子中的內容。我們能將這個普通的字串傳給一個極度複雜的函數，並回傳你一生會有多少財富。像是這樣。
 
 {{
 main = do
     putStrLn "Hello, what's your name?"
-    name <- getLine
+    name &lt;- getLine
     putStrLn $ "Read this carefully, because this is your future: " ++ tellFortune name
 }}
 
@@ -100,24 +100,24 @@ main = do
 nameTag = "Hello, my name is " ++ getLine
 }}
 
-如果你回答不是，恭喜你。如果你說是，你答錯了。這麼做不對的理由是 ``++`` 要求兩個參數都必須是串列。他左邊的參數是 ``String``，也就是 ``[Char]``。然而 ``getLine`` 的型態是 ``IO String``。你不能串接一個字串跟 I/O action。我們必須先把 ``String`` 的值從 I/O action 中取出，而唯一可行的方法就是在 I/O action 中使用 ``name <- getLine``。如果我們需要處理一些非純粹的資料，那我們就要在非純粹的環境中做。所以我們最好把 I/O 的部分縮減到最小的比例。
+如果你回答不是，恭喜你。如果你說是，你答錯了。這麼做不對的理由是 ``++`` 要求兩個參數都必須是串列。他左邊的參數是 ``String``，也就是 ``[Char]``。然而 ``getLine`` 的型態是 ``IO String``。你不能串接一個字串跟 I/O action。我們必須先把 ``String`` 的值從 I/O action 中取出，而唯一可行的方法就是在 I/O action 中使用 ``name &lt;- getLine``。如果我們需要處理一些非純粹的資料，那我們就要在非純粹的環境中做。所以我們最好把 I/O 的部分縮減到最小的比例。
 
 每個 I/O action 都有一個值封裝在裡面。這也是為什麼我們之前的程式可以這麼寫。
 {{
 main = do
-    foo <- putStrLn "Hello, what's your name?"
-    name <- getLine
+    foo &lt;- putStrLn "Hello, what's your name?"
+    name &lt;- getLine
     putStrLn ("Hey " ++ name ++ ", you rock!")
 }}
 然而，``foo`` 只會有一個 ``()`` 的值，所以綁定到 ``foo`` 這個名字似乎是多餘的。另外注意到我們並沒有綁定最後一行的 ``putStrLn`` 給任何名字。那是因為在一個 do block 中，最後一個 action 不能綁定任何名字。我們在之後講解 Monad 的時候會說明為什麼。現在你可以先想成 do block 會自動從最後一個 action 取出值並綁定給他的結果。
 
-除了最後一行之外，其他在 do 中沒有綁定名字的其實也可以寫成綁定的形式。所以 ``putStrLn "BLAH"`` 可以寫成 ``_ <- putStrLn "BLAH"``。但這沒什麼實際的意義，所以我們寧願寫成 ``putStrLn something``。
+除了最後一行之外，其他在 do 中沒有綁定名字的其實也可以寫成綁定的形式。所以 ``putStrLn "BLAH"`` 可以寫成 ``_ &lt;- putStrLn "BLAH"``。但這沒什麼實際的意義，所以我們寧願寫成 ``putStrLn something``。
 
 初學者有時候會想錯
 {{ 
     name = getLine    
 }}
-以為這行會讀取輸入並給他榜定一個名字叫 ``name`` 但其實只是把 ``getLine`` 這個 I/O action 指定一個名字叫 ``name`` 罷了記住，要從一個 I/O action 中取出值，你必須要在另一個 I/O action 中將他用 ``<-`` 綁定給一個名字。
+以為這行會讀取輸入並給他榜定一個名字叫 ``name`` 但其實只是把 ``getLine`` 這個 I/O action 指定一個名字叫 ``name`` 罷了記住，要從一個 I/O action 中取出值，你必須要在另一個 I/O action 中將他用 ``&lt;-`` 綁定給一個名字。
 
 I/O actions 只會在綁定給 ``main`` 的時候或是在另一個用 do 串起來的 I/O action 才會執行。你可以用 do 來串接 I/O actions，再用 do 來串接這些串接起來的 I/O actions。不過只有最外面的 I/O action 被指定給 main 才會觸發執行。
 
@@ -136,9 +136,9 @@ import Data.Char
 
 main = do
     putStrLn "What's your first name?"
-    firstName <- getLine
+    firstName &lt;- getLine
     putStrLn "What's your last name?"
-    lastName <- getLine
+    lastName &lt;- getLine
     let bigFirstName = map toUpper firstName
         bigLastName = map toUpper lastName
     putStrLn $ "hey " ++ bigFirstName ++ " " ++ bigLastName ++ ", how are you?"
@@ -146,12 +146,12 @@ main = do
 
 注意我們是怎麼編排在 do block 中的 I/O actions，也注意到我們是怎麼編排 let 跟其中的名字的，由於對齊在 Haskell 中並不會被無視，這麼編排才是好的習慣。我們的程式用 ``map toUpper firstName`` 將 ``"John"`` 轉成大寫的 ``"JOHN"``，並將大寫的結果綁定到一個名字上，之後在輸出的時候參考到了這個名字。
 
-你也許會問究竟什麼時候要用 ``<-`` 什麼時候用 let bindings?記住，``<-`` 是用來運算 I/O actions 並將他的結果綁定到名稱。而 ``map toUpper firstName`` 並不是一個 I/O action。他只是一個純粹的 expression。所以總結來說，當你要綁定 I/O actions 的結果時用 ``<-``，而對於純粹的 expression 使用 let bindings。對於錯誤的 ``let firstName = getLine``，我們只不過是把 ``getLine`` 這個 I/O actions 給了一個不同的名字罷了。最後還是要用 ``<-`` 將結果取出。
+你也許會問究竟什麼時候要用 ``&lt;-`` 什麼時候用 let bindings?記住，``&lt;-`` 是用來運算 I/O actions 並將他的結果綁定到名稱。而 ``map toUpper firstName`` 並不是一個 I/O action。他只是一個純粹的 expression。所以總結來說，當你要綁定 I/O actions 的結果時用 ``&lt;-``，而對於純粹的 expression 使用 let bindings。對於錯誤的 ``let firstName = getLine``，我們只不過是把 ``getLine`` 這個 I/O actions 給了一個不同的名字罷了。最後還是要用 ``&lt;-`` 將結果取出。
 
 現在我們來寫一個不斷讀取一行輸入並將這行輸入的字反過來輸出到螢幕上。程式會在輸入空白行的時候停止。
 {{
 main = do
-    line <- getLine
+    line &lt;- getLine
     if null line
         then return ()
         else do
@@ -183,21 +183,21 @@ else (do
 main = do
     return ()
     return "HAHAHA"
-    line <- getLine
+    line &lt;- getLine
     return "BLAH BLAH BLAH"
     return 4
     putStrLn line
 }}
 
-所有在程式中的 ``return`` 都是將 value 包成 I/O actions，而且由於我們沒有將他們綁定名稱，所以這些結果都被忽略。我們能用 ``<-`` 與 ``return`` 來達到綁定名稱的目的。
+所有在程式中的 ``return`` 都是將 value 包成 I/O actions，而且由於我們沒有將他們綁定名稱，所以這些結果都被忽略。我們能用 ``&lt;-`` 與 ``return`` 來達到綁定名稱的目的。
 {{
 main = do
-    a <- return "hell"
-    b <- return "yeah!"
+    a &lt;- return "hell"
+    b &lt;- return "yeah!"
     putStrLn $ a ++ " " ++ b
 }}
 
-可以看到 ``return`` 與 ``<-`` 作用相反。``return`` 把 value 裝進盒子中，而 ``<-`` 將 value 從盒子拿出來，並綁定一個名稱。不過這麼作是有些多餘，因為你可以用 let bindings 來綁定
+可以看到 ``return`` 與 ``&lt;-`` 作用相反。``return`` 把 value 裝進盒子中，而 ``&lt;-`` 將 value 從盒子拿出來，並綁定一個名稱。不過這麼作是有些多餘，因為你可以用 let bindings 來綁定
 {{
 main = do
     let a = "hell"
@@ -280,7 +280,7 @@ ghci> print (map (++"!") ["hey", "ho", "woo"])
 ``getChar`` 是一個從輸入讀進一個字元的 I/O action，因此他的 type signature 是 ``getChar :: IO Char``，代表一個 I/O action 的結果是 ``Char``。注意由於緩衝區的關係，只有當 Enter 被按下的時候才會觸發讀取字元的行為。
 {{
 main = do
-    c <- getChar
+    c &lt;- getChar
     if c /= ' '
         then do
             putChar c
@@ -301,7 +301,7 @@ hello
 import Control.Monad
 
 main = do
-    c <- getChar
+    c &lt;- getChar
     when (c /= ' ') $ do
         putChar c
         main
@@ -313,9 +313,9 @@ main = do
 
 {{
 main = do
-    a <- getLine
-    b <- getLine
-    c <- getLine
+    a &lt;- getLine
+    b &lt;- getLine
+    c &lt;- getLine
     print [a,b,c]
 }}
 
@@ -323,7 +323,7 @@ main = do
 
 {{
 main = do
-    rs <- sequence [getLine, getLine, getLine]
+    rs &lt;- sequence [getLine, getLine, getLine]
     print rs
 }}
 
@@ -365,7 +365,7 @@ import Data.Char
 
 main = forever $ do
     putStr "Give me some input: "
-    l <- getLine
+    l &lt;- getLine
     putStrLn $ map toUpper l
 }}
 
@@ -374,15 +374,15 @@ main = forever $ do
 import Control.Monad
 
 main = do 
-    colors <- forM [1,2,3,4] (\a -> do
+    colors &lt;- forM [1,2,3,4] (\a -> do
         putStrLn $ "Which color do you associate with the number " ++ show a ++ "?"
-        color <- getLine
+        color &lt;- getLine
         return color)
     putStrLn "The colors that you associate with 1, 2, 3 and 4 are: "
     mapM putStrLn colors
 }}
 
-``(\a -> do ...)`` 是接受一個數字並回傳一個 I/O action 的函數。我們必須用括號括住他，不然 lambda 會貪心 match 的策略會把最後兩個 I/O action 也算進去。注意我們在 do block 裡面 ``return color``。我們那麼作是讓 do block 的結果是我們選的顏色。實際上我們並不需那麼作，因為 ``getLine`` 已經達到我們的目的。先 ``color <- getLine`` 再 ``return color`` 只不過是把值取出再包起來，其實是跟 ``getLine`` 效果相當。``forM`` 產生一個 I/O action，我們把結果綁定到 ``colors`` 這名稱。``colors`` 是一個普通包含字串的串列。最後，我們用 ``mapM putStrLn colors`` 印出所有顏色。
+``(\a -> do ...)`` 是接受一個數字並回傳一個 I/O action 的函數。我們必須用括號括住他，不然 lambda 會貪心 match 的策略會把最後兩個 I/O action 也算進去。注意我們在 do block 裡面 ``return color``。我們那麼作是讓 do block 的結果是我們選的顏色。實際上我們並不需那麼作，因為 ``getLine`` 已經達到我們的目的。先 ``color &lt;- getLine`` 再 ``return color`` 只不過是把值取出再包起來，其實是跟 ``getLine`` 效果相當。``forM`` 產生一個 I/O action，我們把結果綁定到 ``colors`` 這名稱。``colors`` 是一個普通包含字串的串列。最後，我們用 ``mapM putStrLn colors`` 印出所有顏色。
 
 
 你可以把 ``forM`` 的意思想成將串列中的每個元素作成一個 I/O action。至於每個 I/O action 實際作什麼就要看原本的元素是什麼。然後，執行這些 I/O action 並將結果綁定到某個名稱上。或是直接將結果忽略掉。
@@ -414,7 +414,7 @@ orange
 
 [$../img/streams.png]
 
-``getChar`` 是一個讀取單一字元的 I/O action。``getLine`` 是一個讀取一行的 I/O action。這是兩個非常直覺的函式，多數程式語言也有類似這兩個函式的 statement 或 function。但現在我們來看看*getContents*。``getContents`` 是一個從標準輸入讀取直到 end-of-file 字元的 I/O action。他的型態是 ``getContents :: IO String``。最酷的是 ``getContents`` 是惰性 I/O (Lazy I/O)。當我們寫了 ``foo <- getContents``，他並不會馬上讀取所有輸入，將他們存在 memory 裡面。他只有當你真的需要輸入資料的時候才會讀取。
+``getChar`` 是一個讀取單一字元的 I/O action。``getLine`` 是一個讀取一行的 I/O action。這是兩個非常直覺的函式，多數程式語言也有類似這兩個函式的 statement 或 function。但現在我們來看看*getContents*。``getContents`` 是一個從標準輸入讀取直到 end-of-file 字元的 I/O action。他的型態是 ``getContents :: IO String``。最酷的是 ``getContents`` 是惰性 I/O (Lazy I/O)。當我們寫了 ``foo &lt;- getContents``，他並不會馬上讀取所有輸入，將他們存在 memory 裡面。他只有當你真的需要輸入資料的時候才會讀取。
 
 當我們需要重導一個程式的輸出到另一個程式的輸入時，``getContents`` 非常有用。假設我們有下面一個文字檔。
 {{
@@ -430,7 +430,7 @@ import Data.Char
   
 main = forever $ do  
     putStr "Give me some input: "  
-    l <- getLine  
+    l &lt;- getLine  
     putStrLn $ map toUpper l
 }}
 
@@ -448,7 +448,7 @@ $ cat haiku.txt | ./capslocker
 I'M A LIL' TEAPOT  
 WHAT'S WITH THAT AIRPLANE FOOD, HUH?  
 IT'S SO SMALL, TASTELESS  
-capslocker <stdin>: hGetLine: end of file
+capslocker &lt;stdin>: hGetLine: end of file
 }}
 
 就如你看到的，我們是用 ``|`` 這符號來將某個程式的輸出 piping 到另一個程式的輸入。我們做的事相當於 run 我們的 capslocker，然後將 haiku 的內容用鍵盤打到終端上，最後再按 Ctrl-D 來代表 end-of-file。這就像執行 cat haiku.txt 後大喊，嘿，不要把內容印到終端上，把內容塞到 capslocker!
@@ -459,7 +459,7 @@ capslocker <stdin>: hGetLine: end of file
 import Data.Char
 
 main = do
-    contents <- getContents
+    contents &lt;- getContents
     putStr (map toUpper contents)
 }}
 
@@ -486,13 +486,13 @@ LETS GO
 接著我們來寫個程式，讀取輸入，並只印出少於十個字元的行。
 {{
 main = do
-    contents <- getContents
+    contents &lt;- getContents
     putStr (shortLinesOnly contents)
 
 shortLinesOnly :: String -> String
 shortLinesOnly input = 
     let allLines = lines input
-        shortLines = filter (\line -> length line < 10) allLines
+        shortLines = filter (\line -> length line &lt; 10) allLines
         result = unlines shortLines
     in result
 }}
@@ -531,14 +531,14 @@ main = interact shortLinesOnly
 shortLinesOnly :: String -> String
 shortLinesOnly input = 
     let allLines = lines input
-        shortLines = filter (\line -> length line < 10) allLines
+        shortLines = filter (\line -> length line &lt; 10) allLines
         result = unlines shortLines
     in result
 }}
 
 我們甚至可以再讓程式碼更短一些，像這樣
 {{
-main = interact $ unlines . filter ((<10) . length) . lines
+main = interact $ unlines . filter ((&lt;10) . length) . lines
 }}
 看吧，我們讓程式縮到只剩一行了，很酷吧！
 
@@ -618,8 +618,8 @@ I think you need a new one!
 import System.IO  
   
 main = do  
-    handle <- openFile "girlfriend.txt" ReadMode  
-    contents <- hGetContents handle  
+    handle &lt;- openFile "girlfriend.txt" ReadMode  
+    contents &lt;- hGetContents handle  
     putStr contents  
     hClose handle  
 }}
@@ -665,7 +665,7 @@ import System.IO
     
 main = do     
     withFile "girlfriend.txt" ReadMode (\handle -> do  
-            contents <- hGetContents handle     
+            contents &lt;- hGetContents handle     
             putStr contents)  
 }}
 
@@ -674,8 +674,8 @@ main = do
 {{
 withFile' :: FilePath -> IOMode -> (Handle -> IO a) -> IO a  
 withFile' path mode f = do  
-    handle <- openFile path mode   
-    result <- f handle  
+    handle &lt;- openFile path mode   
+    result &lt;- f handle  
     hClose handle  
     return result  
 }}
@@ -694,7 +694,7 @@ withFile' path mode f = do
 import System.IO  
   
 main = do  
-    contents <- readFile "girlfriend.txt"  
+    contents &lt;- readFile "girlfriend.txt"  
     putStr contents  
 }}
 
@@ -707,7 +707,7 @@ import System.IO
 import Data.Char  
     
 main = do     
-    contents <- readFile "girlfriend.txt"     
+    contents &lt;- readFile "girlfriend.txt"     
     writeFile "girlfriendcaps.txt" (map toUpper contents)  
 }}
 
@@ -728,7 +728,7 @@ I THINK YOU NEED A NEW ONE!
 import System.IO     
     
 main = do     
-    todoItem <- getLine  
+    todoItem &lt;- getLine  
     appendFile "todo.txt" (todoItem ++ "\n")  
 }}
 
@@ -747,13 +747,13 @@ Take salad out of the oven
 
 由於 ``getLine`` 回傳的值不會有換行字元，我們需要在每一行最後加上 ``"\n"``。
 
-還有一件事，我們提到 ``contents <- hGetContents handle`` 是惰性 I/O，不會將檔案一次都讀到記憶體中。
+還有一件事，我們提到 ``contents &lt;- hGetContents handle`` 是惰性 I/O，不會將檔案一次都讀到記憶體中。
 所以像這樣寫的話：
 
 {{
 main = do   
     withFile "something.txt" ReadMode (\handle -> do  
-        contents <- hGetContents handle  
+        contents &lt;- hGetContents handle  
         putStr contents) 
 }}
 
@@ -767,7 +767,7 @@ main = do
 main = do   
     withFile "something.txt" ReadMode (\handle -> do  
         hSetBuffering handle $ BlockBuffering (Just 2048)  
-        contents <- hGetContents handle  
+        contents &lt;- hGetContents handle  
         putStr contents)  
 }}
 
@@ -786,15 +786,15 @@ import System.Directory
 import Data.List  
   
 main = do        
-    handle <- openFile "todo.txt" ReadMode  
-    (tempName, tempHandle) <- openTempFile "." "temp"  
-    contents <- hGetContents handle  
+    handle &lt;- openFile "todo.txt" ReadMode  
+    (tempName, tempHandle) &lt;- openTempFile "." "temp"  
+    contents &lt;- hGetContents handle  
     let todoTasks = lines contents     
     numberedTasks = zipWith (\n line -> show n ++ " - " ++ line) [0..] todoTasks     
     putStrLn "These are your TO-DO items:"  
     putStr $ unlines numberedTasks  
     putStrLn "Which one do you want to delete?"     
-    numberString <- getLine     
+    numberString &lt;- getLine     
     let number = read numberString     
     newTodoItems = delete (todoTasks !! number) todoTasks     
     hPutStr tempHandle $ unlines newTodoItems  
@@ -865,8 +865,8 @@ import System.Environment
 import Data.List  
   
 main = do  
-    args <- getArgs  
-    progName <- getProgName  
+    args &lt;- getArgs  
+    progName &lt;- getProgName  
     putStrLn "The arguments are:"  
     mapM putStrLn args  
     putStrLn "The program name is:"  
@@ -918,7 +918,7 @@ dispatch =  [ ("add", add)
 
 {{
 main = do  
-    (command:args) <- getArgs  
+    (command:args) &lt;- getArgs  
     let (Just action) = lookup command dispatch  
     action args  V
 }}
@@ -944,7 +944,7 @@ add [fileName, todoItem] = appendFile fileName (todoItem ++ "\n")
 {{
 view :: [String] -> IO ()  
 view [fileName] = do  
-    contents <- readFile fileName  
+    contents &lt;- readFile fileName  
     let todoTasks = lines contents  
     numberedTasks = zipWith (\n line -> show n ++ " - " ++ line) [0..] todoTasks  
     putStr $ unlines numberedTasks  
@@ -957,9 +957,9 @@ view [fileName] = do
 {{
 remove :: [String] -> IO ()  
 remove [fileName, numberString] = do  
-    handle <- openFile fileName ReadMode  
-    (tempName, tempHandle) <- openTempFile "." "temp"  
-    contents <- hGetContents handle  
+    handle &lt;- openFile fileName ReadMode  
+    (tempName, tempHandle) &lt;- openTempFile "." "temp"  
+    contents &lt;- hGetContents handle  
     let number = read numberString  
         todoTasks = lines contents  
         newTodoItems = delete (todoTasks !! number) todoTasks  
@@ -986,7 +986,7 @@ dispatch =  [ ("add", add)
             ]  
    
 main = do  
-    (command:args) <- getArgs  
+    (command:args) &lt;- getArgs  
     let (Just action) = lookup command dispatch  
     action args  
   
@@ -995,16 +995,16 @@ add [fileName, todoItem] = appendFile fileName (todoItem ++ "\n")
   
 view :: [String] -> IO ()  
 view [fileName] = do  
-    contents <- readFile fileName  
+    contents &lt;- readFile fileName  
     let todoTasks = lines contents  
         numberedTasks = zipWith (\n line -> show n ++ " - " ++ line) [0..] todoTasks  
     putStr $ unlines numberedTasks  
   
 remove :: [String] -> IO ()  
 remove [fileName, numberString] = do  
-    handle <- openFile fileName ReadMode  
-    (tempName, tempHandle) <- openTempFile "." "temp"  
-    contents <- hGetContents handle  
+    handle &lt;- openFile fileName ReadMode  
+    (tempName, tempHandle) &lt;- openTempFile "." "temp"  
+    contents &lt;- hGetContents handle  
     let number = read numberString  
         todoTasks = lines contents  
         newTodoItems = delete (todoTasks !! number) todoTasks  
@@ -1081,9 +1081,9 @@ ghci> random (mkStdGen 100)
 }}
 
 {{
-<interactive>:1:0:  
+&lt;interactive>:1:0:  
     Ambiguous type variable `a' in the constraint:  
-        `Random a' arising from a use of `random' at <interactive>:1:0-20  
+        `Random a' arising from a use of `random' at &lt;interactive>:1:0-20  
     Probable fix: add a type signature that fixes these type variable(s)  `
 }}
 
@@ -1206,7 +1206,7 @@ ghci> take 10 $ randomRs ('a','z') (mkStdGen 3) :: [Char]
 import System.Random  
   
 main = do  
-    gen <- getStdGen  
+    gen &lt;- getStdGen  
     putStr $ take 20 (randomRs ('a','z') gen)  
 }}
 
@@ -1227,9 +1227,9 @@ bakzhnnuzrkgvesqplrx
 import System.Random  
   
 main = do  
-    gen <- getStdGen  
+    gen &lt;- getStdGen  
     putStrLn $ take 20 (randomRs ('a','z') gen)  
-    gen2 <- getStdGen  
+    gen2 &lt;- getStdGen  
     putStr $ take 20 (randomRs ('a','z') gen2)  
 }}
 
@@ -1240,7 +1240,7 @@ import System.Random
 import Data.List  
   
 main = do  
-    gen <- getStdGen  
+    gen &lt;- getStdGen  
     let randomChars = randomRs ('a','z') gen  
         (first20, rest) = splitAt 20 randomChars  
         (second20, _) = splitAt 20 rest  
@@ -1254,9 +1254,9 @@ main = do
 import System.Random  
   
 main = do     
-    gen <- getStdGen     
+    gen &lt;- getStdGen     
     putStrLn $ take 20 (randomRs ('a','z') gen)     
-    gen' <- newStdGen  
+    gen' &lt;- newStdGen  
     putStr $ take 20 (randomRs ('a','z') gen')     
 }}
 
@@ -1269,14 +1269,14 @@ import System.Random
 import Control.Monad(when)  
   
 main = do  
-    gen <- getStdGen  
+    gen &lt;- getStdGen  
     askForNumber gen  
 
 askForNumber :: StdGen -> IO ()  
 askForNumber gen = do  
     let (randNumber, newGen) = randomR (1,10) gen :: (Int, StdGen)  
     putStr "Which number in the range from 1 to 10 am I thinking of? "  
-    numberString <- getLine  
+    numberString &lt;- getLine  
     when (not $ null numberString) $ do  
         let number = read numberString  
         if randNumber == number   
@@ -1317,10 +1317,10 @@ import System.Random
 import Control.Monad(when)  
   
 main = do  
-    gen <- getStdGen  
+    gen &lt;- getStdGen  
     let (randNumber, _) = randomR (1,10) gen :: (Int, StdGen)     
     putStr "Which number in the range from 1 to 10 am I thinking of? "  
-    numberString <- getLine  
+    numberString &lt;- getLine  
     when (not $ null numberString) $ do  
         let number = read numberString  
         if randNumber == number  
@@ -1390,10 +1390,10 @@ Chunk "U" (Chunk "PQRT" Empty)
 ghci> B.cons' 85 $ B.pack [80,81,82,84]  
 Chunk "UPQRT" Empty  
 ghci> foldr B.cons B.empty [50..60]  
-Chunk "2" (Chunk "3" (Chunk "4" (Chunk "5" (Chunk "6" (Chunk "7" (Chunk "8" (Chunk "9" (Chunk ":" (Chunk ";" (Chunk "<"  
+Chunk "2" (Chunk "3" (Chunk "4" (Chunk "5" (Chunk "6" (Chunk "7" (Chunk "8" (Chunk "9" (Chunk ":" (Chunk ";" (Chunk "&lt;"  
 Empty))))))))))  
 ghci> foldr B.cons' B.empty [50..60]  
-Chunk "23456789:;<" Empty  
+Chunk "23456789:;&lt;" Empty  
 }}
 
 你可以看到**empty**製造了一個空的 bytestring。也注意到 ``cons`` 跟 ``cons'`` 的差異了嗎？有了 ``foldr``，我們逐步地把一串數字從右邊開始，一個個放到 bytestring 的前頭。當我們用 ``cons``，我們則得到一個 byte 一個 chunk 的結果，並不是我們要的。
@@ -1409,12 +1409,12 @@ import System.Environment
 import qualified Data.ByteString.Lazy as B  
   
 main = do  
-    (fileName1:fileName2:_) <- getArgs  
+    (fileName1:fileName2:_) &lt;- getArgs  
     copyFile fileName1 fileName2  
 
 copyFile :: FilePath -> FilePath -> IO ()  
 copyFile source dest = do  
-    contents <- B.readFile source  
+    contents &lt;- B.readFile source  
     B.writeFile dest contents  
 }}
 
@@ -1460,8 +1460,8 @@ pure code 能丟出 Exception，但 Exception 只能在 I/O section 中被接到
 import System.Environment  
 import System.IO  
   
-main = do (fileName:_) <- getArgs  
-            contents <- readFile fileName  
+main = do (fileName:_) &lt;- getArgs  
+            contents &lt;- readFile fileName  
             putStrLn $ "The file has " ++ show (length (lines contents)) ++ " lines!"  
 }}
 
@@ -1479,15 +1479,15 @@ import System.Environment
 import System.IO  
 import System.Directory  
   
-main = do (fileName:_) <- getArgs  
-            fileExists <- doesFileExist fileName  
+main = do (fileName:_) &lt;- getArgs  
+            fileExists &lt;- doesFileExist fileName  
             if fileExists  
-                then do contents <- readFile fileName  
+                then do contents &lt;- readFile fileName  
                     putStrLn $ "The file has " ++ show (length (lines contents)) ++ " lines!"  
                 else do putStrLn "The file doesn't exist!"  
 }}
 
-由於 ``doesFileExist`` 的型態是 ``doesFileExist :: FilePath -> IO Bool``，所以我們要寫成 ``fileExists <- doesFileExist fileName``。那代表他回傳含有一個布林值告訴我們檔案存不存在的 I/O action。``doesFileExist`` 是不能直接在 if expression 中使用的。
+由於 ``doesFileExist`` 的型態是 ``doesFileExist :: FilePath -> IO Bool``，所以我們要寫成 ``fileExists &lt;- doesFileExist fileName``。那代表他回傳含有一個布林值告訴我們檔案存不存在的 I/O action。``doesFileExist`` 是不能直接在 if expression 中使用的。
 
 另一個解法是使用 Exception。在這個情境下使用 Exception 是沒問題的。檔案不存在這個 Exception 是在 I/O 中被丟出，所以在 I/O 中接起來也沒什麼不對。
 
@@ -1509,8 +1509,8 @@ import System.IO.Error
 main = toTry `catch` handler  
 
 toTry :: IO ()  
-toTry = do (fileName:_) <- getArgs  
-            contents <- readFile fileName  
+toTry = do (fileName:_) &lt;- getArgs  
+            contents &lt;- readFile fileName  
             putStrLn $ "The file has " ++ show (length (lines contents)) ++ " lines!"  
 
 handler :: IOError -> IO ()  
@@ -1539,8 +1539,8 @@ import System.IO.Error
 main = toTry `catch` handler  
 
 toTry :: IO ()  
-toTry = do (fileName:_) <- getArgs  
-            contents <- readFile fileName  
+toTry = do (fileName:_) &lt;- getArgs  
+            contents &lt;- readFile fileName  
             putStrLn $ "The file has " ++ show (length (lines contents)) ++ " lines!"  
 
 handler :: IOError -> IO ()  
@@ -1588,8 +1588,8 @@ import System.IO.Error
 main = toTry `catch` handler     
 
 toTry :: IO ()     
-toTry = do (fileName:_) <- getArgs     
-    contents <- readFile fileName     
+toTry = do (fileName:_) &lt;- getArgs     
+    contents &lt;- readFile fileName     
     putStrLn $ "The file has " ++ show (length (lines contents)) ++ " lines!"     
 
 handler :: IOError -> IO ()     

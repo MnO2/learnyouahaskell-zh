@@ -53,7 +53,7 @@ maximum' (x:xs) = max x (maximum' xs)
 {{
 replicate' :: (Num i, Ord i) => i -> a -> [a]  
 replicate' n x  
-    | n <= 0    = []  
+    | n &lt;= 0    = []  
     | otherwise = x:replicate' (n-1) x
 }}
 
@@ -66,7 +66,7 @@ replicate' n x
 {{
 take' :: (Num i, Ord i) => i -> [a] -> [a]  
 take' n _  
-    | n <= 0   = []  
+    | n &lt;= 0   = []  
 take' _ []     = []  
 take' n (x:xs) = x : take' (n-1) xs 
 }}
@@ -131,8 +131,8 @@ elem' a (x:xs)
 quicksort :: (Ord a) => [a] -> [a]  
 quicksort [] = []  
 quicksort (x:xs) =  
-  let smallerSorted = quicksort [a | a <- xs, a <= x] 
-      biggerSorted = quicksort [a | a <- xs, a > x]  
+  let smallerSorted = quicksort [a | a &lt;- xs, a &lt;= x] 
+      biggerSorted = quicksort [a | a &lt;- xs, a > x]  
   in smallerSorted ++ [x] ++ biggerSorted  
 }}
 

@@ -198,7 +198,7 @@ ghci> map fst [(1,2),(3,5),(6,3),(2,6),(2,5)]
 [1,3,6,2,2]  
 }}
 
-你可能會發現，以上的所有程式碼都可以用 List Comprehension 來替代。``map (+3) [1,5,3,1,6]`` 與 ``[x+3 | x <- [1,5,3,1,6]`` 完全等價。
+你可能會發現，以上的所有程式碼都可以用 List Comprehension 來替代。``map (+3) [1,5,3,1,6]`` 與 ``[x+3 | x &lt;- [1,5,3,1,6]`` 完全等價。
 
 **filter** 函數取一個限制條件和一個 List，回傳該 List 中所有符合該條件的元素。它的型別聲明及實現大致如下:
  
@@ -227,7 +227,7 @@ ghci> filter (`elem` ['A'..'Z']) "i lauGh At You BecAuse u r aLL the Same"
 "GAYBALLS"  
 }}
 
-同樣，以上都可以用 List Comprehension 的限制條件來實現。並沒有教條規定你必須在什麼情況下用 ``map`` 和 ``filter`` 還是 List Comprehension，選擇權歸你，看誰舒服用誰就是。 如果有多個限制條件，只能連着套好幾個 ``filter`` 或用 ``&&`` 等邏輯函數的組合之，這時就不如 List comprehension 來得爽了。
+同樣，以上都可以用 List Comprehension 的限制條件來實現。並沒有教條規定你必須在什麼情況下用 ``map`` 和 ``filter`` 還是 List Comprehension，選擇權歸你，看誰舒服用誰就是。 如果有多個限制條件，只能連着套好幾個 ``filter`` 或用 ``&amp;&amp;`` 等邏輯函數的組合之，這時就不如 List comprehension 來得爽了。
 
 還記得上一章的那個 ``quicksort`` 函數麼? 我們用到了 List Comprehension 來過濾大於或小於錨的元素。 換做 ``filter`` 也可以實現，而且更加易讀：
 
@@ -235,7 +235,7 @@ ghci> filter (`elem` ['A'..'Z']) "i lauGh At You BecAuse u r aLL the Same"
 quicksort :: (Ord a) => [a] -> [a]    
 quicksort [] = []    
 quicksort (x:xs) =     
-    let smallerSorted = quicksort (filter (<=x) xs)
+    let smallerSorted = quicksort (filter (&lt;=x) xs)
         biggerSorted = quicksort (filter (>x) xs)   
     in  smallerSorted ++ [x] ++ biggerSorted  
 }}
@@ -257,14 +257,14 @@ largestDivisible = head (filter p [100000,99999..])
 接下來，我們就要*找出所有小於 10000 的奇數的平方和*，得先提下 **takeWhile** 函數，它取一個限制條件和 List 作參數，然後從頭開始遍歷這一 List，並回傳符合限制條件的元素。 而一旦遇到不符合條件的元素，它就停止了。 如果我們要取出字串  ``"elephants know how to party"`` 中的首個單詞，可以 ``takeWhile (/=' ') "elephants know how to party"``，回傳 ``"elephants"``。okay，要求所有小於 10000 的奇數的平方的和，首先就用 ``(^2)`` 函數 ``map`` 掉這個無限的 List ``[1..]`` 。然後過濾之，只取奇數就是了。 在大於 10000 處將它斷開，最後前面的所有元素加到一起。 這一切連寫函數都不用，在 ghci 下直接搞定.
 
 {{
-ghci> sum (takeWhile (<10000) (filter odd (map (^2) [1..])))  
+ghci> sum (takeWhile (&lt;10000) (filter odd (map (^2) [1..])))  
 166650  
 }}
 
 不錯! 先從幾個初始數據(表示所有自然數的無限 List)，再 ``map`` 它，``filter`` 它，切它，直到它符合我們的要求，再將其加起來。 這用 List comprehension 也是可以的，而哪種方式就全看你的個人口味.
 
 {{
-ghci> sum (takeWhile (<10000) [m | m <- [n^2 | n <- [1..]], odd m])  
+ghci> sum (takeWhile (&lt;10000) [m | m &lt;- [n^2 | n &lt;- [1..]], odd m])  
 166650  
 }}
 
@@ -484,7 +484,7 @@ ghci> scanl (flip (:)) [] [3,2,1]
 
 {{
 sqrtSums :: Int  
-sqrtSums = length (takeWhile (<1000) (scanl1 (+) (map sqrt [1..]))) + 1  
+sqrtSums = length (takeWhile (&lt;1000) (scanl1 (+) (map sqrt [1..]))) + 1  
 }}
 
 {{
@@ -596,14 +596,14 @@ fn = ceiling . negate . tan . cos . max 50
 
 {{
 oddSquareSum :: Integer  
-oddSquareSum = sum (takeWhile (<10000) (filter odd (map (^2) [1..])))    
+oddSquareSum = sum (takeWhile (&lt;10000) (filter odd (map (^2) [1..])))    
 }}
 
 身為函數組合狂人，我可能會這麼寫：
 
 {{
 oddSquareSum :: Integer  
-oddSquareSum = sum . takeWhile (<10000) . filter odd . map (^2) $ [1..]  
+oddSquareSum = sum . takeWhile (&lt;10000) . filter odd . map (^2) $ [1..]  
 }}
 
 不過若是給別人看，我可能就這麼寫了：
@@ -612,7 +612,7 @@ oddSquareSum = sum . takeWhile (<10000) . filter odd . map (^2) $ [1..]
 oddSquareSum :: Integer  
 oddSquareSum =   
     let oddSquares = filter odd $ map (^2) [1..]  
-        belowLimit = takeWhile (<10000) oddSquares  
+        belowLimit = takeWhile (&lt;10000) oddSquares  
     in  sum belowLimit  
 }}
 

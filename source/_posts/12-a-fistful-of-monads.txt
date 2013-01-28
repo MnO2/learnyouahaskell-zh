@@ -17,7 +17,7 @@ fmap :: (Functor f) => (a -> b) -> f a -> f b
 之後我們又看到一些可以針對 Functor 改進的地方，例如 ``a -> b`` 也被包在一個 Functor value 裡面呢？像是 ``Just (*3)``，我們要如何 apply ``Just 5`` 給他？如果我們不要 apply ``Just 5`` 而是 ``Nothing`` 呢？甚至給定 ``[(*2),(+4)]``，我們要如何 apply 他們到 ``[1,2,3]`` 呢？對於此，我們抽象出 ``Applicative`` typeclass，這就是我們想要問的問題：
 
 {{
-(<*>) :: (Applicative f) => f (a -> b) -> f a -> f b     
+(&lt;*>) :: (Applicative f) => f (a -> b) -> f a -> f b     
 }}
 
 我們也看到我們可以將一個正常的值包在一個資料型態中。例如說我們可以拿一個 ``1`` 然後把他包成 ``Just 1``。或是把他包成 ``[1]``。也可以是一個 I/O action 會產生一個 ``1``。這樣包裝的 function 我們叫他做 ``pure``。
@@ -26,11 +26,11 @@ fmap :: (Functor f) => (a -> b) -> f a -> f b
 
 來看看 ``Applicative`` typeclass 怎樣讓我們用普通的 function 操作他們，同時還保有 context：
 {{
-ghci> (*) <$> Just 2 <*> Just 8  
+ghci> (*) &lt;$> Just 2 &lt;*> Just 8  
 Just 16  
-ghci> (++) <$> Just "klingon" <*> Nothing  
+ghci> (++) &lt;$> Just "klingon" &lt;*> Nothing  
 Nothing  
-ghci> (-) <$> [3,4] <*> [1,2,3]  
+ghci> (-) &lt;$> [3,4] &lt;*> [1,2,3]  
 [2,1,0,3,2,1]  
 }}
 
@@ -70,23 +70,23 @@ ghci> fmap (++"!") Nothing
 Nothing  
 }}
 
-或者視為一個 applicative functor，他也有類似的作用。只是 applicative 也把函數包了起來。``Maybe`` 作為一個 applicative functor，我們能用 ``<*>`` 來套用一個存在 ``Maybe`` 中的函數至包在另外一個 ``Maybe`` 中的值。他們都必須是包在 ``Just`` 來代表值存在，要不然其實就是 ``Nothing``。當你在想套用函數到值上面的時候，缺少了函數或是值都會造成錯誤，所以這樣做是很合理的。
+或者視為一個 applicative functor，他也有類似的作用。只是 applicative 也把函數包了起來。``Maybe`` 作為一個 applicative functor，我們能用 ``&lt;*>`` 來套用一個存在 ``Maybe`` 中的函數至包在另外一個 ``Maybe`` 中的值。他們都必須是包在 ``Just`` 來代表值存在，要不然其實就是 ``Nothing``。當你在想套用函數到值上面的時候，缺少了函數或是值都會造成錯誤，所以這樣做是很合理的。
 
 {{
-ghci> Just (+3) <*> Just 3  
+ghci> Just (+3) &lt;*> Just 3  
 Just 6  
-ghci> Nothing <*> Just "greed"  
+ghci> Nothing &lt;*> Just "greed"  
 Nothing  
-ghci> Just ord <*> Nothing  
+ghci> Just ord &lt;*> Nothing  
 Nothing  
 }}
 
 當我們用 applicative 的方式套用函數至 ``Maybe`` 型態的值時，就跟上面描述的差不多。過程中所有值都必須是 ``Just``，要不然結果一定會是 ``Nothing``。
 
 {{
-ghci> max <$> Just 3 <*> Just 6  
+ghci> max &lt;$> Just 3 &lt;*> Just 6  
 Just 6  
-ghci> max <$> Just 3 <*> Nothing  
+ghci> max &lt;$> Just 3 &lt;*> Nothing  
 Nothing  
 }}
 
@@ -302,12 +302,12 @@ ghci> (0,0) -: landLeft 1 -: landRight 4 -: landLeft (-1) -: landRight (-2)
 {{
 landLeft :: Birds -> Pole -> Maybe Pole  
 landLeft n (left,right)  
-    | abs ((left + n) - right) < 4 = Just (left + n, right)  
+    | abs ((left + n) - right) &lt; 4 = Just (left + n, right)  
     | otherwise                    = Nothing  
           
 landRight :: Birds -> Pole -> Maybe Pole  
 landRight n (left,right)  
-    | abs (left - (right + n)) < 4 = Just (left, right + n)  
+    | abs (left - (right + n)) &lt; 4 = Just (left, right + n)  
     | otherwise                    = Nothing  
 }}
 
@@ -489,8 +489,8 @@ foo = Just 3   >>= (\x ->
 {{
 foo :: Maybe String  
 foo = do  
-    x <- Just 3  
-    y <- Just "!"  
+    x &lt;- Just 3  
+    y &lt;- Just "!"  
     Just (show x ++ y)  
 }}
 
@@ -499,7 +499,7 @@ foo = do
 這看起來好像讓我們不用在每一步都去檢查 ``Maybe`` 的值究竟是 ``Just`` 或 ``Nothing``。這蠻方便的，如果在任何一個步驟我們取出了 ``Nothing``。那整個 ``do`` 的結果就會是 ``Nothing``。我們把整個責任都交給 ``>>=``，他會幫我們處理所有 context 的問題。這邊的 ``do`` 表示法不過是另外一種語法的形式來串連所有的 monadic value 罷了。
 
 
-在 ``do`` expression 中，每一行都是一個 monadic value。要檢查處理的結果的話，就要使用 ``<-``。如果我們拿到一個 ``Maybe String``，並用 ``<-`` 來綁定給一個變數，那個變數就會是一個 ``String``，就像是使用 ``>>=`` 來將 monadic value 帶給 lambda 一樣。至於 ``do`` expression 中的最後一個值，好比說 ``Just (show x ++ y)``，就不能用 ``<-`` 來綁定結果，因為那樣的寫法當轉換成 ``>>=`` 的結果時並不合理。他必須要是所有 monadic value 黏起來後的總結果，要考慮到前面所有可能失敗的情形。
+在 ``do`` expression 中，每一行都是一個 monadic value。要檢查處理的結果的話，就要使用 ``&lt;-``。如果我們拿到一個 ``Maybe String``，並用 ``&lt;-`` 來綁定給一個變數，那個變數就會是一個 ``String``，就像是使用 ``>>=`` 來將 monadic value 帶給 lambda 一樣。至於 ``do`` expression 中的最後一個值，好比說 ``Just (show x ++ y)``，就不能用 ``&lt;-`` 來綁定結果，因為那樣的寫法當轉換成 ``>>=`` 的結果時並不合理。他必須要是所有 monadic value 黏起來後的總結果，要考慮到前面所有可能失敗的情形。
 
 
 舉例來說，來看看下面這行：
@@ -514,7 +514,7 @@ Just True
 {{
 marySue :: Maybe Bool  
 marySue = do   
-    x <- Just 9  
+    x &lt;- Just 9  
     Just (x > 8)  
 }}
 
@@ -526,9 +526,9 @@ marySue = do
 {{
 routine :: Maybe Pole  
 routine = do  
-    start <- return (0,0)  
-    first <- landLeft 2 start  
-    second <- landRight 2 first  
+    start &lt;- return (0,0)  
+    first &lt;- landLeft 2 start  
+    second &lt;- landRight 2 first  
     landLeft 1 second  
 }}
 
@@ -565,14 +565,14 @@ routine :: Maybe Pole
 {{
 routine :: Maybe Pole  
 routine = do  
-    start <- return (0,0)  
-    first <- landLeft 2 start  
+    start &lt;- return (0,0)  
+    first &lt;- landLeft 2 start  
     Nothing  
-    second <- landRight 2 first  
+    second &lt;- landRight 2 first  
     landLeft 1 second  
 }}
 
-當我們在 ``do`` 表示法寫了一行運算，但沒有用到 ``<-`` 來綁定值的話，其實實際上就是用了 ``>>``，他會忽略掉計算的結果。我們只是要讓他們有序，而不是要他們的結果，而且他比寫成 ``_ <- Nothing`` 要來得漂亮的多。
+當我們在 ``do`` 表示法寫了一行運算，但沒有用到 ``&lt;-`` 來綁定值的話，其實實際上就是用了 ``>>``，他會忽略掉計算的結果。我們只是要讓他們有序，而不是要他們的結果，而且他比寫成 ``_ &lt;- Nothing`` 要來得漂亮的多。
 
 你會問究竟我們何時要使用 ``do`` 表示法或是 ``>>=``，這完全取決於你的習慣。在這個例子由於有每一步都倚賴於前一步結果的特性，所以我們使用 ``>>=``。如果用 ``do`` 表示法，我們就必須清楚寫出鳥究竟是停在哪根竿子上，但其實每一次都是前一次的結果。不過他還是讓我們了解到怎麼使用 ``do``。
 
@@ -581,7 +581,7 @@ routine = do
 {{
 justH :: Maybe Char  
 justH = do  
-    (x:xs) <- Just "hello"  
+    (x:xs) &lt;- Just "hello"  
     return x 
 }}
 
@@ -605,7 +605,7 @@ fail _ = Nothing
 {{
 wopwop :: Maybe Char  
 wopwop = do  
-    (x:xs) <- Just ""  
+    (x:xs) &lt;- Just ""  
     return x  
 }}
 
@@ -628,7 +628,7 @@ Nothing
 我們已經討論過在把 list 當作 applicatives 的時候他們具有 non-deterministic 的性質。像 ``5`` 這樣一個值是 deterministic 的。他只有一種結果，而且我們清楚的知道他是什麼結果。另一方面，像 ``[3,8,9]`` 這樣的值包含好幾種結果，所以我們能把他看作是同時具有好幾種結果的值。把 list 當作 applicative functors 展示了這種特性：
 
 {{
-ghci> (*) <$> [1,2,3] <*> [10,100,1000]  
+ghci> (*) &lt;$> [1,2,3] &lt;*> [10,100,1000]  
 [10,100,1000,20,200,2000,30,300,3000]  
 }}
 
@@ -694,8 +694,8 @@ ghci> [1,2] >>= \n -> ['a','b'] >>= \ch -> return (n,ch)
 {{
 listOfTuples :: [(Int,Char)]  
 listOfTuples = do  
-    n <- [1,2]  
-    ch <- ['a','b']  
+    n &lt;- [1,2]  
+    ch &lt;- ['a','b']  
     return (n,ch)  
 }}
 
@@ -704,7 +704,7 @@ listOfTuples = do
 使用 ``do`` 來對 list 操作讓我們回想起之前看過的一些東西。來看看下列的片段：
 
 {{
-ghci> [ (n,ch) | n <- [1,2], ch <- ['a','b'] ]  
+ghci> [ (n,ch) | n &lt;- [1,2], ch &lt;- ['a','b'] ]  
 [(1,'a'),(1,'b'),(2,'a'),(2,'b')]  
 }}
 
@@ -715,7 +715,7 @@ ghci> [ (n,ch) | n <- [1,2], ch <- ['a','b'] ]
 List comprehension 允許我們 filter 我們的結果。舉例來說，我們可以只要包含 ``7`` 在表示位數裡面的數值。
 
 {{
-ghci> [ x | x <- [1..50], '7' `elem` show x ]  
+ghci> [ x | x &lt;- [1..50], '7' `elem` show x ]  
 [7,17,27,37,47]  
 }}
 
@@ -780,7 +780,7 @@ ghci> guard (1 > 2) >> return "cool" :: [String]
 {{
 sevensOnly :: [Int]  
 sevensOnly = do  
-    x <- [1..50]  
+    x &lt;- [1..50]  
     guard ('7' `elem` show x)  
     return x  
 }}
@@ -790,7 +790,7 @@ sevensOnly = do
 把上述範例寫成 list comprehension 的話就會像這樣：
 
 {{
-ghci> [ x | x <- [1..50], '7' `elem` show x ]  
+ghci> [ x | x &lt;- [1..50], '7' `elem` show x ]  
 [7,17,27,37,47]  
 }}
 
@@ -813,7 +813,7 @@ type KnightPos = (Int,Int)
 {{
 moveKnight :: KnightPos -> [KnightPos]  
 moveKnight (c,r) = do  
-    (c',r') <- [(c+2,r-1),(c+2,r+1),(c-2,r-1),(c-2,r+1)  
+    (c',r') &lt;- [(c+2,r-1),(c+2,r+1),(c-2,r-1),(c-2,r+1)  
                 ,(c+1,r-2),(c+1,r+2),(c-1,r-2),(c-1,r+2)  
                 ]  
     guard (c' `elem` [1..8] && r' `elem` [1..8])  
@@ -848,8 +848,8 @@ ghci> moveKnight (8,1)
 {{
 in3 :: KnightPos -> [KnightPos]  
 in3 start = do   
-    first <- moveKnight start  
-    second <- moveKnight first  
+    first &lt;- moveKnight start  
+    second &lt;- moveKnight first  
     moveKnight second  
 }}
 
@@ -993,8 +993,8 @@ f . g = (\x -> f (g x))
 如果 ``g`` 的型態是 ``a -> b`` 且 ``f`` 的型態是 ``b -> c``，我們可以把他們合成一個型態是 ``a -> c`` 的新函數。所以中間的參數都有自動帶過。現在假設這兩個函數是 monadic function，也就是說如果他們的回傳值是 monadic function？如果我們有一個函數他的型態是 ``a -> m b``，我們並不能直接把結果丟給另一個型態為 ``b -> m c`` 的函數，因為後者只接受型態為 ``b`` 的普通值。然而，我們可以用 ``>>=`` 來做到我們想要的事。有了 ``>>=``，我們可以合成兩個 monadic function：
 
 {{
-(<=<) :: (Monad m) => (b -> m c) -> (a -> m b) -> (a -> m c)  
-f <=< g = (\x -> g x >>= f)  
+(&lt;=&lt;) :: (Monad m) => (b -> m c) -> (a -> m b) -> (a -> m c)  
+f &lt;=&lt; g = (\x -> g x >>= f)  
 }}
 
 所以現在我們可以合成兩個 monadic functions：
@@ -1002,14 +1002,14 @@ f <=< g = (\x -> g x >>= f)
 {{
 ghci> let f x = [x,-x]  
 ghci> let g x = [x*3,x*2]  
-ghci> let h = f <=< g  
+ghci> let h = f &lt;=&lt; g  
 ghci> h 3  
 [9,-9,6,-6]  
 }}
 
-至於這跟結合律有什麼關係呢？當我們把這定律看作是合成的定律，他就只是說了 ``f <=< (g <=< h)`` 跟 ``(f <=< g) <=< h`` 應該等價。只是他是針對 monad 而已。
+至於這跟結合律有什麼關係呢？當我們把這定律看作是合成的定律，他就只是說了 ``f &lt;=&lt; (g &lt;=&lt; h)`` 跟 ``(f &lt;=&lt; g) &lt;=&lt; h`` 應該等價。只是他是針對 monad 而已。
 
-如果我們把頭兩個單子律用 ``<=<`` 改寫，那 left identity 不過就是說對於每個 monadic function ``f``，``f <=< return`` 跟 ``f`` 是等價，而 right identity 說 ``return <=< f`` 跟 ``f`` 是等價。
+如果我們把頭兩個單子律用 ``&lt;=&lt;`` 改寫，那 left identity 不過就是說對於每個 monadic function ``f``，``f &lt;=&lt; return`` 跟 ``f`` 是等價，而 right identity 說 ``return &lt;=&lt; f`` 跟 ``f`` 是等價。
 
 如果看看普通函數的情形，就會發現很像，``(f . g) . h`` 等價於 ``f . (g . h)``，``f . id`` 跟 ``f`` 等價，且 ``id . f`` 等價於 ``f``。
 
