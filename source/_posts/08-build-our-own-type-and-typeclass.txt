@@ -688,7 +688,7 @@ type Code = String
 type LockerMap = Map.Map Int (LockerState, Code)  
 }}
 
-很簡單，我們引入了一個新的型別來表示壁櫥的占用情況。併為壁櫥密碼及按號碼找壁櫥的 Map 分別設置了一個別名。好，現在我們實現這個按號碼找壁櫥的函數，就用 ``Either String Code`` 型別表示我們的結果，因為 ``lookup`` 可能會以兩種原因失敗。廚子已經讓別人用了或者壓根就沒有這個櫥子。如果 ``lookup`` 失敗，就用字元串表明失敗的原因。
+很簡單，我們引入了一個新的型別來表示壁櫥的占用情況。併為壁櫥密碼及按號碼找壁櫥的 Map 分別設置了一個別名。好，現在我們實現這個按號碼找壁櫥的函數，就用 ``Either String Code`` 型別表示我們的結果，因為 ``lookup`` 可能會以兩種原因失敗。櫥子已經讓別人用了或者壓根就沒有這個櫥子。如果 ``lookup`` 失敗，就用字元串表明失敗的原因。
 
 {{
 lockerLookup :: Int -> LockerMap -> Either String Code  
