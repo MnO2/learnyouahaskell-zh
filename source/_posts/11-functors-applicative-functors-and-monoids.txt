@@ -30,7 +30,7 @@ instance Functor IO where
         return (f result)
 }}
 
-對一個 I/O action 做 map over 動作的結果仍會是一個 I/O action，所以我們才用 do syntax 來把兩個 I/O action 黏成一個。在 ``fmap`` 的實做中，我們先執行了原本傳進的 I/O action，並把結果綁定成 ``result``。然後我們寫了 ``return (f result)``。``return`` 就如你所知道的，是一個只會回傳包了你傳給他東西的 I/O action。還有一個 do block 的回傳值一定是他最後一個 I/O action 的回傳值。這也是為什麼我們需要 return。其實他只是回傳包了 ``f result`` 的 I/O action。
+對一個 I/O action 做 map over 動作的結果仍會是一個 I/O action，所以我們才用 do syntax 來把兩個 I/O action 黏成一個。在 ``fmap`` 的實作中，我們先執行了原本傳進的 I/O action，並把結果綁定成 ``result``。然後我們寫了 ``return (f result)``。``return`` 就如你所知道的，是一個只會回傳包了你傳給他東西的 I/O action。還有一個 do block 的回傳值一定是他最後一個 I/O action 的回傳值。這也是為什麼我們需要 return。其實他只是回傳包了 ``f result`` 的 I/O action。
 
 我們可以再多實驗一下來找到些感覺。來看看這段 code：
 
@@ -539,7 +539,7 @@ main = do
 如果你發現你是在做 binding I/O action 的動作，而且在 binding 之後還呼叫一些函數，最後用 ``return`` 來將結果包起來。
 那你可以考慮使用 applicative style，這樣可以更簡潔。
 
-另一個 ``Applicative`` 的 instance 是 ``(->) r``。雖然他們通常是用在 code golf 的情況，但他們還是十分有趣的例子。所以我們還是來看一下他們是怎麼被實做的。
+另一個 ``Applicative`` 的 instance 是 ``(->) r``。雖然他們通常是用在 code golf 的情況，但他們還是十分有趣的例子。所以我們還是來看一下他們是怎麼被實作的。
 
 	如果你忘記 ``(->) r`` 的意思，回去翻翻前一章節我們介紹 ``(->) r`` 作為一個 functor 的範例。
 
@@ -549,7 +549,7 @@ instance Applicative ((->) r) where
     f &lt;*> g = \x -> f x (g x)  
 }}
 
-當我們用 ``pure`` 將一個值包成 applicative functor 的時候，他產生的結果永遠都會是那個值。也就是最小的 context。那夜市為什麼對於 function 的 ``pure`` 實做來講，他就是接受一個值，然後造一個函數永遠回傳那個值，不管他被餵了什麼參數。如果你限定 ``pure`` 的型別至 ``(->) r`` 上，他就會是 ``pure :: a -> (r -> a)``。
+當我們用 ``pure`` 將一個值包成 applicative functor 的時候，他產生的結果永遠都會是那個值。也就是最小的 context。那夜市為什麼對於 function 的 ``pure`` 實作來講，他就是接受一個值，然後造一個函數永遠回傳那個值，不管他被餵了什麼參數。如果你限定 ``pure`` 的型別至 ``(->) r`` 上，他就會是 ``pure :: a -> (r -> a)``。
 
 {{
 ghci> (pure 3) "blah"  
@@ -563,7 +563,7 @@ ghci> pure 3 "blah"
 3  
 }}
 
-而 ``&lt;*>`` 的實做是比較不容易瞭解的，我們最好看一下怎麼用 applicative style 的方式來使用作為 applicative functor 的 function。
+而 ``&lt;*>`` 的實作是比較不容易瞭解的，我們最好看一下怎麼用 applicative style 的方式來使用作為 applicative functor 的 function。
 
 {{
 ghci> :t (+) &lt;$> (+3) &lt;*> (*100)  
@@ -572,7 +572,7 @@ ghci> (+) &lt;$> (+3) &lt;*> (*100) $ 5
 508 
 }}
 
-將兩個 applicative functor 餵給 ``&lt;*>`` 可以產生一個新的 applicative functor，所以如果我們丟給他兩個函數，我們能得到一個新的函數。所以是怎麼一回事呢？當我們做 ``(+) &lt;$> (+3) &lt;*> (*100)``，我們是在實做一個函數，他會將 ``(+3)`` 跟 ``(*100)`` 的結果再套用 ``+``。要看一個實際的範例的話，可以看一下 ``(+) &lt;$> (+3) &lt;*> (*100) $ 5`` 首先 ``5`` 被丟給 ``(+3)`` 跟 ``(*100)``，產生 ``8`` 跟 ``500``。然後 ``+`` 被套用到 ``8`` 跟 ``500``，得到 ``508``。
+將兩個 applicative functor 餵給 ``&lt;*>`` 可以產生一個新的 applicative functor，所以如果我們丟給他兩個函數，我們能得到一個新的函數。所以是怎麼一回事呢？當我們做 ``(+) &lt;$> (+3) &lt;*> (*100)``，我們是在實作一個函數，他會將 ``(+3)`` 跟 ``(*100)`` 的結果再套用 ``+``。要看一個實際的範例的話，可以看一下 ``(+) &lt;$> (+3) &lt;*> (*100) $ 5`` 首先 ``5`` 被丟給 ``(+3)`` 跟 ``(*100)``，產生 ``8`` 跟 ``500``。然後 ``+`` 被套用到 ``8`` 跟 ``500``，得到 ``508``。
 
 
 {{
@@ -897,7 +897,7 @@ class Functor f where
 instance Functor Maybe where       
 }}
 
-然後我們實做 ``fmap``。當所有的型別變數被填上時，由於 ``Maybe`` 取代了 ``Functor`` 中 ``f`` 的位置，所以如果我們看看 ``fmap`` 運作在 ``Maybe`` 上時是什麽樣，他會像這樣：
+然後我們實作 ``fmap``。當所有的型別變數被填上時，由於 ``Maybe`` 取代了 ``Functor`` 中 ``f`` 的位置，所以如果我們看看 ``fmap`` 運作在 ``Maybe`` 上時是什麽樣，他會像這樣：
 
 
 {{
@@ -1113,7 +1113,7 @@ class Monoid m where
 再來我們看到 ``mappend``，你可能已經猜到，他是一個接受兩個相同型別的值的二元函數，並回傳同樣的型別。不過要注意的是他的名字不太符合他真正的意思，他的名字隱含了我們要將兩個東西接在一起。儘管在 list 的情況下 ``++`` 的確將兩個 list 接起來，但 ``*`` 則否。他只不過將兩個數值做相乘。當我們再看到其他 ``Monoid`` 的 instance 時，我們會看到他們大部分都沒有接起來的做，所以不要用接起來的概念來想像 ``mappend``，只要想像他們是接受兩個 monoid 的值並回傳另外一個就好了。
 
 
-在 typeclass 定義中的最後一個函數是 ``mconcat``。他接受一串 monoid 值，並將他們用 ``mappend`` 簡化成單一的值。他有一個預設的實做，就是從 ``mempty`` 作為起始值，然後用 ``mappend`` 來 fold。由於對於大部分的 instance 預設的實做就沒什麼問題，我們不會想要實做自己的 ``mconcat``。當我們定義一個型別屬於 ``Monoid`` 的時候，多半實做 ``mempty`` 跟 ``mappend`` 就可以了。而 ``mconcat`` 就是因為對於一些 instance，有可能有比較有效率的方式來實做 ``mconcat``。不過大多數情況都不需要。
+在 typeclass 定義中的最後一個函數是 ``mconcat``。他接受一串 monoid 值，並將他們用 ``mappend`` 簡化成單一的值。他有一個預設的實作，就是從 ``mempty`` 作為起始值，然後用 ``mappend`` 來 fold。由於對於大部分的 instance 預設的實作就沒什麼問題，我們不會想要實作自己的 ``mconcat``。當我們定義一個型別屬於 ``Monoid`` 的時候，多半實作 ``mempty`` 跟 ``mappend`` 就可以了。而 ``mconcat`` 就是因為對於一些 instance，有可能有比較有效率的方式來實作 ``mconcat``。不過大多數情況都不需要。
 
 
 
@@ -1164,7 +1164,7 @@ ghci> mempty :: [a]
 注意到最後一行我們明白地標記出型別。這是因為如果只些 ``mempty`` 的話，GHCi 不會知道他是哪一個 instance 的 ``mempty``，所以我們必須清楚說出他是 list instance 的 mempty。我們可以使用一般化的型別 ``[a]``，因為空的 list 可以看作是屬於任何型別。
 
 
-由於 ``mconcat`` 有一個預設的實做，我們將某個型別定義成 ``Monoid`` 的型別時就可以自動地得到預設的實做。但對於 list 而言，``mconcat`` 其實就是 ``concat``。他接受一個裝有 list 的 list，並把他用 ``++`` 來扁平化他。
+由於 ``mconcat`` 有一個預設的實作，我們將某個型別定義成 ``Monoid`` 的型別時就可以自動地得到預設的實作。但對於 list 而言，``mconcat`` 其實就是 ``concat``。他接受一個裝有 list 的 list，並把他用 ``++`` 來扁平化他。
 
 
 list 的 instnace 也遵守 monoid law。當我們有好幾個 list 並且用 ``mappend`` 來把他們串起來，先後順序並不是很重要，因為他們都是接在最後面。而且空的 list 也表現得如 identity 一樣。注意到 monoid 並不要求 ``a `mappend`` b`` 等於 ``b `mappend` a``。在 list 的情況下，他們明顯不相等。
@@ -1346,7 +1346,7 @@ ghci> mempty `mappend` GT
 GT  
 }}
 
-所以這個 monoid 在什麽情況下會有用呢？假設你要寫一個比較兩個字串長度的函數，並回傳 ``Ordering``。而且當字串一樣長的時候，我們不直接回傳 ``EQ``，反而繼續用字典順序比較他們。一種實做的方式如下：
+所以這個 monoid 在什麽情況下會有用呢？假設你要寫一個比較兩個字串長度的函數，並回傳 ``Ordering``。而且當字串一樣長的時候，我們不直接回傳 ``EQ``，反而繼續用字典順序比較他們。一種實作的方式如下：
 
 
 {{
@@ -1409,7 +1409,7 @@ GT
 ===Maybe the monoid
 
 
-我們來看一下 ``Maybe a`` 是怎樣有多種方式來表現成 ``Monoid`` 的，並且說明哪些是比較有用的。一種將 ``Maybe a`` 當作 monoid 的方式就是他的 ``a`` 也是一個 monoid，而我們將 ``mappend`` 實做成使用包在 ``Just`` 裡面的值對應的 ``mappend``。並且用 ``Nothing`` 當作 identity。所以如果我 ``mappend`` 兩個參數中有一個是 ``Nothing``。那結果就會是另一邊的值。他的 instance 定義如下：	
+我們來看一下 ``Maybe a`` 是怎樣有多種方式來表現成 ``Monoid`` 的，並且說明哪些是比較有用的。一種將 ``Maybe a`` 當作 monoid 的方式就是他的 ``a`` 也是一個 monoid，而我們將 ``mappend`` 實作成使用包在 ``Just`` 裡面的值對應的 ``mappend``。並且用 ``Nothing`` 當作 identity。所以如果我 ``mappend`` 兩個參數中有一個是 ``Nothing``。那結果就會是另一邊的值。他的 instance 定義如下：	
 
 
 {{
@@ -1528,13 +1528,13 @@ True
 data Tree a = Empty | Node a (Tree a) (Tree a) deriving (Show, Read, Eq)      
 }}
 
-我們說一棵樹要不就是一棵空的樹要不然就是一個包含值的節點，並且還指向另外兩棵樹。定義他之後，我們將他定義成 ``Functor`` 的 instance，因此可以 ``fmap`` 他。現在我們要將他定義成 ``Foldable`` 的 instance，這樣我們就可以 fold 他。要定義成 ``Foldable`` 的一種方式就是實做 ``foldr``。但另一種比較簡單的方式就是實做 ``foldMap``，他也屬於 ``Foldable`` typeclass。``foldMap`` 的型別如下：
+我們說一棵樹要不就是一棵空的樹要不然就是一個包含值的節點，並且還指向另外兩棵樹。定義他之後，我們將他定義成 ``Functor`` 的 instance，因此可以 ``fmap`` 他。現在我們要將他定義成 ``Foldable`` 的 instance，這樣我們就可以 fold 他。要定義成 ``Foldable`` 的一種方式就是實作 ``foldr``。但另一種比較簡單的方式就是實作 ``foldMap``，他也屬於 ``Foldable`` typeclass。``foldMap`` 的型別如下：
 
 {{
 foldMap :: (Monoid m, Foldable t) => (a -> m) -> t a -> m  
 }}
 
-第一個參數是一個函數，這個函數接受 foldable 資料結構中包含的元素的型別，並回傳一個 monoid。他第二個參數是一個 foldable 的結構，並包含型別 ``a`` 的元素。他將第一個函數來 map over 這個 foldable 的結構，因此得到一個包含 monoid 的 foldable 結構。然後用 ``mappend`` 來簡化這些 monoid，最後得到單一的一個 monoid。這個函數聽起來不太容易理解，但我們下面會看到他其實很容易實做。而且好消息是只要實做了這個函數就可以讓我們的函數成為 ``Foldable``。所以我們只要實做某個型別的 ``foldMap``，我們就可以得到那個型別的 ``foldr`` 跟 ``foldl``。
+第一個參數是一個函數，這個函數接受 foldable 資料結構中包含的元素的型別，並回傳一個 monoid。他第二個參數是一個 foldable 的結構，並包含型別 ``a`` 的元素。他將第一個函數來 map over 這個 foldable 的結構，因此得到一個包含 monoid 的 foldable 結構。然後用 ``mappend`` 來簡化這些 monoid，最後得到單一的一個 monoid。這個函數聽起來不太容易理解，但我們下面會看到他其實很容易實作。而且好消息是只要實作了這個函數就可以讓我們的函數成為 ``Foldable``。所以我們只要實作某個型別的 ``foldMap``，我們就可以得到那個型別的 ``foldr`` 跟 ``foldl``。
 
 
 這就是我們如何定義 ``Tree`` 成為 ``Foldable`` 的：
@@ -1560,7 +1560,7 @@ instance F.Foldable Tree where
 注意到我們並不一定要提供一個將普通值轉成 monoid 的函數。我們只是把他當作是 ``foldMap`` 的參數，我們要決定的只是如何套用那個函數，來把得到的 monoid 們簡化成單一結果。
 
 
-現在我們有樹的 ``Foldable`` instance，而 ``foldr`` 跟 ``foldl`` 也有預設的實做了。考慮下面這棵樹：
+現在我們有樹的 ``Foldable`` instance，而 ``foldr`` 跟 ``foldl`` 也有預設的實作了。考慮下面這棵樹：
 
 
 {{

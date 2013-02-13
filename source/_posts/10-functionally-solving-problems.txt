@@ -233,7 +233,7 @@ data Section = Section { getA :: Int, getB :: Int, getC :: Int } deriving (Show)
 type RoadSystem = [Section]  
 }}
 
-這樣很完美，而且對於我們的實做也有幫助。``Section`` 是一個 algebraic data type，包含三個整數，分別代表三個不同部份的道路長。我們也定義了型別同義字，說 ``RoadSystem`` 代表包含 section 的 list。
+這樣很完美，而且對於我們的實作也有幫助。``Section`` 是一個 algebraic data type，包含三個整數，分別代表三個不同部份的道路長。我們也定義了型別同義字，說 ``RoadSystem`` 代表包含 section 的 list。
 
 
 	當然我們也可以用一個 tuple ``(Int, Int, Int)`` 來代表一個 section。使用 tuple 對於一些簡單的情況是比較方便，但對於比較複雜的情況定義自己的 algebraic data type 會比較好。他讓型別系統獲得比較多的資訊。``(Int, Int, Int)`` 畢竟也可能被使用在定義三維空間中的一個向量，只用 tuple 讓我們可能把這兩種情形混雜起來使用。如果我們用 ``Section`` 跟 ``Vector`` 的話就不會不小心搞混了。
@@ -246,7 +246,7 @@ heathrowToLondon :: RoadSystem
 heathrowToLondon = [Section 50 10 30, Section 5 90 20, Section 40 2 25, Section 10 8 0]  
 }}
 
-我們現在要做的就是用 Haskell 實做我們先前的解法。所以我們應該怎樣宣告我們計算最短路徑函數的型別呢？他應該接受一個道路系統作為參數，然後回傳一個路徑。我們會用一個 list 來代表我們的路徑。我們定義了 ``Label`` 來表示 ``A``, ``B`` 或 ``C``。並且也定義一個同義詞 ``Path``：
+我們現在要做的就是用 Haskell 實作我們先前的解法。所以我們應該怎樣宣告我們計算最短路徑函數的型別呢？他應該接受一個道路系統作為參數，然後回傳一個路徑。我們會用一個 list 來代表我們的路徑。我們定義了 ``Label`` 來表示 ``A``, ``B`` 或 ``C``。並且也定義一個同義詞 ``Path``：
 
 {{
 data Label = A | B | C deriving (Show)  
@@ -262,7 +262,7 @@ type Path = [(Label, Int)]
 我們接下來就從左至右來走一遍 list，並沿路上記下 A 的最佳路徑跟 B 的最佳路徑。我們會 accumulate 我們的最佳路徑。這聽起來有沒有很熟悉？沒錯！就是 left fold。
 
 
-當我們手動做解答的時候，有一個步驟是我們不斷重複的。就是檢查現有 A 跟 B 的最佳路徑以及目前的 section，產生出新的 A 跟 B 的最佳路徑。舉例來說，最開始我們的最佳路徑是 ``[]`` 跟 ``[]``。我們看過 ``Section 50 10 30`` 後就得到新的到 A1 的最佳路徑為 ``[(B,10),(C,30)]``，而到 B1 的最佳路徑是 ``[(B,10)]``。如果你們把這個步驟看作是一個函數，他接受一對路徑跟一個 section，並產生出新的一對路徑。所以型別是 ``(Path, Path) -> Section -> (Path, Path)``。我們接下來繼續實做這個函數。
+當我們手動做解答的時候，有一個步驟是我們不斷重複的。就是檢查現有 A 跟 B 的最佳路徑以及目前的 section，產生出新的 A 跟 B 的最佳路徑。舉例來說，最開始我們的最佳路徑是 ``[]`` 跟 ``[]``。我們看過 ``Section 50 10 30`` 後就得到新的到 A1 的最佳路徑為 ``[(B,10),(C,30)]``，而到 B1 的最佳路徑是 ``[(B,10)]``。如果你們把這個步驟看作是一個函數，他接受一對路徑跟一個 section，並產生出新的一對路徑。所以型別是 ``(Path, Path) -> Section -> (Path, Path)``。我們接下來繼續實作這個函數。
 
 
 	提示：把 ``(Path, Path) -> Section -> (Path, Path)`` 當作 left fold 用的二元函數，fold 要求的型態是 ``a -> b -> a``。
@@ -308,10 +308,10 @@ ghci> roadStep ([], []) (head heathrowToLondon)
 要記住包含的路徑是反過來的，要從右邊往左邊讀。所以到 A 的最佳路徑可以解讀成從 B 出發，然後穿越到道路 A。而 B 的最佳路徑則是直接從 B 出發走到下一個交叉點。
 
 
-	優化小技巧：當我們寫 ``priceA = sum $ map snd pathA`` 的時候。我們是在計算每步的成本。如果我們實做 ``roadStep`` 成 ``(Path, Path, Int, Int) -> Section -> (Path, Path, Int, Int)`` 的話就可以不必那麼做。其中的整數型別代表 A 跟 B 上的最小成本。
+	優化小技巧：當我們寫 ``priceA = sum $ map snd pathA`` 的時候。我們是在計算每步的成本。如果我們實作 ``roadStep`` 成 ``(Path, Path, Int, Int) -> Section -> (Path, Path, Int, Int)`` 的話就可以不必那麼做。其中的整數型別代表 A 跟 B 上的最小成本。
 
 
-現在我們有了一個函數他接受一對路徑跟一個 section，並產生新的最佳路徑。我們可以用一個 left fold 來做。我們用 ``([],[])`` 跟第一個 section 來餵給 ``roadStep`` 並得到一對最佳路徑。然後他又被餵給這個新得到的最佳路徑跟下一個 section。以此類推。當我們走過全部的 section 的時候，我們就會得到一對最佳路徑，而其中比較短的那個就是解答。有了這樣的想法，我們便可以實做 ``optimalPath``。
+現在我們有了一個函數他接受一對路徑跟一個 section，並產生新的最佳路徑。我們可以用一個 left fold 來做。我們用 ``([],[])`` 跟第一個 section 來餵給 ``roadStep`` 並得到一對最佳路徑。然後他又被餵給這個新得到的最佳路徑跟下一個 section。以此類推。當我們走過全部的 section 的時候，我們就會得到一對最佳路徑，而其中比較短的那個就是解答。有了這樣的想法，我們便可以實作 ``optimalPath``。
 
 
 {{

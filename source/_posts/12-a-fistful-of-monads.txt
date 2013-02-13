@@ -12,7 +12,7 @@
 fmap :: (Functor f) => (a -> b) -> f a -> f b      
 }}
 
-然後只要針對 ``Functor`` instance 撰寫對應的實做。
+然後只要針對 ``Functor`` instance 撰寫對應的實作。
 
 之後我們又看到一些可以針對 Functor 改進的地方，例如 ``a -> b`` 也被包在一個 Functor value 裡面呢？像是 ``Just (*3)``，我們要如何 apply ``Just 5`` 給他？如果我們不要 apply ``Just 5`` 而是 ``Nothing`` 呢？甚至給定 ``[(*2),(+4)]``，我們要如何 apply 他們到 ``[1,2,3]`` 呢？對於此，我們抽象出 ``Applicative`` typeclass，這就是我們想要問的問題：
 

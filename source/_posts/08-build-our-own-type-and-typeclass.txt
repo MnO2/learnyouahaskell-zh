@@ -900,7 +900,7 @@ False
 到目前為止我們學到了一些 Haskell 中的標準 typeclass，也學到了某些已經定義為他們 instance 的型別。我們知道如何讓我們自己定義的型別自動被 Haskell 所推導成標準 typeclass 的 instance。在這個章節中，我們會學到如何構造我們自己的 typeclass，並且如何構造這些 typeclass 的 type instance。
 
 
-來快速複習一下什麼是 typeclass: typeclass 就像是 interface。一個 typeclass 定義了一些行為(像是比較相不相等，比較大小順序，能否窮舉)而我們會把希望滿足這些性質的型別定義成這些 typeclass 的 instance。typeclass 的行為是由定義的函數來描述。並寫出對應的實做。當我們把一個型別定義成某個 typeclass 的 instance，就表示我們可以對那個型別使用 typeclass 中定義的函數。
+來快速複習一下什麼是 typeclass: typeclass 就像是 interface。一個 typeclass 定義了一些行為(像是比較相不相等，比較大小順序，能否窮舉)而我們會把希望滿足這些性質的型別定義成這些 typeclass 的 instance。typeclass 的行為是由定義的函數來描述。並寫出對應的實作。當我們把一個型別定義成某個 typeclass 的 instance，就表示我們可以對那個型別使用 typeclass 中定義的函數。
 
 
 Typeclass 跟 Java 或 Python 中的 class 一點關係也沒有。這個概念讓很多人混淆，所以我希望你先忘掉所有在命令式語言中學到有關 class 的所有東西。
@@ -918,20 +918,19 @@ class Eq a where
     x /= y = not (x == y)  
 }}
 
-我們在這邊看到了一些奇怪的語法跟關鍵字。別擔心，你一下子就會瞭解他們的。首先，我們看到 ``class Eq a where``，那代表我們定義了一個新的 typeclass 叫做 ``Eq``。``a`` 是一個型別變數，他代表 ``a`` 是任何我們在定義 instance 時的型別。他不一定要叫做 ``a``。他也不一定非要一個字母不可，只要他是小寫就好。然後我們又定義了幾個函數。我們並不一定要實做函數的本體，不過必須要寫出函數的型別宣告。
+我們在這邊看到了一些奇怪的語法跟關鍵字。別擔心，你一下子就會瞭解他們的。首先，我們看到 ``class Eq a where``，那代表我們定義了一個新的 typeclass 叫做 ``Eq``。``a`` 是一個型別變數，他代表 ``a`` 是任何我們在定義 instance 時的型別。他不一定要叫做 ``a``。他也不一定非要一個字母不可，只要他是小寫就好。然後我們又定義了幾個函數。我們並不一定要實作函數的本體，不過必須要寫出函數的型別宣告。
 
 
 如果我們寫成 ``class Eq equatable where`` 還有 ``(==) :: equatable -> equatable -> Bool`` 這樣的形式，對一些人可能比較容易理解。
 
 
-總之我們實做了 ``Eq`` 中需要定義的函數本體，只是我們定義他的方式是用交互遞迴的形式。我們描述兩個 ``Eq`` 的 instance 藥箱等，那他們就不能不一樣，而他們如果不一樣，那他們就是不相等。我們其實不必這樣寫，但很快你會看到這其實是有用的。
+總之我們實作了 ``Eq`` 中需要定義的函數本體，只是我們定義他的方式是用交互遞迴的形式。我們描述兩個 ``Eq`` 的 instance 藥箱等，那他們就不能不一樣，而他們如果不一樣，那他們就是不相等。我們其實不必這樣寫，但很快你會看到這其實是有用的。
 
 
 如果我們說 ``class Eq a where`` 然後定義 ``(==) :: a -> a -> Bool``，那我們之後檢查函數的型別時會發現他的型別是 ``(Eq a) => a -> a -> Bool``。
 
 
-所以一旦我們有了 class，那我們能拿他來做些什? 我們可以定義些 type instance，並可以得到些好的性質。來看看下面這個型別：
-
+當我們有了 class 以後，可以用來做些什麼呢？說實話，不多。不過一旦我們為它寫一些 instance，就會有些好功能。來看看下面這個型別：
 
 
 {{
@@ -939,7 +938,7 @@ data TrafficLight = Red | Yellow | Green
 }}
 
 
-他定義了紅綠燈的狀態。注意到這邊，儘管我們可以用 ``derive` 來自動生成 ``Eq`` 跟 ``Show`` 的 instance，我們並使用他。那是因為我們想要用手寫來演練。下面是我們如何定義 ``Eq`` 的 instance 的：
+這裡定義了紅綠燈的狀態。請注意這個型別並不是任何 class 的 instance，雖然可以透過 derive 讓它成為 ``Eq`` 或 ``Show`` 的 instance，但我們打算手工打造。下面展示了如何讓一個型別成為 ``Eq`` 的 instance：
 
 
 {{
@@ -951,10 +950,10 @@ instance Eq TrafficLight where
 }}
 
 
-首先我們使用了 ``instance`` 這個關鍵字。class 是用來定義新的 typeclass，而 instance 是用來說明我們要定義某個 typeclass 的 instance。當我們要定義 ``Eq``，我們會寫 ``class Eq a where``，其中 ``a`` 代表任何型態。我們可以從 instance 的寫法：``instance Eq TrafficLight where`` 看出來。我們會把 ``a`` 換成實際的型別。
+我們使用了 ``instance`` 這個關鍵字。class 是用來定義新的 typeclass，而 instance 是用來說明我們要定義某個 typeclass 的 instance。當我們要定義 ``Eq``，我們會寫 ``class Eq a where``，其中 ``a`` 代表任何型態。我們可以從 instance 的寫法：``instance Eq TrafficLight where`` 看出來。我們會把 ``a`` 換成實際的型別。
 
 
-由於 ``==`` 是用 ``/=`` 來定義的，同樣的 ``/=`` 也是用 ``==`` 來定義。所以我們只需要在 instance 定義中複寫其中一個就好了。我們這樣叫做定義了一個 minimal complete definition。這是說能讓型別符合 class 行為所最小需要實做的函數數量。而 ``Eq`` 的 minimal complete definition 需要 ``==`` 或 ``/=`` 其中一個。而如果 ``Eq`` 是這樣定義的：
+由於 ``==`` 是用 ``/=`` 來定義的，同樣的 ``/=`` 也是用 ``==`` 來定義。所以我們只需要在 instance 定義中複寫其中一個就好了。我們這樣叫做定義了一個 minimal complete definition。這是說能讓型別符合 class 行為所最小需要實作的函數數量。而 ``Eq`` 的 minimal complete definition 需要 ``==`` 或 ``/=`` 其中一個。而如果 ``Eq`` 是這樣定義的：
 
 
 {{
@@ -964,13 +963,13 @@ class Eq a where
 }}
 
 
-當我們定義 instance 的時候必須要兩個函數都實做，因為 Haskell 並不知道這兩個函數是怎麼關聯在一起的。所以 minimal complete definition 在這邊是 ``==`` 跟 ``/=``。
+當我們定義 instance 的時候必須要兩個函數都實作，因為 Haskell 並不知道這兩個函數是怎麼關聯在一起的。所以 minimal complete definition 在這邊是 ``==`` 跟 ``/=``。
 
 
-你可以看到我們是用模式匹配來實做 ``==``。由於不相等的情況比較多，所以我們只寫出相等的，最後再用一個 ``case`` 接住說你不在前面相等的 ``case`` 的話，那就是不相等。
+你可以看到我們是用模式匹配來實作 ``==``。由於不相等的情況比較多，所以我們只寫出相等的，最後再用一個 ``case`` 接住說你不在前面相等的 ``case`` 的話，那就是不相等。
 
 
-我們再來寫 ``Show`` 的 instance。要滿足 ``Show`` 的 minimal complete definition，我們必須實做 ``show`` 函數，他接受一個值並把他轉成字串。
+我們再來寫 ``Show`` 的 instance。要滿足 ``Show`` 的 minimal complete definition，我們必須實作 ``show`` 函數，他接受一個值並把他轉成字串。
 
 
 
@@ -1006,11 +1005,11 @@ class (Eq a) => Num a where
 }}
 
 
-正如我們先前提到的，我們可以在很多地方加 上class constraints。這不過就是在 ``class Num a where`` 中的 ``a`` 上，加上他必需要是 ``Eq`` 的 instance 的限制。這基本上就是在說我們在定義一個型別為 ``Num`` 之前，必須先為他定義 ``Eq`` 的 instance。在某個型別可以被視作 ``Number`` 之前，必須先能被比較相不相等其實是蠻合理的。這就是 subclass 在做的事：幫 class declaration 加上限制。也就是說當我們定義 typeclass 中的函數本體時，我們可以預設 ``a`` 是屬於 ``Eq``，因此能使用 ``==``。
+正如我們先前提到的，我們可以在很多地方加上 class constraints。這不過就是在 ``class Num a where`` 中的 ``a`` 上，加上他必須要是 ``Eq`` 的 instance 的限制。這基本上就是在說我們在定義一個型別為 ``Num`` 之前，必須先為他定義 ``Eq`` 的 instance。在某個型別可以被視作 ``Number`` 之前，必須先能被比較相不相等其實是蠻合理的。這就是 subclass 在做的事：幫 class declaration 加上限制。也就是說當我們定義 typeclass 中的函數本體時，我們可以預設 ``a`` 是屬於 ``Eq``，因此能使用 ``==``。
 
 
 
-但像是 ``Maybe`` 或是 List 是如何被定義成 typeclass 的 instance 呢？``Maybe`` 的特別之處在於他跟 ``TrafficLight`` 不一樣，他不是一個具體的型別。他是一個型別構造子，接受一個型別參數(像是 ``Char`` )而構造出一個具體的型別(像是 ``Maybe Char`` )我們來看一下 ``Eq`` 這個 typeclass：
+但像是 ``Maybe`` 或是 List 是如何被定義成 typeclass 的 instance 呢？``Maybe`` 的特別之處在於他跟 ``TrafficLight`` 不一樣，他不是一個具體的型別。他是一個型別構造子，接受一個型別參數（像是 ``Char`` 之類的）而構造出一個具體的型別（像是 ``Maybe Char`` ）。讓我們再回顧一下 ``Eq`` 這個 typeclass：
 
 
 {{
@@ -1022,7 +1021,7 @@ class Eq a where
 }}
 
 
-從型別宣告來看，可以看到 ``a`` 必須是一個具體型別，因為所有在函數中的型別都必須是具體型別。(你沒辦法寫一個函數，他的型別是 ``a -> Maybe``，但你可以寫一個函數，他的型別是 ``a -> Maybe a``，或是 ``Maybe Int -> Maybe String``) 這就是為什? 我們不能寫成像這樣：
+從型別宣告來看，可以看到 ``a`` 必須是一個具體型別，因為所有在函數中的型別都必須是具體型別。(你沒辦法寫一個函數，他的型別是 ``a -> Maybe``，但你可以寫一個函數，他的型別是 ``a -> Maybe a``，或是 ``Maybe Int -> Maybe String``) 這就是為什麼我們不能寫成像這樣：
 
 
 {{
@@ -1039,11 +1038,11 @@ instance Eq (Maybe m) where
     _ == _ = False  
 }}
 
-這就好像在說我們要把 ``Maybe something`` 這種東西全部都做成 ``Eq`` 的 instance。我們的確可以寫成 ``(Maybe something)``，但我們通常是只用一個字母，這樣比較像是 Haskell 的風格。``(Maybe m)`` 這邊則取代了 ``a`` 在 ``class Eq a where`` 的位置。儘管 ``Maybe`` 不是一個具體的型別。``Maybe m`` 卻是。指定一個型別參數(在這邊是小寫的 ``m``)，我們說我們想要所有像是 ``Maybe m`` 的都成為 ``Eq`` 的 instance。
+這就好像在說我們要把 ``Maybe something`` 這種東西全部都做成 ``Eq`` 的 instance。我們的確可以寫成 ``(Maybe something)``，但我們通常是只用一個字母，這樣比較像是 Haskell 的風格。``(Maybe m)`` 這邊則取代了 ``a`` 在 ``class Eq a where`` 的位置。儘管 ``Maybe`` 不是一個具體的型別。``Maybe m`` 卻是。指定一個型別參數（在這邊是小寫的 ``m``），我們說我們想要所有像是 ``Maybe m`` 的都成為 ``Eq`` 的 instance。
 
 
 
-不過這仍然有一個問題。你能看出來嗎？ 我們用 ``==`` 來比較 ``Maybe`` 包含的東西，但我們並沒有任何保證說 ``Maybe`` 裝的東西可以是 ``Eq``。這就是為什? 我們需要修改我們的 instance 定義：
+不過這仍然有一個問題。你能看出來嗎？ 我們用 ``==`` 來比較 ``Maybe`` 包含的東西，但我們並沒有任何保證說 ``Maybe`` 裝的東西可以是 ``Eq``。這就是為什麼我們需要修改我們的 instance 定義：
 
 {{
 instance (Eq m) => Eq (Maybe m) where  
@@ -1052,11 +1051,11 @@ instance (Eq m) => Eq (Maybe m) where
     _ == _ = False  
 }}
 
-這邊我們必須要加上限制。在這個 instance 的宣告中，我們希望所有 ``Maybe m`` 形式的型別都屬於 ``Eq``，但只有當 ``m`` 也屬於 ``Eq`` 的時候。這也是 Haskell 在 ``derive`` 的時候做的事。
+這邊我們必須要加上限制。在這個 instance 的宣告中，我們希望所有 ``Maybe m`` 形式的型別都屬於 ``Eq``，但只有當 ``m`` 也屬於 ``Eq`` 的時候。這也是 Haskell 在 derive 的時候做的事。
 
 在大部份情形下，在 typeclass 宣告中的 class constraints 都是要讓一個 typeclass 成為另一個 typeclass 的 subclass。而在 instance 宣告中的 class constraint 則是要表達型別的要求限制。舉裡來說，我們要求 ``Maybe`` 的內容物也要屬於 ``Eq``。
 
-當定義 instance 的時候，如果你需要提供具體型別(像是在 ``a -> a -> Bool`` 中的 ``a``)，那你必須要加上括號跟型別參數來構造一個具體型別。
+當定義 instance 的時候，如果你需要提供具體型別（像是在 ``a -> a -> Bool`` 中的 ``a``），那你必須要加上括號跟型別參數來構造一個具體型別。
 
 
 要知道你在定義 instnace 的時候，型別參數會被取代。``class Eq a where`` 中的 ``a`` 會被取代成真實的型別。所以試著想像把型別放進型別宣告中。``(==) :: Maybe -> Maybe -> Bool`` 並非合法。但 ``(==) :: (Eq m) => Maybe m -> Maybe m -> Bool`` 則是。這是不論我們要定義什麼，通用的型別宣告都是 ``(==) :: (Eq a) => a -> a -> Bool``
@@ -1069,11 +1068,11 @@ instance (Eq m) => Eq (Maybe m) where
 == yes-no typeclass
 
 
-在 Javascript 或是其他弱型別的程式語言，你能在 if expression 鐘擺上任何東西。舉例來說，你可以做像下列的事：
+在 Javascript 或是其他弱型別的程式語言，你能在 if expression 中擺上任何東西。舉例來說，你可以做像下列的事：
 ``if (0) alert("YEAH!") else alert("NO!")``,
 ``if ("") alert ("YEAH!") else alert("NO!")``,
 ``if (false) alert("YEAH") else alert("NO!)`` 等等，
-而上述所有的片段執行後都會跳出 ``NO!``。如果你寫 ``if ("WHAT") alert ("YEAH") else alert("NO!")``，他會跳出 ``YEAH!``。因為 Javascript 認為非空字串會是 ``true``。
+而上述所有的片段執行後都會跳出 ``NO!``。如果你寫 ``if ("WHAT") alert ("YEAH") else alert("NO!")``，他會跳出 ``YEAH!``，因為 Javascript 認為非空字串會是 true。
 
 儘管使用 ``Bool`` 來表達布林的語意是比較好的作法。為了有趣起見，我們來試試看模仿 Javascript 的行為。我們先從 typeclass 宣告開始看：
 
@@ -1118,7 +1117,7 @@ instance YesNo (Maybe a) where
     yesno Nothing = False  
 }}
 
-由於我們不需要對於 ``Maybe`` 的內容做任何假設，因此不需要 class constraints。我們只說他如果是 ``Just`` 就是 ``true``，如果是 ``Nothing`` 就是 ``false``。我們仍和必須要寫成 ``(Maybe a)`` 而不是 ``Maybe``。畢竟你想想看，如果 ``Maybe -> Bool`` 是不合理的，而 ``Maybe a -> Bool`` 卻是合理的。有了這個定義，現在 ``Maybe something`` 都屬於 ``YesNo``，不論 ``somehing`` 是什?。
+由於我們不需要對於 ``Maybe`` 的內容做任何假設，因此不需要 class constraints。我們只說他如果是 ``Just`` 就是 ``true``，如果是 ``Nothing`` 就是 ``false``。我們仍和必須要寫成 ``(Maybe a)`` 而不是 ``Maybe``。畢竟你想想看，如果 ``Maybe -> Bool`` 是不合理的，而 ``Maybe a -> Bool`` 卻是合理的。有了這個定義，現在 ``Maybe something`` 都屬於 ``YesNo``，不論 ``somehing`` 是什麼。
 
 
 之前我們定義了 ``Tree a``，那代表一個二元搜尋樹。我們可以說一棵空的樹是 ``false``，而非空的樹則是 ``true``。
@@ -1165,7 +1164,8 @@ yesno :: (YesNo a) => a -> Bool
 
 {{
 yesnoIf :: (YesNo y) => y -> a -> a -> a  
-yesnoIf yesnoVal yesResult noResult = if yesno yesnoVal then yesResult else noResult  
+yesnoIf yesnoVal yesResult noResult = 
+    if yesno yesnoVal then yesResult else noResult  
 }}
 
 很直覺吧！他接受一個 yes or no 的值還有兩個部份，如果值是代表 "yes"，那第一個部份就會被執行，而如果值是 "no"，那第二個部份就會執行。
@@ -1188,7 +1188,7 @@ ghci> yesnoIf Nothing "YEAH!" "NO!"
 到目前為止我們看過了許多在標準函式庫中的 typeclass。我們操作過 ``Ord``，代表可以被排序的東西。我們也操作過 ``Eq``，代表可以被比較相等性的事物。也看過 ``Show``，代表可以被印成字串來表示的東西。至於 ``Read`` 則是我們可以把字串轉換成型別的動作。不過現在我們要來看一下 ``Functor`` 這個 typeclass，基本上就代表可以被 map over 的事物。聽到這個詞你可能會聯想到 List，因為 map over list 在 Haskell 中是很常見的操作。你沒想錯，List 的確是屬於 ``Functor`` 這個 typeclass。
 
 
-來看看他的實做會是瞭解 ``Functor`` 的最佳方式：
+來看看他的實作會是瞭解 ``Functor`` 的最佳方式：
 
 {{
 class Functor f where  
@@ -1255,7 +1255,8 @@ Nothing
 {{
 instance Functor Tree where  
     fmap f EmptyTree = EmptyTree  
-    fmap f (Node x leftsub rightsub) = Node (f x) (fmap f leftsub) (fmap f rightsub)  
+    fmap f (Node x leftsub rightsub) =
+        Node (f x) (fmap f leftsub) (fmap f rightsub)
 }}
 
 {{
@@ -1265,7 +1266,7 @@ ghci> fmap (*4) (foldr treeInsert EmptyTree [5,7,3,2,1,7])
 Node 28 (Node 4 EmptyTree (Node 8 EmptyTree (Node 12 EmptyTree (Node 20 EmptyTree EmptyTree)))) EmptyTree  
 }}
 
-那 ``Eitehr a b`` 又如何？他可以是一個 functor 嗎？``Functor`` 限制型別構造子只能接受一個型別參數，但 ``Either`` 卻接受兩個。幒明得你會想到我可以 partial apply ``Either``，先餵給他一參數，並把另一個參數當作 free parameter。來看看 ``Either a`` 在標準函式庫中是如何被定義的：
+那 ``Eitehr a b`` 又如何？他可以是一個 functor 嗎？``Functor`` 限制型別構造子只能接受一個型別參數，但 ``Either`` 卻接受兩個。聰明的你會想到我可以 partial apply ``Either``，先餵給他一個參數，並把另一個參數當作 free parameter。來看看 ``Either a`` 在標準函式庫中是如何被定義的：
 
 {{
 instance Functor (Either a) where  
@@ -1301,10 +1302,10 @@ data Either a b = Left a | Right b
 
 == Kind
 
-型別構造子接受其他型別作為他的參數，來構造出一個具體型別。這樣的行為會讓我們想到函數，也是接受一個值當作參數，並回傳另一個值。我們也看過型別構造子可以 partially apply (``Either String`` 是一個型別構造子，他接受一個型別來構造出一個具體型別，就像 ``Either String Int``))。這些都是函數能辦到的事。在這個章節中，對於型別如何被套用到型別構造子上，我們會來看一下正式的定義。就像我們之前是用函數的型別來定義出函數是如何套用值得。如果你看不懂的話，你可以跳過這一章，這不會影響你後續的閱讀。然而如果你搞懂的話，你會對於型別系統有更進一步的了解。
+型別構造子接受其他型別作為他的參數，來構造出一個具體型別。這樣的行為會讓我們想到函數，也是接受一個值當作參數，並回傳另一個值。我們也看過型別構造子可以 partially apply （``Either String`` 是一個型別構造子，他接受一個型別來構造出一個具體型別，就像 ``Either String Int``）。這些都是函數能辦到的事。在這個章節中，對於型別如何被套用到型別構造子上，我們會來看一下正式的定義。就像我們之前是用函數的型別來定義出函數是如何套用值的。如果你看不懂的話，你可以跳過這一章，這不會影響你後續的閱讀。然而如果你搞懂的話，你會對於型別系統有更進一步的了解。
 
 
-像是 ``3``,``"YEAH"`` 或是 ``takeWhile`` 的值他們都有自己的型別(函數也是值的一種，我們可以把他們傳來傳去)型別是一個標籤，值會把他帶著，這樣我們就可以推測出他的性質。但型別也有他們自己的標籤，叫做 kind。kind 是型別的型別。雖然聽起來有點玄妙，不過他的確是個有趣的概念。
+像是 ``3``,``"YEAH"`` 或是 ``takeWhile`` 的值他們都有自己的型別（函數也是值的一種，我們可以把他們傳來傳去）型別是一個標籤，值會把他帶著，這樣我們就可以推測出他的性質。但型別也有他們自己的標籤，叫做 kind。kind 是型別的型別。雖然聽起來有點玄妙，不過他的確是個有趣的概念。
 
 那kind可以拿來做什麼呢？我們可以在 ghci 中用 ``:k`` 來得知一個型別的 kind。
 
@@ -1381,7 +1382,7 @@ class Tofu t where
 data Frank a b  = Frank {frankField :: b a} deriving (Show)      
 }}
 
-我們怎麼知道這個型別具有 ``* -> (* -> *) -> *`` 的 kind 呢？ADT 中的欄位是要來塞值的，所以他們必須是 ``*`` kind。我們假設 ``a``是``*``，那``b``就是接受一個型別參數的kind ``* -> *``。現在我們知道 ``a`` 跟 ``b`` 的 kind 了，而他們又是 ``Frank`` 的型別參數，所以我們知道 ``Frank`` 會有 ``* -> (* -> *) -> *`` 的 kind。第一個 ``*`` 代表 ``a``，而 ``(* -> *)`` 代表 ``b``。我們構造些 ``Frank`` 的值並檢查他們的型別吧：
+我們怎麼知道這個型別具有 ``* -> (* -> *) -> *`` 的 kind 呢？ADT 中的欄位是要來塞值的，所以他們必須是 ``*`` kind。我們假設 ``a`` 是 ``*``，那 ``b`` 就是接受一個型別參數的 kind ``* -> *``。現在我們知道 ``a`` 跟 ``b`` 的 kind 了，而他們又是 ``Frank`` 的型別參數，所以我們知道 ``Frank`` 會有 ``* -> (* -> *) -> *`` 的 kind。第一個 ``*`` 代表 ``a``，而 ``(* -> *)`` 代表 ``b``。我們構造些 ``Frank`` 的值並檢查他們的型別吧：
 
 
 {{
@@ -1398,8 +1399,8 @@ Frank {frankField = "YES"} :: Frank Char []
 要把 ``Frank`` 定義成 ``Tofu`` 的 instance 也是很簡單。我們看到 ``tofu`` 接受 ``j a`` (例如 ``Maybe Int``) 並回傳 ``t a j``。所以我們用 ``j`` 取代 ``Frank``，那結果就是 ``Frank Int Maybe``。
 
 {{
-instance Tofu Frank where  
-    tofu x = Frank x  
+instance Tofu Frank where
+    tofu x = Frank x
 }}
 
 
@@ -1430,9 +1431,9 @@ instance Functor (Barry a b) where
     fmap f (Barry {yabba = x, dabba = y}) = Barry {yabba = f x, dabba = y}  
 }}
 
-我們把 ``f`` ``map`` 到第一個欄位。
+我們把 ``f`` map 到第一個欄位。
 
 
 
-在這一個章節中，我們看到型別參數是怎麼運作的，以及正如我們用型別來定義出函數的參數，我們也用 kind 是來定義他。
-我們看到函數跟型別構造子有許多彼此相像的地方。然而他們是兩個完全不同的東西。當我們在寫一般實用的 Haskell 程式時，你幾乎不會碰到需要動到 kind 的東西，也不需要動腦去推敲 kind。通常你只需要在定義 instance 時 partially apply 你自己的 ``* -> *`` 或是 ``*`` 型別，但知道背後運作的原理也是很好的。知道型別本身也有自己的型別也是很有趣的。如果你實在不懂這邊講的東西，也可以繼續閱讀下去。但如果你能理解，那你就會理解 Haskell 型別系統的一大部份。
+在這一個章節中，我們看到型別參數是怎麼運作的，以及正如我們用型別來定義出函數的參數，我們也用 kind 是來定義他。我們看到函數跟型別構造子有許多彼此相像的地方。然而他們是兩個完全不同的東西。當我們在寫一般實用的 Haskell 程式時，你幾乎不會碰到需要動到 kind 的東西，也不需要動腦去推敲 kind。通常你只需要在定義 instance 時 partially apply 你自己的 ``* -> *`` 或是 ``*`` 型別，但知道背後運作的原理也是很好的。知道型別本身也有自己的型別也是很有趣的。如果你實在不懂這邊講的東西，也可以繼續閱讀下去。但如果你能理解，那你就會理解 Haskell 型別系統的一大部份。
+
