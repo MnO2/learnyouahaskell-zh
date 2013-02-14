@@ -352,7 +352,7 @@ ghci> drop 100 [1,2,3,4]  
 []  
 }}
 
-****maximum** 返回一個 List 中最大的那個元素。``minimun`` 返回最小的。
+**maximum** 返回一個 List 中最大的那個元素。``minimun`` 返回最小的。
 
 {{
 ghci> minimum [8,4,2,1,5,6]  
