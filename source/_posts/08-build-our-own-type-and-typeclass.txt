@@ -582,7 +582,7 @@ ghci> [minBound .. maxBound] :: [Day]
 type String = [Char]  
 }}
 
-我們已經介紹過了 ``type`` 關鍵字，這個關鍵字有一定誤導性，它並不是用來創造新類(這是 ``data`` 關鍵字做的事情)，而是給一個既有型別提供一個別名。
+我們已經介紹過了 ``type`` 關鍵字，這個關鍵字有一定誤導性，它並不是用來創造新類（這是 ``data`` 關鍵字做的事情），而是給一個既有型別提供一個別名。
 
 如果我們隨便搞個函數 ``toUpperString`` 或其他什麼名字，將一個字元串變成大寫，可以用這樣的型別聲明 ``toUpperString :: [Char] -> [Char]``， 也可以這樣 ``toUpperString :: String -> String``，二者在本質上是完全相同的。後者要更易讀些。
 
@@ -600,7 +600,7 @@ phoneBook =
     ]  
 }}
 
-可以看出，``phoneBook`` 的型別就是 ``[(String,String)]``，這表示一個關聯 List 僅是 String 到 String 的映射關係。我們就弄個型別別名，好讓它型別聲明中能夠表達更多信息。
+可以看出，``phoneBook`` 的型別就是 ``[(String,String)]``，這表示一個關聯 List 僅是 String 到 String 的映射關係。我們就弄個型別別名，好讓它型別聲明中能夠表達更多資訊。
 
 {{
 type PhoneBook = [(String,String)]  

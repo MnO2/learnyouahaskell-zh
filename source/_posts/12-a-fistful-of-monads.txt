@@ -816,7 +816,7 @@ moveKnight (c,r) = do
     (c',r') &lt;- [(c+2,r-1),(c+2,r+1),(c-2,r-1),(c-2,r+1)  
                 ,(c+1,r-2),(c+1,r+2),(c-1,r-2),(c-1,r+2)  
                 ]  
-    guard (c' `elem` [1..8] && r' `elem` [1..8])  
+    guard (c' `elem` [1..8] &amp;&amp; r' `elem` [1..8])
     return (c',r')  
 }}
 
@@ -831,7 +831,7 @@ moveKnight (c,r) = filter onBoard
     [(c+2,r-1),(c+2,r+1),(c-2,r-1),(c-2,r+1)  
     ,(c+1,r-2),(c+1,r+2),(c-1,r-2),(c-1,r+2)  
     ]  
-    where onBoard (c,r) = c `elem` [1..8] && r `elem` [1..8]
+    where onBoard (c,r) = c `elem` [1..8] &amp;&amp; r `elem` [1..8]
 }}
 
 兩個函數做的都是相同的事，所以選個你喜歡的吧。

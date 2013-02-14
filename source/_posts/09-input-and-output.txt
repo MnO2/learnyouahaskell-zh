@@ -414,7 +414,7 @@ orange
 
 [$../img/streams.png]
 
-``getChar`` 是一個讀取單一字元的 I/O action。``getLine`` 是一個讀取一行的 I/O action。這是兩個非常直覺的函式，多數程式語言也有類似這兩個函式的 statement 或 function。但現在我們來看看*getContents*。``getContents`` 是一個從標準輸入讀取直到 end-of-file 字元的 I/O action。他的型態是 ``getContents :: IO String``。最酷的是 ``getContents`` 是惰性 I/O (Lazy I/O)。當我們寫了 ``foo &lt;- getContents``，他並不會馬上讀取所有輸入，將他們存在 memory 裡面。他只有當你真的需要輸入資料的時候才會讀取。
+``getChar`` 是一個讀取單一字元的 I/O action。``getLine`` 是一個讀取一行的 I/O action。這是兩個非常直覺的函式，多數程式語言也有類似這兩個函式的 statement 或 function。但現在我們來看看 *getContents*。``getContents`` 是一個從標準輸入讀取直到 end-of-file 字元的 I/O action。他的型態是 ``getContents :: IO String``。最酷的是 ``getContents`` 是惰性 I/O (Lazy I/O)。當我們寫了 ``foo &lt;- getContents``，他並不會馬上讀取所有輸入，將他們存在 memory 裡面。他只有當你真的需要輸入資料的時候才會讀取。
 
 當我們需要重導一個程式的輸出到另一個程式的輸入時，``getContents`` 非常有用。假設我們有下面一個文字檔。
 {{
@@ -684,7 +684,7 @@ withFile' path mode f = do
 
 我們知道要回傳的是一個 I/O action，所以我們先放一個 do。首先我們打開檔案，得到一個 handle。然後我們 apply ``handle`` 到我們的函數，並得到一個做事的 I/O action。我們綁定那個 I/O action 到 ``result`` 這個名字，關上 handle 並 ``return result``。``return`` 的作用把從 ``f`` 得到的結果包在 I/O action 中，這樣一來 I/O action 中就包含了 ``f handle`` 得到的結果。如果 ``f handle`` 回傳一個從標準輸入讀去數行並寫到檔案然後回傳讀入的行數的 I/O action，在 ``withFile'`` 的情形中，最後的 I/O action 就會包含讀入的行數。
 
-就像 ``hGetContents`` 對應 ``getContents`` 一樣，只不過是針對某個檔案。我們也有 **hGetLine**, **hPutStr**, **hPutStrLn**, *hGetChar** 等等。他們分別是少了 h 的那些函數的對應。只不過他們他們要多拿一個 handle 當參數，並是針對特定檔案而不是標準輸出或標準輸入。像是 ``putStrLn`` 是一個接受一個字串並回傳一個印出加了換行字元的字串的 I/O action 的函數。``hPutStrLn`` 接受一個 handle 跟一個字串，回傳一個印出加了換行字元的字串到檔案的 I/O action。以此類推，``hGetLine`` 接受一個 handle 然後回傳一個從檔案讀取一行的 I/O action。
+就像 ``hGetContents`` 對應 ``getContents`` 一樣，只不過是針對某個檔案。我們也有 **hGetLine**、**hPutStr**、**hPutStrLn**、**hGetChar** 等等。他們分別是少了 h 的那些函數的對應。只不過他們要多拿一個 handle 當參數，並且是針對特定檔案而不是標準輸出或標準輸入。像是 ``putStrLn`` 是一個接受一個字串並回傳一個印出加了換行字元的字串的 I/O action 的函數。``hPutStrLn`` 接受一個 handle 跟一個字串，回傳一個印出加了換行字元的字串到檔案的 I/O action。以此類推，``hGetLine`` 接受一個 handle 然後回傳一個從檔案讀取一行的 I/O action。
 
 讀取檔案並對他們的字串內容作些處理實在太常見了，常見到我們有三個函數來更進一步簡化我們的工作。
 
@@ -806,7 +806,7 @@ main = do
 
 一開始，我們用 read mode 打開 todo.txt，並把他綁定到 ``handle``。
 
-接著，我們使用了一個之前沒用過在 ``System.IO`` 中的函數 **openTempFile**。他的名字淺顯易懂。他接受一個暫存的資料夾跟一個樣板檔案名，然後打開一個暫存檔。我們使用 ``"."`` 當作我們的暫存資料夾，因為 ``.`` 在幾乎任何作業系統中都代表了現在所在的資料夾。我們使用 ``"temp"`` 當作我們暫存檔的樣板名，他代表站存檔的名字會是 temp 接上某串隨機字串。他回傳一個創建暫存檔的 I/O action，然後那個 I/O action 的結果是一個 pair：暫存檔的名字跟一個 handle。我們當然可以隨便開啟一個 todo2.txt 這種名字的檔案。但使用 ``openTempFile`` 會是比較好的作法，這樣你不會不小心覆寫任何檔案。
+接著，我們使用了一個之前沒用過在 ``System.IO`` 中的函數 **openTempFile**。他的名字淺顯易懂。他接受一個暫存的資料夾跟一個樣板檔案名，然後打開一個暫存檔。我們使用 ``"."`` 當作我們的暫存資料夾，因為 ``.`` 在幾乎任何作業系統中都代表了現在所在的資料夾。我們使用 ``"temp"`` 當作我們暫存檔的樣板名，他代表暫存檔的名字會是 temp 接上某串隨機字串。他回傳一個創建暫存檔的 I/O action，然後那個 I/O action 的結果是一個 pair：暫存檔的名字跟一個 handle。我們當然可以隨便開啟一個 todo2.txt 這種名字的檔案。但使用 ``openTempFile`` 會是比較好的作法，這樣你不會不小心覆寫任何檔案。
 
 我們不用 ``getCurrentDirectory`` 的來拿到現在所在資料夾而用 ``"."`` 的原因是 ``.`` 在 unix-like 系統跟 Windows 中都表示現在的資料夾。
 
@@ -849,13 +849,13 @@ Take salad out of the oven
 
 [$../img/arguments.png]
 
-如果你想要寫一個在終端裡運行的程式，處理命令列引數是不可或缺的。幸運地，利用 Haskell 的 Standard Libary 能讓我們有效地處理命令列引數。
+如果你想要寫一個在終端裡運行的程式，處理命令列引數是不可或缺的。幸運的是，利用 Haskell 的 Standard Libary 能讓我們有效地處理命令列引數。
 
 在之前的章節中，我們寫了一個能將 to-do item 加進或移除 to-do list 的一個程式。但我們的寫法有兩個問題。第一個是我們把放 to-do list 的檔案名稱給寫死了。我們擅自決定使用者不會有很多個 to-do lists，就把檔案命名為 todo.txt。
 
 一種解決的方法是每次都詢問使用者他們想將他們的 to-do list 放進哪個檔案。我們在使用者要刪除的時候也採用這種方式。這是一種可以運作的方式，但不太能被接受，因為他需要使用者運行程式，等待程式詢問才能回答。這被稱為互動式的程式，但討厭的地方在當你想要自動化執行程式的時候，好比說寫成 script，這會讓你的 script 寫起來比較困難。
 
-這也是為什麼有時候使用者在執行的時候就告訴程式他們要什麼會比較好，而不是讓程式去問使用者要什麼。更好的是是讓使用者透過命令列引數告訴程式他想要什麼。
+這也是為什麼有時候讓使用者在執行的時候就告訴程式他們要什麼會比較好，而不是讓程式去問使用者要什麼。比較好的方式是讓使用者透過命令列引數告訴程式他們想要什麼。
 
 在 ``System.Environment`` 模組當中有兩個很酷的 I/O actions，一個是 **getArgs**，他的 type 是 ``getArgs :: IO [String]``，他是一個拿取命令列引數的 I/O action，並把結果放在包含的一個串列中。**getProgName** 的型態是 ``getProgName :: IO String``，他則是一個 I/O action 包含了程式的名稱。
 
@@ -1434,7 +1434,7 @@ $ runhaskell bytestringcopy.hs something.txt ../../something.txt
 
 所有的程式語言都有要處理失敗的情形。這就是人生。不同的語言有不同的處理方式。在 C 裡面，我們通常用非正常範圍的回傳值（像是 ``-1`` 或 null）來回傳錯誤。Java 跟 C#則傾向於使用 exception 來處理失敗的情況。當一個 exception 被丟出的時候，控制流程就會跳到我們做一些清理動作的地方，做完清理後 exception 被重新丟出，這樣一些處理錯誤的程式碼可以完成他們的工作。
 
-Haskell 有一個很棒的型態系統。Algebraic data types 允許像是 ``Maybe`` 或 ``Either`` 這種型態，我們能用這些型態來代表一些可能有或沒有的結果。在 C 裡面，在失敗的時候回傳 ``-1`` 是很常見的事。但他只對寫程式的人有意義。如果我們不小心，我們有可能把這些錯誤碼當作正常值來處理，便造成一些諢亂。Haskell 的型態系統賦予我們更安全的環境。一個 ``a -> Maybe b`` 的函數指出了他會產生一個包含 ``b`` 的 ``Just``，或是回傳 ``Nothing``。這型態跟 ``a -> b`` 是不同的，如果我們試著將兩個函數混用，compiler 便會警告我們。
+Haskell 有一個很棒的型態系統。Algebraic data types 允許像是 ``Maybe`` 或 ``Either`` 這種型態，我們能用這些型態來代表一些可能有或沒有的結果。在 C 裡面，在失敗的時候回傳 ``-1`` 是很常見的事。但他只對寫程式的人有意義。如果我們不小心，我們有可能把這些錯誤碼當作正常值來處理，便造成一些混亂。Haskell 的型態系統賦予我們更安全的環境。一個 ``a -> Maybe b`` 的函數指出了他會產生一個包含 ``b`` 的 ``Just``，或是回傳 ``Nothing``。這型態跟 ``a -> b`` 是不同的，如果我們試著將兩個函數混用，compiler 便會警告我們。
 
 儘管有表達力夠強的型態來輔助失敗的情形，Haskell 仍然支持 exception，因為 exception 在 I/O 的 contexts 下是比較合理的。在處理 I/O 的時候會有一堆奇奇怪怪的事情發生，環境是很不能被信賴的。像是打開檔案。檔案有可能被 lock 起來，也有可能檔案被移除了，或是整個硬碟都被拔掉。所以直接跳到處理錯誤的程式碼是很合理的。
 
@@ -1528,7 +1528,7 @@ $ runhaskell count_lines.hs i_dont_exist.txt
 Whoops, had some trouble!  
 }}
 
-在 handler 裡面我們並沒有檢查我們拿到的是什麼樣的 ``IOError``，我們只是印出 ``"Whoops, had some trouble!"``。接住任何種類的 Exception 就跟其他語言一樣，在 Haskell 中也不是一個好的習慣。假如其他種類的 Exception 發生了，好比說我們送一個中斷指令，而我們沒有接到的話會發生什麼事？這就是為什麼我們要做跟其他語言一樣的事：就是檢查我們拿到的是什麼樣的 Exception。如果說是我們要的 Exception，那就做對應的處理。如果不是，我們在重新丟出 Exception。我們把我們的程式這樣修改，只接住檔案不存在的 Exception。
+在 handler 裡面我們並沒有檢查我們拿到的是什麼樣的 ``IOError``，我們只是印出 ``"Whoops, had some trouble!"``。接住任何種類的 Exception 就跟其他語言一樣，在 Haskell 中也不是一個好的習慣。假如其他種類的 Exception 發生了，好比說我們送一個中斷指令，而我們沒有接到的話會發生什麼事？這就是為什麼我們要做跟其他語言一樣的事：就是檢查我們拿到的是什麼樣的 Exception。如果說是我們要的 Exception，那就做對應的處理。如果不是，我們再重新丟出 Exception。我們把我們的程式這樣修改，只接住檔案不存在的 Exception。
 
 {{
 import System.Environment  
@@ -1577,7 +1577,7 @@ handler e
 
 其中 ``notifyCops`` 跟 ``freeSomeSpace`` 是一些你定義的 I/O action。如果 exception 不是你要的，記得要把他們重新丟出，不然你的程式可能只會安靜地當掉。
 
-``System.IO.Error`` 也會出了一些能詢問 exception 性質的函數，像是是哪些 handle 造成錯誤，或哪些檔案名造成錯誤。這些函數都是 ``ioe`` 當開頭。而且你可以在文件中看到一整串詳細資料。假設我們想要印出造成錯誤的檔案名。我們不能直接印出從 ``getArgs`` 那邊拿到的 ``fileName``，因為只有 ``IOError`` 被傳進 handler 中，而 handler 並不知道其他事情。一個函數只依賴於他所被呼叫時的參數。這也是為什麼我們會用 **ioeGetFileName** 這函數，他的型態是 ``ioeGetFileName :: IOError -> Maybe FilePath``。他接受一個 ``IOError`` 並回傳一個 ``FilePath``（他是 ``String`` 的同義詞。）基本上他做的事就是從 ``IOError`` 中抽出檔案路徑。我們來修改一下我們的程式。
+``System.IO.Error`` 也提供了一些能詢問 exception 性質的函數，像是哪些 handle 造成錯誤，或哪些檔案名造成錯誤。這些函數都是 ``ioe`` 當開頭。而且你可以在文件中看到一整串詳細資料。假設我們想要印出造成錯誤的檔案名。我們不能直接印出從 ``getArgs`` 那邊拿到的 ``fileName``，因為只有 ``IOError`` 被傳進 handler 中，而 handler 並不知道其他事情。一個函數只依賴於他所被呼叫時的參數。這也是為什麼我們會用 **ioeGetFileName** 這函數，他的型態是 ``ioeGetFileName :: IOError -> Maybe FilePath``。他接受一個 ``IOError`` 並回傳一個 ``FilePath``（他是 ``String`` 的同義詞。）基本上他做的事就是從 ``IOError`` 中抽出檔案路徑。我們來修改一下我們的程式。
 
 {{
 import System.Environment     
