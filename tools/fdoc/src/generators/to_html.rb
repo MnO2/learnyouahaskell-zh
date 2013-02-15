@@ -6,7 +6,7 @@ module FD
         def content
             str=(@inner || []).map{|i| i.to_html }.join || ''
             str=value.to_s rescue '' if str==''
-            str.strip
+            str
         end
     end
 
@@ -14,7 +14,10 @@ module FD
     # inline nodes 
     class T
         def to_html
-            content
+            def safe_html(s)
+                s.gsub(/&(?!(#\d+|[a-zA-Z]+);)/, "&amp;").gsub(/</, "&lt;").gsub(/>/, "&gt;")
+            end
+            safe_html content
         end
     end
 
