@@ -41,18 +41,18 @@ ghci> 50 * (100 - 4999)
 
 但注意處理負數的時候有個小陷阱：我們執行 ``5 * -3`` 會 ghci 會回報錯誤。所以說，使用負數時最好將其置於括號之中，像 ``5*(-3)`` 就不會有問題。
 
-要進行布林代數 (Boolean Algebra) 的演算也是很直覺的。你也許早就會猜，``&amp;&amp;`` 指的是布林代數上的 AND，而 ``||`` 指的是布林代數上的 OR，``not`` 會把 ``True`` 變成 ``False``，``False`` 變成 ``True``。
+要進行布林代數 (Boolean Algebra) 的演算也是很直覺的。你也許早就會猜，``&&`` 指的是布林代數上的 AND，而 ``||`` 指的是布林代數上的 OR，``not`` 會把 ``True`` 變成 ``False``，``False`` 變成 ``True``。
 
 {{
-ghci> True &amp;&amp; False
+ghci> True && False
 False
-ghci> True &amp;&amp; True
+ghci> True && True
 True
 ghci> False || True
 True
 ghci> not False
 True
-ghci> not (True &amp;&amp; True)
+ghci> not (True && True)
 False
 }}
 
@@ -112,7 +112,11 @@ ghci> (succ 9) + (max 5 4) + 1
 16
 }}
 
-若要取 9 乘 10 的後繼，``succ 9*10`` 是不行的，程式會先取 9 的後繼，然後再乘以 10 得 100。正確的寫法應該是 ``succ(9*10)``，得 91。如果某函數有兩個參數，也可以用 ``&#96;`` 符號將它括起，以中綴函數的形式呼叫它。例如取兩個整數相除所得商的 ``div`` 函數, ``div 92 10`` 可得 9，但這種形式不容易理解：究竟是哪個數是除數，哪個數被除？使用中綴函數的形式 ``92 `div` 10`` 就更清晰了。從命令式程式語言走過來的人們往往會覺得函數呼叫與括號密不可分，在 ``C`` 中，呼叫函數必加括號，就像 ``foo()``, ``bar(1)``,或者 ``baz(3,"haha")``。而在 Haskell 中，函數的呼叫必使用空格，例如 ``bar (bar 3)``，它並不表示以 ``bar`` 和 3 兩個參數去呼叫 ``bar``，而是以 ``bar 3`` 所得的結果作為參數去呼叫 ``bar``。在 C 中，就相當於 ``bar(bar(3))``。
+若要取 9 乘 10 的後繼，``succ 9*10`` 是不行的，程式會先取 9 的後繼，然後再乘以 10 得 100。正確的寫法應該是 ``succ(9*10)``，得 91。如果某函數有兩個參數，也可以用 ``&#96;`` 符號將它括起，以中綴函數的形式呼叫它。
+
+例如取兩個整數相除所得商的 ``div`` 函數, ``div 92 10`` 可得 9，但這種形式不容易理解：究竟是哪個數是除數，哪個數被除？使用中綴函數的形式 ``92 `div` 10`` 就更清晰了。
+
+從命令式程式語言走過來的人們往往會覺得函數呼叫與括號密不可分，在 C 中，呼叫函數必加括號，就像 ``foo()``, ``bar(1)``,或者 ``baz(3,"haha")``。而在 Haskell 中，函數的呼叫必使用空格，例如 ``bar (bar 3)``，它並不表示以 ``bar`` 和 3 兩個參數去呼叫 ``bar``，而是以 ``bar 3`` 所得的結果作為參數去呼叫 ``bar``。在 C 中，就相當於 ``bar(bar(3))``。
 
 
 ==初學者的第一個函數
@@ -445,28 +449,28 @@ ghci> take 10 (repeat 5)
 學過數學的你對集合的 comprehension (Set Comprehension) 概念一定不會陌生。通過它，可以從既有的集合中按照規則產生一個新集合。前十個偶數的 set comprehension 可以表示為[../img/setnotation.png]，豎綫左端的部分是輸出函數，``x`` 是變數，``N`` 是輸入集合。在 Haskell 下，我們可以通過類似 ``take 10 [2,4..]`` 的程式碼來實現。但若是把簡單的乘 2 改成更複雜的函數操作該怎麼辦呢？用 list comprehension，它與 set comprehension 十分的相似，用它取前十個偶數輕而易舉。這個 list comprehension 可以表示為：
 
 {{
-ghci> [x*2 | x &lt;- [1..10]]
+ghci> [x*2 | x <- [1..10]]
 [2,4,6,8,10,12,14,16,18,20]
 }}
 
 如你所見，結果正確。給這個 comprehension 再添個限制條件 (predicate)，它與前面的條件由一個逗號分隔。在這裡，我們要求只取乘以 2 後大於等於 12 的元素。
 
 {{
-ghci> [x*2 | x &lt;- [1..10], x*2 >= 12]
+ghci> [x*2 | x <- [1..10], x*2 >= 12]
 [12,14,16,18,20]
 }}
 
 cool，靈了。若是取 50 到 100 間所有除7的餘數為 3 的元素該怎麼辦？簡單：
 
 {{
-ghci> [ x | x &lt;- [50..100], x `mod` 7 == 3]
+ghci> [ x | x <- [50..100], x `mod` 7 == 3]
 [52,59,66,73,80,87,94]
 }}
 
 成功！從一個 List 中篩選出符合特定限制條件的操作也可以稱為過濾 (flitering)。即取一組數並且按照一定的限制條件過濾它們。再舉個例子 吧，假如我們想要一個 comprehension，它能夠使 List 中所有大於 10 的奇數變為 ``"BANG"``，小於 10 的奇數變為 ``"BOOM"``，其他則統統扔掉。方便重用起見，我們將這個 comprehension 置於一個函數之中。
 
 {{
-boomBangs xs = [ if x &lt; 10 then "BOOM!" else "BANG!" | x &lt;- xs, odd x]
+boomBangs xs = [ if x < 10 then "BOOM!" else "BANG!" | x <- xs, odd x]
 }}
 
 這個 comprehension 的最後部分就是限制條件，使用 ``odd`` 函數判斷是否為奇數：返回 ``True``，就是奇數，該 List 中的元素才被包含。
@@ -479,21 +483,21 @@ ghci> boomBangs [7..13]
 也可以加多個限制條件。若要達到 10 到 20 間所有不等於 13，15 或 19 的數，可以這樣：
 
 {{
-ghci> [ x | x &lt;- [10..20], x /= 13, x /= 15, x /= 19]
+ghci> [ x | x <- [10..20], x /= 13, x /= 15, x /= 19]
 [10,11,12,14,16,17,18,20]
 }}
 
 除了多個限制條件之外，從多個 List 中取元素也是可以的。這樣的話 comprehension 會把所有的元素組合交付給我們的輸出函數。在不過濾的前提 下，取自兩個長度為 4 的集合的 comprehension 會產生一個長度為 16 的 List。假設有兩個 List，``[2,5,10]`` 和 ``[8,10,11]``， 要取它們所有組合的積，可以這樣：
 
 {{
-ghci> [ x*y | x &lt;- [2,5,10], y &lt;- [8,10,11]]
+ghci> [ x*y | x <- [2,5,10], y <- [8,10,11]]
 [16,20,22,40,50,55,80,100,110]
 }}
 
 意料之中，得到的新 List 長度為 9。若只取乘積為 50 的結果該如何？
 
 {{
-ghci> [ x*y | x &lt;-[2,5,10], y &lt;- [8,10,11], x*y > 50]
+ghci> [ x*y | x <-[2,5,10], y <- [8,10,11], x*y > 50]
 [55,80,100,110]
 }}
 
@@ -502,7 +506,7 @@ ghci> [ x*y | x &lt;-[2,5,10], y &lt;- [8,10,11], x*y > 50]
 {{
 ghci> let nouns = ["hobo","frog","pope"]
 ghci> let adjectives = ["lazy","grouchy","scheming"]
-ghci> [adjective ++ " " ++ noun | adjective &lt;- adjectives, noun &lt;- nouns]
+ghci> [adjective ++ " " ++ noun | adjective <- adjectives, noun <- nouns]
 ["lazy hobo","lazy frog","lazy pope","grouchy hobo","grouchy frog", "grouchy pope","scheming hobo",
 "scheming frog","scheming pope"]
 }}
@@ -510,13 +514,13 @@ ghci> [adjective ++ " " ++ noun | adjective &lt;- adjectives, noun &l
 明白！讓我們編寫自己的 ``length`` 函數吧！就叫做 ``length'``!
 
 {{
-length' xs = sum [1 | _ &lt;- xs]
+length' xs = sum [1 | _ <- xs]
 }}
 
 ``_`` 表示我們並不關心從 List 中取什麼值，與其弄個永遠不用的變數，不如直接一個 ``_``。這個函數將一個 List 中所有元素置換為 1，並且使其相加求和。得到的結果便是我們的 List 長度。友情提示：字串也是 List，完全可以使用 list comprehension 來處理字串。如下是個除去字串中所有非大寫字母的函數：
 
 {{
-removeNonUppercase st = [ c | c &lt;- st, c `elem` ['A'..'Z']]
+removeNonUppercase st = [ c | c <- st, c `elem` ['A'..'Z']]
 }}
 
 測試一下：
@@ -534,7 +538,7 @@ ghci> removeNonUppercase "IdontLIKEFROGS"
 
 {{
 ghci> let xxs = [[1,3,5,2,3,1,2,4,5],[1,2,3,4,5,6,7,8,9],[1,2,4,2,1,6,3,1,3,2,3,6]]
-ghci> [ [ x | x &lt;- xs, even x ] | xs &lt;- xxs]
+ghci> [ [ x | x <- xs, even x ] | xs <- xxs]
 [[2,2,4],[2,4,6,8],[2,4,2,6,2,6]]
 }}
 
@@ -612,19 +616,19 @@ ghci> zip [1..] ["apple", "orange", "cherry", "mango"]
 接下來考慮一個同時應用到 List 和 Tuple 的問題：如何取得所有三邊長度皆為整數且小於等於 10，周長為 24 的直角三角形？首先，把所有三遍長度小於等於 10 的三角形都列出來：
 
 {{
-ghci> let triangles = [ (a,b,c) | c &lt;- [1..10], b &lt;- [1..10], a &lt;- [1..10] ]
+ghci> let triangles = [ (a,b,c) | c <- [1..10], b <- [1..10], a <- [1..10] ]
 }}
 
 剛才我們是從三個 List 中取值，並且通過輸出函數將其組合為一個三元組。只要在 ghci 下邊呼叫 triangle，你就會得到所有三邊都小於等於 10 的三角形。我們接下來給它添加一個限制條件，令其必須為直角三角形。同時也考慮上 ``b`` 邊要短於斜邊，``a`` 邊要短於 ``b`` 邊情況：
 
 {{
-ghci> let rightTriangles = [ (a,b,c) | c &lt;- [1..10], b &lt;- [1..c], a &lt;- [1..b], a^2 + b^2 == c^2]
+ghci> let rightTriangles = [ (a,b,c) | c <- [1..10], b <- [1..c], a <- [1..b], a^2 + b^2 == c^2]
 }}
 
 已經差不多了。最後修改函數，告訴它只要周長為 24 的三角形。
 
 {{
-ghci> let rightTriangles' = [ (a,b,c) | c &lt;- [1..10], b &lt;- [1..c], a &lt;- [1..b], a^2 + b^2 == c^2, a+b+c == 24]
+ghci> let rightTriangles' = [ (a,b,c) | c <- [1..10], b <- [1..c], a <- [1..b], a^2 + b^2 == c^2, a+b+c == 24]
 ghci> rightTriangles'
 [(6,8,10)]
 }}

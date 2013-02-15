@@ -277,10 +277,10 @@ roadStep (pathA, pathB) (Section a b c) =
         crossPriceToA = priceB + b + c  
         forwardPriceToB = priceB + b  
         crossPriceToB = priceA + a + c  
-        newPathToA = if forwardPriceToA &lt;= crossPriceToA  
+        newPathToA = if forwardPriceToA <= crossPriceToA  
                         then (A,a):pathA  
                         else (C,c):(B,b):pathB  
-        newPathToB = if forwardPriceToB &lt;= crossPriceToB  
+        newPathToB = if forwardPriceToB <= crossPriceToB  
                         then (B,b):pathB  
                         else (C,c):(A,a):pathA  
     in  (newPathToA, newPathToB)  
@@ -318,7 +318,7 @@ ghci> roadStep ([], []) (head heathrowToLondon)
 optimalPath :: RoadSystem -> Path  
 optimalPath roadSystem = 
     let (bestAPath, bestBPath) = foldl roadStep ([],[]) roadSystem  
-    in  if sum (map snd bestAPath) &lt;= sum (map snd bestBPath)  
+    in  if sum (map snd bestAPath) <= sum (map snd bestBPath)  
                 then reverse bestAPath  
                 else reverse bestBPath  
 }}
@@ -353,7 +353,7 @@ groupsOf n xs = take n xs : groupsOf n (drop n xs)
 import Data.List  
   
 main = do  
-    contents &lt;- getContents  
+    contents <- getContents  
     let threes = groupsOf 3 (map read $ lines contents)  
         roadSystem = map (\[a,b,c] -> Section a b c) threes  
         path = optimalPath roadSystem  

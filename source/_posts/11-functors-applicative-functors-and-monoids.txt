@@ -26,7 +26,7 @@ Typeclass 的運用是很隨意的。我們可以定義自己的資料型態，�
 {{
 instance Functor IO where
     fmap f action = do
-        result &lt;- action
+        result <- action
         return (f result)
 }}
 
@@ -35,7 +35,7 @@ instance Functor IO where
 我們可以再多實驗一下來找到些感覺。來看看這段 code：
 
 {{
-main = do line &lt;- getLine   
+main = do line <- getLine   
         let line' = reverse line  
         putStrLn $ "You said " ++ line' ++ " backwards!"  
         putStrLn $ "Yes, you really said" ++ line' ++ " backwards!"  
@@ -45,14 +45,14 @@ main = do line &lt;- getLine
 我們可以用 ``fmap`` 來改寫：
 
 {{
-main = do line &lt;- fmap reverse getLine  
+main = do line <- fmap reverse getLine  
             putStrLn $ "You said " ++ line ++ " backwards!"  
             putStrLn $ "Yes, you really said" ++ line ++ " backwards!"  
 }}
 
 [^../img/alien.png]
 
-就像我們用 ``fmap`` ``reverse`` 來 map over ``Just "blah"`` 會得到 ``Just "halb"``，我們也可以 ``fmap`` ``reverse`` 來 map over ``getLine``。``getLine`` 是一個 I/O action，他的 type 是 ``IO String``，而用 ``reverse`` 來 map over 他會回傳一個取回一個字串並 ``reverse`` 他的 I/O action。就像我們 apply 一個 function 到一個 ``Maybe`` 一樣，我們也可以 apply 一個 function 到一個 ``IO``，只是這個 ``IO`` 會跑去外面拿回某些值。然後我們把結果用 ``&lt;-`` 綁定到某個名稱，而這個名稱綁定的值是已經 ``reverse`` 過了。
+就像我們用 ``fmap`` ``reverse`` 來 map over ``Just "blah"`` 會得到 ``Just "halb"``，我們也可以 ``fmap`` ``reverse`` 來 map over ``getLine``。``getLine`` 是一個 I/O action，他的 type 是 ``IO String``，而用 ``reverse`` 來 map over 他會回傳一個取回一個字串並 ``reverse`` 他的 I/O action。就像我們 apply 一個 function 到一個 ``Maybe`` 一樣，我們也可以 apply 一個 function 到一個 ``IO``，只是這個 ``IO`` 會跑去外面拿回某些值。然後我們把結果用 ``<-`` 綁定到某個名稱，而這個名稱綁定的值是已經 ``reverse`` 過了。
 
 而 ``fmap (++"!") getLine`` 這個 I/O action 表現得就像 ``getLine``，只是他的結果多了一個 ``"!"`` 在最後。
 
@@ -64,7 +64,7 @@ main = do line &lt;- fmap reverse getLine
 import Data.Char  
 import Data.List  
   
-main = do line &lt;- fmap (intersperse '-' . reverse . map toUpper) getLine  
+main = do line <- fmap (intersperse '-' . reverse . map toUpper) getLine  
         putStrLn line  
 }}
 
@@ -312,12 +312,12 @@ ghci> fmap (\f -> f 9) a
 
 但如果我們的有一個 functor 裡面是 ``Just (3 *)`` 還有另一個 functor 裡面是 ``Just 5``，但我們想要把第一個 ``Just (3 *)`` map over ``Just 5`` 呢？如果是普通的 functor，那就沒救了。因為他們只允許 map 一個普通的函數。即使我們用 ``\f -> f 9`` 來 map 一個裝了很多函數的 functor，我們也是使用了普通的函數。我們是無法單純用 ``fmap`` 來把包在一個 functor 的函數 map 另一個包在 functor 中的值。我們能用模式匹配 ``Just`` 來把函數從裡面抽出來，然後再 map ``Just 5``，但我們是希望有一個一般化的作法，對任何 functor 都有效。
 
-我們來看看 ``Applicative`` 這個 typeclass。他位在 ``Control.Applicative`` 中，在其中定義了兩個函數 ``pure`` 跟 ``&lt;*>``。他並沒有提供預設的實作，如果我們想使用他必須要為他們 applicative functor 的實作。typeclass 定義如下：
+我們來看看 ``Applicative`` 這個 typeclass。他位在 ``Control.Applicative`` 中，在其中定義了兩個函數 ``pure`` 跟 ``<*>``。他並沒有提供預設的實作，如果我們想使用他必須要為他們 applicative functor 的實作。typeclass 定義如下：
 
 {{
 class (Functor f) => Applicative f where  
     pure :: a -> f a  
-    (&lt;*>) :: f (a -> b) -> f a -> f b  
+    (<*>) :: f (a -> b) -> f a -> f b  
 }}
 
 這簡簡單單的三行可以讓我們學到不少。首先來看第一行。他開啟了 ``Applicative`` 的定義，並加上 class contraint。描述了一個型別構造子要是 ``Applicative``，他必須也是 ``Functor``。這就是為什麼我們說一個型別構造子屬於 ``Applicative`` 的話，他也會是 ``Functor``，因此我們能對他使用 ``fmap``。
@@ -326,37 +326,37 @@ class (Functor f) => Applicative f where
 
 對於 ``pure`` 比較好的書法是把一個普通值放到一個預設的 context 下，一個最小的 context 但仍然包含這個值。
 
-``&lt;*>`` 也非常有趣。他的型別是 ``f (a -> b) -> f a -> f b``。這有讓你聯想到什麼嗎？沒錯！就是 ``fmap :: (a -> b) -> f a -> f b``。他有點像加強版的 ``fmap``。然而 ``fmap`` 接受一個函數跟一個 functor，然後套用 functor 之中的函數。``&lt;*>`` 則是接受一個裝有函數的 functor 跟另一個 functor，然後取出第一個 functor 中的函數將他對第二個 functor 中的值做 map。
+``<*>`` 也非常有趣。他的型別是 ``f (a -> b) -> f a -> f b``。這有讓你聯想到什麼嗎？沒錯！就是 ``fmap :: (a -> b) -> f a -> f b``。他有點像加強版的 ``fmap``。然而 ``fmap`` 接受一個函數跟一個 functor，然後套用 functor 之中的函數。``<*>`` 則是接受一個裝有函數的 functor 跟另一個 functor，然後取出第一個 functor 中的函數將他對第二個 functor 中的值做 map。
 
 我們來看看 ``Maybe`` 的 ``Applicative`` 實作：
 
 {{
 instance Applicative Maybe where  
     pure = Just  
-    Nothing &lt;*> _ = Nothing  
-    (Just f) &lt;*> something = fmap f something  
+    Nothing <*> _ = Nothing  
+    (Just f) <*> something = fmap f something  
 }}
 
 從 class 的定義我們可以看到 ``f`` 作為 applicative functor 會接受一個具體型別當作參數，所以我們是寫成 ``instance Applicative Maybe where`` 而不是寫成 ``instance Applicative (Maybe a) where``。
 
 首先看到 ``pure``。他只不過是接受一個東西然後包成 applicative functor。我們寫成 ``pure = Just`` 是因為 ``Just`` 不過就是一個普通函數。我們其實也可以寫成 ``pure x = Just x``。
 
-接著我們定義了 ``&lt;*>``。我們無法從 ``Nothing`` 中抽出一個涮，因為 ``Nothing`` 並不包含一個函數。所以我們說如果我們要嘗試從 ``Nothing`` 中取出一個函數，結果必定是 ``Nothing``。如果你看看 ``Applicative`` 的定義，你會看到他有 ``Functor`` 的限制，他代表 ``&lt;*>`` 的兩個參數都會是 functors。如果第一個參數不是 ``Nothing``，而是一個裝了函數的 ``Just``，而且我們希望將這個函數對第二個參數做 map。這個也考慮到第二個參數是 ``Nothing`` 的情況，因為 ``fmap`` 任何一個函數至 ``Nothing`` 會回傳 ``Nothing``。
+接著我們定義了 ``<*>``。我們無法從 ``Nothing`` 中抽出一個涮，因為 ``Nothing`` 並不包含一個函數。所以我們說如果我們要嘗試從 ``Nothing`` 中取出一個函數，結果必定是 ``Nothing``。如果你看看 ``Applicative`` 的定義，你會看到他有 ``Functor`` 的限制，他代表 ``<*>`` 的兩個參數都會是 functors。如果第一個參數不是 ``Nothing``，而是一個裝了函數的 ``Just``，而且我們希望將這個函數對第二個參數做 map。這個也考慮到第二個參數是 ``Nothing`` 的情況，因為 ``fmap`` 任何一個函數至 ``Nothing`` 會回傳 ``Nothing``。
 
-對於 ``Maybe`` 而言，如果左邊是 ``Just``，那 ``&lt;*>`` 會從其中抽出了一個函數來 map 右邊的值。如果有任何一個參數是 ``Nothing``。那結果便是 ``Nothing``。
+對於 ``Maybe`` 而言，如果左邊是 ``Just``，那 ``<*>`` 會從其中抽出了一個函數來 map 右邊的值。如果有任何一個參數是 ``Nothing``。那結果便是 ``Nothing``。
 
 來試試看吧！
 
 {{
-ghci> Just (+3) &lt;*> Just 9  
+ghci> Just (+3) <*> Just 9  
 Just 12  
-ghci> pure (+3) &lt;*> Just 10  
+ghci> pure (+3) <*> Just 10  
 Just 13  
-ghci> pure (+3) &lt;*> Just 9  
+ghci> pure (+3) <*> Just 9  
 Just 12  
-ghci> Just (++"hahah") &lt;*> Nothing  
+ghci> Just (++"hahah") <*> Nothing  
 Nothing  
-ghci> Nothing &lt;*> Just "woot"  
+ghci> Nothing <*> Just "woot"  
 Nothing  
 }}
 
@@ -365,39 +365,39 @@ Nothing
 對於普通的 functors，你可以用一個函數 map over 一個 functors，但你可能沒辦法拿到結果。而 applicative functors 則讓你可以用單一一個函數操作好幾個 functors。看看下面一段程式碼：
 
 {{
-ghci> pure (+) &lt;*> Just 3 &lt;*> Just 5  
+ghci> pure (+) <*> Just 3 <*> Just 5  
 Just 8  
-ghci> pure (+) &lt;*> Just 3 &lt;*> Nothing  
+ghci> pure (+) <*> Just 3 <*> Nothing  
 Nothing  
-ghci> pure (+) &lt;*> Nothing &lt;*> Just 5  
+ghci> pure (+) <*> Nothing <*> Just 5  
 Nothing  
 }}
 
 [$../img/whale.png]
 
-究竟我們寫了些什麽？我們來一步步看一下。``&lt;*>`` 是 left-associative，也就是說 ``pure (+) &lt;*> Just 3 &lt;*> Just 5`` 可以寫成 ``(pure (+) &lt;*> Just 3) &lt;*> Just 5``。首先 ``+`` 是擺在一個 functor 中，在這邊剛好他是一個 ``Maybe``。所以首先，我們有 ``pure (+)``，他等價於 ``Just (+)``。接下來由於 partial application 的關係，``Just (+) &lt;*> Just 3`` 等價於 ``Just (3+)``。把一個 ``3`` 餵給 ``+`` 形成另一個只接受一個參數的函數，他的效果等於加上 3。最後 ``Just (3+) &lt;*> Just 5`` 被運算，其結果是 ``Just 8``。
+究竟我們寫了些什麽？我們來一步步看一下。``<*>`` 是 left-associative，也就是說 ``pure (+) <*> Just 3 <*> Just 5`` 可以寫成 ``(pure (+) <*> Just 3) <*> Just 5``。首先 ``+`` 是擺在一個 functor 中，在這邊剛好他是一個 ``Maybe``。所以首先，我們有 ``pure (+)``，他等價於 ``Just (+)``。接下來由於 partial application 的關係，``Just (+) <*> Just 3`` 等價於 ``Just (3+)``。把一個 ``3`` 餵給 ``+`` 形成另一個只接受一個參數的函數，他的效果等於加上 3。最後 ``Just (3+) <*> Just 5`` 被運算，其結果是 ``Just 8``。
 
 
-這樣很棒吧！用 applicative style 的方式來使用 applicative functors。像是 ``pure f &lt;*> x &lt;*> y &lt;*> ...`` 就讓我們可以拿一個接受多個參數的函數，而且這些參數不一定是被包在 functor 中。就這樣來套用在多個在 functor context 的值。這個函數可以吃任意多的參數，畢竟 ``&lt;*>`` 只是做 partial application 而已。
+這樣很棒吧！用 applicative style 的方式來使用 applicative functors。像是 ``pure f <*> x <*> y <*> ...`` 就讓我們可以拿一個接受多個參數的函數，而且這些參數不一定是被包在 functor 中。就這樣來套用在多個在 functor context 的值。這個函數可以吃任意多的參數，畢竟 ``<*>`` 只是做 partial application 而已。
 
 
-如果我們考慮到 ``pure f &lt;*> x`` 等於 ``fmap f x`` 的話，這樣的用法就更方便了。這是 applicative laws 的其中一條。我們稍後會更仔細地檢視這條定律。現在我們先依直覺來使用他。就像我們先前所說的，``pure`` 把一個值放進一個預設的 context 中。如果我們要把一個函數放在一個預設的 context，然後把他取出並套用在放在另一個 applicative functor 的值。我們會做的事就是把函數 map over 那個 applicative functor。但我們不會寫成 ``pure f &lt;*> x &lt;*> y &lt;*> ...``，而是寫成 ``fmap f x &lt;*> y &lt;*> ...``。這也是為什麽 ``Control.Aaplicative`` 會 export 一個函數 ``&lt;$>``，他基本上就是中綴版的 ``fmap``。他是這麼被定義的：
+如果我們考慮到 ``pure f <*> x`` 等於 ``fmap f x`` 的話，這樣的用法就更方便了。這是 applicative laws 的其中一條。我們稍後會更仔細地檢視這條定律。現在我們先依直覺來使用他。就像我們先前所說的，``pure`` 把一個值放進一個預設的 context 中。如果我們要把一個函數放在一個預設的 context，然後把他取出並套用在放在另一個 applicative functor 的值。我們會做的事就是把函數 map over 那個 applicative functor。但我們不會寫成 ``pure f <*> x <*> y <*> ...``，而是寫成 ``fmap f x <*> y <*> ...``。這也是為什麽 ``Control.Aaplicative`` 會 export 一個函數 ``<$>``，他基本上就是中綴版的 ``fmap``。他是這麼被定義的：
 
 {{
-(&lt;$>) :: (Functor f) => (a -> b) -> f a -> f b  
-f &lt;$> x = fmap f x  
+(<$>) :: (Functor f) => (a -> b) -> f a -> f b  
+f <$> x = fmap f x  
 }}
 	
     
     要記住型別變數跟參數的名字還有值綁定的名稱不衝突。``f`` 在函數的型別宣告中是型別變數，說名 ``f`` 應該要滿足 ``Functor`` typeclass 的條件。而在函數本體中的 ``f`` 則表示一個函數，我們將他 map over x。我們同樣用 ``f`` 來表示他們並代表他們是相同的東西。
 
 
-``&lt;$>`` 的使用顯示了 applicative style 的好處。如果我們想要將 ``f`` 套用三個 applicative functor。我們可以寫成 ``f &lt;$> x &lt;*> y &lt;*> z``。如果參數不是 applicative functor 而是普通值的話。我們則寫成 ``f x y z``。
+``<$>`` 的使用顯示了 applicative style 的好處。如果我們想要將 ``f`` 套用三個 applicative functor。我們可以寫成 ``f <$> x <*> y <*> z``。如果參數不是 applicative functor 而是普通值的話。我們則寫成 ``f x y z``。
 
 我們再仔細看看他是如何運作的。我們有一個 ``Just "johntra"`` 跟 ``Just "volta"`` 這樣的值，我們希望將他們結合成一個 ``String``，並且包含在 ``Maybe`` 中。我們會這樣做：
 
 {{
-ghci> (++) &lt;$> Just "johntra" &lt;*> Just "volta"  
+ghci> (++) <$> Just "johntra" <*> Just "volta"  
 Just "johntravolta"  
 }}
 
@@ -408,10 +408,10 @@ ghci> (++) "johntra" "volta"
 "johntravolta"  
 }}
 
-可以將一個普通的函數套用在 applicative functor 上真不錯。只要稍微寫一些 ``&lt;$>`` 跟 ``&lt;*>`` 就可以把函數變成 applicative style，可以操作 applicatives 並回傳 applicatives。
+可以將一個普通的函數套用在 applicative functor 上真不錯。只要稍微寫一些 ``<$>`` 跟 ``<*>`` 就可以把函數變成 applicative style，可以操作 applicatives 並回傳 applicatives。
 
 
-總之當我們在做 ``(++) &lt;$> Just "johntra" &lt;*> Just "volta"`` 時，首先我們將 ``(++)`` map over 到 ``Just "johntra"``，然後產生 ``Just ("johntra"++)``，其中 ``(++)`` 的型別為 ``(++) :: [a] -> [a] -> [a]``，``Just ("johntra"++)`` 的型別為 ``Maybe ([Char] -> [Char])``。注意到 ``(++)`` 是如何吃掉第一個參數，以及我們是怎麼決定 ``a`` 是 ``Char`` 的。當我們做 ``Just ("johntra"++) &lt;*> Just "volta"``，他接受一個包在 ``Just`` 中的函數，然後 map over ``Just "volta"``，產生了 ``Just "johntravolta"``。如果兩個值中有任意一個為 ``Nothing``，那整個結果就會是 ``Nothing``。
+總之當我們在做 ``(++) <$> Just "johntra" <*> Just "volta"`` 時，首先我們將 ``(++)`` map over 到 ``Just "johntra"``，然後產生 ``Just ("johntra"++)``，其中 ``(++)`` 的型別為 ``(++) :: [a] -> [a] -> [a]``，``Just ("johntra"++)`` 的型別為 ``Maybe ([Char] -> [Char])``。注意到 ``(++)`` 是如何吃掉第一個參數，以及我們是怎麼決定 ``a`` 是 ``Char`` 的。當我們做 ``Just ("johntra"++) <*> Just "volta"``，他接受一個包在 ``Just`` 中的函數，然後 map over ``Just "volta"``，產生了 ``Just "johntravolta"``。如果兩個值中有任意一個為 ``Nothing``，那整個結果就會是 ``Nothing``。
 
 
 到目前為止我們只有用 ``Maybe`` 當作我們的案例，你可能也會想說 applicative functor 差不多就等於 ``Maybe``。不過其實有許多其他 ``Applicative`` 的 instance。我們來看看有哪些。
@@ -422,7 +422,7 @@ List 也是 applicative functor。很驚訝嗎？來看看我們是怎麼定義 
 {{
 instance Applicative [] where  
     pure x = [x]  
-    fs &lt;*> xs = [f x | f &lt;- fs, x &lt;- xs]  
+    fs <*> xs = [f x | f <- fs, x <- xs]  
 }}
 
 
@@ -435,65 +435,65 @@ ghci> pure "Hey" :: Maybe String
 Just "Hey"  
 }}
 
-至於 ``&lt;*>`` 呢？如果我們假定 ``&lt;*>`` 的型別是限制在 list 上的話，我們會得到 ``(&lt;*>) :: [a -> b] -> [a] -> [b]``。他是用 list comprehension 來實作的。``&lt;*>`` 必須要從左邊的參數取出函數，將他 map over 右邊的參數。但左邊的 list 有可能不包含任何函數，也可能包含一個函數，甚至是多個函數。而右邊的 list 有可能包含多個值。這也是為什麼我們用 list comprehension 的方式來從兩個 list 取值。我們要對左右任意的組合都做套用的動作。而得到的結果就會是左右兩者任意組合的結果。
+至於 ``<*>`` 呢？如果我們假定 ``<*>`` 的型別是限制在 list 上的話，我們會得到 ``(<*>) :: [a -> b] -> [a] -> [b]``。他是用 list comprehension 來實作的。``<*>`` 必須要從左邊的參數取出函數，將他 map over 右邊的參數。但左邊的 list 有可能不包含任何函數，也可能包含一個函數，甚至是多個函數。而右邊的 list 有可能包含多個值。這也是為什麼我們用 list comprehension 的方式來從兩個 list 取值。我們要對左右任意的組合都做套用的動作。而得到的結果就會是左右兩者任意組合的結果。
 
 {{
-ghci> [(*0),(+100),(^2)] &lt;*> [1,2,3]  
+ghci> [(*0),(+100),(^2)] <*> [1,2,3]  
 [0,0,0,101,102,103,1,4,9]  
 }}
 
 左邊的 list 包含三個函數，而右邊的 list 有三個值。所以結果會是有九個元素的 list。在左邊 list 中的每一個函數都被套用到右邊的值。如果我們今天在 list 中的函數是接收兩個參數的，我們也可以套用到兩個 list 上。
 
 {{
-ghci> [(+),(*)] &lt;*> [1,2] &lt;*> [3,4]  
+ghci> [(+),(*)] <*> [1,2] <*> [3,4]  
 [4,5,5,6,3,4,6,8]  
 }}
 
-由於 ``&lt;*>`` 是 left-associative，也就是說 ``[(+),(*)] &lt;*> [1,2]`` 會先運作，產生 ``[(1+),(2+),(1*),(2*)]``。由於左邊的每一個函數都套用至右邊的每一個值。也就產生 ``[(1+),(2+),(1*),(2*)] &lt;*> [3,4]``，其便是最終結果。
+由於 ``<*>`` 是 left-associative，也就是說 ``[(+),(*)] <*> [1,2]`` 會先運作，產生 ``[(1+),(2+),(1*),(2*)]``。由於左邊的每一個函數都套用至右邊的每一個值。也就產生 ``[(1+),(2+),(1*),(2*)] <*> [3,4]``，其便是最終結果。
 
 list 的 applicative style 是相當有趣的：
 
 {{
-ghci> (++) &lt;$> ["ha","heh","hmm"] &lt;*> ["?","!","."]  
+ghci> (++) <$> ["ha","heh","hmm"] <*> ["?","!","."]  
 ["ha?","ha!","ha.","heh?","heh!","heh.","hmm?","hmm!","hmm."] 
 }}
 
 看看我們是如何將一個接受兩個字串參數的函數套用到兩個 applicative functor 上的，只要用適當的 applicative 運算子就可以達成。
 
-你可以將 list 看作是一個 non-deterministic 的計算。而對於像 ``100`` 或是 ``"what"`` 這樣的值則是 deterministic 的計算，只會有一個結果。而 ``[1,2,3]`` 則可以看作是沒有確定究竟是哪一種結果。所以他代表的是所有可能的結果。當你在做 ``(+) &lt;$> [1,2,3] &lt;*> [4,5,6]``，你可以想做是把兩個 non-deterministic 的計算做 ``+``，只是他會產生另一個 non-deterministic 的計算，而且結果更加不確定。
+你可以將 list 看作是一個 non-deterministic 的計算。而對於像 ``100`` 或是 ``"what"`` 這樣的值則是 deterministic 的計算，只會有一個結果。而 ``[1,2,3]`` 則可以看作是沒有確定究竟是哪一種結果。所以他代表的是所有可能的結果。當你在做 ``(+) <$> [1,2,3] <*> [4,5,6]``，你可以想做是把兩個 non-deterministic 的計算做 ``+``，只是他會產生另一個 non-deterministic 的計算，而且結果更加不確定。
 
 
 Applicative style 對於 list 而言是一個取代 list comprehension 的好方式。在第二章中，我們想要看到 ``[2,5,10]`` 跟 ``[8,10,11]`` 相乘的結果，所以我們這樣做：
 
 {{
-ghci> [ x*y | x &lt;- [2,5,10], y &lt;- [8,10,11]]     
+ghci> [ x*y | x <- [2,5,10], y <- [8,10,11]]     
 [16,20,22,40,50,55,80,100,110]     
 }}
 
 我們只是從兩個 list 中取出元素，並將一個函數套用在任何元素的組合上。這也可以用 applicative style 的方式來寫：
 
 {{
-ghci> (*) &lt;$> [2,5,10] &lt;*> [8,10,11]  
+ghci> (*) <$> [2,5,10] <*> [8,10,11]  
 [16,20,22,40,50,55,80,100,110]  
 }}
 
 這寫法對我來說比較清楚。可以清楚表達我們是要對兩個 non-deterministic 的計算做 ``*``。如果我們想要所有相乘大於 50 可能的計算結果，我們會這樣寫：
 
 {{
-ghci> filter (>50) $ (*) &lt;$> [2,5,10] &lt;*> [8,10,11]  
+ghci> filter (>50) $ (*) <$> [2,5,10] <*> [8,10,11]  
 [55,80,100,110]  
 }}
 
-很容易看到 ``pure f &lt;*> xs`` 等價於 ``fmap f xs``。而 ``pure f`` 就是 ``[f]``，而且 ``[f] &lt;*> xs`` 可將左邊的每個函數套用至右邊的每個值。但左邊其實只有一個函數，所以他做起來就像是 mapping。
+很容易看到 ``pure f <*> xs`` 等價於 ``fmap f xs``。而 ``pure f`` 就是 ``[f]``，而且 ``[f] <*> xs`` 可將左邊的每個函數套用至右邊的每個值。但左邊其實只有一個函數，所以他做起來就像是 mapping。
 
 另一個我們已經看過的 ``Applicative`` 的 instnace 是 ``IO``，來看看他是怎麼實作的：
 
 {{
 instance Applicative IO where  
     pure = return  
-    a &lt;*> b = do  
-        f &lt;- a  
-        x &lt;- b  
+    a <*> b = do  
+        f <- a  
+        x <- b  
         return (f x)  
 }}
 
@@ -502,17 +502,17 @@ instance Applicative IO where
 
 由於 ``pure`` 是把一個值放進最小的 context 中，所以將 ``return`` 定義成 ``pure`` 是很合理的。因為 ``return`` 也是做同樣的事情。他做了一個不做任何事情的 I/O action，他可以產生某些值來作為結果，但他實際上並沒有做任何 I/O 的動作，例如說印出結果到終端或是檔案。
 
-如果 ``&lt;*>`` 被限定在 ``IO`` 上操作的話，他的型別會是 ``(&lt;*>) :: IO (a -> b) -> IO a -> IO b``。他接受一個產生函數的 I/O action，還有另一個 I/O action，並從以上兩者創造一個新的 I/O action，也就是把第二個參數餵給第一個參數。而得到回傳的結果，然後放到新的 I/O action 中。我們用 do 的語法來實作他。你還記得的話 do 就是把好幾個 I/O action 黏在一起，變成一個大的 I/O action。
+如果 ``<*>`` 被限定在 ``IO`` 上操作的話，他的型別會是 ``(<*>) :: IO (a -> b) -> IO a -> IO b``。他接受一個產生函數的 I/O action，還有另一個 I/O action，並從以上兩者創造一個新的 I/O action，也就是把第二個參數餵給第一個參數。而得到回傳的結果，然後放到新的 I/O action 中。我們用 do 的語法來實作他。你還記得的話 do 就是把好幾個 I/O action 黏在一起，變成一個大的 I/O action。
 
-而對於 ``Maybe`` 跟 ``[]`` 而言，我們可以把 ``&lt;*>`` 想做是從左邊的參數取出一個函數，然後套用到右邊的參數上。至於 ``IO``，這種取出的類比方式仍然適用，但我們必須多加一個 sequencing 的概念，因為我們是從兩個 I/O action 中取值，也是在 sequencing，把他們黏成一個。我們從第一個 I/O action 中取值，但要取出 I/O action 的結果，他必須要先被執行過。
+而對於 ``Maybe`` 跟 ``[]`` 而言，我們可以把 ``<*>`` 想做是從左邊的參數取出一個函數，然後套用到右邊的參數上。至於 ``IO``，這種取出的類比方式仍然適用，但我們必須多加一個 sequencing 的概念，因為我們是從兩個 I/O action 中取值，也是在 sequencing，把他們黏成一個。我們從第一個 I/O action 中取值，但要取出 I/O action 的結果，他必須要先被執行過。
 
 考慮下面這個範例：
 
 {{
 myAction :: IO String  
 myAction = do  
-    a &lt;- getLine  
-    b &lt;- getLine  
+    a <- getLine  
+    b <- getLine  
     return $ a ++ b  
 }}
 
@@ -521,18 +521,18 @@ myAction = do
 
 {{
 myAction :: IO String  
-myAction = (++) &lt;$> getLine &lt;*> getLine  
+myAction = (++) <$> getLine <*> getLine  
 }}
 
-我們先前的作法是將兩個 I/O action 的結果餵給函數。還記得 ``getLine`` 的型別是 ``getLine :: IO String``。當我們對 applicative functor 使用 ``&lt;*>`` 的時候，結果也會是 applicative functor。
+我們先前的作法是將兩個 I/O action 的結果餵給函數。還記得 ``getLine`` 的型別是 ``getLine :: IO String``。當我們對 applicative functor 使用 ``<*>`` 的時候，結果也會是 applicative functor。
 
-如果我們再使用盒子的類比，我們可以把 ``getLine`` 想做是一個去真實世界中拿取字串的盒子。而 ``(++) &lt;$> getLine &lt;*> getLine`` 會創造一個比較大的盒子，這個大盒子會派兩個盒子去終端拿取字串，並把結果串接起來放進自己的盒子中。
+如果我們再使用盒子的類比，我們可以把 ``getLine`` 想做是一個去真實世界中拿取字串的盒子。而 ``(++) <$> getLine <*> getLine`` 會創造一個比較大的盒子，這個大盒子會派兩個盒子去終端拿取字串，並把結果串接起來放進自己的盒子中。
 
-``(++) &lt;$> getLine &lt;*> getLine`` 的型別是 ``IO String``，他代表這個表達式式一個再普通不過的 I/O action，他裡面也裝著某種值。這也是為什麼我們可以這樣寫：
+``(++) <$> getLine <*> getLine`` 的型別是 ``IO String``，他代表這個表達式式一個再普通不過的 I/O action，他裡面也裝著某種值。這也是為什麼我們可以這樣寫：
 
 {{
 main = do  
-    a &lt;- (++) &lt;$> getLine &lt;*> getLine  
+    a <- (++) <$> getLine <*> getLine  
     putStrLn $ "The two lines concatenated turn out to be: " ++ a  
 }}
 
@@ -546,7 +546,7 @@ main = do
 {{
 instance Applicative ((->) r) where  
     pure x = (\_ -> x)  
-    f &lt;*> g = \x -> f x (g x)  
+    f <*> g = \x -> f x (g x)  
 }}
 
 當我們用 ``pure`` 將一個值包成 applicative functor 的時候，他產生的結果永遠都會是那個值。也就是最小的 context。那夜市為什麼對於 function 的 ``pure`` 實作來講，他就是接受一個值，然後造一個函數永遠回傳那個值，不管他被餵了什麼參數。如果你限定 ``pure`` 的型別至 ``(->) r`` 上，他就會是 ``pure :: a -> (r -> a)``。
@@ -563,20 +563,20 @@ ghci> pure 3 "blah"
 3  
 }}
 
-而 ``&lt;*>`` 的實作是比較不容易瞭解的，我們最好看一下怎麼用 applicative style 的方式來使用作為 applicative functor 的 function。
+而 ``<*>`` 的實作是比較不容易瞭解的，我們最好看一下怎麼用 applicative style 的方式來使用作為 applicative functor 的 function。
 
 {{
-ghci> :t (+) &lt;$> (+3) &lt;*> (*100)  
-(+) &lt;$> (+3) &lt;*> (*100) :: (Num a) => a -> a  
-ghci> (+) &lt;$> (+3) &lt;*> (*100) $ 5  
+ghci> :t (+) <$> (+3) <*> (*100)  
+(+) <$> (+3) <*> (*100) :: (Num a) => a -> a  
+ghci> (+) <$> (+3) <*> (*100) $ 5  
 508 
 }}
 
-將兩個 applicative functor 餵給 ``&lt;*>`` 可以產生一個新的 applicative functor，所以如果我們丟給他兩個函數，我們能得到一個新的函數。所以是怎麼一回事呢？當我們做 ``(+) &lt;$> (+3) &lt;*> (*100)``，我們是在實作一個函數，他會將 ``(+3)`` 跟 ``(*100)`` 的結果再套用 ``+``。要看一個實際的範例的話，可以看一下 ``(+) &lt;$> (+3) &lt;*> (*100) $ 5`` 首先 ``5`` 被丟給 ``(+3)`` 跟 ``(*100)``，產生 ``8`` 跟 ``500``。然後 ``+`` 被套用到 ``8`` 跟 ``500``，得到 ``508``。
+將兩個 applicative functor 餵給 ``<*>`` 可以產生一個新的 applicative functor，所以如果我們丟給他兩個函數，我們能得到一個新的函數。所以是怎麼一回事呢？當我們做 ``(+) <$> (+3) <*> (*100)``，我們是在實作一個函數，他會將 ``(+3)`` 跟 ``(*100)`` 的結果再套用 ``+``。要看一個實際的範例的話，可以看一下 ``(+) <$> (+3) <*> (*100) $ 5`` 首先 ``5`` 被丟給 ``(+3)`` 跟 ``(*100)``，產生 ``8`` 跟 ``500``。然後 ``+`` 被套用到 ``8`` 跟 ``500``，得到 ``508``。
 
 
 {{
-ghci> (\x y z -> [x,y,z]) &lt;$> (+3) &lt;*> (*2) &lt;*> (/2) $ 5  
+ghci> (\x y z -> [x,y,z]) <$> (+3) <*> (*2) <*> (/2) $ 5  
 [8.0,10.0,2.5]  
 }}
 
@@ -585,7 +585,7 @@ ghci> (\x y z -> [x,y,z]) &lt;$> (+3) &lt;*> (*2) &lt;*> (/2) $ 5
 這邊也一樣。我們創建了一個函數，他會呼叫 ``\x y z -> [x,y,z]``，而丟的參數是 ``(+3)``, ``(*2)`` 跟 ``(/2)``。``5`` 被丟給以上三個函數，然後他們結果又接到 `` \x y z -> [x, y, z]``。
 
 
-你可以將函數想做是裝著最終結果的盒子，所以 ``k &lt;$> f &lt;*> g`` 會製造一個函數，他會將 ``f`` 跟 ``g`` 的結果丟給 ``k``。當我們做 ``(+) &lt;$> Just 3 &lt;*> Just 5``，我們是用 ``+`` 套用在一些可能有或可能沒有的值上，所以結果也會是可能有或沒有。當我們做 ``(+) &lt;$> (+10) &lt;*> (+5)``，我們是將 ``+`` 套用在 ``(+10)`` 跟 ``(+5)`` 的結果上，而結果也會是一個函數，當被餵給一個參數的時候會產生結果。
+你可以將函數想做是裝著最終結果的盒子，所以 ``k <$> f <*> g`` 會製造一個函數，他會將 ``f`` 跟 ``g`` 的結果丟給 ``k``。當我們做 ``(+) <$> Just 3 <*> Just 5``，我們是用 ``+`` 套用在一些可能有或可能沒有的值上，所以結果也會是可能有或沒有。當我們做 ``(+) <$> (+10) <*> (+5)``，我們是將 ``+`` 套用在 ``(+10)`` 跟 ``(+5)`` 的結果上，而結果也會是一個函數，當被餵給一個參數的時候會產生結果。
 
 
 我們通常不會將函數當作 applicative 用，不過仍然值得當作練習。對於 ``(->) r`` 怎麼定義成 ``Applicative`` 的並不是真的那麼重要，所以如果你不是很懂的話也沒關係。這只是讓你獲得一些操作上的直覺罷了。
@@ -594,10 +594,10 @@ ghci> (\x y z -> [x,y,z]) &lt;$> (+3) &lt;*> (*2) &lt;*> (/2) $ 5
 一個我們之前還沒碰過的 ``Applicative`` 的 instance 是 ``ZipList``，他是包含在 ``Control.Applicative`` 中。
 
 
-對於 list 要作為一個 applicative functor 可以有多種方式。我們已經介紹過其中一種。如果套用 ``&lt;*>``，左邊是許多函數，而右邊是許多值，那結果會是函數套用到值的所有組合。如果我們做 ``[(+3),(*2)] &lt;*> [1,2]``。那 ``(+3)`` 會先套用至 ``1`` 跟 ``2``。接著 ``(*2)`` 套用至 ``1`` 跟 ``2``。而得到 ``[4,5,2,4]``。
+對於 list 要作為一個 applicative functor 可以有多種方式。我們已經介紹過其中一種。如果套用 ``<*>``，左邊是許多函數，而右邊是許多值，那結果會是函數套用到值的所有組合。如果我們做 ``[(+3),(*2)] <*> [1,2]``。那 ``(+3)`` 會先套用至 ``1`` 跟 ``2``。接著 ``(*2)`` 套用至 ``1`` 跟 ``2``。而得到 ``[4,5,2,4]``。
 
 
-然而 ``[(+3),(*2)] &lt;*> [1,2]`` 也可以這樣運作:把左邊第一個函數套用至右邊第一個值，接著左邊第二個函數套用右邊第二個值，以此類推。這樣得到的會是 ``[4,4]``。或是 ``[1 + 3, 2 * 2]``。
+然而 ``[(+3),(*2)] <*> [1,2]`` 也可以這樣運作:把左邊第一個函數套用至右邊第一個值，接著左邊第二個函數套用右邊第二個值，以此類推。這樣得到的會是 ``[4,4]``。或是 ``[1 + 3, 2 * 2]``。
 
 
 由於一個型別不能對同一個 typeclass 定義兩個 instance，所以才會定義了 ``ZipList a``，他只有一個構造子 ``ZipList``，他只包含一個欄位，他的型別是 list。
@@ -605,26 +605,26 @@ ghci> (\x y z -> [x,y,z]) &lt;$> (+3) &lt;*> (*2) &lt;*> (/2) $ 5
 {{
 instance Applicative ZipList where  
         pure x = ZipList (repeat x)  
-        ZipList fs &lt;*> ZipList xs = ZipList (zipWith (\f x -> f x) fs xs)  
+        ZipList fs <*> ZipList xs = ZipList (zipWith (\f x -> f x) fs xs)  
 }}
 
-``&lt;*>`` 做的就是我們之前說的。他將第一個函數套用至第一個值，第二個函數套用第二個值。這也是 ``zipWith (\f x -> f x) fs xs`` 做的事。由於 ``zipWith`` 的特性，所以結果會跟 list 中比較短的那個一樣長。
+``<*>`` 做的就是我們之前說的。他將第一個函數套用至第一個值，第二個函數套用第二個值。這也是 ``zipWith (\f x -> f x) fs xs`` 做的事。由於 ``zipWith`` 的特性，所以結果會跟 list 中比較短的那個一樣長。
 
 
-``pure`` 也值得我們討論一下。他接受一個值，把他重複地放進一個 list 中。``pure "haha"`` 就會是 ``ZipList (["haha","haha","haha"...``。這可能會造成些混淆，畢竟我們說過 ``pure`` 是把一個值放進一個最小的 context 中。而你會想說無限長的 list 不可能會是一個最小的 context。但對於 zip list 來說這是很合理的，因為他必須在 list 的每個位置都有值。這也遵守了 ``pure f &lt;*> xs`` 必須要等價於 ``fmap f xs`` 的特性。如果 ``pure 3`` 只是回傳 ``ZipList [3]``，那 ``pure (*2) &lt;*> ZipList [1,5,10]`` 就只會算出 ``ZipList [2]``，因為兩個 zip list 算出結果的長度會是比較短的那個的長度。如果我們 zip 一個有限長的 list 以及一個無限長的 list，那結果的長會是有限長的 list 的長度。
+``pure`` 也值得我們討論一下。他接受一個值，把他重複地放進一個 list 中。``pure "haha"`` 就會是 ``ZipList (["haha","haha","haha"...``。這可能會造成些混淆，畢竟我們說過 ``pure`` 是把一個值放進一個最小的 context 中。而你會想說無限長的 list 不可能會是一個最小的 context。但對於 zip list 來說這是很合理的，因為他必須在 list 的每個位置都有值。這也遵守了 ``pure f <*> xs`` 必須要等價於 ``fmap f xs`` 的特性。如果 ``pure 3`` 只是回傳 ``ZipList [3]``，那 ``pure (*2) <*> ZipList [1,5,10]`` 就只會算出 ``ZipList [2]``，因為兩個 zip list 算出結果的長度會是比較短的那個的長度。如果我們 zip 一個有限長的 list 以及一個無限長的 list，那結果的長會是有限長的 list 的長度。
 
 
 那 zip list 是怎麼用 applicative style 操作的呢？我們來看看，``ZipList a`` 型別並沒有定義成 ``Show`` 的 instance，所以我們必須用 ``getZipList`` 函數來從 zip list 取出一個普通的 list。
 
 
 {{
-ghci> getZipList $ (+) &lt;$> ZipList [1,2,3] &lt;*> ZipList [100,100,100]  
+ghci> getZipList $ (+) <$> ZipList [1,2,3] <*> ZipList [100,100,100]  
 [101,102,103]  
-ghci> getZipList $ (+) &lt;$> ZipList [1,2,3] &lt;*> ZipList [100,100..]  
+ghci> getZipList $ (+) <$> ZipList [1,2,3] <*> ZipList [100,100..]  
 [101,102,103]  
-ghci> getZipList $ max &lt;$> ZipList [1,2,3,4,5,3] &lt;*> ZipList [5,3,1,2]  
+ghci> getZipList $ max <$> ZipList [1,2,3,4,5,3] <*> ZipList [5,3,1,2]  
 [5,3,3,4]  
-ghci> getZipList $ (,,) &lt;$> ZipList "dog" &lt;*> ZipList "cat" &lt;*> ZipList "rat"  
+ghci> getZipList $ (,,) <$> ZipList "dog" <*> ZipList "cat" <*> ZipList "rat"  
 [('d','c','r'),('o','a','a'),('g','t','t')]  
 }}
 
@@ -638,7 +638,7 @@ ghci> getZipList $ (,,) &lt;$> ZipList "dog" &lt;*> ZipList "cat" &lt;*> ZipList
 
 {{
 liftA2 :: (Applicative f) => (a -> b -> c) -> f a -> f b -> f c  
-liftA2 f a b = f &lt;$> a &lt;*> b  
+liftA2 f a b = f <$> a <*> b  
 }}
 
 並沒有太難理解的東西，他不過就是對兩個 applicatives 套用函數而已，而不用我們剛剛熟悉的 applicative style。我們提及他的理由只是要展示為什麼 applicative functors 比起一般的普通 functor 要強。如果只是普通的 functor 的話，我們只能將一個函數 map over 這個 functor。但有了 applicative functor，我們可以對好多個 functor 套用一個函數。看看這個函數的型別，他會是 ``(a -> b -> c) -> (f a -> f b -> f c)``。當我們從這樣的角度來看他的話，我們可以說 ``liftA2`` 接受一個普通的二元函數，並將他升級成一個函數可以運作在兩個 functor 之上。
@@ -655,7 +655,7 @@ Just [4]
 {{
 ghci> liftA2 (:) (Just 3) (Just [4])  
 Just [3,4]  
-ghci> (:) &lt;$> Just 3 &lt;*> Just [4]  
+ghci> (:) <$> Just 3 <*> Just [4]  
 Just [3,4]  
 }}
 
@@ -664,13 +664,13 @@ Just [3,4]
 {{
 sequenceA :: (Applicative f) => [f a] -> f [a]  
 sequenceA [] = pure []  
-sequenceA (x:xs) = (:) &lt;$> x &lt;*> sequenceA xs  
+sequenceA (x:xs) = (:) <$> x <*> sequenceA xs  
 }}
 
 居然用到了遞迴！首先我們來看一下他的型別。他將一串 applicative 的 list 轉換成一個 applicative 裝有一個 list。從這個資訊我們可以推測出邊界條件。如果我們要將一個空的 list 變成一個裝有 list 的 applicative。我們只要把這個空的 list 放進一個預設的 context。現在來看一下我們怎麼用遞迴的。如果們有一個可以分成頭跟尾的 list（``x`` 是一個 applicative 而 ``xs`` 是一串 applicatve），我們可以對尾巴呼叫 ``sequenceA``，便會得到一個裝有 list 的 applicative。然後我們只要將在 ``x`` 中的值把他接到裝有 list 的 applicative 前面就可以了。
 
 
-所以如果我們做 ``sequenceA [Just 1, Just 2]``，也就是 ``(:) &lt;$> Just 1 &lt;*> sequenceA [Just 2]``。那會等價於 ``(:) &lt;$> Just 1 &lt;*> ((:) &lt;$> Just 2 &lt;*> sequenceA [])``。我們知道 ``sequenceA []`` 算出來會是 ``Just []``，所以運算式就變成 ``(:) &lt;$> Just 1 &lt;*> ((:) &lt;$> Just 2 &lt;*> Just [])``，也就是 ``(:) &lt;$> Just 1 &lt;*> Just [2]``，算出來就是 ``Just [1,2]``。
+所以如果我們做 ``sequenceA [Just 1, Just 2]``，也就是 ``(:) <$> Just 1 <*> sequenceA [Just 2]``。那會等價於 ``(:) <$> Just 1 <*> ((:) <$> Just 2 <*> sequenceA [])``。我們知道 ``sequenceA []`` 算出來會是 ``Just []``，所以運算式就變成 ``(:) <$> Just 1 <*> ((:) <$> Just 2 <*> Just [])``，也就是 ``(:) <$> Just 1 <*> Just [2]``，算出來就是 ``Just [1,2]``。
 
 
 另一種實作 ``sequenceA`` 的方式是用 fold。要記得幾乎任何需要走遍整個 list 並 accumulate 成一個結果的都可以用 fold 來實作。
@@ -704,15 +704,15 @@ ghci> sequenceA [[1,2,3],[4,5,6],[3,4,4],[]]
 當套用在函數時，``sequenceA`` 接受裝有一堆函數的 list，並回傳一個回傳 list 的函數。在我們的範例中，我們寫了一個函數，他只接受一個數值作為參數，他會把他套用至 list 中的每一個函數，並回傳一個包含結果的 list。``sequenceA [(+3),(+2),(+1)] 3`` 會將 ``3`` 餵給 ``(+3)``, ``(+2)`` 跟 ``(+1)``，然後將所有結果裝在一個 list 中。
 
 
-而 ``(+) &lt;$> (+3) &lt;*> (*2)`` 會創見一個接受單一參數的一函數，將他同時餵給 ``(+3)`` 跟 ``(*2)``，然後呼叫 ``+`` 來將兩者加起來。同樣的道理，``sequenceA [(+3),(*2)]`` 是製造一個接受單一參數的函數，他會將他餵給所有包含在 list 中的函數。但他最後不是呼叫 ``+``，而是呼叫 ``:`` 跟 ``pure []`` 來把結果接成一個 list，得到最後的結果。
+而 ``(+) <$> (+3) <*> (*2)`` 會創見一個接受單一參數的一函數，將他同時餵給 ``(+3)`` 跟 ``(*2)``，然後呼叫 ``+`` 來將兩者加起來。同樣的道理，``sequenceA [(+3),(*2)]`` 是製造一個接受單一參數的函數，他會將他餵給所有包含在 list 中的函數。但他最後不是呼叫 ``+``，而是呼叫 ``:`` 跟 ``pure []`` 來把結果接成一個 list，得到最後的結果。
 
 
 當我們有一串函數，我們想要將相同的輸入都餵給他們並檢視結果的時候，``sequenceA`` 非常好用。例如說，我們手上有一個數值，但不知道他是否滿足一串 predicate。一種實作的方式是像這樣：
 
 {{
-ghci> map (\f -> f 7) [(>4),(&lt;10),odd]  
+ghci> map (\f -> f 7) [(>4),(<10),odd]  
 [True,True,True]  
-ghci> and $ map (\f -> f 7) [(>4),(&lt;10),odd]  
+ghci> and $ map (\f -> f 7) [(>4),(<10),odd]  
 True  
 }}
 
@@ -722,13 +722,13 @@ True
 
 
 {{
-ghci> sequenceA [(>4),(&lt;10),odd] 7  
+ghci> sequenceA [(>4),(<10),odd] 7  
 [True,True,True]  
-ghci> and $ sequenceA [(>4),(&lt;10),odd] 7  
+ghci> and $ sequenceA [(>4),(<10),odd] 7  
 True  
 }}
 
-``sequenceA [(>4),(&lt;10),odd]`` 接受一個函數，他接受一個數值並將他餵給所有的 predicate，包含 ``[(>4),(&lt;10),odd]``。然後回傳一串布林值。他將一個型別為 ``(Num a) => [a -> Bool]`` 的 list 變成一個型別為 ``(Num a) => a -> [Bool]`` 的函數，很酷吧。
+``sequenceA [(>4),(<10),odd]`` 接受一個函數，他接受一個數值並將他餵給所有的 predicate，包含 ``[(>4),(<10),odd]``。然後回傳一串布林值。他將一個型別為 ``(Num a) => [a -> Bool]`` 的 list 變成一個型別為 ``(Num a) => a -> [Bool]`` 的函數，很酷吧。
 
 
 由於 list 要求裡面元素的型別要一致，所以包含在 list 中的所有函數都是同樣型別。你不能創造一個像是 ``[ord, (+3)]`` 這樣的 list，因為 ``ord`` 接受一個字元並回傳一個數值，然而 ``(+3)`` 接受一個數值並回傳一個數值。
@@ -739,29 +739,29 @@ True
 {{
 ghci> sequenceA [[1,2,3],[4,5,6]]  
 [[1,4],[1,5],[1,6],[2,4],[2,5],[2,6],[3,4],[3,5],[3,6]]  
-ghci> [[x,y] | x &lt;- [1,2,3], y &lt;- [4,5,6]]  
+ghci> [[x,y] | x <- [1,2,3], y <- [4,5,6]]  
 [[1,4],[1,5],[1,6],[2,4],[2,5],[2,6],[3,4],[3,5],[3,6]]  
 ghci> sequenceA [[1,2],[3,4]]  
 [[1,3],[1,4],[2,3],[2,4]]  
-ghci> [[x,y] | x &lt;- [1,2], y &lt;- [3,4]]  
+ghci> [[x,y] | x <- [1,2], y <- [3,4]]  
 [[1,3],[1,4],[2,3],[2,4]]  
 ghci> sequenceA [[1,2],[3,4],[5,6]]  
 [[1,3,5],[1,3,6],[1,4,5],[1,4,6],[2,3,5],[2,3,6],[2,4,5],[2,4,6]]  
-ghci> [[x,y,z] | x &lt;- [1,2], y &lt;- [3,4], z &lt;- [5,6]]  
+ghci> [[x,y,z] | x <- [1,2], y <- [3,4], z <- [5,6]]  
 [[1,3,5],[1,3,6],[1,4,5],[1,4,6],[2,3,5],[2,3,6],[2,4,5],[2,4,6]]  
 }}
 
-這可能有點難以理解，但如果你多做點嘗試，你會比較能看出來些眉目。假設我們在做 ``sequenceA [[1,2],[3,4]]``。要知道這是怎麼回事，我們首先用 ``sequenceA`` 的定義 ``sequenceA (x:xs) = (:) &lt;$> x &lt;*> sequenceA xs`` 還有邊界條件 ``sequenceA [] = pure []`` 來看看。你不需要實際計算，但他可以幫助你理解 ``sequenceA`` 是怎麼運作在一串 list 上，畢竟這有點複雜。
+這可能有點難以理解，但如果你多做點嘗試，你會比較能看出來些眉目。假設我們在做 ``sequenceA [[1,2],[3,4]]``。要知道這是怎麼回事，我們首先用 ``sequenceA`` 的定義 ``sequenceA (x:xs) = (:) <$> x <*> sequenceA xs`` 還有邊界條件 ``sequenceA [] = pure []`` 來看看。你不需要實際計算，但他可以幫助你理解 ``sequenceA`` 是怎麼運作在一串 list 上，畢竟這有點複雜。
 
     # 我們從 ``sequenceA [[1,2],[3,4]]`` 開始
-    # 那可以被計算成 ``(:) &lt;$> [1,2] &lt;*> sequenceA [[3,4]]``
-    # 計算內層的 ``sequenceA``，會得到 ``(:) &lt;$> [1,2] &lt;*> ((:) &lt;$> [3,4] &lt;*> sequenceA [])``
-    # 我們碰到了邊界條件，所以會是 ``(:) &lt;$> [1,2] &lt;*> ((:) &lt;$> [3,4] &lt;*> [[]])``
-    # 現在我們計算 ``(:) &lt;$> [3,4] &lt;*> [[]] `` 的部份，我們會對左邊 list 中的每一個值 (也就是 ``3`` 跟 ``4``) 跟右邊的每一個值 (只有 ``[]``)套用 ``:``，而得到 ``[3:[], 4:[]]``，也就是 ``[[3],[4]]``。所以我們有 ``(:) &lt;$> [1,2] &lt;*> [[3],[4]]``
+    # 那可以被計算成 ``(:) <$> [1,2] <*> sequenceA [[3,4]]``
+    # 計算內層的 ``sequenceA``，會得到 ``(:) <$> [1,2] <*> ((:) <$> [3,4] <*> sequenceA [])``
+    # 我們碰到了邊界條件，所以會是 ``(:) <$> [1,2] <*> ((:) <$> [3,4] <*> [[]])``
+    # 現在我們計算 ``(:) <$> [3,4] <*> [[]] `` 的部份，我們會對左邊 list 中的每一個值 (也就是 ``3`` 跟 ``4``) 跟右邊的每一個值 (只有 ``[]``)套用 ``:``，而得到 ``[3:[], 4:[]]``，也就是 ``[[3],[4]]``。所以我們有 ``(:) <$> [1,2] <*> [[3],[4]]``
     # 而對於左邊的每一個值(``1`` 跟 ``2``)以及右邊可能的值（``[3]`` 跟 ``[4]``）我們套用 ``:`` 而得到 ``[1:[3], 1:[4], 2:[3], 2:[4]]``，他等於 ``[[1,3],[1,4],[2,3],[2,4]]``
 
 
-計算 ``(+) &lt;$> [1,2] &lt;*> [4,5,6]`` 會得到一個 non-deterministic 的結果 ``x + y``，其中 ``x`` 代表 ``[1,2]`` 中的每一個值，而 ``y`` 代表 ``[4,5,6]`` 中的每一個值。我們用 list 來表示每一種可能的情形。同樣的，當我們在做 ``sequence [[1,2],[3,4],[5,6],[7,8]]``，他的結果會是 non-deterministic 的 ``[x,y,z,w]``，其中 ``x`` 代表 ``[1,2]`` 中的每一個值，而 ``y`` 代表 ``[3,4]`` 中的每一個值。以此類推。我們用 list 代表 non-deterministic 的計算，每一個元素都是一個可能的情形。這也是為什麽會用到 list of list。
+計算 ``(+) <$> [1,2] <*> [4,5,6]`` 會得到一個 non-deterministic 的結果 ``x + y``，其中 ``x`` 代表 ``[1,2]`` 中的每一個值，而 ``y`` 代表 ``[4,5,6]`` 中的每一個值。我們用 list 來表示每一種可能的情形。同樣的，當我們在做 ``sequence [[1,2],[3,4],[5,6],[7,8]]``，他的結果會是 non-deterministic 的 ``[x,y,z,w]``，其中 ``x`` 代表 ``[1,2]`` 中的每一個值，而 ``y`` 代表 ``[3,4]`` 中的每一個值。以此類推。我們用 list 代表 non-deterministic 的計算，每一個元素都是一個可能的情形。這也是為什麽會用到 list of list。
 
 
 當使用在 I/O action 上的時候，``sequenceA`` 跟 ``sequence`` 是等價的。他接受一串 I/O action 並回傳一個 I/O action，這個 I/O action 會計算 list 中的每一個 I/O action，並把結果放在一個 list 中。要將型別為 ``[IO a]`` 的值轉換成 ``IO [a]`` 的值，也就是會產生一串 list 的一個 I/O action，那這些 I/O action 必須要一個一個地被計算，畢竟對於這些 I/O action 你沒辦法不計算就得到結果。
@@ -775,17 +775,17 @@ woo
 }}
 
 
-就像普通的函數一樣，applicative functors 也遵循一些定律。其中最重要的一個是我們之前提過的 ``pure f &lt;*> x = fmap f x``。你可以證明一些我們之前介紹過的 applicative functor 遵守這個定律當作練習。其他的 functors law 有：
+就像普通的函數一樣，applicative functors 也遵循一些定律。其中最重要的一個是我們之前提過的 ``pure f <*> x = fmap f x``。你可以證明一些我們之前介紹過的 applicative functor 遵守這個定律當作練習。其他的 functors law 有：
 
-    # ``pure id &lt;*> v = v``
-    # ``pure (.) &lt;*> u &lt;*> v &lt;*> w = u &lt;*> (v &lt;*> w)``
-    # ``pure f &lt;*> pure x = pure (f x)``
-    # ``u &lt;*> pure y = pure ($ y) &lt;*> u``
+    # ``pure id <*> v = v``
+    # ``pure (.) <*> u <*> v <*> w = u <*> (v <*> w)``
+    # ``pure f <*> pure x = pure (f x)``
+    # ``u <*> pure y = pure ($ y) <*> u``
 
 我們不會一項一項地細看，那樣會花費很大的篇幅而且對讀者來說很無聊，但如果你有興趣，你可以針對某些 instance 看看他們會不會遵守。
 
 
-結論就是 applicative functor 不只是有趣而且實用， 他允許我們結合不同種類的計算，像是 I/O 計算，non-deterministic 的計算，有可能失敗的計算等等。而使用 ``&lt;$>`` 跟 ``&lt;*>`` 我們可以將普通的函數來運作在任意數量的 applicative functors 上。
+結論就是 applicative functor 不只是有趣而且實用， 他允許我們結合不同種類的計算，像是 I/O 計算，non-deterministic 的計算，有可能失敗的計算等等。而使用 ``<$>`` 跟 ``<*>`` 我們可以將普通的函數來運作在任意數量的 applicative functors 上。
 
 
 
@@ -796,19 +796,19 @@ woo
 到目前為止，我們已經看過了如何用 ``data`` 關鍵字定義自己的 algebraic data type。我們也學習到了如何用 ``type`` 來定義 type synonyms。在這個章節中，我們會看一下如何使用 ``newtype`` 來從一個現有的型別中定義出新的型別，並說明我們為什麽會想要那麼做。
 
 
-在之前的章節中，我們瞭解到其實 list 有很多種方式可以被視為一種 applicative functor。一中方式是定義 ``&lt;*>`` 將左邊的每一個值跟右邊的每一個值組合，而得到各種組合的結果。
+在之前的章節中，我們瞭解到其實 list 有很多種方式可以被視為一種 applicative functor。一中方式是定義 ``<*>`` 將左邊的每一個值跟右邊的每一個值組合，而得到各種組合的結果。
 
 
 {{
-ghci> [(+1),(*100),(*5)] &lt;*> [1,2,3]  
+ghci> [(+1),(*100),(*5)] <*> [1,2,3]  
 [2,3,4,100,200,300,5,10,15]  
 }}
 
-第二種方式是將 ``&lt;*>`` 定義成將左邊的第一個函數套用至右邊的第一個值，然後將左邊第二個函數套用至右邊第二個值。以此類推。最終，這表現得有點像將兩個 list 用一個拉鍊拉起來一樣。但由於 list 已經被定義成 ``Applicaitive`` 的 instance 了，所以我們要怎麼要讓 list 可以被定義成第二種方式呢？如果你還記得我們說過我們是有很好的理由定義了 ``ZipList a``，其中他裡面只包含一個值構造子跟只包含一個欄位。其實他的理由就是要讓 ``ZipList`` 定義成用拉鍊的方式來表現 applicative 行為。我們只不過用 ``ZipList`` 這個構造子將他包起來，然後用 ``getZipList`` 來解開來。
+第二種方式是將 ``<*>`` 定義成將左邊的第一個函數套用至右邊的第一個值，然後將左邊第二個函數套用至右邊第二個值。以此類推。最終，這表現得有點像將兩個 list 用一個拉鍊拉起來一樣。但由於 list 已經被定義成 ``Applicaitive`` 的 instance 了，所以我們要怎麼要讓 list 可以被定義成第二種方式呢？如果你還記得我們說過我們是有很好的理由定義了 ``ZipList a``，其中他裡面只包含一個值構造子跟只包含一個欄位。其實他的理由就是要讓 ``ZipList`` 定義成用拉鍊的方式來表現 applicative 行為。我們只不過用 ``ZipList`` 這個構造子將他包起來，然後用 ``getZipList`` 來解開來。
 
 
 {{
-ghci> getZipList $ ZipList [(+1),(*100),(*5)] &lt;*> ZipList [1,2,3]  
+ghci> getZipList $ ZipList [(+1),(*100),(*5)] <*> ZipList [1,2,3]  
 [2,200,15]  
 }}
 
@@ -1269,7 +1269,7 @@ ghci> getAny $ mempty `mappend` mempty
 False  
 }}
 
-另一種 ``Bool`` 表現成 ``Monoid`` 的方式是用 ``&amp;&amp;`` 作為二元函數，而 ``True`` 作為 identity。只有當所有都是 ``True`` 的時候才會回傳 ``True``。下面是他的 newtype 定義：
+另一種 ``Bool`` 表現成 ``Monoid`` 的方式是用 ``&&`` 作為二元函數，而 ``True`` 作為 identity。只有當所有都是 ``True`` 的時候才會回傳 ``True``。下面是他的 newtype 定義：
 
 {{
 newtype All = All { getAll :: Bool }  
@@ -1281,7 +1281,7 @@ newtype All = All { getAll :: Bool }
 {{
 instance Monoid All where  
         mempty = All True  
-        All x `mappend` All y = All (x &amp;&amp; y)  
+        All x `mappend` All y = All (x && y)  
 }}
 
 當我們用 ``mappend`` 來串起 ``All`` 型別的值時，結果只有當所有 ``mappend`` 的值是 ``True`` 時才會是 ``True``：

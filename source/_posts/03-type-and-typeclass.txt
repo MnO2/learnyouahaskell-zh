@@ -33,7 +33,7 @@ ghci> :t 4 == 5
 
 {{
 removeNonUppercase :: [Char] -> [Char]  
-removeNonUppercase st = [ c | c &lt;- st, c `elem` ['A'..'Z']]   
+removeNonUppercase st = [ c | c <- st, c `elem` ['A'..'Z']]   
 }}
 
  ``removeNonUppercase`` 的型別為 ``[Char]->[Char]``，從它的參數和回傳值的型別上可以看出，它將一個字串映射為另一個字串。``[Char]`` 與 ``String`` 是等價的，但使用 ``String`` 會更清晰：``removeNonUppercase :: String -> String``。編譯器會自動檢測出它的型別，我們還是標明了它的型別聲明。要是多個參數的函數該怎樣？如下便是一個將三個整數相加的簡單函數。
@@ -158,7 +158,7 @@ True
 
 **Eq** 包含可判斷相等性的型別。提供實現的函數是 ``==`` 和 ``/=``。所以，只要一個函數有Eq類的型別限制，那麼它就必定在定義中用到了 ``==`` 和 ``/=``。剛纔說了，除函數以外的所有型別都屬於 ``Eq``，所以它們都可以判斷相等性。
 
-**Ord** 包含可比較大小的型別。除了函數以外，我們目前所談到的所有型別都屬於 ``Ord`` 類。``Ord`` 包中包含了``&lt;, >, &lt;=, >=`` 之類用於比較大小的函數。``compare`` 函數取兩個 ``Ord`` 類中的相同型別的值作參數，回傳比較的結果。這個結果是如下三種型別之一：``GT, LT, EQ``。
+**Ord** 包含可比較大小的型別。除了函數以外，我們目前所談到的所有型別都屬於 ``Ord`` 類。``Ord`` 包中包含了``<, >, <=, >=`` 之類用於比較大小的函數。``compare`` 函數取兩個 ``Ord`` 類中的相同型別的值作參數，回傳比較的結果。這個結果是如下三種型別之一：``GT, LT, EQ``。
 
 {{
 ghci> :t (>)  
@@ -168,7 +168,7 @@ ghci> :t (>)
 型別若要成為Ord的成員，必先加入Eq家族。
 
 {{
-ghci> "Abrakadabra" &lt; "Zebra"  
+ghci> "Abrakadabra" < "Zebra"  
 True  
 ghci> "Abrakadabra" `compare` "Zebra"  
 LT  
@@ -206,9 +206,9 @@ ghci> read "[1,2,3,4]" ++ [3]
 
 {{
 ghci> read "4"  
-&lt; interactive >:1:0:  
+< interactive >:1:0:  
     Ambiguous type variable `a' in the constraint:  
-      `Read a' arising from a use of `read' at &lt;interactive>:1:0-7  
+      `Read a' arising from a use of `read' at <interactive>:1:0-7  
     Probable fix: add a type signature that fixes these type variable(s)  
 }}
 
