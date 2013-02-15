@@ -634,7 +634,7 @@ I think you need a new one!
 }}
 
 
-我們來一行行看一下程式。我們的程式用 do 把好幾個 I/O action 綁在一起。在 do block 的第一行，我們注意到有一個新的函數叫**openFile**。他的 type signature 是 ``openFile :: FilePath -> IOMode -> IO Handle``。他說了 ``openFile`` 接受一個檔案路徑跟一個 ``IOMode``，並回傳一個 I/O action，他會打開一個檔案並把檔案關聯到一個 handle。
+我們來一行行看一下程式。我們的程式用 do 把好幾個 I/O action 綁在一起。在 do block 的第一行，我們注意到有一個新的函數叫 **openFile**。他的 type signature 是 ``openFile :: FilePath -> IOMode -> IO Handle``。他說了 ``openFile`` 接受一個檔案路徑跟一個 ``IOMode``，並回傳一個 I/O action，他會打開一個檔案並把檔案關聯到一個 handle。
 
 ``FilePath`` 不過是 ``String`` 的 type synonym。
 {{
@@ -652,13 +652,13 @@ data IOMode = ReadMode | WriteMode | AppendMode | ReadWriteMode
 
 最後，他回傳一個 I/O action 會將指定的檔案用指定的模式打開。如果我們將 I/O action 綁定到某個東西，我們會得到一個 ``Handle``。型態為 ``Handle`` 的值代表我們的檔案在哪裡。有了 handle 我們才知道要從哪個檔案讀取內容。想讀取檔案但不將檔案綁定到 handle 上這樣做是很蠢的。所以，我們將一個 handle 綁定到 ``handle``。
 
-接著一行，我們看到一個叫**hGetContents**的函數。他接了一個 ``Handle``，所以他知道要從哪個檔案讀取內容並回傳一個 ``IO String``。一個包含了檔案內容的 I/O action。這函數跟 ``getContents`` 差不多。唯一的差別是 ``getContents`` 會自動從標準輸入讀取內容（也就是終端），而 ``hGetContents`` 接了一個 file handle，這 file handle 告訴他讀取哪個檔案。除此之外，他們都是一樣的。就像 ``getContents``，``hGetContents`` 不會把檔案一次都拉到記憶體中，而是有必要才會讀取。這非常酷，因為我們把 ``contents`` 當作是整個檔案般用，但他實際上不在記憶體中。就算這是個很大的檔案，``hGetContents`` 也不會塞爆你的記憶體，而是只有必要的時候才會讀取。
+接著一行，我們看到一個叫 **hGetContents** 的函數。他接了一個 ``Handle``，所以他知道要從哪個檔案讀取內容並回傳一個 ``IO String``。一個包含了檔案內容的 I/O action。這函數跟 ``getContents`` 差不多。唯一的差別是 ``getContents`` 會自動從標準輸入讀取內容（也就是終端），而 ``hGetContents`` 接了一個 file handle，這 file handle 告訴他讀取哪個檔案。除此之外，他們都是一樣的。就像 ``getContents``，``hGetContents`` 不會把檔案一次都拉到記憶體中，而是有必要才會讀取。這非常酷，因為我們把 ``contents`` 當作是整個檔案般用，但他實際上不在記憶體中。就算這是個很大的檔案，``hGetContents`` 也不會塞爆你的記憶體，而是只有必要的時候才會讀取。
 
 要留意檔案的 handle 還有檔案的內容兩個概念的差異，在我們的程式中他們分別被綁定到 ``handle`` 跟 ``contents`` 兩個名字。handle 是我們拿來區分檔案的依據。如果你把整個檔案系統想成一本厚厚的書，每個檔案分別是其中的一個章節，handle 就像是書籤一般標記了你現在正在閱讀（或寫入）哪一個章節，而內容則是章節本身。
 
 我們使用 ``putStr contents`` 印出內容到標準輸出，然後我們用了 **hClose**。他接受一個 handle 然後回傳一個關掉檔案的 I/O action。在用了 ``openFile`` 之後，你必須自己把檔案關掉。
 
-要達到我們目的的另一種方式是使用**withFile**，他的 type signature 是 ``withFile :: FilePath -> IOMode -> (Handle -> IO a) -> IO a``。他接受一個檔案路徑，一個 ``IOMode`` 以及一個函數，這函數則接受一個 handle 跟一個 I/O action。``withFile`` 最後回傳一個會打開檔案，對檔案作某件事然後關掉檔案的 I/O action。處理的結果是包在最後的 I/O action 中，這結果跟我們給的函數的回傳是相同的。這聽起來有些複雜，但其實很簡單，特別是我們有 lambda，來看看我們用 ``withFile`` 改寫前面程式的一個範例：
+要達到我們目的的另一種方式是使用 **withFile**，他的 type signature 是 ``withFile :: FilePath -> IOMode -> (Handle -> IO a) -> IO a``。他接受一個檔案路徑，一個 ``IOMode`` 以及一個函數，這函數則接受一個 handle 跟一個 I/O action。``withFile`` 最後回傳一個會打開檔案，對檔案作某件事然後關掉檔案的 I/O action。處理的結果是包在最後的 I/O action 中，這結果跟我們給的函數的回傳是相同的。這聽起來有些複雜，但其實很簡單，特別是我們有 lambda，來看看我們用 ``withFile`` 改寫前面程式的一個範例：
 
 {{
 import System.IO     
@@ -814,9 +814,9 @@ main = do
 
 我們問使用者他們想要刪除哪一個並且等著他們輸入一個數字。假設他們想要刪除 1 號，那代表 ``Dust the dog``，所以他們輸入 ``1``。於是 ``numberString`` 就代表 ``"1"``。由於我們想要一個數字，而不是一個字串，所以我們用對 ``1`` 使用 ``read``，並且綁定到 ``number``。
 
-還記得在 ``Data.List`` 中的 ``delete`` 跟 ``!!`` 嗎？``!!`` 回傳某個 index 的元素，而 ``delete`` 刪除在串列中第一個發現的元素，然後回傳一個新的沒有那個元素的串列。``(todoTasks !! number)`` (number 代表 ``1``) 回傳 ``"Dust the dog"``。我們把 ``todoTasks`` 去掉第一個 ``"Dust the dog"`` 後的串列綁定到 ``newTodoItems``，然後用 ``unlines`` 變成一行然後寫到我們所打開的暫存檔。舊有的檔案並沒有變動，而暫存檔包含砍掉那一行後的所有內容。
+還記得在 ``Data.List`` 中的 ``delete`` 跟 ``!!`` 嗎？``!!`` 回傳某個 index 的元素，而 ``delete`` 刪除在串列中第一個發現的元素，然後回傳一個新的沒有那個元素的串列。``(todoTasks !! number)``　（number 代表 ``1``） 回傳 ``"Dust the dog"``。我們把 ``todoTasks`` 去掉第一個 ``"Dust the dog"`` 後的串列綁定到 ``newTodoItems``，然後用 ``unlines`` 變成一行然後寫到我們所打開的暫存檔。舊有的檔案並沒有變動，而暫存檔包含砍掉那一行後的所有內容。
 
-在我們關掉原始檔跟暫存檔之後我們用 **removeFile** 來移除原本的檔案。他接受一個檔案路徑並且刪除檔案。刪除舊得 todo.txt 之後，我們用 **renameFile** 來將暫存檔重新命名成 todo.txt。特別留意 ``removeFile`` 跟 ``renameFile``（兩個都在 ``System.Directory`` 中）接受的是檔案路徑，而不是 handle
+在我們關掉原始檔跟暫存檔之後我們用 **removeFile** 來移除原本的檔案。他接受一個檔案路徑並且刪除檔案。刪除舊得 todo.txt 之後，我們用 **renameFile** 來將暫存檔重新命名成 todo.txt。特別留意 ``removeFile`` 跟 ``renameFile``（兩個都在 ``System.Directory`` 中）接受的是檔案路徑，而不是 handle。
 
 這就是我們要的，實際上我們可以用更少行寫出同樣的程式，但我們很小心地避免覆寫任何檔案，並詢問作業系統我們可以把暫存檔擺在哪？讓我們來執行看看。
 
