@@ -5,7 +5,7 @@
 我們已經說明了 Haskell 是一個純粹函數式語言。雖說在命令式語言中我們習慣給電腦執行一連串指令，在函數式語言中我們是用定義東西的方式進行。在 Haskell 中，一個函數不能改變狀態，像是改變一個變數的內容。（當一個函數會改變狀態，我們說這函數是有副作用的。）在 Haskell 中函數唯一可以做的事是根據我們給定的參數來算出結果。如果我們用同樣的參數呼叫兩次同一個函數，它會回傳相同的結果。儘管這從命令式語言的角度來看是蠻大的限制，我們已經看過它可以達成多麼酷的效果。在一個命令式語言中，程式語言沒辦法給你任何保證在一個簡單如印出幾個數字的函數不會同時燒掉你的房子，綁架你的狗並刮傷你車子的烤漆。例如，當我們要建立一棵二元樹的時候，我們並不插入一個節點來改變原有的樹。由於我們無法改變狀態，我們的函數實際上回傳了一棵新的二元樹。
 
 
-函數無法改變狀態的好處是它讓我們促進了我們理解程式的容易度，但同時也造成了一個問題。假如說一個函數無法改變現實世界的狀態，那它要如何印出它所計算的結果?畢竟要告訴我們結果的話，它必須要改變輸出裝置的狀態(譬如說螢幕)，然後從螢幕傳達到我們的腦，並改變我們心智的狀態。
+函數無法改變狀態的好處是它讓我們促進了我們理解程式的容易度，但同時也造成了一個問題。假如說一個函數無法改變現實世界的狀態，那它要如何印出它所計算的結果？畢竟要告訴我們結果的話，它必須要改變輸出裝置的狀態（譬如說螢幕），然後從螢幕傳達到我們的腦，並改變我們心智的狀態。
 
 
 不要太早下結論，Haskell 實際上設計了一個非常聰明的系統來處理有副作用的函數，它漂亮地將我們的程式區分成純粹跟非純粹兩部分。非純粹的部分負責跟鍵盤還有螢幕溝通。有了這區分的機制，在跟外界溝通的同時，我們還是能夠有效運用純粹所帶來的好處，像是惰性求值、容錯性跟模組性。
@@ -27,7 +27,7 @@ main = putStrLn "hello, world"
 我們定義了一個 ``main``，並在裡面以 ``"hello, world"`` 為參數呼叫了 ``putStrLn``。看起來沒什麼大不了，但不久你就會發現它的奧妙。把這程式存成 ``helloworld.hs``。
 
 
-現在我們將做一件之前沒做過的事: 編譯你的程式。打開你的終端並切換到包含 ``helloworld.hs`` 的目錄，並輸入下列指令。
+現在我們將做一件之前沒做過的事：編譯你的程式。打開你的終端並切換到包含 ``helloworld.hs`` 的目錄，並輸入下列指令。
 
 {{
 $ ghc --make helloworld
@@ -45,7 +45,7 @@ hello, world
 
 這就是我們第一個編譯成功並印出字串到螢幕的程式。很簡單吧。
 
-讓我們來看一下我們究竟做了些什麼，首先來看一下 ``putStrLn`` 函數的型態
+讓我們來看一下我們究竟做了些什麼，首先來看一下 ``putStrLn`` 函數的型態：
 
 {{
 ghci> :t putStrLn
@@ -54,7 +54,7 @@ ghci> :t putStrLn "hello, world"
 putStrLn "hello, world" :: IO ()
 }}
 
-我們可以這麼解讀 ``putStrLn`` 的型態：``putStrLn`` 接受一個字串並回傳一個 I/O action，這 I/O action 包含了 ``()`` 的型態。(即空的 tuple，或者是 unit 型態)。一個 I/O action 是一個會造成副作用的動作，常是指讀取輸入或輸出到螢幕，同時也代表會回傳某些值。在螢幕印出幾個字串並沒有什麼有意義的回傳值可言，所以這邊用一個 ``()`` 來代表。
+我們可以這麼解讀 ``putStrLn`` 的型態：``putStrLn`` 接受一個字串並回傳一個 I/O action，這 I/O action 包含了 ``()`` 的型態。（即空的 tuple，或者是 unit 型態）。一個 I/O action 是一個會造成副作用的動作，常是指讀取輸入或輸出到螢幕，同時也代表會回傳某些值。在螢幕印出幾個字串並沒有什麼有意義的回傳值可言，所以這邊用一個 ``()`` 來代表。
 
 那究竟 I/O action 會在什麼時候被觸發呢？這就是 ``main`` 的功用所在。一個 I/O action 會在我們把它綁定到 ``main`` 這個名字並且執行程式的時候觸發。
 
@@ -83,7 +83,7 @@ getLine :: IO String
 
 我們可以看到 ``getLine`` 是一個回傳 ``String`` 的 I/O action。因為它會等使用者輸入某些字串，這很合理。那 ``name <- getLine`` 又是如何？你能這樣解讀它：執行一個 I/O action ``getLine`` 並將它的結果綁定到 ``name`` 這個名字。``getLine`` 的型態是 ``IO String``，所以 ``name`` 的型態會是 ``String``。你能把 I/O action 想成是一個長了腳的盒子，它會跑到真實世界中替你做某些事，像是在牆壁上塗鴉，然後帶回來某些資料。一旦它帶了某些資料給你，打開盒子的唯一辦法就是用 ``<-``。而且如果我們要從 I/O action 拿出某些資料，就一定同時要在另一個 I/O action 中。這就是 Haskell 如何漂亮地分開純粹跟不純粹的程式的方法。``getLine`` 在這樣的意義下是不純粹的，因為執行兩次的時候它沒辦法保證會回傳一樣的值。這也是為什麼它需要在一個 ``IO`` 的型態建構子中，那樣我們才能在 I/O action 中取出資料。而且任何一段程式一旦依賴著 I/O 資料的話，那段程式也會被視為 I/O code。
 
-但這不表示我們不能在純粹的程式碼中使用 I/O action 回傳的資料。只要我們綁定它到一個名字，我們便可以暫時地使用它。像在 ``name <-getLine`` 中 ``name`` 不過是一個普通字串，代表在盒子中的內容。我們能將這個普通的字串傳給一個極度複雜的函數，並回傳你一生會有多少財富。像是這樣：
+但這不表示我們不能在純粹的程式碼中使用 I/O action 回傳的資料。只要我們綁定它到一個名字，我們便可以暫時地使用它。像在 ``name <- getLine`` 中 ``name`` 不過是一個普通字串，代表在盒子中的內容。我們能將這個普通的字串傳給一個極度複雜的函數，並回傳你一生會有多少財富。像是這樣：
 
 {{
 main = do
@@ -146,7 +146,7 @@ main = do
 
 注意我們是怎麼編排在 do block 中的 I/O actions，也注意到我們是怎麼編排 let 跟其中的名字的，由於對齊在 Haskell 中並不會被無視，這麼編排才是好的習慣。我們的程式用 ``map toUpper firstName`` 將 ``"John"`` 轉成大寫的 ``"JOHN"``，並將大寫的結果綁定到一個名字上，之後在輸出的時候參考到了這個名字。
 
-你也許會問究竟什麼時候要用 ``<-`` 什麼時候用 let bindings?記住，``<-`` 是用來運算 I/O actions 並將他的結果綁定到名稱。而 ``map toUpper firstName`` 並不是一個 I/O action。他只是一個純粹的 expression。所以總結來說，當你要綁定 I/O actions 的結果時用 ``<-``，而對於純粹的 expression 使用 let bindings。對於錯誤的 ``let firstName = getLine``，我們只不過是把 ``getLine`` 這個 I/O actions 給了一個不同的名字罷了。最後還是要用 ``<-`` 將結果取出。
+你也許會問究竟什麼時候要用 ``<-``，什麼時候用 let bindings？記住，``<-`` 是用來運算 I/O actions 並將他的結果綁定到名稱。而 ``map toUpper firstName`` 並不是一個 I/O action。他只是一個純粹的 expression。所以總結來說，當你要綁定 I/O actions 的結果時用 ``<-``，而對於純粹的 expression 使用 let bindings。對於錯誤的 ``let firstName = getLine``，我們只不過是把 ``getLine`` 這個 I/O actions 給了一個不同的名字罷了。最後還是要用 ``<-`` 將結果取出。
 
 現在我們來寫一個會一行一行不斷地讀取輸入，並將讀進來的字反過來輸出到螢幕上的程式。程式會在輸入空白行的時候停止。
 {{
@@ -165,7 +165,7 @@ reverseWords = unwords . map reverse . words
 
 首先，我們來看一下 ``reverseWords``。他不過是一個普通的函數，假如接受了個字串 ``"hey there man"``，他會先呼叫 ``words`` 來產生一個字的串列 ``["hey", "there", "man"]``。然後用 ``reverse`` 來 map 整個串列，得到 ``["yeh", "ereht", "nam"]``，接著用 ``unwords`` 來得到最終的結果 ``"yeh ereht nam"``。這些用函數合成來簡潔的表達。如果沒有用函數合成，那就會寫成醜醜的樣子 ``reverseWords st = unwords (map reverse (words st))``
 
-那 ``main`` 又是怎麼一回事呢?首先，我們用 ``getLine`` 從終端讀取了一行，並把這行輸入取名叫 ``line``。然後接著一個條件式 expression。記住，在 Haskell 中 if 永遠要伴隨一個 else，這樣每個 expression 才會有值。當 if 的條件是 true （也就是輸入了一個空白行），我們便執行一個 I/O action，如果 if 的條件是 false，那 else 底下的 I/O action 被執行。這也就是說當 if 在一個 I/O do block 中的時候，長的樣子是 ``if condition then I/O action else I/O action``。
+那 ``main`` 又是怎麼一回事呢？首先，我們用 ``getLine`` 從終端讀取了一行，並把這行輸入取名叫 ``line``。然後接著一個條件式 expression。記住，在 Haskell 中 if 永遠要伴隨一個 else，這樣每個 expression 才會有值。當 if 的條件是 true （也就是輸入了一個空白行），我們便執行一個 I/O action，如果 if 的條件是 false，那 else 底下的 I/O action 被執行。這也就是說當 if 在一個 I/O do block 中的時候，長的樣子是 ``if condition then I/O action else I/O action``。
 
 我們首先來看一下在 else 中發生了什麼事。由於我們在 else 中只能有一個 I/O action，所以我們用 do 來將兩個 I/O actions 綁成一個，你可以寫成這樣：
 {{
@@ -403,7 +403,7 @@ red
 orange 
 }}
 
-其實我們也不是一定要用到 ``forM``，只是用了 ``forM`` 程式會比較容易理解。正常來講是我們需要在 map 跟 sequence 的時候定義 I/O action 的時候使用 ``forM``，同樣地，我們也可以將最後一行寫成 ``forM colors putStrLn``
+其實我們也不是一定要用到 ``forM``，只是用了 ``forM`` 程式會比較容易理解。正常來講是我們需要在 map 跟 sequence 的時候定義 I/O action 的時候使用 ``forM``，同樣地，我們也可以將最後一行寫成 ``forM colors putStrLn``。
 
 在這一節，我們學會了輸入與輸出的基礎。我們也了解了什麼是 I/O action，他們是如何幫助我們達成輸入與輸出的目的。這邊重複一遍，I/O action 跟其他 Haskell 中的 value 沒有兩樣。我們能夠把他當參數傳給函式，或是函式回傳 I/O action。他們特別之處在於當他們是寫在 ``main`` 裡面或 GHCI 裡面的時候，他們會被執行，也就是實際輸出到你螢幕或輸出音效的時候。每個 I/O action 也能包著一個從真實世界拿回來的值。
 
@@ -416,7 +416,7 @@ orange
 
 ``getChar`` 是一個讀取單一字元的 I/O action。``getLine`` 是一個讀取一行的 I/O action。這是兩個非常直覺的函式，多數程式語言也有類似這兩個函式的 statement 或 function。但現在我們來看看 *getContents*。``getContents`` 是一個從標準輸入讀取直到 end-of-file 字元的 I/O action。他的型態是 ``getContents :: IO String``。最酷的是 ``getContents`` 是惰性 I/O (Lazy I/O)。當我們寫了 ``foo <- getContents``，他並不會馬上讀取所有輸入，將他們存在 memory 裡面。他只有當你真的需要輸入資料的時候才會讀取。
 
-當我們需要重導一個程式的輸出到另一個程式的輸入時，``getContents`` 非常有用。假設我們有下面一個文字檔。
+當我們需要重導一個程式的輸出到另一個程式的輸入時，``getContents`` 非常有用。假設我們有下面一個文字檔：
 {{
 I'm a lil' teapot  
 What's with that airplane food, huh?  
@@ -453,7 +453,7 @@ capslocker <stdin>: hGetLine: end of file
 
 就如你看到的，我們是用 ``|`` 這符號來將某個程式的輸出 piping 到另一個程式的輸入。我們做的事相當於 run 我們的 capslocker，然後將 haiku 的內容用鍵盤打到終端上，最後再按 Ctrl-D 來代表 end-of-file。這就像執行 cat haiku.txt 後大喊，嘿，不要把內容印到終端上，把內容塞到 capslocker！
 
-我們用 ``forever`` 在做的事基本上就是將輸入經過轉換後變成輸出。用 ``getContents`` 的話可以讓我們的程式更加精練。
+我們用 ``forever`` 在做的事基本上就是將輸入經過轉換後變成輸出。用 ``getContents`` 的話可以讓我們的程式更加精鍊。
 
 {{
 import Data.Char
