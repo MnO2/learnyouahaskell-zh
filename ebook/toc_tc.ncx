@@ -1,0 +1,899 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE ncx PUBLIC "-//NISO//DTD ncx 2005-1//EN" "http://www.daisy.org/z3986/2005/ncx-2005-1.dtd">
+<ncx xmlns="http://www.daisy.org/z3986/2005/ncx/" version="2005-1" xml:lang="en-US">
+<head>
+	<meta name="dtb:uid" content="BookId"/>
+	<meta name="dtb:depth" content="2"/>
+	<meta name="dtb:totalPageCount" content="0"/>
+	<meta name="dtb:maxPageNumber" content="0"/>
+</head>
+
+<docTitle><text>Haskell 趣學指南</text></docTitle>
+<docAuthor><text>Miran Lipovača</text></docAuthor>
+
+<navMap>
+	<navPoint class="toc" id="toc" playOrder="1">
+		<navLabel>
+			<text>目錄</text>
+		</navLabel>
+		<content src="../public/zh-tw/chapters.html"/>
+	</navPoint>
+
+	<navPoint class="chapter" id="chapter1" playOrder="2">
+		<navLabel>
+			<text>1 簡介</text>
+		</navLabel>
+		<content src="../public/zh-tw/introduction.html#簡介"/>
+
+		<navPoint class="section" id="section11" playOrder="3">
+			<navLabel>
+				<text>關於這份教學</text>
+			</navLabel>
+			<content src="../public/zh-tw/introduction.html#關於這份教學"/>
+		</navPoint>
+
+		<navPoint class="section" id="section12" playOrder="4">
+			<navLabel>
+				<text>什麼是 Haskell？</text>
+			</navLabel>
+			<content src="../public/zh-tw/introduction.html#什麼是_Haskell？"/>
+		</navPoint>
+
+		<navPoint class="section" id="section13" playOrder="5">
+			<navLabel>
+				<text>你需要些什麼來使用 Haskell 呢？</text>
+			</navLabel>
+			<content src="../public/zh-tw/introduction.html#你需要些什麼來使用_Haskell_呢？"/>
+		</navPoint>
+	</navPoint>
+
+	<navPoint class="chapter" id="chapter2" playOrder="6">
+		<navLabel>
+			<text>2 從零開始</text>
+		</navLabel>
+		<content src="../public/zh-tw/ready-begin.html#從零開始"/>
+
+		<navPoint class="section" id="section21" playOrder="7">
+			<navLabel>
+				<text>準備好了嗎？</text>
+			</navLabel>
+			<content src="../public/zh-tw/ready-begin.html#準備好了嗎？"/>
+		</navPoint>
+
+		<navPoint class="section" id="section22" playOrder="8">
+			<navLabel>
+				<text>初學者的第一個函數</text>
+			</navLabel>
+			<content src="../public/zh-tw/ready-begin.html#初學者的第一個函數"/>
+		</navPoint>
+
+		<navPoint class="section" id="section23" playOrder="9">
+			<navLabel>
+				<text>List 入門</text>
+			</navLabel>
+			<content src="../public/zh-tw/ready-begin.html#List_入門"/>
+		</navPoint>
+
+		<navPoint class="section" id="section24" playOrder="10">
+			<navLabel>
+				<text>使用 Range</text>
+			</navLabel>
+			<content src="../public/zh-tw/ready-begin.html#使用_Range"/>
+		</navPoint>
+
+		<navPoint class="section" id="section25" playOrder="11">
+			<navLabel>
+				<text>List Comprehension</text>
+			</navLabel>
+			<content src="../public/zh-tw/ready-begin.html#List_Comprehension"/>
+		</navPoint>
+
+		<navPoint class="section" id="section26" playOrder="12">
+			<navLabel>
+				<text>Tuple</text>
+			</navLabel>
+			<content src="../public/zh-tw/ready-begin.html#Tuple"/>
+		</navPoint>
+	</navPoint>
+
+	<navPoint class="chapter" id="chapter3" playOrder="13">
+		<navLabel>
+			<text>3 Types and Typeclasses</text>
+		</navLabel>
+		<content src="../public/zh-tw/types-and-type-classes.html#Types_and_Typeclasses"/>
+
+		<navPoint class="section" id="section31" playOrder="14">
+			<navLabel>
+				<text>Type</text>
+			</navLabel>
+			<content src="../public/zh-tw/types-and-type-classes.html#Type"/>
+		</navPoint>
+
+		<navPoint class="section" id="section32" playOrder="15">
+			<navLabel>
+				<text>Type variables</text>
+			</navLabel>
+			<content src="../public/zh-tw/types-and-type-classes.html#Type_variables"/>
+		</navPoint>
+
+		<navPoint class="section" id="section33" playOrder="16">
+			<navLabel>
+				<text>Typeclasses入門</text>
+			</navLabel>
+			<content src="../public/zh-tw/types-and-type-classes.html#Typeclasses入門"/>
+		</navPoint>
+	</navPoint>
+
+	<navPoint class="chapter" id="chapter4" playOrder="17">
+		<navLabel>
+			<text>4 函數的語法</text>
+		</navLabel>
+		<content src="../public/zh-tw/syntax-on-function.html#函數的語法"/>
+
+		<navPoint class="section" id="section41" playOrder="18">
+			<navLabel>
+				<text>模式匹配</text>
+			</navLabel>
+			<content src="../public/zh-tw/syntax-on-function.html#模式匹配_(Pattern_matching)"/>
+		</navPoint>
+
+		<navPoint class="section" id="section42" playOrder="19">
+			<navLabel>
+				<text>什麼是 Guards</text>
+			</navLabel>
+			<content src="../public/zh-tw/syntax-on-function.html#什麼是_Guards"/>
+		</navPoint>
+
+		<navPoint class="section" id="section43" playOrder="20">
+			<navLabel>
+				<text>關鍵字 Where</text>
+			</navLabel>
+			<content src="../public/zh-tw/syntax-on-function.html#關鍵字_Where"/>
+		</navPoint>
+
+		<navPoint class="section" id="section44" playOrder="21">
+			<navLabel>
+				<text>關鍵字 Let</text>
+			</navLabel>
+			<content src="../public/zh-tw/syntax-on-function.html#關鍵字_Let"/>
+		</navPoint>
+
+		<navPoint class="section" id="section45" playOrder="22">
+			<navLabel>
+				<text>Case expressions</text>
+			</navLabel>
+			<content src="../public/zh-tw/syntax-on-function.html#Case_expressions"/>
+		</navPoint>
+	</navPoint>
+
+	<navPoint class="chapter" id="chapter5" playOrder="23">
+		<navLabel>
+			<text>5 遞迴</text>
+		</navLabel>
+		<content src="../public/zh-tw/recursion.html#遞迴"/>
+
+		<navPoint class="section" id="section51" playOrder="24">
+			<navLabel>
+				<text>你好，遞迴！</text>
+			</navLabel>
+			<content src="../public/zh-tw/recursion.html#你好，遞迴！"/>
+		</navPoint>
+
+		<navPoint class="section" id="section52" playOrder="25">
+			<navLabel>
+				<text>實作 Maximum</text>
+			</navLabel>
+			<content src="../public/zh-tw/recursion.html#實作_Maximum"/>
+		</navPoint>
+
+		<navPoint class="section" id="section53" playOrder="26">
+			<navLabel>
+				<text>來看幾個遞迴函數</text>
+			</navLabel>
+			<content src="../public/zh-tw/recursion.html#來看幾個遞迴函數"/>
+		</navPoint>
+
+		<navPoint class="section" id="section54" playOrder="27">
+			<navLabel>
+				<text>用遞迴來思考</text>
+			</navLabel>
+			<content src="../public/zh-tw/recursion.html#用遞迴來思考"/>
+		</navPoint>
+	</navPoint>
+
+	<navPoint class="chapter" id="chapter6" playOrder="28">
+		<navLabel>
+			<text>6 高階函數</text>
+		</navLabel>
+		<content src="../public/zh-tw/high-order-function.html#高階函數"/>
+
+		<navPoint class="section" id="section61" playOrder="29">
+			<navLabel>
+				<text>Curried functions</text>
+			</navLabel>
+			<content src="../public/zh-tw/high-order-function.html#Curried_functions"/>
+		</navPoint>
+
+		<navPoint class="section" id="section62" playOrder="30">
+			<navLabel>
+				<text>是時候了，來點高階函數！</text>
+			</navLabel>
+			<content src="../public/zh-tw/high-order-function.html#是時候了，來點高階函數！"/>
+		</navPoint>
+
+		<navPoint class="section" id="section63" playOrder="31">
+			<navLabel>
+				<text>map 與 filter</text>
+			</navLabel>
+			<content src="../public/zh-tw/high-order-function.html#map_與_filter"/>
+		</navPoint>
+
+		<navPoint class="section" id="section64" playOrder="32">
+			<navLabel>
+				<text>lambda</text>
+			</navLabel>
+			<content src="../public/zh-tw/high-order-function.html#lambda"/>
+		</navPoint>
+
+		<navPoint class="section" id="section65" playOrder="33">
+			<navLabel>
+				<text>關鍵字 fold</text>
+			</navLabel>
+			<content src="../public/zh-tw/high-order-function.html#關鍵字_fold"/>
+		</navPoint>
+
+		<navPoint class="section" id="section66" playOrder="34">
+			<navLabel>
+				<text>有$的函數呼叫</text>
+			</navLabel>
+			<content src="../public/zh-tw/high-order-function.html#有$的函數呼叫"/>
+		</navPoint>
+
+		<navPoint class="section" id="section67" playOrder="35">
+			<navLabel>
+				<text>Function composition</text>
+			</navLabel>
+			<content src="../public/zh-tw/high-order-function.html#Function_composition"/>
+		</navPoint>
+	</navPoint>
+
+	<navPoint class="chapter" id="chapter7" playOrder="36">
+		<navLabel>
+			<text>7 模組</text>
+		</navLabel>
+		<content src="../public/zh-tw/modules.html#模組_(Modules)"/>
+
+		<navPoint class="section" id="section71" playOrder="37">
+			<navLabel>
+				<text>裝載模組</text>
+			</navLabel>
+			<content src="../public/zh-tw/modules.html#裝載模組"/>
+		</navPoint>
+
+		<navPoint class="section" id="section72" playOrder="38">
+			<navLabel>
+				<text>Data.List</text>
+			</navLabel>
+			<content src="../public/zh-tw/modules.html#Data.List"/>
+		</navPoint>
+
+		<navPoint class="section" id="section73" playOrder="39">
+			<navLabel>
+				<text>Data.Char</text>
+			</navLabel>
+			<content src="../public/zh-tw/modules.html#Data.Char"/>
+		</navPoint>
+
+		<navPoint class="section" id="section74" playOrder="40">
+			<navLabel>
+				<text>Data.Map</text>
+			</navLabel>
+			<content src="../public/zh-tw/modules.html#Data.Map"/>
+		</navPoint>
+
+		<navPoint class="section" id="section75" playOrder="41">
+			<navLabel>
+				<text>Data.Set</text>
+			</navLabel>
+			<content src="../public/zh-tw/modules.html#Data.Set"/>
+		</navPoint>
+
+		<navPoint class="section" id="section76" playOrder="42">
+			<navLabel>
+				<text>建立自己的模組</text>
+			</navLabel>
+			<content src="../public/zh-tw/modules.html#建立自己的模組"/>
+		</navPoint>
+	</navPoint>
+
+	<navPoint class="chapter" id="chapter8" playOrder="43">
+		<navLabel>
+			<text>8 構造我們自己的 Types 和 Typeclasses</text>
+		</navLabel>
+		<content src="../public/zh-tw/make-types-and-classes-for-ourselves.html#構造我們自己的_Types_和_Typeclasses"/>
+
+		<navPoint class="section" id="section81" playOrder="44">
+			<navLabel>
+				<text>Algebraic Data Types 入門</text>
+			</navLabel>
+			<content src="../public/zh-tw/make-types-and-classes-for-ourselves.html#Algebraic_Data_Types_入門"/>
+		</navPoint>
+
+		<navPoint class="section" id="section82" playOrder="45">
+			<navLabel>
+				<text>Record Syntax</text>
+			</navLabel>
+			<content src="../public/zh-tw/make-types-and-classes-for-ourselves.html#Record_Syntax"/>
+		</navPoint>
+
+		<navPoint class="section" id="section83" playOrder="46">
+			<navLabel>
+				<text>Type parameters</text>
+			</navLabel>
+			<content src="../public/zh-tw/make-types-and-classes-for-ourselves.html#Type_parameters"/>
+		</navPoint>
+
+		<navPoint class="section" id="section84" playOrder="47">
+			<navLabel>
+				<text>Derived instances</text>
+			</navLabel>
+			<content src="../public/zh-tw/make-types-and-classes-for-ourselves.html#Derived_instances"/>
+		</navPoint>
+
+		<navPoint class="section" id="section85" playOrder="48">
+			<navLabel>
+				<text>Type synonyms</text>
+			</navLabel>
+			<content src="../public/zh-tw/make-types-and-classes-for-ourselves.html#Type_synonyms"/>
+		</navPoint>
+
+		<navPoint class="section" id="section86" playOrder="49">
+			<navLabel>
+				<text>遞迴地定義資料結構</text>
+			</navLabel>
+			<content src="../public/zh-tw/make-types-and-classes-for-ourselves.html#Recursive_data_structures_(遞迴地定義資料結構)"/>
+		</navPoint>
+
+		<navPoint class="section" id="section87" playOrder="50">
+			<navLabel>
+				<text>Typeclasses 的第二堂課</text>
+			</navLabel>
+			<content src="../public/zh-tw/make-types-and-classes-for-ourselves.html#Typeclasses_的第二堂課"/>
+		</navPoint>
+
+		<navPoint class="section" id="section88" playOrder="51">
+			<navLabel>
+				<text>yes-no typeclass</text>
+			</navLabel>
+			<content src="../public/zh-tw/make-types-and-classes-for-ourselves.html#yes-no_typeclass"/>
+		</navPoint>
+
+		<navPoint class="section" id="section89" playOrder="52">
+			<navLabel>
+				<text>Functor typeclass</text>
+			</navLabel>
+			<content src="../public/zh-tw/make-types-and-classes-for-ourselves.html#Functor_typeclass"/>
+		</navPoint>
+
+		<navPoint class="section" id="section8a" playOrder="53">
+			<navLabel>
+				<text>Kind</text>
+			</navLabel>
+			<content src="../public/zh-tw/make-types-and-classes-for-ourselves.html#Kind"/>
+		</navPoint>
+	</navPoint>
+
+	<navPoint class="chapter" id="chapter9" playOrder="54">
+		<navLabel>
+			<text>9 輸入與輸出</text>
+		</navLabel>
+		<content src="../public/zh-tw/input-and-output.html#輸入與輸出"/>
+
+		<navPoint class="section" id="section91" playOrder="55">
+			<navLabel>
+				<text>Hello, world!</text>
+			</navLabel>
+			<content src="../public/zh-tw/input-and-output.html#Hello,_world!"/>
+		</navPoint>
+
+		<navPoint class="section" id="section92" playOrder="56">
+			<navLabel>
+				<text>檔案與字符流</text>
+			</navLabel>
+			<content src="../public/zh-tw/input-and-output.html#檔案與字符流"/>
+		</navPoint>
+
+		<navPoint class="section" id="section93" playOrder="57">
+			<navLabel>
+				<text>命令列引數</text>
+			</navLabel>
+			<content src="../public/zh-tw/input-and-output.html#命令列引數"/>
+		</navPoint>
+
+		<navPoint class="section" id="section94" playOrder="58">
+			<navLabel>
+				<text>亂數</text>
+			</navLabel>
+			<content src="../public/zh-tw/input-and-output.html#亂數"/>
+		</navPoint>
+
+		<navPoint class="section" id="section95" playOrder="59">
+			<navLabel>
+				<text>Bytestrings</text>
+			</navLabel>
+			<content src="../public/zh-tw/input-and-output.html#Bytestrings"/>
+		</navPoint>
+
+		<navPoint class="section" id="section96" playOrder="60">
+			<navLabel>
+				<text>例外處理</text>
+			</navLabel>
+			<content src="../public/zh-tw/input-and-output.html#Exceptions_(例外)"/>
+		</navPoint>
+	</navPoint>
+
+	<navPoint class="chapter" id="chapter10" playOrder="61">
+		<navLabel>
+			<text>10 函數式地思考來解決問題</text>
+		</navLabel>
+		<content src="../public/zh-tw/functionally-solving-problems.html#函數式地思考來解決問題"/>
+
+		<navPoint class="section" id="section101" playOrder="62">
+			<navLabel>
+				<text>運算逆波蘭表示法</text>
+			</navLabel>
+			<content src="../public/zh-tw/functionally-solving-problems.html#運算逆波蘭表示法(Reverse_Polish_notation_form)"/>
+		</navPoint>
+
+		<navPoint class="section" id="section102" playOrder="63">
+			<navLabel>
+				<text>路徑規劃</text>
+			</navLabel>
+			<content src="../public/zh-tw/functionally-solving-problems.html#路徑規劃"/>
+		</navPoint>
+	</navPoint>
+
+	<navPoint class="chapter" id="chapter11" playOrder="64">
+		<navLabel>
+			<text>11 Functors, Applicative Functors 與 Monoids</text>
+		</navLabel>
+		<content src="../public/zh-tw/functors-applicative-functors-and-monoids.html#Functors,_Applicative_Functors_與_Monoids"/>
+
+		<navPoint class="section" id="section111" playOrder="65">
+			<navLabel>
+				<text>溫習 Functors</text>
+			</navLabel>
+			<content src="../public/zh-tw/functors-applicative-functors-and-monoids.html#溫習_Functors"/>
+		</navPoint>
+
+		<navPoint class="section" id="section112" playOrder="66">
+			<navLabel>
+				<text>Applicative functors</text>
+			</navLabel>
+			<content src="../public/zh-tw/functors-applicative-functors-and-monoids.html#Applicative_functors"/>
+		</navPoint>
+
+		<navPoint class="section" id="section113" playOrder="67">
+			<navLabel>
+				<text>關鍵字 "newtype"</text>
+			</navLabel>
+			<content src="../public/zh-tw/functors-applicative-functors-and-monoids.html#關鍵字"/>
+		</navPoint>
+
+		<!--navPoint class="section" id="section114" playOrder="68">
+			<navLabel>
+				<text>Using newtype to make type class instances</text>
+			</navLabel>
+			<content src="../public/zh-tw/functors-applicative-functors-and-monoids.html#Using newtype to make type class instances"/>
+		</navPoint>
+
+		<navPoint class="section" id="section115" playOrder="69">
+			<navLabel>
+				<text>On newtype laziness</text>
+			</navLabel>
+			<content src="../public/zh-tw/functors-applicative-functors-and-monoids.html#On newtype laziness"/>
+		</navPoint>
+
+		<navPoint class="section" id="section116" playOrder="70">
+			<navLabel>
+				<text>type vs newtype vs data</text>
+			</navLabel>
+			<content src="../public/zh-tw/functors-applicative-functors-and-monoids.html#type vs newtype vs data"/>
+		</navPoint-->
+
+		<navPoint class="section" id="section117" playOrder="71">
+			<navLabel>
+				<text>Monoids</text>
+			</navLabel>
+			<content src="../public/zh-tw/functors-applicative-functors-and-monoids.html#Monoids"/>
+		</navPoint>
+
+		<!--navPoint class="section" id="section1" playOrder="72">
+			<navLabel>
+				<text>Lists are monoids</text>
+			</navLabel>
+			<content src="../public/zh-tw/functors-applicative-functors-and-monoids.html#Lists are monoids"/>
+		</navPoint>
+
+		<navPoint class="section" id="section1" playOrder="73">
+			<navLabel>
+				<text>Product and Sum</text>
+			</navLabel>
+			<content src="../public/zh-tw/functors-applicative-functors-and-monoids.html#Product and Sum"/>
+		</navPoint>
+
+		<navPoint class="section" id="section1" playOrder="74">
+			<navLabel>
+				<text>Any and ALL</text>
+			</navLabel>
+			<content src="../public/zh-tw/functors-applicative-functors-and-monoids.html#Any and ALL"/>
+		</navPoint>
+
+		<navPoint class="section" id="section1" playOrder="75">
+			<navLabel>
+				<text>The Ordering monoid</text>
+			</navLabel>
+			<content src="../public/zh-tw/functors-applicative-functors-and-monoids.html#The Ordering monoid"/>
+		</navPoint>
+
+		<navPoint class="section" id="section1" playOrder="76">
+			<navLabel>
+				<text>Maybe the monoid</text>
+			</navLabel>
+			<content src="../public/zh-tw/functors-applicative-functors-and-monoids.html#Maybe the monoid"/>
+		</navPoint>
+
+		<navPoint class="section" id="section1" playOrder="77">
+			<navLabel>
+				<text>Using monoids to fold data structures</text>
+			</navLabel>
+			<content src="../public/zh-tw/functors-applicative-functors-and-monoids.html#Using monoids to fold data structures"/>
+		</navPoint-->
+	</navPoint>
+
+	<navPoint class="chapter" id="chapter12" playOrder="78">
+		<navLabel>
+			<text>12 來看看幾種 Monad</text>
+		</navLabel>
+		<content src="../public/zh-tw/a-fistful-of-monads.html#來看看幾種_Monad"/>
+
+		<navPoint class="section" id="section121" playOrder="79">
+			<navLabel>
+				<text>動手做做看: Maybe Monad</text>
+			</navLabel>
+			<content src="../public/zh-tw/a-fistful-of-monads.html#動手做做看:_Maybe_Monad"/>
+		</navPoint>
+
+		<navPoint class="section" id="section122" playOrder="80">
+			<navLabel>
+				<text>Monad type class</text>
+			</navLabel>
+			<content src="../public/zh-tw/a-fistful-of-monads.html#Monad_type_class"/>
+		</navPoint>
+
+		<navPoint class="section" id="section123" playOrder="81">
+			<navLabel>
+				<text>走鋼索</text>
+			</navLabel>
+			<content src="../public/zh-tw/a-fistful-of-monads.html#走鋼索"/>
+		</navPoint>
+
+		<navPoint class="section" id="section124" playOrder="82">
+			<navLabel>
+				<text>do 表示法</text>
+			</navLabel>
+			<content src="../public/zh-tw/a-fistful-of-monads.html#do_表示法"/>
+		</navPoint>
+
+		<navPoint class="section" id="section125" playOrder="83">
+			<navLabel>
+				<text>List Monad</text>
+			</navLabel>
+			<content src="../public/zh-tw/a-fistful-of-monads.html#List_Monad"/>
+		</navPoint>
+
+		<!--navPoint class="section" id="section1" playOrder="84">
+			<navLabel>
+				<text>A knight's quest</text>
+			</navLabel>
+			<content src="../public/zh-tw/a-fistful-of-monads.html#A knight's quest"/>
+		</navPoint-->
+
+		<navPoint class="section" id="section126" playOrder="85">
+			<navLabel>
+				<text>單子律</text>
+			</navLabel>
+			<content src="../public/zh-tw/a-fistful-of-monads.html#Monad_laws_(單子律)"/>
+		</navPoint>
+
+		<!--navPoint class="section" id="section1" playOrder="86">
+			<navLabel>
+				<text>Left identity</text>
+			</navLabel>
+			<content src="../public/zh-tw/a-fistful-of-monads.html#Left identity"/>
+		</navPoint>
+
+		<navPoint class="section" id="section1" playOrder="87">
+			<navLabel>
+				<text>Right identity</text>
+			</navLabel>
+			<content src="../public/zh-tw/a-fistful-of-monads.html#Right identity"/>
+		</navPoint>
+
+		<navPoint class="section" id="section1" playOrder="88">
+			<navLabel>
+				<text>Associativity</text>
+			</navLabel>
+			<content src="../public/zh-tw/a-fistful-of-monads.html#Associativity"/>
+		</navPoint-->
+	</navPoint>
+
+	<navPoint class="chapter" id="chapter13" playOrder="89">
+		<navLabel>
+			<text>13 再來看看更多 Monad</text>
+		</navLabel>
+		<content src="../public/zh-tw/for-a-few-monads-more.html#再來看看更多_Monad"/>
+
+		<navPoint class="section" id="section131" playOrder="90">
+			<navLabel>
+				<text>你所不知道的 Writer Monad</text>
+			</navLabel>
+			<content src="../public/zh-tw/for-a-few-monads-more.html#你所不知道的_Writer_Monad"/>
+		</navPoint>
+
+		<!--navPoint class="section" id="section132" playOrder="91">
+			<navLabel>
+				<text>Monoids 的好處</text>
+			</navLabel>
+			<content src="../public/zh-tw/for-a-few-monads-more.html#Monoids 的好處"/>
+		</navPoint>
+
+		<navPoint class="section" id="section132" playOrder="92">
+			<navLabel>
+				<text>The Writer type</text>
+			</navLabel>
+			<content src="../public/zh-tw/for-a-few-monads-more.html#The Writer type"/>
+		</navPoint>
+
+		<navPoint class="section" id="section1" playOrder="93">
+			<navLabel>
+				<text>Using do notation with Writer</text>
+			</navLabel>
+			<content src="../public/zh-tw/for-a-few-monads-more.html#Using do notation with Writer"/>
+		</navPoint>
+
+		<navPoint class="section" id="section1" playOrder="94">
+			<navLabel>
+				<text>Adding logging to programs</text>
+			</navLabel>
+			<content src="../public/zh-tw/for-a-few-monads-more.html#Adding logging to programs"/>
+		</navPoint>
+
+		<navPoint class="section" id="section1" playOrder="95">
+			<navLabel>
+				<text>Inefficient list construction</text>
+			</navLabel>
+			<content src="../public/zh-tw/for-a-few-monads-more.html#Inefficient list construction"/>
+		</navPoint>
+
+		<navPoint class="section" id="section1" playOrder="96">
+			<navLabel>
+				<text>Difference lists</text>
+			</navLabel>
+			<content src="../public/zh-tw/for-a-few-monads-more.html#Difference lists"/>
+		</navPoint>
+
+		<navPoint class="section" id="section1" playOrder="97">
+			<navLabel>
+				<text>Comparing Performance</text>
+			</navLabel>
+			<content src="../public/zh-tw/for-a-few-monads-more.html#Comparing Performance"/>
+		</navPoint-->
+
+		<navPoint class="section" id="section132" playOrder="98">
+			<navLabel>
+				<text>Reader Monad</text>
+			</navLabel>
+			<content src="../public/zh-tw/for-a-few-monads-more.html#Reader_Monad"/>
+		</navPoint>
+
+		<navPoint class="section" id="section133" playOrder="99">
+			<navLabel>
+				<text>State Monad</text>
+			</navLabel>
+			<content src="../public/zh-tw/for-a-few-monads-more.html#State_Monad"/>
+		</navPoint>
+
+		<!--navPoint class="section" id="section134" playOrder="100">
+			<navLabel>
+				<text>Stack and Stones</text>
+			</navLabel>
+			<content src="../public/zh-tw/for-a-few-monads-more.html#Stack and Stones"/>
+		</navPoint>
+
+		<navPoint class="section" id="section1" playOrder="101">
+			<navLabel>
+				<text>The State Monad</text>
+			</navLabel>
+			<content src="../public/zh-tw/for-a-few-monads-more.html#The State Monad"/>
+		</navPoint>
+
+		<navPoint class="section" id="section1" playOrder="102">
+			<navLabel>
+				<text>隨機性與 state monad</text>
+			</navLabel>
+			<content src="../public/zh-tw/for-a-few-monads-more.html#隨機性與 state monad"/>
+		</navPoint-->
+
+		<navPoint class="section" id="section134" playOrder="103">
+			<navLabel>
+				<text>Error Monad</text>
+			</navLabel>
+			<content src="../public/zh-tw/for-a-few-monads-more.html#Error_Monad"/>
+		</navPoint>
+
+		<navPoint class="section" id="section135" playOrder="104">
+			<navLabel>
+				<text>一些實用的 Moandic functions</text>
+			</navLabel>
+			<content src="../public/zh-tw/for-a-few-monads-more.html#一些實用的_Moandic_functions"/>
+		</navPoint>
+
+		<!--navPoint class="section" id="section1" playOrder="105">
+			<navLabel>
+				<text>liftM</text>
+			</navLabel>
+			<content src="../public/zh-tw/for-a-few-monads-more.html#liftM"/>
+		</navPoint>
+
+		<navPoint class="section" id="section1" playOrder="106">
+			<navLabel>
+				<text>The join function</text>
+			</navLabel>
+			<content src="../public/zh-tw/for-a-few-monads-more.html#The join function"/>
+		</navPoint>
+
+		<navPoint class="section" id="section1" playOrder="107">
+			<navLabel>
+				<text>filterM</text>
+			</navLabel>
+			<content src="../public/zh-tw/for-a-few-monads-more.html#filterM"/>
+		</navPoint>
+
+		<navPoint class="section" id="section1" playOrder="108">
+			<navLabel>
+				<text>foldM</text>
+			</navLabel>
+			<content src="../public/zh-tw/for-a-few-monads-more.html#foldM"/>
+		</navPoint>
+
+		<navPoint class="section" id="section1" playOrder="109">
+			<navLabel>
+				<text>Making a safe RPN calculator</text>
+			</navLabel>
+			<content src="../public/zh-tw/for-a-few-monads-more.html#Making a safe RPN calculator"/>
+		</navPoint>
+
+		<navPoint class="section" id="section1" playOrder="110">
+			<navLabel>
+				<text>Composing monadic functions</text>
+			</navLabel>
+			<content src="../public/zh-tw/for-a-few-monads-more.html#Composing monadic functions"/>
+		</navPoint-->
+
+		<navPoint class="section" id="section136" playOrder="111">
+			<navLabel>
+				<text>定義自己的 Monad</text>
+			</navLabel>
+			<content src="../public/zh-tw/for-a-few-monads-more.html#定義自己的_Monad"/>
+		</navPoint>
+	</navPoint>
+
+	<navPoint class="chapter" id="chapter14" playOrder="112">
+		<navLabel>
+			<text>14 Zippers 資料結構</text>
+		</navLabel>
+		<content src="../public/zh-tw/zippers.html#Zippers_資料結構"/>
+
+		<navPoint class="section" id="section141" playOrder="113">
+			<navLabel>
+				<text>來走二元樹吧!</text>
+			</navLabel>
+			<content src="../public/zh-tw/zippers.html#來走二元樹吧!"/>
+		</navPoint>
+
+		<navPoint class="section" id="section142" playOrder="114">
+			<navLabel>
+				<text>凡走過必留下痕跡</text>
+			</navLabel>
+			<content src="../public/zh-tw/zippers.html#凡走過必留下痕跡"/>
+		</navPoint>
+
+		<!--navPoint class="section" id="section143" playOrder="115">
+			<navLabel>
+				<text>Going back up</text>
+			</navLabel>
+			<content src="../public/zh-tw/zippers.html#Going back up"/>
+		</navPoint>
+
+		<navPoint class="section" id="section1" playOrder="116">
+			<navLabel>
+				<text>Manipulating trees under focus</text>
+			</navLabel>
+			<content src="../public/zh-tw/zippers.html#Manipulating trees under focus"/>
+		</navPoint>
+
+		<navPoint class="section" id="section1" playOrder="117">
+			<navLabel>
+				<text>I'm going straight to top, oh yeah, up where the air is fresh and clean!</text>
+			</navLabel>
+			<content src="../public/zh-tw/zippers.html#I'm going straight to top, oh yeah, up where the air is fresh and clean!"/>
+		</navPoint-->
+
+		<navPoint class="section" id="section143" playOrder="118">
+			<navLabel>
+				<text>來看串列</text>
+			</navLabel>
+			<content src="../public/zh-tw/zippers.html#來看串列"/>
+		</navPoint>
+
+		<navPoint class="section" id="section144" playOrder="119">
+			<navLabel>
+				<text>陽春的檔案系統</text>
+			</navLabel>
+			<content src="../public/zh-tw/zippers.html#陽春的檔案系統"/>
+		</navPoint>
+
+		<!--navPoint class="section" id="section1" playOrder="120">
+			<navLabel>
+				<text>A zipper for our file system</text>
+			</navLabel>
+			<content src="../public/zh-tw/zippers.html#A zipper for our file system"/>
+		</navPoint>
+
+		<navPoint class="section" id="section1" playOrder="121">
+			<navLabel>
+				<text>Manipulating our file system</text>
+			</navLabel>
+			<content src="../public/zh-tw/zippers.html#Manipulating our file system"/>
+		</navPoint-->
+
+		<navPoint class="section" id="section145" playOrder="122">
+			<navLabel>
+				<text>小心每一步</text>
+			</navLabel>
+			<content src="../public/zh-tw/zippers.html#小心每一步"/>
+		</navPoint>
+	</navPoint>
+
+	<navPoint class="chapter" id="appendix" playOrder="123">
+		<navLabel>
+			<text>附錄</text>
+		</navLabel>
+		<content src="../public/resource.html"/>
+
+		<navPoint class="section" id="chapter15" playOrder="124">
+			<navLabel>
+				<text>其他資源</text>
+			</navLabel>
+			<content src="../public/resource.html"/>
+		</navPoint>
+
+		<navPoint class="section" id="chapter16" playOrder="125">
+			<navLabel>
+				<text>FAQ</text>
+			</navLabel>
+			<content src="../public/faq.html"/>
+		</navPoint>
+	</navPoint>
+
+	<navPoint class="section" id="index" playOrder="126">
+		<navLabel>
+			<text>Note</text>
+		</navLabel>
+		<content src="../public/index.html"/>
+	</navPoint>
+</navMap>
+
+
+</ncx>
