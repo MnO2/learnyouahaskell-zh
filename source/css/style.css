@@ -139,8 +139,8 @@ div#header {
     margin: 0 auto;
     background: url(../img/bg.png);
     height: 50px;
-	width: 100%;
-	/*position: fixed;*/
+    width: 100%;
+    /*position: fixed;*/
 }
 
 div#header #beta {
@@ -154,8 +154,8 @@ img#beta { display: none; }
 
 
 div#main {
-	padding-top: 40px;
-	position: float;
+    padding-top: 40px;
+    position: float;
 }
 
 div#footer {
@@ -163,7 +163,7 @@ div#footer {
 
     background: url(../img/bg.png);
     height: 70px;
-	width: 100%;
+    width: 100%;
 }
 
 /**************************************************************/
@@ -172,7 +172,7 @@ ul.nav {
     list-style-position: outside;
     height: 120px;
     margin-bottom: 25px;
-	font-family: sans-serif;
+    font-family: sans-serif;
 }
 p + ul.nav {
     margin-top: 25px;
@@ -187,17 +187,17 @@ ul.nav .right  { text-align: right; float: right; right: 10px; }
 
 /**************************************************************/
 h1 {
-	font-family: sans-serif, serif;
+    font-family: sans-serif, serif;
     margin-bottom: 20px;
 }
 
 h2 {
-	font-family: sans-serif, serif;
+    font-family: sans-serif, serif;
     margin-bottom: 20px;
 }
 
 p {
-	font-family: Arial, serif;
+    font-family: Arial, serif;
     line-height: 150%;
     margin: 24px 0 24px 0;
 }
@@ -211,31 +211,35 @@ img.floatleft  { max-width: 33%; }
 
 /**************************************************************/
 pre.code {
-    /*background: #eee;*/
-	border-style: solid;
-	/*border-width: 1px 0 1px 0;*/
-	border-width: 0 0 0 1px;
-	border-color: #888;
-	font-family: monospace;
-	/*font-size: 120%;*/
-    /*padding: 24px 0 24px 10px;*/
-    padding: 10px 0 10px 24px;
-	margin: 36px 0 36px 0;
+    border-style: solid;
+    border-width: 0 0 0 1px;
+    border-color: #888;
+    font-family: "Courier New", Courier, "Lucida Sans Typewriter", "Lucida Typewriter", monospace;
+    font-size: 100%;
+    padding: 10px 0 10px 16px;
+    margin: 24px 0 24px 0;
     overflow: auto;
-	line-height: 100%;
-	white-space: pre-wrap;
+    line-height: 100%;
+    white-space: pre-wrap;
 }
 
 p code {
-    /*background: #ddd;*/
-	font-family: monospace;
-	font-weight: bolder;
-	/*font-size: 120%;*/
-    /*line-height: 120%;*/
-    padding: 0 6px 0 6px;
-    margin: 0 6px 0 6px;
+    font-family: "Courier New", Courier, "Lucida Sans Typewriter", "Lucida Typewriter", monospace;
+    font-weight: bolder;
+    font-size: 100%;
+    padding: 0 2px 0 2px;
+    margin: 0 3px 0 3px;
     overflow: auto;
     /*white-space: pre-line;*/
+}
+
+p strong {
+    background: #ddd;
+    font-family: "Courier New", Courier, "Lucida Sans Typewriter", "Lucida Typewriter", monospace;
+    font-weight: lighter;
+    font-size: 105%;
+    padding: 1px 3px 1px 3px;
+    margin: 0 3px 0 3px;
 }
 
 }
