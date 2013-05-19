@@ -11,18 +11,18 @@
 可以用瀏覽器預覽撰寫情形。  
 預設 `port` 是 5000，可以從 `Rakefile` 裡面改設定。  
 
-## Dependency
 
-需要 `ruby-1.9.2` ，並安裝 `rake`，其他 `tools` 資料夾底下有 erb, fdoc 等內附的 lib
+### Mac OS X 用户安装说明
+```
+brew update
+brew install opencc
+cd learnyouahaskell-zh-tw.github.com/
+bundle install
+```
 
 ### Arch 用户安装说明
-
-`ruby-1.9.3` 环境下也可以运行, 需要安装以下依赖:
-
 ```
 yaourt -Ss opencc
-gem install ropencc
-gem install rack
-gem install bundler
-gem install sinatra
+cd learnyouahaskell-zh-tw.github.com/
+bundle install
 ```
