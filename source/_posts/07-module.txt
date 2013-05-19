@@ -633,7 +633,7 @@ ghci> encode 4 "Heeeeey"
 ghci> encode 1 "abcd"  
 "bcde"  
 ghci> encode 5 "Marry Christmas! Ho ho ho!"  
-"Rfww~%Hmwnxyrfx&%Mt%mt%mt&"  
+"Rfww~%Hmwnxyrfx&%Mt%mt%mt&"
 }}
 
 不錯。再簡單地將它轉成一組數字，減去某數後再轉回來就是解密了.
@@ -976,7 +976,7 @@ fromList [3,4,5,6,7,8]
 
 
 
-== 建立自己的模組 #build-your-own-module
+== 建立自己的模組
 
 我們已經見識過了幾個很酷的模組，但怎樣才能構造自己的模組呢? 几乎所有的編程語言都允許你將程式碼分成多個檔案，Haskell 也不例外。在編程時，將功能相近的函數和型別至于同一模組中會是個很好的習慣。這樣一來，你就可以輕鬆地一個 ``import`` 來重用其中的函數.
 

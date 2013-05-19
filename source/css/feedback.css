@@ -67,3 +67,10 @@
 
 }
 
+
+@media amzn-mobi, amzn-kf8 {
+
+#feedback { display: none; }
+
+}
+

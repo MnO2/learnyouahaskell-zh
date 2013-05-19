@@ -6,7 +6,7 @@ module FD
         def content
             str=(@inner || []).map{|i| i.to_html }.join || ''
             str=value.to_s rescue '' if str==''
-            str.strip
+            str
         end
     end
 
@@ -14,7 +14,10 @@ module FD
     # inline nodes 
     class T
         def to_html
-            content
+            def safe_html(s)
+                s.gsub(/&(?!(#\d+|[a-zA-Z]+);)/, "&amp;").gsub(/</, "&lt;").gsub(/>/, "&gt;")
+            end
+            safe_html content
         end
     end
 
@@ -44,7 +47,7 @@ module FD
 
     class Img
         def to_html
-            "<img src=\"#{url}\"></img>"
+            "<img src=\"#{url}\" alt=\"\"></img>"
         end
     end
 
@@ -58,25 +61,25 @@ module FD
     class H
         def to_html
             i=self.rank
-            "<a name=\"#{content}\"></a><h#{i}>#{content}</h#{i}>"
+            "<a name=\"#{content.gsub /\s/, '_'}\"></a><h#{i}>#{content}</h#{i}>\n\n"
         end
     end
 
     class P
         def to_html
-            "<p>#{content}</p>"
+            "\n<p>#{content}</p>\n"
         end
     end
 
     class Pic
         def to_html
-            "<img src=\"#{url}\" style=\"float:#{float||'none'}\"></img>"
+          "<img src=\"#{url}\" alt=\"\" style=\"float:#{float||'none'}\" class=\"float#{float||'none'}\" />"
         end
     end
 
     class Quote
         def to_html
-            "<blockquote>#{content}</blockquote>"
+            "<blockquote>#{content}</blockquote>\n"
         end
     end
 
@@ -88,19 +91,19 @@ module FD
 
     class List
         def to_html
-            "<ul>#{content}</ul>"
+            "<ul>#{content}</ul>\n\n"
         end
     end
 
     class OList
         def to_html
-            "<ol>#{content}</ol>"
+            "<ol>#{content}</ol>\n\n"
         end
     end
 
     class Li
         def to_html
-            "<li>#{content}</li>"
+            "<li>#{content}</li>\n"
         end
     end
     

@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://www.idpf.org/2007/opf" unique-identifier="uuid_id">
+	<metadata xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:opf="http://www.idpf.org/2007/opf">
+
+		<dc:identifier opf:scheme="uuid" id="uuid_id">737296e9-0828-4558-98a8-83347051be15</dc:identifier>
+		<dc:title>Haskell 趣學指南</dc:title>
+		<dc:description>Learn You a Haskell for Great Good! 中譯版</dc:description>
+		<dc:language>zh</dc:language>
+		<dc:creator opf:file-as="Miran Lipovaca" opf:role="aut">Miran Lipovača</dc:creator>
+		<dc:subject>程式語言</dc:subject>
+		<dc:subject>Haskell</dc:subject>
+		<dc:subject>Programming</dc:subject>
+		<dc:publisher></dc:publisher>
+		<dc:contributor opf:role="trl">Fleurer</dc:contributor>
+		<dc:contributor opf:role="trl">MnO2</dc:contributor>
+		<dc:contributor opf:role="arr">letoh</dc:contributor>
+		<dc:date>2013-02-16</dc:date>
+		<dc:source>http://learnyouahaskell-zh-tw.csie.org/</dc:source>
+		<dc:rights>Creative Commons BY-SA 3.0 License.</dc:rights>
+		<x-metadata>
+			<output encoding="utf-8" content-type="text/x-oeb1-document"></output>
+			<EmbeddedCover>cover.jpg</EmbeddedCover>
+		</x-metadata>
+	</metadata>
+
+	<manifest>
+		<item id="book-cover-image" media-type="image/jpeg"
+			href="cover.jpg" />
+		<item id="toc0" media-type="application/x-dtbncx+xml"
+			href="toc_tc.ncx" />
+		<item id="preface0" media-type="application/xhtml+xml"
+			href="../public/index.html" />
+		<item id="item1" media-type="application/xhtml+xml"
+			href="../public/zh-tw/chapters.html" />
+		<item id="item2" media-type="application/xhtml+xml"
+			href="../public/zh-tw/introduction.html" />
+		<item id="item3" media-type="application/xhtml+xml"
+			href="../public/zh-tw/ready-begin.html" />
+		<item id="item4" media-type="application/xhtml+xml"
+			href="../public/zh-tw/types-and-type-classes.html" />
+		<item id="item5" media-type="application/xhtml+xml"
+			href="../public/zh-tw/syntax-on-function.html" />
+		<item id="item6" media-type="application/xhtml+xml"
+			href="../public/zh-tw/recursion.html" />
+		<item id="item7" media-type="application/xhtml+xml"
+			href="../public/zh-tw/high-order-function.html" />
+		<item id="item8" media-type="application/xhtml+xml"
+			href="../public/zh-tw/modules.html" />
+		<item id="item9" media-type="application/xhtml+xml"
+			href="../public/zh-tw/make-types-and-classes-for-ourselves.html" />
+		<item id="item10" media-type="application/xhtml+xml"
+			href="../public/zh-tw/input-and-output.html" />
+		<item id="item11" media-type="application/xhtml+xml"
+			href="../public/zh-tw/functionally-solving-problems.html" />
+		<item id="item12" media-type="application/xhtml+xml"
+			href="../public/zh-tw/functors-applicative-functors-and-monoids.html" />
+		<item id="item13" media-type="application/xhtml+xml"
+			href="../public/zh-tw/a-fistful-of-monads.html" />
+		<item id="item14" media-type="application/xhtml+xml"
+			href="../public/zh-tw/for-a-few-monads-more.html" />
+		<item id="item15" media-type="application/xhtml+xml"
+			href="../public/zh-tw/zippers.html" />
+		<item id="item16" media-type="application/xhtml+xml"
+			href="../public/resource.html" />
+		<item id="item17" media-type="application/xhtml+xml"
+			href="../public/faq.html" />
+	</manifest>
+	<spine toc="toc0">
+		<itemref idref="preface0" linear="no" />
+		<itemref idref="item1" />
+		<itemref idref="item2" />
+		<itemref idref="item3" />
+		<itemref idref="item4" />
+		<itemref idref="item5" />
+		<itemref idref="item6" />
+		<itemref idref="item7" />
+		<itemref idref="item8" />
+		<itemref idref="item9" />
+		<itemref idref="item10" />
+		<itemref idref="item11" />
+		<itemref idref="item12" />
+		<itemref idref="item13" />
+		<itemref idref="item14" />
+		<itemref idref="item15" />
+		<itemref idref="item16" linear="no" />
+		<itemref idref="item17" linear="no" />
+	</spine>
+	<tours></tours>
+	<!-- http://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.6 -->
+	<guide>
+		<reference type="cover" title="Cover" href="cover.jpg" />
+		<reference type="toc" title="Table of Contents" href="../public/zh-tw/chapters.html" />
+		<reference type="text" title="Chapter 1" href="../public/zh-tw/introduction.html" />
+	</guide>
+</package>
