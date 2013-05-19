@@ -1,0 +1,157 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+        <style type="text/css">
+            @import url(../css/style.css);
+            @import url(../css/chapters.css);
+        </style>
+
+        <script type="text/javascript" src="../js/jquery.js"></script>
+        <script type="text/javascript" src="../js/jquery.chili-2.2.js"></script>
+        <script type="text/javascript" src="../js/script.js"></script>
+        <script type="text/javascript">
+             ChiliBook.recipeFolder = "../js/chili/";  
+             ChiliBook.automaticSelector = "pre";
+        </script>
+
+        <title>Haskell趣學指南 (Learn You a Haskell for Great Good! 繁體中文版)</title>
+    </head>
+
+    <body>
+        <div id="header">
+            <img id="beta" alt="beta" src="../img/beta.png" />
+        </div>
+
+        <div id="main">
+            <h1>Haskell趣學指南</h1>
+            <ol><li><a href="introduction.html">简介</a><ul><li><a href="introduction.html#关于这份教学">关于这份教学</a></li>
+<li><a href="introduction.html#什么是_Haskell？">什么是 Haskell？</a></li>
+<li><a href="introduction.html#你需要些什么来使用_Haskell_呢？">你需要些什么来使用 Haskell 呢？</a></li>
+</ul>
+
+</li>
+<li><a href="ready-begin.html">从零开始</a><ul><li><a href="ready-begin.html#准备好了吗？">准备好了吗？</a></li>
+<li><a href="ready-begin.html#初学者的第一个函数">初学者的第一个函数</a></li>
+<li><a href="ready-begin.html#List_入门">List 入门</a></li>
+<li><a href="ready-begin.html#使用_Range">使用 Range</a></li>
+<li><a href="ready-begin.html#List_Comprehension">List Comprehension</a></li>
+<li><a href="ready-begin.html#Tuple">Tuple</a></li>
+</ul>
+
+</li>
+<li><a href="types-and-type-classes.html">Types and Typeclasses</a><ul><li><a href="types-and-type-classes.html#Type">Type</a></li>
+<li><a href="types-and-type-classes.html#Type_variables">Type variables</a></li>
+<li><a href="types-and-type-classes.html#Typeclasses入门">Typeclasses入门</a></li>
+</ul>
+
+</li>
+<li><a href="syntax-on-function.html">函数的语法</a><ul><li><a href="syntax-on-function.html#模式匹配_(Pattern_matching)">模式匹配 (Pattern matching)</a></li>
+<li><a href="syntax-on-function.html#什么是_Guards">什么是 Guards</a></li>
+<li><a href="syntax-on-function.html#关键字_Where">关键字 Where</a></li>
+<li><a href="syntax-on-function.html#关键字_Let">关键字 Let</a></li>
+<li><a href="syntax-on-function.html#Case_expressions">Case expressions</a></li>
+</ul>
+
+</li>
+<li><a href="recursion.html">递归</a><ul><li><a href="recursion.html#你好，递归！">你好，递归！</a></li>
+<li><a href="recursion.html#实作_Maximum">实作 Maximum</a></li>
+<li><a href="recursion.html#来看几个递归函数">来看几个递归函数</a></li>
+<li><a href="recursion.html#"快速"排序">"快速"排序</a></li>
+<li><a href="recursion.html#用递归来思考">用递归来思考</a></li>
+</ul>
+
+</li>
+<li><a href="high-order-function.html">高阶函数</a><ul><li><a href="high-order-function.html#Curried_functions">Curried functions</a></li>
+<li><a href="high-order-function.html#是时候了，来点高阶函数！">是时候了，来点高阶函数！</a></li>
+<li><a href="high-order-function.html#map_与_filter">map 与 filter</a></li>
+<li><a href="high-order-function.html#lambda">lambda</a></li>
+<li><a href="high-order-function.html#关键字_fold">关键字 fold</a></li>
+<li><a href="high-order-function.html#有$的函数调用">有$的函数调用</a></li>
+<li><a href="high-order-function.html#Function_composition">Function composition</a></li>
+</ul>
+
+</li>
+<li><a href="modules.html">模块 (Modules)</a><ul><li><a href="modules.html#装载模块">装载模块</a></li>
+<li><a href="modules.html#Data.List">Data.List</a></li>
+<li><a href="modules.html#Data.Char">Data.Char</a></li>
+<li><a href="modules.html#Data.Map">Data.Map</a></li>
+<li><a href="modules.html#Data.Set">Data.Set</a></li>
+<li><a href="modules.html#建立自己的模块">建立自己的模块</a></li>
+</ul>
+
+</li>
+<li><a href="make-types-and-classes-for-ourselves.html">构造我们自己的 Types 和 Typeclasses</a><ul><li><a href="make-types-and-classes-for-ourselves.html#Algebraic_Data_Types_入门">Algebraic Data Types 入门</a></li>
+<li><a href="make-types-and-classes-for-ourselves.html#Record_Syntax">Record Syntax</a></li>
+<li><a href="make-types-and-classes-for-ourselves.html#Type_parameters">Type parameters</a></li>
+<li><a href="make-types-and-classes-for-ourselves.html#Derived_instances">Derived instances</a></li>
+<li><a href="make-types-and-classes-for-ourselves.html#Type_synonyms">Type synonyms</a></li>
+<li><a href="make-types-and-classes-for-ourselves.html#Recursive_data_structures_(递归地定义数据结构)">Recursive data structures (递归地定义数据结构)</a></li>
+<li><a href="make-types-and-classes-for-ourselves.html#Typeclasses_的第二堂课">Typeclasses 的第二堂课</a></li>
+<li><a href="make-types-and-classes-for-ourselves.html#yes-no_typeclass">yes-no typeclass</a></li>
+<li><a href="make-types-and-classes-for-ourselves.html#Functor_typeclass">Functor typeclass</a></li>
+<li><a href="make-types-and-classes-for-ourselves.html#Kind">Kind</a></li>
+</ul>
+
+</li>
+<li><a href="input-and-output.html">输入与输出</a><ul><li><a href="input-and-output.html#Hello,_world!">Hello, world!</a></li>
+<li><a href="input-and-output.html#文件与字符流">文件与字符流</a></li>
+<li><a href="input-and-output.html#命令行引数">命令行引数</a></li>
+<li><a href="input-and-output.html#乱数">乱数</a></li>
+<li><a href="input-and-output.html#Bytestrings">Bytestrings</a></li>
+<li><a href="input-and-output.html#Exceptions_(例外)">Exceptions (例外)</a></li>
+</ul>
+
+</li>
+<li><a href="functionally-solving-problems.html">函数式地思考来解决问题</a><ul><li><a href="functionally-solving-problems.html#运算逆波兰表示法(Reverse_Polish_notation_form)">运算逆波兰表示法(Reverse Polish notation form)</a></li>
+<li><a href="functionally-solving-problems.html#路径规划">路径规划</a></li>
+</ul>
+
+</li>
+<li><a href="functors-applicative-functors-and-monoids.html">Functors, Applicative Functors 与 Monoids</a><ul><li><a href="functors-applicative-functors-and-monoids.html#温习_Functors">温习 Functors</a></li>
+<li><a href="functors-applicative-functors-and-monoids.html#Applicative_functors">Applicative functors</a></li>
+<li><a href="functors-applicative-functors-and-monoids.html#关键字"newtype"">关键字"newtype"</a></li>
+<li><a href="functors-applicative-functors-and-monoids.html#Monoids">Monoids</a></li>
+</ul>
+
+</li>
+<li><a href="a-fistful-of-monads.html">来看看几种 Monad</a><ul><li><a href="a-fistful-of-monads.html#动手做做看:_Maybe_Monad">动手做做看: Maybe Monad</a></li>
+<li><a href="a-fistful-of-monads.html#Monad_type_class">Monad type class</a></li>
+<li><a href="a-fistful-of-monads.html#走钢索">走钢索</a></li>
+<li><a href="a-fistful-of-monads.html#do_表示法">do 表示法</a></li>
+<li><a href="a-fistful-of-monads.html#List_Monad">List Monad</a></li>
+<li><a href="a-fistful-of-monads.html#Monad_laws_(单子律)">Monad laws (单子律)</a></li>
+</ul>
+
+</li>
+<li><a href="for-a-few-monads-more.html">再来看看更多 Monad</a><ul><li><a href="for-a-few-monads-more.html#你所不知道的_Writer_Monad">你所不知道的 Writer Monad</a></li>
+<li><a href="for-a-few-monads-more.html#Reader_Monad">Reader Monad</a></li>
+<li><a href="for-a-few-monads-more.html#State_Monad">State Monad</a></li>
+<li><a href="for-a-few-monads-more.html#Error_Monad">Error Monad</a></li>
+<li><a href="for-a-few-monads-more.html#一些实用的_Moandic_functions">一些实用的 Moandic functions</a></li>
+<li><a href="for-a-few-monads-more.html#定义自己的_Monad">定义自己的 Monad</a></li>
+</ul>
+
+</li>
+<li><a href="zippers.html">Zippers 数据结构</a><ul><li><a href="zippers.html#来走二元树吧!">来走二元树吧!</a></li>
+<li><a href="zippers.html#凡走过必留下痕迹">凡走过必留下痕迹</a></li>
+<li><a href="zippers.html#来看串列">来看串列</a></li>
+<li><a href="zippers.html#阳春的文件系统">阳春的文件系统</a></li>
+<li><a href="zippers.html#小心每一步">小心每一步</a></li>
+</ul>
+
+</li>
+</ol>
+
+
+            <p> 本作品受<a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/3.0/">創用 CC BY-NC-SA 3.0</a> 保護</p>
+            <br/>
+            <br/>
+            <br/>
+        </div>
+        <div id="footer">
+        </div>
+    </body>
+</html>

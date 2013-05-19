@@ -1,0 +1,354 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <style type="text/css">
+            @import url(../css/style.css);
+            @import url(../css/feedback.css);
+        </style>
+        <script type="text/javascript" src="../js/jquery.js"></script>
+        <script type="text/javascript" src="../js/jquery.chili-2.2.js"></script>
+        <script type="text/javascript" src="../js/script.js"></script>
+        <script type="text/javascript" src="../js/html2canvas.js"></script>
+        <script type="text/javascript" src="../js/jsfeedback.js"></script>
+        <script type="text/javascript">
+             ChiliBook.recipeFolder = "../js/chili/";  
+             ChiliBook.automaticSelector = "pre";
+        </script>
+        <script type="text/javascript">
+            $(function(){
+                $('#feedback').click(function(){
+                    $('body').feedback();
+                })
+            });
+        </script>
+        <script type="text/javascript">
+            var _gaq = _gaq || [];
+            _gaq.push(['_setAccount', 'UA-32830659-1']);
+            _gaq.push(['_trackPageview']);
+
+            (function() {
+                var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+                ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+                    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+            })();
+        </script>
+        <title>函数的语法</title>
+    </head>
+    <body>
+        <div id="header">
+            <img id="beta" alt="beta" src="../img/beta.png" />
+        </div>
+
+        <div id="main">
+            <ul class="nav">
+                <li class="left">  <img src="../img/prv.png" alt="prev" /><a href="types-and-type-classes.html">Types and Typeclasses</a></li>
+                <li class="center"><a href="chapters.html">Index</a></li>
+                <li class="right"> <a href="recursion.html">递归</a><img src="../img/nxt.png" alt="next" /></li>
+            </ul>
+            <a name="函数的语法"></a><h1>函数的语法</h1>
+
+<a name="模式匹配_(Pattern_matching)"></a><h2>模式匹配 (Pattern matching)</h2>
+
+<img src="../img/pattern.png" alt="" style="float:right" class="floatright" />
+<p>本章讲的就是 Haskell 那套独特的语法结构，先从模式匹配开始。模式匹配通过检查数据的特定结构来检查其是否匹配，并按模式从中取得数据。</p>
+
+<p>在定义函数时，你可以为不同的模式分别定义函数本身，这就让代码更加简洁易读。你可以匹配一切数据类型 --- 数字，字符，List，元组，等等。我们弄个简单函数，让它检查我们传给它的数字是不是 7。</p>
+<pre class="code">lucky :: (Integral a) =&gt; a -&gt; String  
+lucky 7 = "LUCKY NUMBER SEVEN!"  
+lucky x = "Sorry, you're out of luck, pal!"   </pre>
+<p>在调用 <code>lucky</code> 时，模式会从上至下进行检查，一旦有匹配，那对应的函数体就被应用了。这个模式中的唯一匹配是参数为 7，如果不是 7，就转到下一个模式，它匹配一切数值并将其绑定为 <code>x</code> 。这个函数完全可以使用 <code>if</code> 实现，不过我们若要个分辨 1 到 5 中的数字，而无视其它数的函数该怎么办？要是没有模式匹配的话，那可得好大一棵 <code>if-else</code> 树了！</p>
+<pre class="code">sayMe :: (Integral a) =&gt; a -&gt; String  
+sayMe 1 = "One!"  
+sayMe 2 = "Two!"  
+sayMe 3 = "Three!"  
+sayMe 4 = "Four!"  
+sayMe 5 = "Five!"  
+sayMe x = "Not between 1 and 5"  </pre>
+<p>注意下，如果我们把最后匹配一切的那个模式挪到最前，它的结果就全都是 <code>"Not between 1 and 5"  </code> 了。因为它自己匹配了一切数字，不给后面的模式留机会。</p>
+
+<p>记得前面实现的那个阶乘函数么？当时是把 <code>n</code> 的阶乘定义成了 <code>product [1..n]</code>。也可以写出像数学那样的递归实现，先说明 0 的阶乘是 1 ，再说明每个正整数的阶乘都是这个数与它前驱 (predecessor) 对应的阶乘的积。如下便是翻译到 Haskell 的样子：</p>
+<pre class="code">factorial :: (Integral a) =&gt; a -&gt; a  
+factorial 0 = 1  
+factorial n = n * factorial (n - 1)  </pre>
+<p>这就是我们定义的第一个递归函数。递归在 Haskell 中十分重要，我们会在后面深入理解。如果拿一个数(如 3)调用 <code>factorial</code> 函数，这就是接下来的计算步骤：先计算 <code>3*factorial 2</code>，<code>factorial 2</code> 等于 <code>2*factorial 1</code>，也就是 <code>3*(2*(factorial 1))</code>。<code>factorial 1</code> 等于 <code>1*factorial 0</code>，好，得 <code>3*(2*(1*factorial 0))</code>，递归在这里到头了，嗯 --- 我们在万能匹配前面有定义，0 的阶乘是 1.于是最终的结果等于 <code>3*(2*(1*1))</code>。若是把第二个模式放在前面，它就会捕获包括 0 在内的一切数字，这一来我们的计算就永远都不会停止了。这便是为什么说模式的顺序是如此重要：它总是优先匹配最符合的那个，最后才是那个万能的。</p>
+
+<p>模式匹配也会失败。假如这个函数：</p>
+<pre class="code">charName :: Char -&gt; String  
+charName 'a' = "Albert"  
+charName 'b' = "Broseph"  
+charName 'c' = "Cecil"  </pre>
+<p>拿个它没有考虑到的字符去调用它，你就会看到这个：</p>
+<pre class="code">ghci&gt; charName 'a'  
+"Albert"  
+ghci&gt; charName 'b'  
+"Broseph"  
+ghci&gt; charName 'h'  
+"*** Exception: tut.hs:(53,0)-(55,21): Non-exhaustive patterns in function charName  </pre>
+<p>它告诉我们说，这个模式不够全面。因此，在定义模式时，一定要留一个万能匹配的模式，这样我们的进程就不会为了不可预料的输入而崩溃了。</p>
+
+<p>对 Tuple 同样可以使用模式匹配。写个函数，将二维空间中的矢量相加该如何？将它们的 <code>x</code> 项和 <code>y</code> 项分别相加就是了。如果不了解模式匹配，我们很可能会写出这样的代码：</p>
+<pre class="code">addVectors :: (Num a) =&gt; (a, a) -&gt; (a, a) -&gt; (a, a)  
+addVectors a b = (fst a + fst b, snd a + snd b)  </pre>
+<p>嗯，可以运行。但有更好的方法，上模式匹配：</p>
+<pre class="code">addVectors :: (Num a) =&gt; (a, a) -&gt; (a, a) -&gt; (a, a)  
+addVectors (x1, y1) (x2, y2) = (x1 + x2, y1 + y2)  </pre>
+<p>there we go！好多了！注意，它已经是个万能的匹配了。两个 <code>addVector</code> 的类型都是 <code>addVectors:: (Num a) =&gt; (a,a) -&gt; (a,a) -&gt; (a,a)</code>，我们就能够保证，两个参数都是序对 (Pair) 了。</p>
+
+<p><code>fst</code> 和 <code>snd</code> 可以从序对中取出元素。三元组 (Tripple) 呢？嗯，没现成的函数，得自己动手：</p>
+<pre class="code">first :: (a, b, c) -&gt; a  
+first (x, _, _) = x  
+
+second :: (a, b, c) -&gt; b  
+second (_, y, _) = y  
+ 
+third :: (a, b, c) -&gt; c  
+third (_, _, z) = z  </pre>
+<p>这里的 <code>_</code> 就和 List Comprehension 中一样。表示我们不关心这部分的具体内容。</p>
+
+<p>说到 List Comprehension，我想起来在 List Comprehension 中也能用模式匹配：</p>
+<pre class="code">ghci&gt; let xs = [(1,3), (4,3), (2,4), (5,3), (5,6), (3,1)]  
+ghci&gt; [a+b | (a,b) &lt;- xs]  
+[4,7,6,8,11,4]</pre>
+<p>一旦模式匹配失败，它就简单挪到下个元素。</p>
+
+<p>对 List 本身也可以使用模式匹配。你可以用 <code>[]</code> 或 <code>:</code> 来匹配它。因为 <code>[1,2,3]</code> 本质就是 <code>1:2:3:[]</code> 的语法糖。你也可以使用前一种形式，像 <code>x:xs</code> 这样的模式可以将 List 的头部绑定为 <code>x</code>，尾部绑定为 <code>xs</code>。如果这 List 只有一个元素，那么 <code>xs</code> 就是一个空 List。</p>
+<blockquote>
+<p><b>Note</b>：<code>x:xs</code> 这模式的应用非常广泛，尤其是递归函数。不过它只能匹配长度大于等于 1 的 List。</p>
+</blockquote>
+
+<p>如果你要把 List 的前三个元素都绑定到变量中，可以使用类似 <code>x:y:z:xs</code> 这样的形式。它只能匹配长度大于等于 3 的 List。</p>
+
+<p>我们已经知道了对 List 做模式匹配的方法，就实现个我们自己的 <code>head</code> 函数。</p>
+<pre class="code">head' :: [a] -&gt; a  
+head' [] = error "Can't call head on an empty list, dummy!"  
+head' (x:_) = x  </pre>
+<p>看看管不管用：</p>
+<pre class="code">ghci&gt; head' [4,5,6]  
+4  
+ghci&gt; head' "Hello"  
+'H'  </pre>
+<p>漂亮！注意下，你若要绑定多个变量(用 <code>_</code> 也是如此)，我们必须用括号将其括起。同时注意下我们用的这个 <code>error</code> 函数，它可以生成一个运行时错误，用参数中的字串表示对错误的描述。它会直接导致进程崩溃，因此应谨慎使用。可是对一个空 List 取 <code>head</code> 真的不靠谱哇。</p>
+
+<p>弄个简单函数，让它用非标准的英语给我们展示 List 的前几项。</p>
+<pre class="code">tell :: (Show a) =&gt; [a] -&gt; String  
+tell [] = "The list is empty"  
+tell (x:[]) = "The list has one element: " ++ show x  
+tell (x:y:[]) = "The list has two elements: " ++ show x ++ " and " ++ show y  
+tell (x:y:_) = "This list is long. The first two elements are: " ++ show x ++ " and " ++ show y  </pre>
+<p>这个函数顾及了空 List，单元素 List，双元素 List 以及较长的 List，所以这个函数很安全。<code>(x:[])</code> 与 <code>(x:y:[])</code> 也可以写作 <code>[x]</code> 和 <code>[x,y]</code> (有了语法糖，我们不必多加括号)。不过 <code>(x:y:_)</code> 这样的模式就不行了，因为它匹配的 List 长度不固定。</p>
+
+<p>我们曾用 List Comprehension 实现过自己的 <code>length</code> 函数，现在用模式匹配和递归重新实现它：</p>
+<pre class="code">length' :: (Num b) =&gt; [a] -&gt; b  
+length' [] = 0  
+length' (_:xs) = 1 + length' xs  </pre>
+<p>这与先前写的那个 <code>factorial</code> 函数很相似。先定义好未知输入的结果 --- 空 List，这也叫作边界条件。再在第二个模式中将这 List 分割为头部和尾部。说，List 的长度就是其尾部的长度加 1。匹配头部用的 <code>_</code>，因为我们并不关心它的值。同时也应明确，我们顾及了 List 所有可能的模式：第一个模式匹配空 List，第二个匹配任意的非空 List。</p>
+
+<p>看下拿 <code>"ham"</code> 调用 <code>length'</code> 会怎样。首先它会检查它是否为空 List。显然不是，于是进入下一模式。它匹配了第二个模式，把它分割为头部和尾部并无视掉头部的值，得长度就是 <code>1+length' "am"</code>。ok。以此类推，<code>"am"</code> 的 <code>length</code> 就是 <code>1+length' "m"</code>。好，现在我们有了 <code>1+(1+length' "m")</code>。<code>length' "m"</code> 即 <code>1+length ""</code> (也就是 <code>1+length' []</code> )。根据定义，<code>length' []</code> 等于 <code>0</code>。最后得 <code>1+(1+(1+0))</code>。</p>
+
+<p>再实现 <code>sum</code>。我们知道空 List 的和是 0，就把它定义为一个模式。我们也知道一个 List 的和就是头部加上尾部的和的和。写下来就成了：</p>
+<pre class="code">sum' :: (Num a) =&gt; [a] -&gt; a  
+sum' [] = 0  
+sum' (x:xs) = x + sum' xs  </pre>
+<p>还有个东西叫做 <code>as</code> 模式，就是将一个名字和 <code>@</code> 置于模式前，可以在按模式分割什么东西时仍保留对其整体的引用。如这个模式 <code>xs@(x:y:ys)</code>，它会匹配出与 <code>x:y:ys</code> 对应的东西，同时你也可以方便地通过 <code>xs</code> 得到整个 List，而不必在函数体中重复 <code>x:y:ys</code>。看下这个 quick and dirty 的例子：</p>
+<pre class="code">capital :: String -&gt; String  
+capital "" = "Empty string, whoops!"  
+capital all@(x:xs) = "The first letter of " ++ all ++ " is " ++ [x]  </pre><pre class="code">ghci&gt; capital "Dracula"  
+"The first letter of Dracula is D"  </pre>
+<p>我们使用 <code>as</code> 模式通常就是为了在较大的模式中保留对整体的引用，从而减少重复性的工作。</p>
+
+<p>还有——你不可以在模式匹配中使用 <code>++</code>。若有个模式是 <code>(xs++ys)</code>，那么这个 List 该从什么地方分开呢？不靠谱吧。而 <code>(xs++[x,y,z])</code> 或只一个 <code>(xs++[x])</code> 或许还能说的过去，不过出于 List 的本质，这样写也是不可以的。</p>
+<a name="什么是_Guards"></a><h2>什么是 Guards</h2>
+
+
+<p>模式用来检查一个值是否合适并从中取值，而 guard 则用来检查一个值的某项属性是否为真。咋一听有点像是 <code>if</code> 语句，实际上也正是如此。不过处理多个条件分支时 guard 的可读性要高些，并且与模式匹配契合的很好。</p>
+<img src="../img/guards.png" alt="" style="float:right" class="floatright" />
+<p>在讲解它的语法前，我们先看一个用到 guard 的函数。它会依据你的 BMI 值 (body mass index，身体质量指数)来不同程度地侮辱你。BMI 值即为体重除以身高的平方。如果小于 18.5，就是太瘦；如果在 18.5 到 25 之间，就是正常；25 到 30 之间，超重；如果超过 30，肥胖。这就是那个函数(我们目前暂不为您计算 bmi，它只是直接取一个 emi 值)。</p>
+<pre class="code">bmiTell :: (RealFloat a) =&gt; a -&gt; String  
+bmiTell bmi  
+    | bmi &lt;= 18.5 = "You're underweight, you emo, you!"  
+    | bmi &lt;= 25.0 = "You're supposedly normal. Pffft, I bet you're ugly!"  
+    | bmi &lt;= 30.0 = "You're fat! Lose some weight, fatty!"  
+    | otherwise   = "You're a whale, congratulations!"  </pre>
+<p>guard 由跟在函数名及参数后面的竖线标志，通常他们都是靠右一个缩进排成一列。一个 guard 就是一个布尔表达式，如果为真，就使用其对应的函数体。如果为假，就送去见下一个 guard，如之继续。如果我们用 24.3 调用这个函数，它就会先检查它是否小于等于 18.5，显然不是，于是见下一个 guard。24.3 小于 25.0，因此通过了第二个 guard 的检查，就返回第二个字串。</p>
+
+<p>在这里则是相当的简洁，不过不难想象这在命令式语言中又会是怎样的一棵 if-else 树。由于 if-else 的大树比较杂乱，若是出现问题会很难发现，guard 对此则十分清楚。</p>
+
+<p>最后的那个 guard 往往都是 <code>otherwise</code>，它的定义就是简单一个 <code>otherwise = True</code> ，捕获一切。这与模式很相像，只是模式检查的是匹配，而它们检查的是布尔表达式 。如果一个函数的所有 guard 都没有通过(而且没有提供 <code>otherwise</code> 作万能匹配)，就转入下一模式。这便是 guard 与模式契合的地方。如果始终没有找到合适的 guard 或模式，就会发生一个错误。</p>
+
+<p>当然，guard 可以在含有任意数量参数的函数中使用。省得用户在使用这函数之前每次都自己计算 <code>bmi</code>。我们修改下这个函数，让它取身高体重为我们计算。</p>
+<pre class="code">bmiTell :: (RealFloat a) =&gt; a -&gt; a -&gt; String  
+bmiTell weight height  
+    | weight / height ^ 2 &lt;= 18.5 = "You're underweight, you emo, you!"  
+    | weight / height ^ 2 &lt;= 25.0 = "You're supposedly normal. Pffft, I bet you're ugly!"  
+    | weight / height ^ 2 &lt;= 30.0 = "You're fat! Lose some weight, fatty!"  
+    | otherwise                 = "You're a whale, congratulations!"    </pre>
+<p>你可以测试自己胖不胖。</p>
+<pre class="code">ghci&gt; bmiTell 85 1.90  
+"You're supposedly normal. Pffft, I bet you're ugly!"  </pre>
+<p>运行的结果是我不太胖。不过程序却说我很丑。</p>
+
+<p>要注意一点，函数的名字和参数的后面并没有 <code>=</code>。许多初学者会造成语法错误，就是因为在后面加上了 <code>=</code>。</p>
+
+<p>另一个简单的例子：写个自己的 <code>max</code> 函数。应该还记得，它是取两个可比较的值，返回较大的那个。</p>
+<pre class="code">max' :: (Ord a) =&gt; a -&gt; a -&gt; a  
+max' a b   
+    | a &gt; b     = a  
+    | otherwise = b  </pre>
+<p>guard 也可以塞在一行里面。但这样会丧失可读性，因此是不被鼓励的。即使是较短的函数也是如此，不过出于展示，我们可以这样重写 <code>max'</code>：</p>
+<pre class="code">max' :: (Ord a) =&gt; a -&gt; a -&gt; a  
+max' a b | a &gt; b = a | otherwise = b  </pre>
+<p>这样的写法根本一点都不容易读。</p>
+
+<p>我们再来试试用 guard 实现我们自己的 <code>compare</code> 函数：</p>
+<pre class="code">myCompare :: (Ord a) =&gt; a -&gt; a -&gt; Ordering  
+a `myCompare` b  
+    | a &gt; b     = GT  
+    | a == b    = EQ  
+    | otherwise = LT  </pre><pre class="code">ghci&gt; 3 `myCompare` 2  
+GT  </pre><blockquote>
+<p><b>Note</b>：通过反单引号，我们不仅可以以中缀形式调用函数，也可以在定义函数的时候使用它。有时这样会更易读。</p>
+</blockquote>
+<a name="关键字_Where"></a><h2>关键字 Where</h2>
+
+
+<p>前一节中我们写了这个 <code>bmi</code> 计算函数：</p>
+<pre class="code">bmiTell :: (RealFloat a) =&gt; a -&gt; a -&gt; String  
+bmiTell weight height  
+    | weight / height ^ 2 &lt;= 18.5 = "You're underweight, you emo, you!"  
+    | weight / height ^ 2 &lt;= 25.0 = "You're supposedly normal. Pffft, I bet you're ugly!"  
+    | weight / height ^ 2 &lt;= 30.0 = "You're fat! Lose some weight, fatty!"  
+    | otherwise                   = "You're a whale, congratulations!"</pre>
+<p>注意，我们重复了 3 次。我们重复了 3 次。程序员的字典里不应该有"重复"这个词。既然发现有重复，那么给它一个名字来代替这三个表达式会更好些。嗯，我们可以这样修改：</p>
+<pre class="code">bmiTell :: (RealFloat a) =&gt; a -&gt; a -&gt; String  
+bmiTell weight height  
+    | bmi &lt;= 18.5 = "You're underweight, you emo, you!"  
+    | bmi &lt;= 25.0 = "You're supposedly normal. Pffft, I bet you're ugly!"  
+    | bmi &lt;= 30.0 = "You're fat! Lose some weight, fatty!"  
+    | otherwise   = "You're a whale, congratulations!"  
+    where bmi = weight / height ^ 2</pre>
+<p>我们的 <code>where</code> 关键字跟在 guard 后面(最好是与竖线缩进一致)，可以定义多个名字和函数。这些名字对每个 guard 都是可见的，这一来就避免了重复。如果我们打算换种方式计算 <code>bmi</code>，只需进行一次修改就行了。通过命名，我们提升了代码的可读性，并且由于 <code>bmi</code> 只计算了一次，函数的执行效率也有所提升。我们可以再做下修改：</p>
+<pre class="code">bmiTell :: (RealFloat a) =&gt; a -&gt; a -&gt; String  
+bmiTell weight height  
+    | bmi &lt;= skinny = "You're underweight, you emo, you!"  
+    | bmi &lt;= normal = "You're supposedly normal. Pffft, I bet you're ugly!"  
+    | bmi &lt;= fat    = "You're fat! Lose some weight, fatty!"  
+    | otherwise     = "You're a whale, congratulations!"  
+    where bmi = weight / height ^ 2  
+          skinny = 18.5  
+          normal = 25.0  
+          fat = 30.0</pre>
+<p>函数在 <code>where</code> 绑定中定义的名字只对本函数可见，因此我们不必担心它会污染其他函数的命名空间。注意，其中的名字都是一列垂直排开，如果不这样规范，Haskell 就搞不清楚它们在哪个地方了。</p>
+
+<p><code>where</code> 绑定不会在多个模式中共享。如果你在一个函数的多个模式中重复用到同一名字，就应该把它置于全局定义之中。</p>
+
+<p><code>where</code> 绑定也可以使用<b>模式匹配</b>！前面那段代码可以改成：</p>
+<pre class="code">...  
+where bmi = weight / height ^ 2  
+      (skinny, normal, fat) = (18.5, 25.0, 30.0)  </pre>
+<p>我们再搞个简单函数，让它告诉我们姓名的首字母：</p>
+<pre class="code">initials :: String -&gt; String -&gt; String  
+initials firstname lastname = [f] ++ ". " ++ [l] ++ "."  
+    where (f:_) = firstname  
+          (l:_) = lastname  </pre>
+<p>我们完全按可以在函数的参数上直接使用模式匹配(这样更短更简洁)，在这里只是为了演示在 <code>where</code> 语句中同样可以使用模式匹配：</p>
+
+<p><code>where</code> 绑定可以定义名字，也可以定义函数。保持健康的编程语言风格，我们搞个计算一组 <code>bmi</code> 的函数：</p>
+<pre class="code">calcBmis :: (RealFloat a) =&gt; [(a, a)] -&gt; [a]  
+calcBmis xs = [bmi w h | (w, h) &lt;- xs] 
+    where bmi weight height = weight / height ^ 2  </pre>
+<p>这就全了！在这里将 <code>bmi</code> 搞成一个函数，是因为我们不能依据参数直接进行计算，而必须先从传入函数的 List 中取出每个序对并计算对应的值。</p>
+
+<p><code>where</code> 绑定还可以一层套一层地来使用。</p>
+
+<p>有个常见的写法是，在定义一个函数的时候也写几个辅助函数摆在 <code>where</code> 绑定中。</p>
+
+<p>而每个辅助函数也可以透过 <code>where</code> 拥有各自的辅助函数。</p>
+<a name="关键字_Let"></a><h2>关键字 Let</h2>
+
+
+<p><code>let</code> 绑定与 <code>where</code> 绑定很相似。<code>where</code> 绑定是在函数底部定义名字，对包括所有 guard 在内的整个函数可见。<code>let</code> 绑定则是个表达式，允许你在任何位置定义局部变量，而对不同的 guard 不可见。正如 Haskell 中所有赋值结构一样，<code>let</code> 绑定也可以使用模式匹配。看下它的实际应用！这是个依据半径和高度求圆柱体表面积的函数：</p>
+<pre class="code">cylinder :: (RealFloat a) =&gt; a -&gt; a -&gt; a  
+cylinder r h = 
+    let sideArea = 2 * pi * r * h  
+        topArea = pi * r ^2  
+    in  sideArea + 2 * topArea  </pre><img src="../img/letitbe.png" alt="" style="float:right" class="floatright" />
+<p><code>let</code> 的格式为 <code>let [bindings] in [expressions]</code>。在 <code>let</code> 中绑定的名字仅对 <code>in</code> 部分可见。<code>let</code> 里面定义的名字也得对齐到一列。不难看出，这用 <code>where</code> 绑定也可以做到。那么它俩有什么区别呢？看起来无非就是，<code>let</code> 把绑定放在语句前面而 <code>where</code> 放在后面嘛。</p>
+
+<p>不同之处在于，<code>let</code> 绑定本身是个表达式，而 <code>where</code> 绑定则是个语法结构。还记得前面我们讲if语句时提到它是个表达式，因而可以随处安放？</p>
+<pre class="code">ghci&gt; [if 5 &gt; 3 then "Woo" else "Boo", if 'a' &gt; 'b' then "Foo" else "Bar"]  
+["Woo", "Bar"]  
+ghci&gt; 4 * (if 10 &gt; 5 then 10 else 0) + 2  
+42</pre>
+<p>用 <code>let</code> 绑定也可以实现：</p>
+<pre class="code">ghci&gt; 4 * (let a = 9 in a + 1) + 2  
+42  </pre>
+<p><code>let</code> 也可以定义局部函数：</p>
+<pre class="code">ghci&gt; [let square x = x * x in (square 5, square 3, square 2)]  
+[(25,9,4)]  </pre>
+<p>若要在一行中绑定多个名字，再将它们排成一列显然是不可以的。不过可以用分号将其分开。</p>
+<pre class="code">ghci&gt; (let a = 100; b = 200; c = 300 in a*b*c, let foo="Hey "; bar = "there!" in foo ++ bar)  
+(6000000,"Hey there!")  </pre>
+<p>最后那个绑定后面的分号不是必须的，不过加上也没关系。如我们前面所说，你可以在 <code>let</code> 绑定中使用模式匹配。这在从 Tuple 取值之类的操作中很方便。</p>
+<pre class="code">ghci&gt; (let (a,b,c) = (1,2,3) in a+b+c) * 100  
+600  </pre>
+<p>你也可以把 <code>let</code> 绑定放到 List Comprehension 中。我们重写下那个计算 <code>bmi</code> 值的函数，用个 <code>let</code> 替换掉原先的 <code>where</code>。</p>
+<pre class="code">calcBmis :: (RealFloat a) =&gt; [(a, a)] -&gt; [a]  
+calcBmis xs = [bmi | (w, h) &lt;- xs, let bmi = w / h ^ 2]</pre>
+<p>List Comprehension 中 <code>let</code> 绑定的样子和限制条件差不多，只不过它做的不是过滤，而是绑定名字。<code>let</code> 中绑定的名字在输出函数及限制条件中都可见。这一来我们就可以让我们的函数只返回胖子的 <code>bmi</code> 值：</p>
+<pre class="code">calcBmis :: (RealFloat a) =&gt; [(a, a)] -&gt; [a]  
+calcBmis xs = [bmi | (w, h) &lt;- xs, let bmi = w / h ^ 2, bmi &gt;= 25.0]</pre>
+<p>在 <code>(w, h) &lt;- xs</code> 这里无法使用 <code>bmi</code> 这名字，因为它在 <code>let</code> 绑定的前面。</p>
+
+<p>在 List Comprehension 中我们忽略了 <code>let</code> 绑定的 <code>in</code> 部分，因为名字的可见性已经预先定义好了。不过，把一个 <code>let...in</code> 放到限制条件中也是可以的，这样名字只对这个限制条件可见。在 ghci 中 <code>in</code> 部分也可以省略，名字的定义就在整个交互中可见。</p>
+<pre class="code">ghci&gt; let zoot x y z = x * y + z  
+ghci&gt; zoot 3 9 2  
+29  
+ghci&gt; let boot x y z = x * y + z in boot 3 4 2  
+14  
+ghci&gt; boot  
+&lt; interactive&gt;:1:0: Not in scope: `boot'</pre>
+<p>你说既然 <code>let</code> 已经这么好了，还要 <code>where</code> 干嘛呢？嗯，<code>let</code> 是个表达式，定义域限制的相当小，因此不能在多个 guard 中使用。一些朋友更喜欢 <code>where</code>，因为它是跟在函数体后面，把主函数体距离类型声明近一些会更易读。</p>
+<a name="Case_expressions"></a><h2>Case expressions</h2>
+
+<img src="../img/case.png" alt="" style="float:right" class="floatright" />
+<p>有命令式编程语言 (C, C++, Java, etc.) 的经验的同学一定会有所了解，很多命令式语言都提供了 <code>case</code> 语句。就是取一个变量，按照对变量的判断选择对应的代码块。其中可能会存在一个万能匹配以处理未预料的情况。</p>
+
+<p>Haskell 取了这一概念融合其中。如其名，<code>case</code> 表达式就是，嗯，一种表达式。跟 <code>if..else</code> 和 <code>let</code> 一样的表达式。用它可以对变量的不同情况分别求值，还可以使用模式匹配。Hmm，取一个变量，对它模式匹配，执行对应的代码块。好像在哪儿听过？啊，就是函数定义时参数的模式匹配！好吧，模式匹配本质上不过就是 <code>case</code> 语句的语法糖而已。这两段代码就是完全等价的：</p>
+<pre class="code">head' :: [a] -&gt; a  
+head' [] = error "No head for empty lists!"  
+head' (x:_) = x  </pre><pre class="code">head' :: [a] -&gt; a  
+head' xs = case xs of [] -&gt; error "No head for empty lists!"  
+                      (x:_) -&gt; x  </pre>
+<p>看得出，<i>case</i>表达式的语法十分简单：</p>
+<pre class="code">case expression of pattern -&gt; result  
+                   pattern -&gt; result  
+                   pattern -&gt; result  
+                   ...  </pre>
+<p>expression 匹配合适的模式。</p>
+
+<p>一如预期地，第一个模式若匹配，就执行第一个区块的代码；否则就接下去比对下一个模式。如果到最后依然没有匹配的模式，就会产生运行时错误。</p>
+
+<p>函数参数的模式匹配只能在定义函数时使用，而 <code>case</code> 表达式可以用在任何地方。例如：</p>
+<pre class="code">describeList :: [a] -&gt; String  
+describeList xs = "The list is " ++ case xs of [] -&gt; "empty."  
+                                               [x] -&gt; "a singleton list."   
+                                               xs -&gt; "a longer list."  </pre>
+<p>这在表达式中作模式匹配很方便，由于模式匹配本质上就是 <code>case</code> 表达式的语法糖，那么写成这样也是等价的：</p>
+<pre class="code">describeList :: [a] -&gt; String  
+describeList xs = "The list is " ++ what xs  
+    where what [] = "empty."  
+          what [x] = "a singleton list."  
+          what xs = "a longer list."  </pre>
+            <ul class="nav">
+                <li class="left">  <img src="../img/prv.png" alt="prev" /><a href="types-and-type-classes.html">Types and Typeclasses</a></li>
+                <li class="center"><a href="chapters.html">Index</a></li>
+                <li class="right"> <a href="recursion.html">递归</a><img src="../img/nxt.png" alt="next" /></li>
+            </ul>
+        </div>
+        <div id="footer">
+        </div>
+        <div id="feedback">Send feedback</div>
+    </body>
+</html>

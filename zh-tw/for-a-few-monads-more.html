@@ -1,0 +1,1000 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <style type="text/css">
+            @import url(../css/style.css);
+            @import url(../css/feedback.css);
+        </style>
+        <script type="text/javascript" src="../js/jquery.js"></script>
+        <script type="text/javascript" src="../js/jquery.chili-2.2.js"></script>
+        <script type="text/javascript" src="../js/script.js"></script>
+        <script type="text/javascript" src="../js/html2canvas.js"></script>
+        <script type="text/javascript" src="../js/jsfeedback.js"></script>
+        <script type="text/javascript">
+             ChiliBook.recipeFolder = "../js/chili/";  
+             ChiliBook.automaticSelector = "pre";
+        </script>
+        <script type="text/javascript">
+            $(function(){
+                $('#feedback').click(function(){
+                    $('body').feedback();
+                })
+            });
+        </script>
+        <script type="text/javascript">
+            var _gaq = _gaq || [];
+            _gaq.push(['_setAccount', 'UA-32830659-1']);
+            _gaq.push(['_trackPageview']);
+
+            (function() {
+                var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+                ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+                    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+            })();
+        </script>
+        <title>再來看看更多 Monad</title>
+    </head>
+    <body>
+        <div id="header">
+            <img id="beta" alt="beta" src="../img/beta.png" />
+        </div>
+
+        <div id="main">
+            <ul class="nav">
+                <li class="left">  <img src="../img/prv.png" alt="prev" /><a href="a-fistful-of-monads.html">來看看幾種 Monad</a></li>
+                <li class="center"><a href="chapters.html">Index</a></li>
+                <li class="right"> <a href="zippers.html">Zippers 資料結構</a><img src="../img/nxt.png" alt="next" /></li>
+            </ul>
+            <a name="再來看看更多_Monad"></a><h1>再來看看更多 Monad</h1>
+
+<img src="../img/clint.png" alt="" style="float:right" class="floatright" />
+<p>我們已經看過 Monad 是如何接受具有 context 的值，並如何用函數操作他們 還有如何用 <code>&gt;&gt;=</code> 跟 <code>do</code> 來減輕我們對 context 的關注，集中精神在 value 本身。</p>
+
+<p>我們也看過了 <code>Maybe</code> 是如何把值加上一個可能會失敗的 context。我們學習到 List Monad 是如何加進多重結果的 context。我們也了解 <code>IO</code> Monad 如何運作，而且我們在知道什麼是 Monad 之前就已經知道他了。</p>
+
+<p>在這個章節，我們會介紹一些其他的 Monad。他們可以把值變成 monadiv value，因此可以讓我們的程式更簡潔清晰。多見識幾個 Monad 也可以敏銳我們對 Monad 的直覺。</p>
+
+<p>我們即將要介紹的 Monad 都包含在 <code>mtl</code> 這個套建中。一個 Haskell package 包含了一堆模組。而 <code>mtl</code> 已經包含在 Haskell Platform 中，所以你可能不用另外安裝。要檢查你有沒有這套件，你可以下 <code>ghc-pkg list</code>。這會列出你已經安裝的套件，其中應該包含 <code>mtl</code> 後面接著對應的版號。</p>
+<a name="你所不知道的_Writer_Monad"></a><h2>你所不知道的 Writer Monad</h2>
+
+
+<p>我們已經看過 <code>Maybe</code>, list 以及 <code>IO</code> Monad。現在我們要來看看 <code>Writer</code> Monad。</p>
+
+<p>相對於 <code>Maybe</code> 是加入可能失敗的 context，list 是加入 non-deterministic 的 context，<code>Writer</code> 則是加進一個附加值的 context，好比 log 一般。<code>Writer</code> 可以讓我們在計算的同時蒐集所有 log 紀錄，並匯集成一個 log 並附加在結果上。</p>
+
+<p>例如我們想要附加一個 String 好說明我們的值在幹麼（有可能是為了除錯）。想像有一個函數接受一個代表幫派人數的數字，然後會回傳值告訴我們這是否算是一個龐大的幫派：</p>
+<pre class="code">isBigGang :: Int -&gt; Bool  
+isBigGang x = x &gt; 9</pre>
+<p>現在我們希望他不只是回傳 <code>True</code> 或 <code>False</code>，我們還希望他能夠多回傳一個字串代表 log。這很容易，只要多加一個 <code>String</code> 在 <code>Bool</code> 旁邊就好了。</p>
+<pre class="code">isBigGang :: Int -&gt; (Bool, String)  
+isBigGang x = (x &gt; 9, "Compared gang size to 9.")</pre>
+<p>我們現在回傳了一個 Tuple，第一個元素是原來的布林值，第二個元素是一個 String。現在我們的值有了一個 context。</p>
+<pre class="code">ghci&gt; isBigGang 3  
+(False,"Compared gang size to 9.")  
+ghci&gt; isBigGang 30  
+(True,"Compared gang size to 9.")</pre><img src="../img/tuco.png" alt="" style="float:left" class="floatleft" />
+<p>到目前為止都還不錯，<code>isBigGang</code> 回傳一個值跟他的 context。對於正常的數值來說這樣的寫法都能運作良好。但如果我們想要把一個已經具有 context 的值，像是 <code>(3, "Smallish gang.")</code>，餵給 <code>isBigGang</code> 呢？我們又面對了同樣的問題：如果我們有一個能接受正常數值並回傳一個具有 context 值的 function，那我們要如何餵給他一個具有 context 的值？</p>
+
+<p>當我們在研究 <code>Maybe</code> monad 的時候，我們寫了一個 <code>applyMaybe</code>。他接受一個 <code>Maybe a</code> 值跟一個 <code>a -&gt; Maybe b</code> 型態的函數，他會把 <code>Maybe a</code> 餵給這個 function，即便這個 function 其實是接受 <code>a</code> 而非 <code>Maybe a</code>。<code>applyMaybe</code> 有針對這樣的 context 做處理，也就是會留意有可能發生的失敗情況。但在 <code>a -&gt; Maybe b</code> 裡面，我們可以只專心處理正常數值即可。因為 <code>applyMaybe</code> (之後變成了 <code>&gt;&gt;=</code>)會幫我們處理需要檢查 <code>Nothing</code> 或 <code>Just</code> 的情況。</p>
+
+<p>我們再來寫一個接受附加 log 值的函數，也就是 <code>(a, String)</code> 型態的值跟 <code>a -&gt; (b, String)</code> 型態的函數。我們稱呼這個函數為 <code>applyLog</code>。這個函數有的 context 是附加 log 值，而不是一個可能會失敗的 context，因此 <code>applyLog</code> 會確保原有的 log 被保留，並附上從函數產生出的新的 log。這邊我們來看一下實作：</p>
+<pre class="code">applyLog :: (a,String) -&gt; (a -&gt; (b,String)) -&gt; (b,String)  
+applyLog (x,log) f = let (y,newLog) = f x in (y,log ++ newLog)</pre>
+<p>當我們想把一個具有 context 的值餵給一個函數的時候，我們會嘗試把值跟他的 context 分開，然後把值餵給函數再重新接回 context。在 <code>Maybe</code> monad 的情況，我們檢查值是否為 <code>Just x</code>，如果是，便將 <code>x</code> 餵給函數。而在 log 的情況，我們知道 pair 的其中一個 component 是 log 而另一個是值。所以我們先取出值 <code>x</code>，將 <code>f</code> apply 到 <code>x</code>，便獲取 <code>(y,newLog)</code>，其中 <code>y</code> 是新的值而 <code>newLog</code> 則是新的 log。但如果我們回傳 <code>newLog</code>，舊的 log 便不會包含進去，所以我們要回傳的是 <code>(y, log ++ newLog)</code>。我們用 <code>++</code> 來把新的 log 接到舊的上面。</p>
+
+<p>來看看 <code>applyLog</code> 運作的情形：</p>
+<pre class="code">ghci&gt; (3, "Smallish gang.") `applyLog` isBigGang  
+(False,"Smallish gang.Compared gang size to 9")  
+ghci&gt; (30, "A freaking platoon.") `applyLog` isBigGang  
+(True,"A freaking platoon.Compared gang size to 9")</pre>
+<p>跟之前的結果很像，只差在我們多了伴隨產生的 log。再來多看幾個例子：</p>
+<pre class="code">ghci&gt; ("Tobin","Got outlaw name.") `applyLog` (\x -&gt; (length x, "Applied length."))  
+(5,"Got outlaw name.Applied length.")  
+ghci&gt; ("Bathcat","Got outlaw name.") `applyLog` (\x -&gt; (length x, "Applied length"))  
+(7,"Got outlaw name.Applied length")</pre>
+<p>可以看到在 lambda 裡面 <code>x</code> 只是個正常的字串而不是 tuple，且 <code>applyLog</code> 幫我們處理掉附加 log 的動作。</p>
+<a name="Monoids_的好處"></a><h3>Monoids 的好處</h3>
+
+<blockquote>
+<p>請確定你了解什麼是 Monoids。</p>
+</blockquote>
+
+<p>到目前為止 <code>applyLog</code> 接受 <code>(a,String)</code> 型態的值，但為什麼 log 一定要是 <code>String</code> 呢？我們使用 <code>++</code> 來附加新的 log，難道 <code>++</code> 並不能運作在任何形式的 list，而一定要限制我們在 <code>String</code> 上呢？我們當然可以擺脫 <code>String</code>，我們可以如下改變他的型態：</p>
+<pre class="code">applyLog :: (a,[c]) -&gt; (a -&gt; (b,[c])) -&gt; (b,[c])</pre>
+<p>我們用一個 List 來代表 Log。包含在 List 中的元素型態必須跟原有的 List 跟回傳的 List 型態相同，否則我們沒辦法用 <code>++</code> 來把他們接起來。</p>
+
+<p>這能夠運作在 bytestring 上嗎？絕對沒問題。只是我們現在的型態只對 List 有效。我們必須要另外做一個 bytestring 版本的 <code>applyLog</code>。但我們注意到 List 跟 bytestring 都是 monoids。因此他們都是 <code>Monoid</code> type class 的 instance，那代表他們都有實作 <code>mappend</code>。對 List 以及 bytestring 而言，<code>mappend</code> 都是拿來串接的。</p>
+<pre class="code">ghci&gt; [1,2,3] `mappend` [4,5,6]  
+[1,2,3,4,5,6]  
+ghci&gt; B.pack [99,104,105] `mappend` B.pack [104,117,97,104,117,97]  
+Chunk "chi" (Chunk "huahua" Empty)</pre>
+<p>修改後我們的 <code>applyLog</code> 可以運作在任何 monoid 上。我們必須要修改型態宣告來表示這件事，同時也要在實作中把 <code>++</code> 改成 <code>mappend</code>：</p>
+<pre class="code">applyLog :: (Monoid m) =&gt; (a,m) -&gt; (a -&gt; (b,m)) -&gt; (b,m)  
+applyLog (x,log) f = let (y,newLog) = f x in (y,log `mappend` newLog)</pre>
+<p>由於現在包含的值可以是任何 monoid，我們不再需要把 tuple 想成包含一個值跟對應的 log，我們可以想成他包含一個值跟一個對應的 monoid。舉例來說，可以說我們有一個 tuple 包含一個產品名稱跟一個符合 monoid 特性的產品價格。我們可以定義一個 <code>Sum</code> 的 newtype 來保證我們在操作產品的時候也會把價錢跟著加起來。</p>
+<pre class="code">import Data.Monoid  
+  
+type Food = String  
+type Price = Sum Int  
+
+addDrink :: Food -&gt; (Food,Price)  
+addDrink "beans" = ("milk", Sum 25)  
+addDrink "jerky" = ("whiskey", Sum 99)  
+addDrink _ = ("beer", Sum 30)</pre>
+<p>我們用 string 來代表食物，用 <code>newtype</code> 重新定義 <code>nInt</code> 為 <code>Sum</code>，來追蹤總共需要花多少錢。可以注意到我們用 <code>mappend</code> 來操作 <code>Sum</code> 的時候，價錢會被一起加起來。</p>
+<pre class="code">ghci&gt; Sum 3 `mappend` Sum 9  
+Sum {getSum = 12}</pre>
+<p><code>addDrink</code> 的實作很簡單，如果我們想吃豆子，他會回傳 <code>"milk"</code> 以及伴隨的 <code>Sum 25</code>，同樣的如果我們要吃 "jerky"，他就會回傳 "whiskey"，要吃其他東西的話，就會回傳 "beer"。乍看之下這個函數沒什麼特別，但如果用 <code>applyLog</code> 的話就會有趣些。</p>
+<pre class="code">ghci&gt; ("beans", Sum 10) `applyLog` addDrink  
+("milk",Sum {getSum = 35})  
+ghci&gt; ("jerky", Sum 25) `applyLog` addDrink  
+("whiskey",Sum {getSum = 124})  
+ghci&gt; ("dogmeat", Sum 5) `applyLog` addDrink  
+("beer",Sum {getSum = 35})</pre>
+<p>牛奶價值 <code>25</code> 美分，但如果我們也吃了價值 <code>10</code> 美分的豆子的話，總共需要付 <code>35</code> 美分。這樣很清楚地展示了伴隨的值不一定需要是 log，他可以是任何 monoid。至於兩個值要如何結合，那要看 monoid 中怎麼定義。當我們需要的是 log 的時候，他們是串接，但這個 case 裡面，數字是被加起來。</p>
+
+<p>由於 <code>addDrink</code> 回傳一個 <code>(Food,Price)</code>，我們可以再把結果重新餵給 <code>addDrink</code>，這可以很容易告訴我們總共喝了多少錢：</p>
+<pre class="code">ghci&gt; ("dogmeat", Sum 5) `applyLog` addDrink `applyLog` addDrink  
+("beer",Sum {getSum = 65})</pre>
+<p>將狗食跟 30 美分的啤酒加在一起會得到 <code>("beer", Sum 35)</code>。如果我們用 <code>applyLog</code> 將上面的結果再餵給 <code>addDrink</code>，我們會得到 <code>("beer", Sum 65)</code> 這樣的結果。</p>
+<a name="The_Writer_type"></a><h3>The Writer type</h3>
+
+
+<p>我們認識了一個附加 monoid 的值其實表現出來的是一個 monad，我們來再來看看其他類似的 <code>Monad</code> instance。<code>Control.Monad.Writer</code> 這模組含有 <code>Writer w a</code> 的一個型態，裏面定義了他 <code>Monad</code> 的 instance，還有一些操作這些值的函數。</p>
+
+<p>首先，我們來看一下型態。要把一個 monoid 附加給一個值，只需要定義一個 tuple 就好了。<code>Writer w a</code> 這型態其實是一個 <code>newtype</code> wrapper。他的定義很簡單：</p>
+<pre class="code">newtype Writer w a = Writer { runWriter :: (a, w) }</pre>
+<p>他包在一個 <code>newtype</code> 裏面，並且可以是一個 <code>Monad</code> 的 instance，而且這樣定義的好處是可以跟單純 tuple 的型態區分開來。<code>a</code> 這個型態參數代表是包含的值的型態，而 <code>w</code> 則是附加的 monoid 的型態。</p>
+
+<p>他 <code>Monad</code> instance 的定義如下：</p>
+<pre class="code">instance (Monoid w) =&gt; Monad (Writer w) where  
+    return x = Writer (x, mempty)  
+    (Writer (x,v)) &gt;&gt;= f = let (Writer (y, v')) = f x in Writer (y, v `mappend` v')</pre><img src="../img/angeleyes.png" alt="" style="float:right" class="floatright" />
+<p>首先，我們來看看 <code>&gt;&gt;=</code>。他的實作基本上就是 <code>applyLog</code>，只是我們的 tuple 現在是包在一個 <code>Writer</code> 的 <code>newtype</code> 中，我們可以用 pattern matching 的方式把他給 unwrap。我們將 <code>x</code> 餵給 <code>f</code>。這會回給我們 <code>Writer w a</code>。接著可以用 <code>let</code> expression 來做 pattern matching。把結果綁定到 <code>y</code> 這個名字上，然後用 <code>mappend</code> 來結合舊的 monoid 值跟新的 monoid 值。最後把結果跟 monoid 值用 <code>Writer</code> constructor 包起來，形成我們最後的 <code>Writer</code> value。</p>
+
+<p>那 <code>return</code> 呢？回想 <code>return</code> 的作用是接受一個值，並回傳一個具有意義的最小 context 來裝我們的值。那究竟什麼樣的 context 可以代表我們的 <code>Writer</code> 呢？如果我們希望 monoid 值所造成的影響愈小愈好，那 <code>mempty</code> 是個合理的選擇。<code>mempty</code> 是被當作 identity monoid value，像是 <code>""</code> 或 <code>Sum 0</code>，或是空的 bytestring。當我們對 <code>mempty</code> 用 <code>mappend</code> 跟其他 monoid 值結合，結果會是其他的 monoid 值。所以如果我們用 <code>return</code> 來做一個 <code>Writer</code>，然後用 <code>&gt;&gt;=</code> 來餵給其他的函數，那函數回傳的便是算出來的 monoid。下面我們試著用 <code>return</code> 搭配不同 context 來回傳 <code>3</code>：</p>
+<pre class="code">ghci&gt; runWriter (return 3 :: Writer String Int)  
+(3,"")  
+ghci&gt; runWriter (return 3 :: Writer (Sum Int) Int)  
+(3,Sum {getSum = 0})  
+ghci&gt; runWriter (return 3 :: Writer (Product Int) Int)  
+(3,Product {getProduct = 1})</pre>
+<p>因為 <code>Writer</code> 並沒有定義成 <code>Show</code> 的 instance，我們必須用 <code>runWriter</code> 來把我們的 <code>Writer</code> 轉成正常的 tuple。對於 <code>String</code>，monoid 的值就是空字串。而對於 <code>Sum</code> 來說則是 <code>0</code>，因為 <code>0</code> 加上其他任何值都會是對方。而對 <code>Product</code> 來說，則是 <code>1</code>。</p>
+
+<p>這裡的 <code>Writer</code> instance 並沒有定義 <code>fail</code>，所以如果 pattern matching 失敗的話，就會呼叫 <code>error</code>。</p>
+<a name="Using_do_notation_with_Writer"></a><h3>Using do notation with Writer</h3>
+
+
+<p>既然我們定義了 <code>Monad</code> 的 instance，我們自然可以用 <code>do</code> 串接 <code>Writer</code> 型態的值。這在我們需要對一群 <code>Writer</code> 型態的值做處理時顯得特別方便。就如其他的 monad，我們可以把他們當作具有 context 的值。在現在這個 case 中，所有的 monoid 的值都會用 <code>mappend</code> 來連接起來並得到最後的結果。這邊有一個簡單的範例，我們用 <code>Writer</code> 來相乘兩個數。</p>
+<pre class="code">import Control.Monad.Writer  
+  
+logNumber :: Int -&gt; Writer [String] Int  
+logNumber x = Writer (x, ["Got number: " ++ show x])  
+  
+multWithLog :: Writer [String] Int  
+multWithLog = do  
+    a &lt;- logNumber 3  
+    b &lt;- logNumber 5  
+    return (a*b)</pre>
+<p><code>logNumber</code> 接受一個數並把這個數做成一個 <code>Writer</code>。我們再用一串 string 來當作我們的 monoid 值，每一個數都跟著一個只有一個元素的 list，說明我們只有一個數。<code>multWithLog</code> 式一個 <code>Writer</code>，他將 <code>3</code> 跟 <code>5</code> 相乘並確保相乘的紀錄有寫進最後的 log 中。我們用 <code>return</code> 來做成 <code>a*b</code> 的結果。我們知道 <code>return</code> 會接受某個值並加上某個最小的 context，我們可以確定他不會多添加額外的 log。如果我們執行程式會得到：</p>
+<pre class="code">ghci&gt; runWriter multWithLog  
+(15,["Got number: 3","Got number: 5"])</pre>
+<p>有時候我們就是想要在某個時間點放進某個 Monoid value。<code>tell</code> 正是我們需要的函數。他實作了 <code>MonadWriter</code> 這個 type class，而且在當 <code>Writer</code> 用的時候也能接受一個 monoid value，好比說 <code>["This is going on"]</code>。我們能用他來把我們的 monoid value 接到任何一個 dummy value <code>()</code> 上來形成一個 Writer。當我們拿到的結果是 <code>()</code> 的時候，我們不會把他綁定到變數上。來看一個 <code>multWithLog</code> 的範例：</p>
+<pre class="code">multWithLog :: Writer [String] Int  
+multWithLog = do  
+    a &lt;- logNumber 3  
+    b &lt;- logNumber 5  
+    tell ["Gonna multiply these two"]  
+    return (a*b)</pre>
+<p><code>return (a*b)</code> 是我們的最後一行，還記得在一個 <code>do</code> 中的最後一行代表整個 <code>do</code> 的結果。如果我們把 <code>tell</code> 擺到最後，則 <code>do</code> 的結果則會是 <code>()</code>。我們會因此丟掉乘法運算的結果。除此之外，log 的結果是不變的。</p>
+<pre class="code">ghci&gt; runWriter multWithLog  
+(15,["Got number: 3","Got number: 5","Gonna multiply these two"])</pre><a name="Adding_logging_to_programs"></a><h3>Adding logging to programs</h3>
+
+
+<p>歐幾里得算法是找出兩個數的最大公因數。Haskell 已經提供了 <code>gcd</code> 的函數，但我們來實作一個具有 log 功能的 gcd：</p>
+<pre class="code">gcd' :: Int -&gt; Int -&gt; Int  
+gcd' a b   
+    | b == 0    = a  
+    | otherwise = gcd' b (a `mod` b)</pre>
+<p>演算法的內容很簡單。首先他檢查第二個數字是否為零。如果是零，那就回傳第一個數字。如果不是，那結果就是第二個數字跟將第一個數字除以第二個數字的餘數兩個數字的最大公因數。舉例來說，如果我們想知道 8 跟 3 的最大公因數，首先可以注意到 3 不是 0。所以我們要求的是 3 跟 2 的最大公因數(8 除以 3 餘二)。接下去我可以看到 2 不是 0，所以我們要再找 2 跟 1 的最大公因數。同樣的，第二個數不是 0，所以我們再找 1 跟 0 的最大公因數。最後第二個數終於是 0 了，所以我們得到最大公因數是 1。</p>
+<pre class="code">ghci&gt; gcd' 8 3  
+1</pre>
+<p>答案真的是這樣。接著我們想加進 context，context 會是一個 monoid value 並且像是一個 log 一樣。就像之前的範例，我們用一串 string 來當作我們的 monoid。所以 <code>gcd'</code> 會長成這樣：</p>
+<pre class="code">gcd' :: Int -&gt; Int -&gt; Writer [String] Int</pre>
+<p>而他的程式碼會像這樣：</p>
+<pre class="code">import Control.Monad.Writer  
+  
+gcd' :: Int -&gt; Int -&gt; Writer [String] Int  
+gcd' a b  
+  | b == 0 = do  
+      tell ["Finished with " ++ show a]  
+      return a  
+  | otherwise = do  
+      tell [show a ++ " mod " ++ show b ++ " = " ++ show (a `mod` b)]  
+      gcd' b (a `mod` b)</pre>
+<p>這個函數接受兩個 <code>Int</code> 並回傳一個 <code>Writer [String] Int</code>，也就是說是一個有 log context 的 <code>Int</code>。當 <code>b</code> 等於 <code>0</code> 的時候，我們用一個 <code>do</code> 來組成一個 <code>Writer</code> 的值。我們先用 <code>tell</code> 來寫入我們的 log，然後用 <code>return</code> 來當作 <code>do</code> 的結果。當然我們也可以這樣寫：</p>
+<pre class="code">Writer (a, ["Finished with " ++ show a])</pre>
+<p>但我想 <code>do</code> 的表達方式是比較容易閱讀的。接下來我們看看當 <code>b</code> 不等於 <code>0</code> 的時候。我們會把 <code>mod</code> 的使用情況寫進 log。然後在 <code>do</code> 當中的第二行遞迴呼叫 <code>gcd'</code>。<code>gcd'</code> 現在是回傳一個 <code>Writer</code> 的型態，所以 <code>gcd' b (a `mod` b)</code> 這樣的寫法是完全沒問題的。</p>
+
+<p>儘管去 trace 這個 <code>gcd'</code> 對於理解十分有幫助，但我想了解整個大概念，把值視為具有 context 是更加有用的。</p>
+
+<p>接著來試試跑我們的 <code>gcd'</code>，他的結果會是 <code>Writer [String] Int</code>，如果我們把他從 <code>newtype</code> 中取出來，我們會拿到一個 tuple。tuple 的第一個部份就是我們要的結果：</p>
+<pre class="code">ghci&gt; fst $ runWriter (gcd' 8 3)  
+1</pre>
+<p>至於 log 呢，由於 log 是一連串 string，我們就用 <code>mapM_ putStrLn</code> 來把這些 string 印出來：</p>
+<pre class="code">ghci&gt; mapM_ putStrLn $ snd $ runWriter (gcd' 8 3)  
+8 mod 3 = 2  
+3 mod 2 = 1  
+2 mod 1 = 0  
+Finished with 1</pre>
+<p>把普通的演算法轉換成具有 log 是很棒的經驗，我們不過是把普通的 value 重寫成 Monadiv value，剩下的就靠 <code>&gt;&gt;=</code> 跟 <code>Writer</code> 來幫我們處理一切。用這樣的方法我們幾乎可以對任何函數加上 logging 的功能。我們只要把普通的值換成 <code>Writer</code>，然後把一般的函數呼叫換成 <code>&gt;&gt;=</code> (當然也可以用 <code>do</code>)</p>
+<a name="Inefficient_list_construction"></a><h3>Inefficient list construction</h3>
+
+
+<p>當製作 <code>Writer</code> Monad 的時候，要特別注意你是使用哪種 monoid。使用 list 的話效能有時候是沒辦法接受的。因為 list 是使用 <code>++</code> 來作為 <code>mappend</code> 的實現。而 <code>++</code> 在 list 很長的時候是非常慢的。</p>
+
+<p>在之前的 <code>gcd'</code> 中，log 並不會慢是因為 list append 的動作實際上看起來是這樣：</p>
+<pre class="code">a ++ (b ++ (c ++ (d ++ (e ++ f))))</pre>
+<p>list 是建立的方向是從左到右，當我們先建立左邊的部份，而把另一串 list 加到右邊的時候效能會不錯。但如果我們不小心使用，而讓 <code>Writer</code> monad 實際在操作 list 的時候變成像這樣的話。</p>
+<pre class="code">((((a ++ b) ++ c) ++ d) ++ e) ++ f</pre>
+<p>這會讓我們的操作是 left associative，而不是 right associative。這非常沒有效率，因為每次都是把右邊的部份加到左邊的部份，而左邊的部份又必須要從頭開始建起。</p>
+
+<p>下面這個函數跟 <code>gcd'</code> 差不多，只是 log 的順序是相反的。他先紀錄剩下的操作，然後紀錄現在的步驟。</p>
+<pre class="code">import Control.Monad.Writer  
+  
+gcdReverse :: Int -&gt; Int -&gt; Writer [String] Int  
+gcdReverse a b  
+  | b == 0 = do  
+      tell ["Finished with " ++ show a]  
+      return a  
+    | otherwise = do  
+      result &lt;- gcdReverse b (a `mod` b)  
+      tell [show a ++ " mod " ++ show b ++ " = " ++ show (a `mod` b)]  
+      return result</pre>
+<p>他先遞迴呼叫，然後把結果綁定到 <code>result</code>。然後把目前的動作寫到 log，在遞迴的結果之後。最後呈現的就是完整的 log。</p>
+<pre class="code">ghci&gt; mapM_ putStrLn $ snd $ runWriter (gcdReverse 8 3)  
+Finished with 1  
+2 mod 1 = 0  
+3 mod 2 = 1  
+8 mod 3 = 2</pre>
+<p>這沒效率是因為他讓 <code>++</code> 成為 left associative 而不是 right associative。</p>
+<a name="Difference_lists"></a><h3>Difference lists</h3>
+
+<img src="../img/cactus.png" alt="" style="float:left" class="floatleft" />
+<p>由於 list 在重複 append 的時候顯得低效，我們最好能使用一種支援高效 appending 的資料結構。其中一種就是 difference list。difference list 很類似 list，只是他是一個函數。他接受一個 list 並 prepend 另一串 list 到他前面。一個等價於 <code>[1,2,3]</code> 的 difference list 是這樣一個函數 <code>\xs -&gt; [1,2,3] ++ xs</code>。一個等價於 <code>[]</code> 的 difference list 則是 <code>\xs -&gt; [] ++ xs</code>。</p>
+
+<p>Difference list 最酷的地方在於他支援高效的 appending。當我們用 <code>++</code> 來實現 appending 的時候，他必須要走到左邊的 list 的尾端，然後把右邊的 list 一個個從這邊接上。那 difference list 是怎麼作的呢？appending 兩個 difference list 就像這樣</p>
+<pre class="code">f `append` g = \xs -&gt; f (g xs)</pre>
+<p><code>f</code> 跟 <code>g</code> 這邊是兩個函數，他們都接受一個 list 並 prepend 另一串 list。舉例來說，如果 <code>f</code> 代表 <code>("dog"++)</code>（可以寫成 <code>\xs -&gt; "dog" ++ xs</code>）而 <code>g</code> 是 <code>("meat"++)</code>，那 <code>f `append` g</code> 就會做成一個新的函數，等價於：</p>
+<pre class="code">\xs -&gt; "dog" ++ ("meat" ++ xs)</pre>
+<p>append 兩個 difference list 其實就是用一個函數，這函數先餵一個 list 給第一個 difference list，然後再把結果餵給第二個 difference list。</p>
+
+<p>我們可以用一個 <code>newtype</code> 來包起來</p>
+<pre class="code">newtype DiffList a = DiffList { getDiffList :: [a] -&gt; [a] }</pre>
+<p>我們包起來的型態是 <code>[a] -&gt; [a]</code>，因為 difference list 不過就是一個轉換一個 list 到另一個 list 的函數。要把普通 list 轉換成 difference list 也很容易。</p>
+<pre class="code">toDiffList :: [a] -&gt; DiffList a  
+toDiffList xs = DiffList (xs++)  
+  
+fromDiffList :: DiffList a -&gt; [a]  
+fromDiffList (DiffList f) = f []</pre>
+<p>要把一個普通 list 轉成 difference list 不過就是照之前定義的，作一個 prepend 另一個 list 的函數。由於 difference list 只是一個 prepend 另一串 list 的一個函數，假如我們要轉回來的話，只要餵給他空的 list 就行了。</p>
+
+<p>這邊我們給一個 difference list 的 <code>Monoid</code> 定義</p>
+<pre class="code">instance Monoid (DiffList a) where  
+    mempty = DiffList (\xs -&gt; [] ++ xs)  
+    (DiffList f) `mappend` (DiffList g) = DiffList (\xs -&gt; f (g xs))</pre>
+<p>我們可以看到 <code>mempty</code> 不過就是 <code>id</code>，而 <code>mappend</code> 其實是 function composition。</p>
+<pre class="code">ghci&gt; fromDiffList (toDiffList [1,2,3,4] `mappend` toDiffList [1,2,3])  
+[1,2,3,4,1,2,3]</pre>
+<p>現在我們可以用 difference list 來加速我們的 <code>gcdReverse</code></p>
+<pre class="code">import Control.Monad.Writer  
+  
+gcd' :: Int -&gt; Int -&gt; Writer (DiffList String) Int  
+gcd' a b  
+  | b == 0 = do  
+      tell (toDiffList ["Finished with " ++ show a])  
+      return a  
+  | otherwise = do  
+      result &lt;- gcd' b (a `mod` b)  
+      tell (toDiffList [show a ++ " mod " ++ show b ++ " = " ++ show (a `mod` b)])  
+      return result</pre>
+<p>我們只要把 monoid 的型態從 <code>[String]</code> 改成 <code>DiffList String</code>，並在使用 <code>tell</code> 的時候把普通的 list 用 <code>toDiffList</code> 轉成 difference list 就可以了。</p>
+<pre class="code">ghci&gt; mapM_ putStrLn . fromDiffList . snd . runWriter $ gcdReverse 110 34  
+Finished with 2  
+8 mod 2 = 0  
+34 mod 8 = 2  
+110 mod 34 = 8</pre>
+<p>我們用 <code>runWriter</code> 來取出 <code>gcdReverse 110 34</code> 的結果，然後用 <code>snd</code> 取出 log，並用 <code>fromDiffList</code> 轉回普通的 list 印出來。</p>
+<a name="Comparing_Performance"></a><h3>Comparing Performance</h3>
+
+
+<p>要體會 Difference List 能如何增進效率，考慮一個從某數數到零的 case。我們紀錄的時候就像 <code>gcdReverse</code> 一樣是反過來記的，所以在 log 中實際上是從零數到某個數。</p>
+<pre class="code">finalCountDown :: Int -&gt; Writer (DiffList String) ()  
+finalCountDown 0 = do  
+    tell (toDiffList ["0"])  
+finalCountDown x = do  
+    finalCountDown (x-1)  
+    tell (toDiffList [show x])</pre>
+<p>如果我們餵 <code>0</code>，他就只 log 0。如果餵其他正整數，他會先倒數到 <code>0</code> 然後 append 那些數到 log 中，所以如果我們呼叫 <code>finalCountDown</code> 並餵給他 <code>100</code>，那 log 的最後一筆就會是 <code>"100"</code>。</p>
+
+<p>如果你把這個函數 load 進 GHCi 中並餵給他一個比較大的整數 <code>500000</code>，你會看到他無停滯地從 <code>0</code> 開始數起：</p>
+<pre class="code">ghci&gt; mapM_ putStrLn . fromDiffList . snd . runWriter $ finalCountDown 500000  
+0  
+1  
+2</pre>
+<p>但如果我們用普通的 list 而不用 difference list</p>
+<pre class="code">finalCountDown :: Int -&gt; Writer [String] ()  
+finalCountDown 0 = do  
+    tell ["0"]  
+finalCountDown x = do  
+    finalCountDown (x-1)  
+    tell [show x]</pre>
+<p>並下同樣的指令</p>
+<pre class="code">ghci&gt; mapM_ putStrLn . snd . runWriter $ finalCountDown 500000</pre>
+<p>我們會看到整個運算卡卡的。</p>
+
+<p>當然這不是一個嚴謹的測試方法，但足以表顯出 difference list 是比較有效率的寫法。</p>
+<a name="Reader_Monad"></a><h2>Reader Monad</h2>
+
+<img src="../img/revolver.png" alt="" style="float:left" class="floatleft" />
+<p>在講 Applicative 的章節中，我們說過了 <code>(-&gt;) r</code> 的型態只是 <code>Functor</code> 的一個 instance。要將一個函數 <code>f</code> map over 一個函數 <code>g</code>，基本上等價於一個函數，他可以接受原本 <code>g</code> 接受的參數，先套用 <code>g</code> 然後再把其結果丟給 <code>f</code>。</p>
+<pre class="code">ghci&gt; let f = (*5)  
+ghci&gt; let g = (+3)
+ghci&gt; (fmap f g) 8</pre>
+<p>我們已經見識過函數當作 applicative functors 的例子。這樣能讓我們對函數的結果直接進行操作。</p>
+<pre class="code">ghci&gt; let f = (+) &lt;$&gt; (*2) &lt;*&gt; (+10)
+ghci&gt; f 3
+19</pre>
+<p><code>(+) &lt;$&gt; (*2) &lt;*&gt; (+10)</code> 代表一個函數，他接受一個數值，分別把這數值交給 <code>(*2)</code> 跟 <code>(+10)</code>。然後把結果加起來。例如說，如果我們餵 <code>3</code> 給這個函數，他會分別對 <code>3</code> 做 <code>(*2)</code> 跟 <code>(+10)</code> 的動作。而得到 <code>6</code> 跟 <code>13</code>。然後呼叫 <code>(+)</code>，而得到 <code>19</code>。</p>
+
+<p>其實 <code>(-&gt;) r</code> 不只是一個 functor 跟一個 applicative functor，他也是一個 monad。就如其他 monadic value 一般，一個函數也可以被想做是包含一個 context 的。這個 context 是說我們期待某個值，他還沒出現，但我們知道我們會把他當作函數的參數，呼叫函數來得到結果。</p>
+
+<p>我們已經見識到函數是怎樣可以看作 functor 或是 applicative functors 了。再來讓我們看看當作 <code>Monad</code> 的一個 instance 時會是什麼樣子。你可以在 <code>Control.Monad.Instances</code> 裡面找到，他看起來像這樣：</p>
+<pre class="code">instance Monad ((-&gt;) r) where  
+    return x = \_ -&gt; x  
+    h &gt;&gt;= f = \w -&gt; f (h w) w</pre>
+<p>我們之前已經看過函數的 <code>pure</code> 實作了，而 <code>return</code> 差不多就是 <code>pure</code>。他接受一個值並把他放進一個 minimal context 裡面。而要讓一個函數能夠是某個定值的唯一方法就是讓他完全忽略他的參數。</p>
+
+<p>而 <code>&gt;&gt;=</code> 的實作看起來有點難以理解，我們可以仔細來看看。當我們使用 <code>&gt;&gt;=</code> 的時候，餵進去的是一個 monadic value，處理他的是一個函數，而吐出來的也是一個 monadic value。在這個情況下，當我們將一個函數餵進一個函數，吐出來的也是一個函數。這就是為什麼我們在最外層使用了一個 lambda。在我們目前看過的實作中，<code>&gt;&gt;=</code> 幾乎都是用 lambda 將內部跟外部隔開來，然後在內部來使用 <code>f</code>。這邊也是一樣的道理。要從一個函數得到一個結果，我們必須餵給他一些東西，這也是為什麼我們先用 <code>(h w)</code> 取得結果，然後將他丟給 <code>f</code>。而 <code>f</code> 回傳一個 monadic value，在這邊這個 monadic value 也就是一個函數。我們再把 <code>w</code> 餵給他。</p>
+
+<p>如果你還不太懂 <code>&gt;&gt;=</code> 怎麼寫出來的，不要擔心，因為接下來的範例會讓你曉得這真的是一個簡單的 Monad。我們造一個 <code>do</code> expression 來使用這個 Monad。</p>
+<pre class="code">import Control.Monad.Instances  
+  
+addStuff :: Int -&gt; Int  
+addStuff = do  
+  a &lt;- (*2)  
+  b &lt;- (+10)  
+  return (a+b)</pre>
+<p>這跟我們之前寫的 applicative expression 差不多，只差在他是運作在 monad 上。一個 <code>do</code> expression 的結果永遠會是一個 monadic vlaue，這個也不例外。而這個 monadic value 其實是一個函數。只是在這邊他接受一個數字，然後套用 <code>(*2)</code>，把結果綁定到 <code>a</code> 上面。而 <code>(+10)</code> 也同用被套用到同樣的參數。結果被綁訂到 <code>b</code> 上。<code>return</code> 就如其他 monad 一樣，只是製作一個簡單的 monadiv value 而不會作多餘的事情。這讓整個函數的結果是 <code>a+b</code>。如果我們試著跑跑看，會得到之前的結果。</p>
+<pre class="code">ghci&gt; addStuff 3  
+19</pre>
+<p>其中 <code>3</code> 會被餵給 <code>(*2)</code> 跟 <code>(+10)</code>。而且他也會被餵給 <code>return (a+b)</code>，只是他會忽略掉 <code>3</code> 而永遠回傳 <code>a+b</code> 正因為如此，function monad 也被稱作 reader monad。所有函數都從一個固定的地方讀取。要寫得更清楚一些，可以把 <code>addStuff</code> 改寫如下：</p>
+<pre class="code">addStuff :: Int -&gt; Int  
+addStuff x = let  
+    a = (*2) x  
+    b = (+10) x  
+    in a+b</pre>
+<p>我們見識了把函數視作具有 context 的值很自然的可以表達成 reader monad。只要我們當作我們知道函數會回傳什麼值就好。他作的就是把所有的函數都黏在一起做成一個大的函數，然後把這個函數的參數都餵給全部組成的函數，這有點取出他們未來的值的意味。實作做完了然後 <code>&gt;&gt;=</code> 就會保證一切都能正常運作。</p>
+<a name="State_Monad"></a><h2>State Monad</h2>
+
+<img src="../img/texas.png" alt="" style="float:left" class="floatleft" />
+<p>Haskell 是一個純粹的語言，正因為如此，我們的程式是有一堆沒辦法改變全域狀態或變數的函數所組成，他們只會作些處理並回傳結果。這樣的性質讓我們很容易思考我們的程式在幹嘛，因為我們不需要擔心變數在某一個時間點的值是什麼。然而，有一些領域的問題根本上就是依賴於隨著時間而改變的狀態。雖然我們也可以用 Haskell 寫出這樣的程式，但有時候寫起來蠻痛苦的。這也是為什麼 Haskell 要加進 State Monad 這個特性。這讓我們在 Haskell 中可以容易地處理狀態性的問題，並讓其他部份的程式還是保持純粹性。</p>
+
+<p>當我們處理亂數的時候，我們的函數接受一個 random generator 並回傳一個新的亂數跟一個新的 random generator。如果我們需要很多個亂數，我們可以用前一個函數回傳的 random generator 繼續做下去。當我們要寫一個接受 <code>StdGen</code> 的函數並產生丟三個硬幣結果的函數，我們會這樣寫：</p>
+<pre class="code">threeCoins :: StdGen -&gt; (Bool, Bool, Bool)  
+threeCoins gen =   
+    let (firstCoin, newGen) = random gen  
+        (secondCoin, newGen') = random newGen  
+        (thirdCoin, newGen''') = random newGen'  
+    in  (firstCoin, secondCoin, thirdCoin)</pre>
+<p>他接受一個 <code>gen</code> 然後用 <code>random gen</code> 產生一個 <code>Bool</code> 型態的值以及新的 generator。要模擬丟第二個硬幣的話，便使用新的 generator。在其他語言中，多半除了亂數之外不需要多回傳一個 generator。那是因為我們可以對現有的進行修改。但 Haskell 是純粹的語言，我們沒辦法那麼做，所以我們必須要接受一個狀態，產生結果然後回傳一個新的狀態，然後用新的狀態來繼續做下去。</p>
+
+<p>一般來講你應該不會喜歡這麼寫，在程式中有赤裸裸的狀態，但我們又不想放棄 Haskell 的純粹性質。這就是 State Monad 的好處了，他可以幫我們處理這些瑣碎的事情，又讓我們保持 Haskell 的純粹性。</p>
+
+<p>為了深入理解狀態性的計算，我們先來看看應該給他們什麼樣的型態。我們會說一個狀態性的計算是一個函數，他接受一個狀態，回傳一個值跟一個新的狀態。寫起來會像這樣：</p>
+<pre class="code">s -&gt; (a,s)</pre>
+<p><code>s</code> 是狀態的型態，而 <code>a</code> 是計算結果的型態。</p>
+<blockquote>
+<p>在其他的語言中，賦值大多是被當作會改變狀態的操作。舉例來說，當我們在命令式語言寫 <code>x = 5</code>，這通常代表的是把 <code>5</code> 指定給 <code>x</code> 這變數。而且這邊 <code>5</code> 是一個 expression。</p>
+
+<p>如果你用函數語言的角度去思考，你可以把他想做是一個函數，接受一個狀態，並回傳結果跟新的狀態。那新的狀態代表所有已指定的值與新加入的變數。</p>
+</blockquote>
+
+<p>這種改變狀態的計算，除了想做是一個接受狀態並回傳結果跟新狀態的函數外，也可以想做是具有 context 的值。</p>
+
+<p>實際的值是結果。然而要得到結果，我們必須要給一個初始的狀態，才能得到結果跟最後的狀態。</p>
+<a name="Stack_and_Stones"></a><h3>Stack and Stones</h3>
+
+
+<p>考慮現在我們要對一個堆疊的操作建立模型。你可以把東西推上堆疊頂端，或是把東西從頂端拿下來。如果你要的元素是在堆疊的底層的話，你必須要把他上面的東西都拿下來才能拿到他。</p>
+
+<p>我們用一個 list 來代表我們的堆疊。而我們把 list 的頭當作堆疊的頂端。為了正確的建立模型，我們要寫兩個函數：<code>pop</code> 跟 <code>push</code>。<code>pop</code> 會接受一個堆疊，取下一個元素並回傳一個新的堆疊，這個新的堆疊不包含取下的元素。<code>push</code> 會接受一個元素，把他堆到堆疊中，並回傳一個新的堆疊，其包含這個新的元素。</p>
+<pre class="code">type Stack = [Int]  
+  
+pop :: Stack -&gt; (Int,Stack)  
+pop (x:xs) = (x,xs)  
+
+push :: Int -&gt; Stack -&gt; ((),Stack)  
+push a xs = ((),a:xs)</pre>
+<p>我們用 <code>()</code> 來當作 pushing 的結果，畢竟推上堆疊並不需要什麼回傳值，他的重點是在改變堆疊。注意到 <code>push</code> 跟 <code>pop</code> 都是改變狀態的計算，可以從他們的型態看出來。</p>
+
+<p>我們來寫一段程式來模擬一個堆疊的操作。我們接受一個堆疊，把 <code>3</code> 推上去，然後取出兩個元素。</p>
+<pre class="code">stackManip :: Stack -&gt; (Int, Stack)  
+stackManip stack = let  
+    ((),newStack1) = push 3 stack  
+    (a ,newStack2) = pop newStack1  
+    in pop newStack2</pre>
+<p>我們拿一個 <code>stack</code> 來作 <code>push 3 stack</code> 的動作，其結果是一個 tuple。tuple 的第一個部份是 <code>()</code>，而第二個部份是新的堆疊，我們把他命名成 <code>newStack1</code>。然後我們從 <code>newStack1</code> 上 pop 出一個數字。其結果是我們之前 push 上去的一個數字 <code>a</code>，然後把這個更新的堆疊叫做 <code>newStack2</code>。然後我們從 <code>newStack2</code> 上再 pop 出一個數字 <code>b</code>，並得到 <code>newStack3</code>。我們回傳一個 tuple 跟最終的堆疊。</p>
+<pre class="code">ghci&gt; stackManip [5,8,2,1]  
+(5,[8,2,1])</pre>
+<p>結果就是 <code>5</code> 跟新的堆疊 <code>[8,2,1]</code>。注意到 <code>stackManip</code> 是一個會改變狀態的操作。我們把一堆會改變狀態的操作綁在一起操作，有沒有覺得很耳熟的感覺。</p>
+
+<p><code>stackManip</code> 的程式有點冗長，因為我們要寫得太詳細，必須把狀態給每個操作，然後把新的狀態再餵給下一個。如果我們可以不要這樣作的話，那程式應該會長得像這樣：</p>
+<pre class="code">stackManip = do  
+    push 3  
+    a &lt;- pop  
+    pop</pre>
+<p>這就是 State Monad 在做的事。有了他，我們便可以免除於要把狀態操作寫得太明白的窘境。</p>
+<a name="The_State_Monad"></a><h3>The State Monad</h3>
+
+
+<p><code>Control.Monad.State</code> 這個模組提供了一個 <code>newtype</code> 包起來的型態。</p>
+<pre class="code">newtype State s a = State { runState :: s -&gt; (a,s) }</pre>
+<p>一個 <code>State s a</code> 代表的是一個改變狀態的操作，他操縱的狀態為型態 <code>s</code>，而產生的結果是 <code>a</code>。</p>
+
+<p>我們已經見識過什麼是改變狀態的操作，以及他們是可以被看成具有 context 的值。接著來看看他們 <code>Monad</code> 的 instance：</p>
+<pre class="code">instance Monad (State s) where  
+    return x = State $ \s -&gt; (x,s)  
+    (State h) &gt;&gt;= f = State $ \s -&gt; let (a, newState) = h s  
+                                        (State g) = f a  
+                                    in  g newState</pre>
+<p>我們先來看看 <code>return</code> 那一行。我們 <code>return</code> 要作的事是接受一個值，並做出一個改變狀態的操作，讓他永遠回傳那個值。所以我們才做了一個 lambda 函數，<code>\s -&gt; (x,s)</code>。我們把 <code>x</code> 當成是結果，並且狀態仍然是 <code>s</code>。這就是 <code>return</code> 要完成的 minimal context。</p>
+<img src="../img/badge.png" alt="" style="float:right" class="floatright" />
+<p>那 <code>&gt;&gt;=</code> 的實作呢？很明顯的把改變狀態的操作餵進 <code>&gt;&gt;=</code> 也必須要丟出另一個改變狀態的操作。所以我們用 <code>State</code> 這個 <code>newtype</code> wrapper 來把一個 lambda 函數包住。這個 lambda 會是新的一個改變狀態的操作。但裡面的內容是什麼？首先我們應該要從接受的操作取出結果。由於 lambda 是在一個大的操作中，所以我們可以餵給 <code>h</code> 我們現在的狀態，也就是 <code>s</code>。那會產生 <code>(a, newState)</code>。到目前為止每次我們在實作 <code>&gt;&gt;=</code> 的時候，我們都會先從 monadic value 中取出結果，然後餵給 <code>f</code> 來得到新的 monadic value。在寫 <code>Writer</code> 的時候，我們除了這樣作還要確保 context 是用 <code>mappend</code> 把舊的 monoid value 跟新的接起來。在這邊我們則是用 <code>f a</code> 得到一個新的操作 <code>g</code>。現在我們有了新的操作跟新的狀態（叫做 <code>newState</code>），我們就把 <code>newState</code> 餵給 <code>g</code>。結果便是一個 tuple，裡面包含了最後的結果跟最終的狀態。</p>
+
+<p>有了 <code>&gt;&gt;=</code>，我們便可以把兩個操作黏在一起，只是第二個被放在一個函數中，專門接受第一個的結果。由於 <code>pop</code> 跟 <code>push</code> 已經是改變狀態的操作了，我們可以把他們包在 <code>State</code> 中</p>
+<pre class="code">import Control.Monad.State  
+  
+pop :: State Stack Int  
+pop = State $ \(x:xs) -&gt; (x,xs)  
+
+push :: Int -&gt; State Stack ()  
+push a = State $ \xs -&gt; ((),a:xs)</pre>
+<p><code>pop</code> 已經滿足我們的條件，而 <code>push</code> 要先接受一個 <code>Int</code> 才會回傳我們要的操作。所以我們可以改寫先前的範例如下：</p>
+<pre class="code">import Control.Monad.State  
+  
+stackManip :: State Stack Int  
+stackManip = do  
+  push 3  
+  a &lt;- pop  
+  pop</pre>
+<p>看到我們是怎麼把一個 <code>push</code> 跟兩個 <code>pop</code> 黏成一個操作嗎？當我們將他們從一個 <code>newtype</code> 取出，其實就是需要一個能餵進初始狀態的函數：</p>
+<pre class="code">ghci&gt; runState stackManip [5,8,2,1]  
+(5,[8,2,1])</pre>
+<p>我們不須綁定第二個 <code>pop</code>，因為我們根本不會用到 <code>a</code>，所以可以寫成下面的樣子：</p>
+<pre class="code">stackManip :: State Stack Int  
+stackManip = do  
+    push 3  
+    pop  
+    pop</pre>
+<p>再來嘗試另外一種方式，先從堆疊上取下一個數字，看看他是不是 <code>5</code>，如果是的話就把他放回堆疊上，如果不是的話就堆上 <code>3</code> 跟 <code>8</code>。</p>
+<pre class="code">stackStuff :: State Stack ()  
+stackStuff = do  
+    a &lt;- pop  
+    if a == 5  
+        then push 5  
+        else do  
+            push 3  
+            push 8</pre>
+<p>很直覺吧！我們來看看初始的堆疊的樣子。</p>
+<pre class="code">ghci&gt; runState stackStuff [9,0,2,1,0]  
+((),[8,3,0,2,1,0])</pre>
+<p>還記得我們說過 <code>do</code> 的結果會是一個 monadic value，而在 <code>State</code> monad 的 case，<code>do</code> 也就是一個改變狀態的函數。而由於 <code>stackManip</code> 跟 <code>stackStuff</code> 都是改變狀態的計算，因此我們可以把他們黏在一起：</p>
+<pre class="code">moreStack :: State Stack ()  
+moreStack = do  
+    a &lt;- stackManip  
+    if a == 100  
+        then stackStuff  
+        else return ()</pre>
+<p>如果 <code>stackManip</code> 的結果是 <code>100</code>，我們就會跑 <code>stackStuff</code>，如果不是的話就什麼都不做。<code>return ()</code> 不過就是什麼是都不做，全部保持原樣。</p>
+
+<p><code>Contorl.Monad.State</code> 提供了一個 <code>MonadState</code> 的 typeclass，他有兩個有用的函數，分別是 <code>get</code> 跟 <code>put</code>。對於 <code>State</code> 來說，<code>get</code> 的實作就像這樣：</p>
+<pre class="code">get = State $ \s -&gt; (s,s)</pre>
+<p>他只是取出現在的狀態除此之外什麼也不做。而 <code>put</code> 函數會接受一個狀態並取代掉現有的狀態。</p>
+<pre class="code">put newState = State $ \s -&gt; ((),newState)</pre>
+<p>有了這兩個狀態，我們便可以看到現在堆疊中有什麼，或是把整個堆疊中的元素換掉。</p>
+<pre class="code">stackyStack :: State Stack ()  
+stackyStack = do  
+    stackNow &lt;- get  
+    if stackNow == [1,2,3]  
+        then put [8,3,1]  
+        else put [9,2,1]</pre>
+<p>我們可以看看對於 <code>State</code> 而言，<code>&gt;&gt;=</code> 的型態會是什麼：</p>
+<pre class="code">(&gt;&gt;=) :: State s a -&gt; (a -&gt; State s b) -&gt; State s b</pre>
+<p>我們可以看到狀態的型態都是 <code>s</code>，而結果從型態 <code>a</code> 變成型態 <code>b</code>。這代表我們可以把好幾個改變狀態的計算黏在一起，這些計算的結果可以都不一樣，但狀態的型態會是一樣的。舉例來說，對於 <code>Maybe</code> 而言，<code>&gt;&gt;=</code> 的型態會是：</p>
+<pre class="code">(&gt;&gt;=) :: Maybe a -&gt; (a -&gt; Maybe b) -&gt; Maybe b</pre>
+<p><code>Maybe</code> 不變是有道理的，但如果用 <code>&gt;&gt;=</code> 來把兩種不同的 monad 接起來是沒道理的。但對於 state monad 而言，monad 其實是 <code>State s</code>，所以如果 <code>s</code> 不一樣，我們就要用 <code>&gt;&gt;=</code> 來把兩個 monad 接起來。</p>
+<a name="隨機性與_state_monad"></a><h3>隨機性與 state monad</h3>
+
+
+<p>在章節的一開始，我們知道了在 Haskell 中要產生亂數的不方便。我們要拿一個產生器，並回傳一個亂數跟一個新的產生器。接下來我們還一定要用新的產生器不可。但 State Monad 讓我們可以方便一些。</p>
+
+<p><code>System.Random</code> 中的 <code>random</code> 函數有下列的型態：</p>
+<pre class="code">random :: (RandomGen g, Random a) =&gt; g -&gt; (a, g)</pre>
+<p>代表他接受一個亂數產生器，並產生一個亂數跟一個新的產生器。很明顯他是一個會改變狀態的計算，所以我們可以用 <code>newtype</code> 把他包在一個 <code>State</code> 中，然後把他當作 monadic value 來操作。</p>
+<pre class="code">import System.Random  
+import Control.Monad.State  
+  
+randomSt :: (RandomGen g, Random a) =&gt; State g a  
+randomSt = State random</pre>
+<p>這樣我們要丟三個硬幣的結果可以改寫成這樣：</p>
+<pre class="code">import System.Random  
+import Control.Monad.State  
+  
+threeCoins :: State StdGen (Bool,Bool,Bool)  
+threeCoins = do  
+  a &lt;- randomSt  
+  b &lt;- randomSt  
+  c &lt;- randomSt  
+  return (a,b,c)</pre>
+<p><code>threeCoins</code> 是一個改變狀態的計算，他接受一個初始的亂數產生器，他會把他餵給 <code>randomSt</code>，他會產生一個數字跟一個新的產生器，然後會一直傳遞下去。我們用 <code>return (a,b,c)</code> 來呈現 <code>(a,b,c)</code>，這樣並不會改變最近一個產生器的狀態。</p>
+<pre class="code">ghci&gt; runState threeCoins (mkStdGen 33)  
+((True,False,True),680029187 2103410263)</pre>
+<p>要完成像這樣要改變狀態的任務便因此變得輕鬆了很多。</p>
+<a name="Error_Monad"></a><h2>Error Monad</h2>
+
+
+<p>我們知道 <code>Maybe</code> 是拿來賦予一個值具有可能失敗的 context。一個值可能會是 <code>Just something</code> 或是一個 <code>Nothing</code>。儘管這很有用，但當我們拿到了一個 <code>Nothing</code>，我們只知道他失敗了，但我們沒辦法塞進一些有用的資訊，告訴我們究竟是在什麼樣的情況下失敗了。</p>
+
+<p>而 <code>Either e a</code> 則能讓我們可以加入一個可能會發生錯誤的 context，還可以增加些有用的訊息，這樣能讓我們知道究竟是什麼東西出錯了。一個 <code>Either e a</code> 的值可以是代表正確的 <code>Right</code>，或是代表錯誤的 <code>Left</code>，例如說：</p>
+<pre class="code">ghci&gt; :t Right 4  
+Right 4 :: (Num t) =&gt; Either a t  
+ghci&gt; :t Left "out of cheese error"  
+Left "out of cheese error" :: Either [Char] b</pre>
+<p>這就像是加強版的 <code>Maybe</code>，他看起來實在很像一個 monad，畢竟他也可以當作是一個可能會發生錯誤的 context，只是多了些訊息罷了。</p>
+
+<p>在 <code>Control.Monad.Error</code> 裡面有他的 <code>Monad</code> instance。</p>
+<pre class="code">instance (Error e) =&gt; Monad (Either e) where  
+    return x = Right x   
+    Right x &gt;&gt;= f = f x  
+    Left err &gt;&gt;= f = Left err  
+    fail msg = Left (strMsg msg)</pre>
+<p><code>return</code> 就是建立起一個最小的 context，由於我們用 <code>Right</code> 代表正確的結果，所以他把值包在一個 <code>Right</code> constructor 裡面。就像實作 <code>Maybe</code> 時的 <code>return</code> 一樣。</p>
+
+<p><code>&gt;&gt;=</code> 會檢查兩種可能的情況：也就是 <code>Left</code> 跟 <code>Right</code>。如果進來的是 <code>Right</code>，那我們就呼叫 <code>f</code>，就像我們在寫 <code>Just</code> 的時候一樣，只是呼叫對應的函數。而在錯誤的情況下，<code>Left</code> 會被傳出來，而且裡面保有描述失敗的值。</p>
+
+<p><code>Either e</code> 的 <code>Monad</code> instance 有一項額外的要求，就是包在 <code>Left</code> 中的型態，也就是 <code>e</code>，必須是 <code>Error</code> typeclass 的 instance。<code>Error</code> 這個 typeclass 描述一個可以被當作錯誤訊息的型態。他定義了 <code>strMsg</code> 這個函數，他接受一個用字串表達的錯誤。一個明顯的範例就是 <code>String</code> 型態，當他是 <code>String</code> 的時候，<code>strMsg</code> 只不過回傳他接受到的字串。</p>
+<pre class="code">ghci&gt; :t strMsg  
+strMsg :: (Error a) =&gt; String -&gt; a  
+ghci&gt; strMsg "boom!" :: String  
+"boom!"</pre>
+<p>但因為我們通常在用 <code>Either</code> 來描述錯誤的時候，是用 <code>String</code> 來裝錯誤訊息，所以我們也不用擔心這一點。當在 <code>do</code> 裡面做 pattern match 失敗的時候，<code>Left</code> 的值會拿來代表失敗。</p>
+
+<p>總之來看看一個範例吧：</p>
+<pre class="code">ghci&gt; Left "boom" &gt;&gt;= \x -&gt; return (x+1)  
+Left "boom"  
+ghci&gt; Right 100 &gt;&gt;= \x -&gt; Left "no way!"  
+Left "no way!"</pre>
+<p>當我們用 <code>&gt;&gt;=</code> 來把一個 <code>Left</code> 餵進一個函數，函數的運算會被忽略而直接回傳丟進去的 <code>Left</code> 值。當我們餵 <code>Right</code> 值給函數，函數就會被計算而得到結果，但函數還是產生了一個 <code>Left</code> 值。</p>
+
+<p>當我們試著餵一個 <code>Right</code> 值給函數，而且函數也成功地計算，我們卻碰到了一個奇怪的 type error。</p>
+<pre class="code">ghci&gt; Right 3 &gt;&gt;= \x -&gt; return (x + 100)  
+  
+&lt;interactive&gt;:1:0:  
+  Ambiguous type variable `a' in the constraints:  
+    `Error a' arising from a use of `it' at &lt;interactive&gt;:1:0-33  
+    `Show a' arising from a use of `print' at &lt;interactive&gt;:1:0-33  
+  Probable fix: add a type signature that fixes these type variable(s)</pre>
+<p>Haskell 警告說他不知道要為 <code>e</code> 選擇什麼樣的型態，儘管我們是要印出 <code>Right</code> 的值。這是因為 <code>Error e</code> 被限制成 <code>Monad</code>。把 <code>Either</code> 當作 Monad 使用就會碰到這樣的錯誤，你只要明確寫出 type signature 就行了：</p>
+<pre class="code">ghci&gt; Right 3 &gt;&gt;= \x -&gt; return (x + 100) :: Either String Int  
+Right 103</pre>
+<p>這樣就沒問題了。</p>
+
+<p>撇除這個小毛病，把 <code>Either</code> 當 Monad 使用就像使用 <code>Maybe</code> 一樣。在前一章中，我們展示了 <code>Maybe</code> 的使用方式。你可以把前一章的範例用 <code>Either</code> 重寫當作練習。</p>
+<a name="一些實用的_Moandic_functions"></a><h2>一些實用的 Moandic functions</h2>
+
+
+<p>在這個章節，我們會看看一些操作 monadiv value 的函數。這樣的函數通常我們稱呼他們為 monadiv function。其中有些你是第一次見到，但有些不過是 <code>filter</code> 或 <code>foldl</code> 的變形。讓我們來看看吧！</p>
+<a name="liftM"></a><h3>liftM</h3>
+
+<img src="../img/wolf.png" alt="" style="float:right" class="floatright" />
+<p>當我們開始學習 Monad 的時候，我們是先學習 functors，他代表可以被 map over 的事物。接著我們學了 functors 的加強版，也就是 applicative functors，他可以對 applicative values 做函數的套用，也可以把一個一般值放到一個預設的 context 中。最後，我們介紹在 applicative functors 上更進一步的 monad，他讓這些具有 context 的值可以被餵進一般函數中。 </p>
+
+<p>也就是說每一個 monad 都是個 applicative functor，而每一個 applicative functor 也都是一個 functor。<code>Applicative</code> typeclass 中有加入限制，讓每一個 <code>Applicative</code> 都是 <code>Functor</code>。但 <code>Monad</code> 卻沒有這樣的限制，讓每個 <code>Monad</code> 都是 <code>Applicative</code>。這是因為 <code>Monad</code> 這個 typeclass 是在 <code>Applicative</code> 引入前就存在的緣故。</p>
+
+<p>但即使每個 monad 都是一個 functor，但我們不需要依賴 <code>Functor</code> 的定義。那是因為我們有 <code>liftM</code> 這個函數。他會接受一個函數跟一個 monadic value，然後把函數 map over 那些 monadic value。所以他其實就是 <code>fmap</code>，以下是他的型態：</p>
+<pre class="code">liftM :: (Monad m) =&gt; (a -&gt; b) -&gt; m a -&gt; m b</pre>
+<p>而這是 <code>fmap</code> 的型態：</p>
+<pre class="code">fmap :: (Functor f) =&gt; (a -&gt; b) -&gt; f a -&gt; f b</pre>
+<p>如果 <code>Functor</code> 跟 <code>Monad</code> 的 instance 遵守 functor 跟 monad 的法則（到目前為止我們看過的 monad 都遵守），那這兩個函數其實是等價的。這就像 <code>pure</code> 跟 <code>return</code> 其實是同一件事，只是一個在 <code>Applicative</code> 中，而另外一個在 <code>Monad</code> 裡面，我們來試試看 <code>liftM</code> 吧：</p>
+<pre class="code">ghci&gt; liftM (*3) (Just 8)  
+Just 24  
+ghci&gt; fmap (*3) (Just 8)  
+Just 24  
+ghci&gt; runWriter $ liftM not $ Writer (True, "chickpeas")  
+(False,"chickpeas")  
+ghci&gt; runWriter $ fmap not $ Writer (True, "chickpeas")  
+(False,"chickpeas")  
+ghci&gt; runState (liftM (+100) pop) [1,2,3,4]  
+(101,[2,3,4])  
+ghci&gt; runState (fmap (+100) pop) [1,2,3,4]  
+(101,[2,3,4])</pre>
+<p>我們已經知道 <code>fmap</code> 是如何運作在 <code>Maybe</code> 上。而 <code>liftM</code> 又跟 <code>fmap</code> 等價。對於 <code>Writer</code> 型態的值而言，函數只有對他的第一個 component 做處理。而對於改變狀態的計算，<code>fmap</code> 跟 <code>liftM</code> 也都是產生另一個改變狀態的計算。我們也看過了 <code>(+100)</code> 當作用在 <code>pop</code> 上會產生 <code>(1, [2,3,4])</code>。</p>
+
+<p>來看看 <code>liftM</code> 是如何被實作的：</p>
+<pre class="code">liftM :: (Monad m) =&gt; (a -&gt; b) -&gt; m a -&gt; m b  
+liftM f m = m &gt;&gt;= (\x -&gt; return (f x))</pre>
+<p>或者用 <code>do</code> 來表示得清楚些</p>
+<pre class="code">liftM :: (Monad m) =&gt; (a -&gt; b) -&gt; m a -&gt; m b  
+liftM f m = do  
+    x &lt;- m  
+    return (f x)</pre>
+<p>我們餵一個 monadic value <code>m</code> 給函數，我們套用那個函數然後把結果放進一個預設的 context。由於遵守 monad laws，這保證這操作不會改變 context，只會呈現最後的結果。我們可以看到實作中 <code>liftM</code> 也沒有用到 <code>Functor</code> 的性質。這代表我們能只用 monad 提供給我們的就實作完 <code>fmap</code>。這特性讓我們可以得到 monad 比 functor 性質要強的結論。</p>
+
+<p><code>Applicative</code> 讓我們可以操作具有 context 的值就像操作一般的值一樣。</p>
+
+<p>就像這樣：</p>
+<pre class="code">ghci&gt; (+) &lt;$&gt; Just 3 &lt;*&gt; Just 5  
+Just 8  
+ghci&gt; (+) &lt;$&gt; Just 3 &lt;*&gt; Nothing  
+Nothing</pre>
+<p>使用 applicative 的特性讓事情變得很精簡。</p>
+
+<p><code>&lt;$&gt;</code> 不過就是 <code>fmap</code>，而 <code>&lt;*&gt;</code> 只是一個具有下列型態的函數：</p>
+<pre class="code">(&lt;*&gt;) :: (Applicative f) =&gt; f (a -&gt; b) -&gt; f a -&gt; f b</pre>
+<p>他有點像 <code>fmap</code>，只是函數本身有一個 context。我們必須把他從 context 中抽出，對 <code>f a</code> 做 map over 的東做，然後再放回 context 中。由於在 Haskel 中函數預設都是 curried，我們便能用 <code>&lt;$&gt;</code> 以及 <code>&lt;*&gt;</code> 來讓接受多個參數的函數也能接受 applicative 種類的值。</p>
+
+<p>總之 <code>&lt;*&gt;</code> 跟 <code>fmap</code> 很類似，他也能只用 <code>Monad</code> 保證的性質實作出來。<code>ap</code> 這個函數基本上就是 &lt;*&gt;，只是他是限制在 Monad 上而不是 Applicative` 上。這邊是他的定義：</p>
+<pre class="code">ap :: (Monad m) =&gt; m (a -&gt; b) -&gt; m a -&gt; m b  
+ap mf m = do  
+    f &lt;- mf  
+    x &lt;- m  
+    return (f x)</pre>
+<p><code>mf</code> 是一個 monadic value，他的結果是一個函數。由於函數跟值都是放在 context 中，假設我們從 context 取出的函數叫 <code>f</code>，從 context 取出的值叫 <code>x</code>，我們把 <code>x</code> 餵給 <code>f</code> 然後再把結果放回 context。像這樣：</p>
+<pre class="code">ghci&gt; Just (+3) &lt;*&gt; Just 4  
+Just 7  
+ghci&gt; Just (+3) `ap` Just 4  
+Just 7  
+ghci&gt; [(+1),(+2),(+3)] &lt;*&gt; [10,11]  
+[11,12,12,13,13,14]  
+ghci&gt; [(+1),(+2),(+3)] `ap` [10,11]  
+[11,12,12,13,13,14]</pre>
+<p>由於我們能用 <code>Monad</code> 提供的函數實作出 <code>Applicative</code> 的函數，因此我們看到 Monad 有比 applicative 強的性質。事實上，當我們知道一個型態是 monad 的時候，大多數會先定義出 <code>Monad</code> 的 instance，然後才定義 <code>Applicative</code> 的 instance。而且只要把 <code>pure</code> 定義成 <code>return</code>，<code>&lt;*&gt;</code> 定義成 <code>ap</code> 就行了。同樣的，如果你已經有了 <code>Monad</code> 的 instance，你也可以簡單的定義出 <code>Functor</code>，只要把 <code>fmap</code> 定義成 <code>liftM</code> 就行了。</p>
+
+<p><code>liftA2</code> 是一個方便的函數，他可以把兩個 applicative 的值餵給一個函數。他的定義很簡單：</p>
+<pre class="code">liftA2 :: (Applicative f) =&gt; (a -&gt; b -&gt; c) -&gt; f a -&gt; f b -&gt; f c  
+liftA2 f x y = f &lt;$&gt; x &lt;*&gt; y</pre>
+<p><code>liftM2</code> 也是做差不多的事情，只是多了 <code>Monad</code> 的限制。在函式庫中其實也有 <code>liftM3</code>，<code>liftM4</code> 跟 <code>liftM5</code>。</p>
+
+<p>我們看到了 monad 相較於 applicative 跟 functor 有比較強的性質。儘管 moand 有 functor 跟 applicative functor 的性質，但他們不見得有 <code>Functor</code> 跟 <code>Applicative</code> 的 instance 定義。所以我們檢視了一些在 monad 中定義，且等價於 functor 或 applicative functor 所具有的函數。</p>
+<a name="The_join_function"></a><h3>The join function</h3>
+
+
+<p>如果一個 monadic value 的結果是另一個 monadic value，也就是其中一個 monadic value 被包在另一個裡面，你能夠把他們變成一個普通的 monadic value 嗎？就好像把他們打平一樣。譬如說，我們有 <code>Just (Just 9)</code>，我們能夠把他變成 <code>Just 9</code> 嗎？事實上是可以的，這也是 monad 的一個性質。也就是我要看的 <code>join</code> 函數，他的型態是這樣：</p>
+<pre class="code">join :: (Monad m) =&gt; m (m a) -&gt; m a</pre>
+<p>他接受一個包在另一個 monadic value 中的 monadic value，然後會回給我們一個普通的 monadic value。這邊有一些 <code>Maybe</code> 的範例：</p>
+<pre class="code">ghci&gt; join (Just (Just 9))  
+Just 9  
+ghci&gt; join (Just Nothing)  
+Nothing  
+ghci&gt; join Nothing  
+Nothing</pre>
+<p>第一行是一個計算成功的結果包在另一個計算成功的結果，他們應該要能結合成為一個比較大的計算成功的結果。第二行則是一個 <code>Nothing</code> 包在一個 <code>Just</code> 中。我們之前在處理 <code>Maybe</code> 型態的值時，會用 <code>&lt;*&gt;</code> 或 <code>&gt;&gt;=</code> 把他們結合起來。輸入必須都是 <code>Just</code> 時結果出來才會是 <code>Just</code>。如果中間有任何的失敗，結果就會是一個失敗的結果。而第三行就是這樣，我們嘗試把失敗的結果接合起來，結果也會是一個失敗。</p>
+
+<p>要 <code>join</code> 一個 list 也是很簡單：</p>
+<pre class="code">ghci&gt; join [[1,2,3],[4,5,6]]  
+[1,2,3,4,5,6]</pre>
+<p>你可以看到，對於 list 而言 <code>join</code> 不過就是 <code>concat</code>。</p>
+
+<p>而要 <code>join</code> 一個包在 <code>Writer</code> 中的 <code>Writer</code>，</p>
+
+<p>我們必須用 <code>mappend</code>：</p>
+<pre class="code">ghci&gt; runWriter $ join (Writer (Writer (1,"aaa"),"bbb"))  
+(1,"bbbaaa")</pre>
+<p><code>`"bbb"</code> 先被加到 monoid 中，接著 <code>"aaa"</code> 被附加上去。你想要檢視 <code>Writer</code> 中的值的話，必須先把值寫進去才行。</p>
+
+<p>要對 <code>Either</code> 做 <code>join</code> 跟對 <code>Maybe</code> 做 <code>join</code> 是很類似的：</p>
+<pre class="code">ghci&gt; join (Right (Right 9)) :: Either String Int  
+Right 9  
+ghci&gt; join (Right (Left "error")) :: Either String Int  
+Left "error"  
+ghci&gt; join (Left "error") :: Either String Int  
+Left "error"</pre>
+<p>如果我們對一個包了另外一個改變狀態的計算的進行改變狀態的計算，要作 <code>join</code> 的動作會讓外面的掀被計算，然後才是計算裡面的：</p>
+<pre class="code">ghci&gt; runState (join (State $ \s -&gt; (push 10,1:2:s))) [0,0,0]  
+((),[10,1,2,0,0,0])</pre>
+<p>這邊的 lambda 函數接受一個狀態，並把 <code>2</code> 跟 <code>1</code> 放到堆疊中，並把 <code>push 10</code> 當作他的結果。當對整個東西做 <code>join</code> 的時候，他會先把 <code>2</code> 跟 <code>1</code> 放到堆疊上，然後進行 <code>push 10</code> 的計算，因而把 <code>10</code> 放到堆疊的頂端。</p>
+
+<p><code>join</code> 的實作像是這樣：</p>
+<pre class="code">join :: (Monad m) =&gt; m (m a) -&gt; m a  
+join mm = do  
+    m &lt;- mm  
+    m</pre>
+<p>因為 <code>mm</code> 的結果會是一個 monadic value，我們單獨用 <code>m &lt;- mm</code> 拿取他的結果。這也可以說明 <code>Maybe</code> 只有當外層跟內層的值都是 <code>Just</code> 的時候才會是 <code>Just</code>。如果把 <code>mm</code> 的值設成 <code>Just (Just 8)</code> 的話，他看起來會是這樣：</p>
+<pre class="code">joinedMaybes :: Maybe Int  
+joinedMaybes = do  
+    m &lt;- Just (Just 8)  
+    m</pre><img src="../img/tipi.png" alt="" style="float:right" class="floatright" />
+<p>最有趣的是對於一個 monadic value 而言，用 <code>&gt;&gt;=</code> 把他餵進一個函數其實等價於對 monad 做 mapping over 的動作，然後用 <code>join</code> 來把值從 nested 的狀態變成扁平的狀態。也就是說 <code>m &gt;&gt;= f</code> 其實就是 <code>join (fmap f m)</code>。如果你仔細想想的話其實很明顯。<code>&gt;&gt;=</code> 的使用方式是，把一個 monadic value 餵進一個接受普通值的函數，但他卻會回傳 monadic value。如果我們 map over 一個 monadic value，我們會做成一個 monadic value 包了另外一個 monadic value。例如說，我們現在手上有 <code>Just 9</code> 跟 <code>\x -&gt; Just (x+1)</code>。如果我們把這個函數 map over <code>Just 9</code>，我們會得到 <code>Just (Just 10)</code></p>
+
+<p>事實上 <code>m &gt;&gt;= f</code> 永遠等價於 <code>join (fmap f m)</code> 這性質非常有用。如果我們要定義自己的 <code>Monad</code> instance，要知道怎麼把 nested monadic value 變成扁平比起要定義 <code>&gt;&gt;=</code> 是比較容易的一件事。</p>
+<a name="filterM"></a><h3>filterM</h3>
+
+
+<p><code>filter</code> 函數是 Haskell 中不可或缺的要素。他接受一個斷言(predicate)跟一個 list 來過濾掉斷言為否的部份並回傳一個新的 list。他的型態是這樣：</p>
+<pre class="code">filter :: (a -&gt; Bool) -&gt; [a] -&gt; [a]</pre>
+<p>predicate 能接 list 中的一個元素並回傳一個 <code>Bool</code> 型態的值。但如果 <code>Bool</code> 型態其實是一個 monadic value 呢？也就是他有一個 context。例如說除了 <code>True</code> 跟 <code>False</code> 之外還伴隨一個 monoid，像是 <code>["Accepted the number 5"]</code>，或 <code>["3 is too small"]</code>。照前面所學的聽起來是沒問題，而且產出的 list 也會跟隨 context，在這個例子中就是 log。所以如果 <code>Bool</code> 會回傳伴隨 context 的布林值，我們會認為最終的結果也會具有 context。要不然這些 context 都會在處理過程中遺失。</p>
+
+<p>在 <code>Control.Monad</code> 中的 <code>filterM</code> 函數正是我們所需要的，他的型態如下：</p>
+<pre class="code">filterM :: (Monad m) =&gt; (a -&gt; m Bool) -&gt; [a] -&gt; m [a]</pre>
+<p>predicate 會回傳一個 monadic value，他的結果會是 <code>Bool</code> 型態，由於他是 monadic value，他的 context 有可能會是任何 context，譬如說可能的失敗，non-determinism，甚至其他的 context。一旦我們能保證 context 也會被保存在最後的結果中，結果也就是一個 monadic value。</p>
+
+<p>我們來寫一個接受 list 然後過濾掉小於 4 的函數。先嘗試使用 <code>filter</code> 函數：</p>
+<pre class="code">ghci&gt; filter (\x -&gt; x &lt; 4) [9,1,5,2,10,3]  
+[1,2,3]</pre>
+<p>很簡單吧。接著我們在做個 predicate，除了表達 <code>True</code> 或 <code>False</code> 之外，還提供了一個 log。我們會用 <code>Writer</code> monad 來表達這件事：</p>
+<pre class="code">keepSmall :: Int -&gt; Writer [String] Bool  
+keepSmall x  
+    | x &lt; 4 = do  
+        tell ["Keeping " ++ show x]  
+        return True  
+    | otherwise = do  
+        tell [show x ++ " is too large, throwing it away"]  
+        return False</pre>
+<p>這個函數會回傳 <code>Writer [String] Bool</code> 而不是一個單純的 <code>Bool</code>。他是一個 monadic predicate。如果掃到的數字小於 <code>4</code> 的話，我們就會回報要保存他，而且回傳 <code>return True</code>。</p>
+
+<p>接著，我們把他跟一個 list 餵給 <code>filterM</code>。由於 predicate 會回傳 <code>Writer</code>，所以結果仍會是一個 <code>Writer</code> 值。</p>
+<pre class="code">ghci&gt; fst $ runWriter $ filterM keepSmall [9,1,5,2,10,3]  
+[1,2,3]</pre>
+<p>要檢查 <code>Writer</code> 的結果，我們想要印出 log 看看裡面有什麼東西：</p>
+<pre class="code">ghci&gt; mapM_ putStrLn $ snd $ runWriter $ filterM keepSmall [9,1,5,2,10,3]  
+9 is too large, throwing it away  
+Keeping 1  
+5 is too large, throwing it away  
+Keeping 2  
+10 is too large, throwing it away  
+Keeping 3</pre>
+<p>提供 monadic predicate 給 <code>filterM</code>，我們便能夠做 filter 的動作，同時還能保有 monadic context。</p>
+
+<p>一個比較炫的技巧是用 <code>filterM</code> 來產生一個 list 的 powerset。一個 powerset 就是一個集合所有子集所形成的集合。如果說我們的 list 是 <code>[1,2,3]</code>，那他個 powerset 就會是：</p>
+<pre class="code">[1,2,3]  
+[1,2]  
+[1,3]  
+[1]  
+[2,3]  
+[2]  
+[3]  
+[]</pre>
+<p>換句話說，要產生一個 powerset 就是要列出所有要丟掉跟保留的組合。<code>[2,3]</code> 只不過代表我們把 <code>1</code> 給丟掉而已。</p>
+
+<p>我們要依賴 non-determinism 來寫我們這產生 powerset 的函數。我們接受一個 list <code>[1,2,3]</code> 然後查看第一個元素，這個例子中是 <code>1</code>，我們會問：我們要保留他呢？還是丟掉他呢？答案是我們都要做。所以我們會用一個 non-determinism 的 predicate 來過濾我的 list。也就是我們的 <code>powerset</code> 函數：</p>
+<pre class="code">powerset :: [a] -&gt; [[a]]  
+powerset xs = filterM (\x -&gt; [True, False]) xs</pre>
+<p>等等，我們已經寫完了嗎？沒錯，就這麼簡單，我們可以同時丟掉跟保留每個元素。只要我們用 non-deterministic predicate，那結果也就是一個 non-deterministic value，也便是一個 list 的 list。試著跑跑看：</p>
+<pre class="code">ghci&gt; powerset [1,2,3]  
+[[1,2,3],[1,2],[1,3],[1],[2,3],[2],[3],[]]</pre>
+<p>這樣的寫法需要讓你好好想一下，但如果你能接受 list 其實就是 non-deterministic value 的話，那要想通會比較容易一些。</p>
+<a name="foldM"></a><h3>foldM</h3>
+
+
+<p><code>foldl</code> 的 monadic 的版本叫做 <code>foldM</code>。如果你還有印象的話，<code>foldl</code> 會接受一個 binary 函數，一個起始累加值跟一串 list，他會從左邊開始用 binary 函數每次帶進一個值來 fold。<code>foldM</code> 也是做同樣的事，只是他接受的這個 binary 函數會產生 monadic value。不意外的，他的結果也會是 monadic value。<code>foldl</code> 的型態是：</p>
+<pre class="code">foldl :: (a -&gt; b -&gt; a) -&gt; a -&gt; [b] -&gt; a</pre>
+<p>而 <code>foldM</code> 的型態則是：</p>
+<pre class="code">foldM :: (Monad m) =&gt; (a -&gt; b -&gt; m a) -&gt; a -&gt; [b] -&gt; m a</pre>
+<p>binary 函數的回傳值是 monadic，所以結果也會是 monadic。我們來試著把 list 的值用 fold 全部加起來：</p>
+<pre class="code">ghci&gt; foldl (\acc x -&gt; acc + x) 0 [2,8,3,1]  
+14</pre>
+<p>這邊起始的累加值是 <code>0</code>，首先 <code>2</code> 會被加進去，變成 <code>2</code>。然後 <code>8</code> 被加進去變成 <code>10</code>，直到我們沒有值可以再加，那便是最終的結果。</p>
+
+<p>但如果我們想額外加一個條件，也就是當碰到一個數字大於 <code>9</code> 時候，整個運算就算失敗呢？一種合理的修改就是用一個 binary 函數，他會檢查現在這個數是否大於 <code>9</code>，如果是便引發失敗，如果不是就繼續。由於有失敗的可能性，我們便需要這個 binary 函數回傳一個 <code>Maybe</code>，而不是一個普通的值。我們來看看這個函數：</p>
+<pre class="code">binSmalls :: Int -&gt; Int -&gt; Maybe Int  
+binSmalls acc x  
+    | x &gt; 9     = Nothing  
+    | otherwise = Just (acc + x)</pre>
+<p>由於這邊的 binary 函數是 monadic function，我們不能用普通的 <code>foldl</code>，我們必須用 <code>foldM</code>：</p>
+<pre class="code">ghci&gt; foldM binSmalls 0 [2,8,3,1]  
+Just 14  
+ghci&gt; foldM binSmalls 0 [2,11,3,1]  
+Nothing</pre>
+<p>由於這串 list 中有一個數值大於 <code>9</code>，所以整個結果會是 <code>Nothing</code>。另外你也可以嘗試 fold 一個回傳 <code>Writer</code> 的 binary 函數，他會在 fold 的過程中紀錄你想紀錄的資訊。</p>
+<a name="Making_a_safe_RPN_calculator"></a><h3>Making a safe RPN calculator</h3>
+
+<img src="../img/miner.png" alt="" style="float:left" class="floatleft" />
+<p>之前的章節我們實作了一個 RPN 計算機，但我們沒有做錯誤的處理。他只有在輸入是合法的時候才會運算正確。假如有東西出錯了，整個程式便會當掉。我們在這章看到了要怎樣把程式碼轉換成 monadic 的版本，我們先嘗適用 <code>Maybe</code> monad 來幫我們的 RPN 計算機加上些錯誤處理。</p>
+
+<p>我們的 RPN 計算機接受一個像 <code>"1 3 + 2 *"</code> 這樣的字串，把他斷成 word，變成 <code>["1","3","+","2","*"]</code> 這樣。然後用一個 binary 函數，跟一個空的堆疊，從左邊開始或是將數值推進堆疊中，或是操作堆疊最上層的兩個元素。</p>
+
+<p>以下便是程式的核心部份：</p>
+<pre class="code">import Data.List  
+  
+solveRPN :: String -&gt; Double  
+solveRPN = head . foldl foldingFunction [] . words</pre>
+<p>我們把輸入變成一個字串的 list，從左邊開始 fold，當堆疊中只剩下一個元素的時候，他便是我們要的答案。以下是我們的 folding 函數：</p>
+<pre class="code">foldingFunction :: [Double] -&gt; String -&gt; [Double]  
+foldingFunction (x:y:ys) "*" = (x * y):ys  
+foldingFunction (x:y:ys) "+" = (x + y):ys  
+foldingFunction (x:y:ys) "-" = (y - x):ys  
+foldingFunction xs numberString = read numberString:xs</pre>
+<p>這邊我們的累加元素是一個堆疊，我們用一個 <code>Double</code> 的 list 來表示他。當我們在做 folding 的過程，如果當前的元素是一個 operator，他會從堆疊上拿下兩個元素，用 operator 施行運算然後把結果放回堆疊。如果當前的元素是一個表示成字串的數字，他會把字串轉換成數字，並回傳一個新的堆疊包含了轉換後的數字。</p>
+
+<p>我們首先把我們的 folding 函數加上處理錯誤的 case，所以他的型態會變成這樣：</p>
+<pre class="code">foldingFunction :: [Double] -&gt; String -&gt; Maybe [Double]</pre>
+<p>他不是回傳一個 <code>Just</code> 的堆疊就是回傳 <code>Nothing</code>。</p>
+
+<p><code>reads</code> 函數就像 <code>read</code> 一樣，差別在於他回傳一個 list。在成功讀取的情況下 list 中只工讀取的那個元素。如果他失敗了，他會回傳一個空的 list。除了回傳讀取的元素，他也回傳剩下讀取失敗的元素。他必須要看完整串輸入，我們想把他弄成一個 <code>readMaybe</code> 的函數，好方便我們進行。</p>
+<pre class="code">readMaybe :: (Read a) =&gt; String -&gt; Maybe a  
+readMaybe st = case reads st of [(x,"")] -&gt; Just x  
+                                _ -&gt; Nothing</pre>
+<p>測試結果如下：</p>
+<pre class="code">ghci&gt; readMaybe "1" :: Maybe Int  
+Just 1  
+ghci&gt; readMaybe "GO TO HELL" :: Maybe Int  
+Nothing</pre>
+<p>看起來運作正常。我們再把他變成一個可以處理失敗情況的 monadic 函數</p>
+<pre class="code">foldingFunction :: [Double] -&gt; String -&gt; Maybe [Double]  
+foldingFunction (x:y:ys) "*" = return ((x * y):ys)  
+foldingFunction (x:y:ys) "+" = return ((x + y):ys)  
+foldingFunction (x:y:ys) "-" = return ((y - x):ys)  
+foldingFunction xs numberString = liftM (:xs) (readMaybe numberString)</pre>
+<p>前三種 case 跟前面的很像，只差在堆疊現在是包在 <code>Just</code> 裡面（我們常常是用 <code>return</code> 來做到這件事，但其實我們也可以用 <code>Just</code>）。在最後一種情況，我們用 <code>readMaybe numberString</code> 然後我們用 <code>(:xs)</code> map over 他。所以如果堆疊 <code>xs</code> 是 <code>[1.0,2.0]</code> 且 <code>readMaybe numberString</code> 產生 <code>Just 3.0</code>，那結果便是 <code>Just [3.0,1.0,2.0]</code>。如果 <code>readyMaybe numberString</code> 產生 <code>Nothing</code> 那結果便是 <code>Nothing</code>。我們來試著跑跑看 folding 函數</p>
+<pre class="code">ghci&gt; foldingFunction [3,2] "*"  
+Just [6.0]  
+ghci&gt; foldingFunction [3,2] "-"  
+Just [-1.0]  
+ghci&gt; foldingFunction [] "*"  
+Nothing  
+ghci&gt; foldingFunction [] "1"  
+Just [1.0]  
+ghci&gt; foldingFunction [] "1 wawawawa"  
+Nothing</pre>
+<p>看起來正常運作。我們可以用他來寫一個新的 <code>solveRPN</code>。</p>
+<pre class="code">import Data.List  
+  
+solveRPN :: String -&gt; Maybe Double  
+solveRPN st = do  
+  [result] &lt;- foldM foldingFunction [] (words st)  
+  return result</pre>
+<p>我們仍是接受一個字串把他斷成一串 word。然後我們用一個空的堆疊來作 folding 的動作，只差在我們用的是 <code>foldM</code> 而不是 <code>foldl</code>。<code>foldM</code> 的結果會是 <code>Maybe</code>，<code>Maybe</code> 裡面包含了一個只有一個元素的 list。我們用 <code>do</code> expression 來取出值，把他綁定到 <code>result</code> 上。當 <code>foldM</code> 回傳 <code>Nothing</code> 的時候，整個結果就變成 <code>Nothing</code>。也特別注意我們有在 <code>do</code> 裡面做 pattern match 的動作，所以如果 list 中不是只有一個元素的話，最後結果便會是 <code>Nohting</code>。最後一行我們用 <code>return result</code> 來展示 RPN 計算的結果，把他包在一個 <code>Maybe</code> 裡面。</p>
+<pre class="code">ghci&gt; solveRPN "1 2 * 4 +"  
+Just 6.0  
+ghci&gt; solveRPN "1 2 * 4 + 5 *"  
+Just 30.0  
+ghci&gt; solveRPN "1 2 * 4"  
+Nothing  
+ghci&gt; solveRPN "1 8 wharglbllargh"  
+Nothing</pre>
+<p>第一個例子會失敗是因為 list 中不是只有一個元素，所以 <code>do</code> 裡面的 pattern matching 失敗了。第二個例子會失敗是因為 <code>readMaybe</code> 回傳了 <code>Nothing</code>。</p>
+<a name="Composing_monadic_functions"></a><h3>Composing monadic functions</h3>
+
+
+<p>當我們介紹 monad law 的時候，我們說過 <code>&lt;=&lt;</code> 就像是函數合成一樣，只差在一個是作用在普通函數 <code>a -&gt; b</code>。一個是作用在 monadic 函數 <code>a -&gt; m b</code>。</p>
+<pre class="code">ghci&gt; let f = (+1) . (*100)  
+ghci&gt; f 4  
+401  
+ghci&gt; let g = (\x -&gt; return (x+1)) &lt;=&lt; (\x -&gt; return (x*100))  
+ghci&gt; Just 4 &gt;&gt;= g  
+Just 401</pre>
+<p>在這個例子中我們合成了兩個普通的函數，並餵給給他 <code>4</code>。我們也合成了兩個 monadic 函數並用 <code>&gt;&gt;=</code> 餵給他 <code>Just 4</code>。</p>
+
+<p>如果我們在 list 中有一大堆函數，我們可以把他們合成一個巨大的函數。用 <code>id</code> 當作累加的起點，<code>.</code> 當作 binary 函數，用 fold 來作這件事。</p>
+<pre class="code">ghci&gt; let f = foldr (.) id [(+1),(*100),(+1)]  
+ghci&gt; f 1  
+201</pre>
+<p><code>f</code> 接受一個數字，然後會幫他加 <code>1</code>，乘以 <code>100</code>，再加 <code>1</code>。我們也可以將 monadic 函數用同樣的方式做合成，只是不用 <code>.</code> 而用 <code>&lt;=&lt;</code>，不用 <code>id</code> 而用 <code>return</code>。我們不需要 <code>foldM</code>，由於 <code>&lt;=&lt;</code> 只用 <code>foldr</code> 就足夠了。</p>
+
+<p>當我們在之前的章節介紹 list monad 的時候， 我們用他來解決一個騎士是否能在三步內走到另一點的問題。 那個函數叫做 <code>moveKnight</code>， 他接受一個座標然後回傳所有可能的下一步。 然後產生出所有可能三步的移動。</p>
+<pre class="code">in3 start = return start &gt;&gt;= moveKnight &gt;&gt;= moveKnight &gt;&gt;= moveKnight</pre>
+<p>要檢查我們是否能只用三步從 <code>start</code> 走到 <code>end</code>，我們用下列函數</p>
+<pre class="code">canReachIn3 :: KnightPos -&gt; KnightPos -&gt; Bool  
+canReachIn3 start end = end `elem` in3 start</pre>
+<p>如果使用 monadic 版本的合成的話，我們也可以做一個類似的 <code>in3</code>，但我們希望他不只有三步的版本，而希望有任意步的版本。如果你仔細觀察 <code>in3</code>，他只不過用 <code>&gt;&gt;=</code> 跟 <code>moveKnight</code> 把之前所有可能結果餵到下一步。把他一般化，就會像下面的樣子：</p>
+<pre class="code">import Data.List  
+  
+inMany :: Int -&gt; KnightPos -&gt; [KnightPos]  
+inMany x start = return start &gt;&gt;= foldr (&lt;=&lt;) return (replicate x moveKnight)</pre>
+<p>首先我們用 <code>replicate</code> 來做出一個 list，裡面有 <code>x</code> 份的 <code>moveKnight</code>。然後我們把所有函數都合成起來，就會給我們從起點走 <code>x</code> 步內所有可能的的位置。然後我們只需要把起始位置餵給他就好了。</p>
+
+<p>我們也可以一般化我們的 <code>canReachIn3</code>：</p>
+<pre class="code">canReachIn :: Int -&gt; KnightPos -&gt; KnightPos -&gt; Bool  
+canReachIn x start end = end `elem` inMany x start</pre><a name="定義自己的_Monad"></a><h2>定義自己的 Monad</h2>
+
+<img src="../img/spearhead.png" alt="" style="float:none" class="floatnone" />
+<p>在這一章節，我們會帶你看看究竟一個型態是怎麼被辨認，確認是一個 monad 而且正確定義出 <code>Monad</code> 的 instance。我們通常不會為了定義 monad 而定義。比較常發生的是，我們想要針對一個問題建立模型，卻稍後發現我們定義的型態其實是一個 Monad，所以就定義一個 <code>Monad</code> 的 instance。</p>
+
+<p>正如我們看到的，list 是被拿來當作 non-deterministic values。對於 <code>[3,5,9]</code>，我們可以看作是一個 non-deterministic value，我們不能知道究竟是哪一個。當我們把一個 list 用 <code>&gt;&gt;=</code> 餵給一個函數，他就是把一串可能的選擇都丟給函數，函數一個個去計算在那種情況下的結果，結果也便是一個 list。</p>
+
+<p>如果我們把 <code>[3,5,9]</code> 看作是 <code>3</code>,<code>5</code>,<code>9</code> 各出現一次，但這邊沒有每一種數字出現的機率。如果我們把 non-deterministic 的值看作是 <code>[3,5,9]</code>，但 <code>3</code> 出現的機率是 50%，<code>5</code> 跟 <code>9</code> 出現的機率各是 25%呢？我們來試著用 Haskell 描述看看。</p>
+
+<p>如果說 list 中的每一個元素都伴隨著他出現的機率。那下面的形式就蠻合理的：</p>
+<pre class="code">[(3,0.5),(5,0.25),(9,0.25)]</pre>
+<p>在數學上，機率通常不是用百分比表示，而是用介於 0 跟 1 的實數表示。0 代表不可能會發生，而 1 代表絕對會發生。但浮點數很有可能很快隨著運算失去精準度，所以 Haskell 有提供有理數。他的型態是擺在 <code>Data.Ratio</code> 中，叫做 <code>Rational</code>。要創造出一個 <code>Rational</code>，我們會把他寫成一個分數的形式。分子跟分母用 <code>%</code> 分隔。這邊有幾個例子：</p>
+<pre class="code">ghci&gt; 1%4  
+1 % 4  
+ghci&gt; 1%2 + 1%2  
+1 % 1  
+ghci&gt; 1%3 + 5%4  
+19 % 12</pre>
+<p>第一行代表四分之一，第二行代表兩個二分之一加起來變成一。而第三行我們把三分之一跟四分之五加起來變成十二分之十九。所以我們來用 <code>Rational</code> 取代浮點數來當作我們的機率值吧。</p>
+<pre class="code">ghci&gt; [(3,1%2),(5,1%4),(9,1%4)]  
+[(3,1 % 2),(5,1 % 4),(9,1 % 4)]</pre>
+<p>所以 <code>3</code> 有二分之一的機會出現，而 <code>5</code> 跟 <code>9</code> 有四分之一的機會出現。</p>
+
+<p>可以看到我們幫 list 加上了一些額外的 context。再我們繼續深入之前，我們用一個 <code>newtype</code> 把他包起來，好讓我們幫他寫 instance。</p>
+<pre class="code">import Data.Ratio
+
+newtype Prob a = Prob { getProb :: [(a,Rational)] } deriving Show</pre>
+<p>接著我們想問，這是一個 functor 嗎？list 是一個 functor，所以很有可能他也是一個 functor，畢竟我們只是在 list 上多加一些東西而已。在 list 的情況下，我們可以針對每個元素用函數做處理。這邊我們也是用函數針對每個元素做處理，只是我們是輸出機率值。所以我們就來寫個 functor 的 instance 吧。</p>
+<pre class="code">instance Functor Prob where  
+    fmap f (Prob xs) = Prob $ map (\(x,p) -&gt; (f x,p)) xs</pre>
+<p>我們可以用 pattern matching 的方式把 <code>newtype</code> 解開來，套用函數 <code>f</code> 之後再包回去。過程中不會動到機率值。</p>
+<pre class="code">ghci&gt; fmap negate (Prob [(3,1%2),(5,1%4),(9,1%4)])  
+Prob {getProb = [(-3,1 % 2),(-5,1 % 4),(-9,1 % 4)]}</pre>
+<p>要注意機率的和永遠是 <code>1</code>。如果我們沒有漏掉某種情形的話，沒有道理他們加起來的值不為 <code>1</code>。一個有 75%機率是正面以及 50%機率是反面的硬幣根本沒什麼道理。</p>
+
+<p>接著要問一個重要的問題，他是一個 monad 嗎？我們知道 list 是一個 monad，所以他很有可能也是一個 monad。首先來想想 <code>return</code>。他在 list 是怎麼運作的？他接受一個普通的值並把他放到一個 list 中變成只有一個元素的 list。那在這邊又如何？由於他是一個最小的 context，他也應該是一個元素的 list。那機率值呢？<code>return x</code> 的值永遠都是 <code>x</code>，所以機率值不應該是 <code>0</code>，而應該是 <code>1</code>。</p>
+
+<p>至於 <code>&gt;&gt;=</code> 呢？看起來有點複雜，所以我們換種方式來思考，我們知道 <code>m &gt;&gt;= f</code> 會等價於 <code>join (fmap f m)</code>，所以我們來想要怎麼把一串包含 probability list 的 list 弄平。舉個例子，考慮一個 list，<code>'a'</code> 跟 <code>'b'</code> 恰出現其中一個的機率為 25%，兩個出現的機率相等。而 <code>'c'</code> 跟 <code>'d'</code> 恰出現其中一個的機率為 75%，兩個出現的機率也是相等。這邊有一個圖將情形畫出來。</p>
+<img src="../img/prob.png" alt="" style="float:left" class="floatleft" />
+<p>每個字母發生的機率有多高呢？如果我們用四個盒子來代表每個字母，那每個盒子的機率為何？每個盒子的機率是他們所裝有的機率值相乘的結果。<code>'a'</code> 的機率是八分之一，<code>'b'</code> 同樣也是八分之一。八分之一是因為我們把二分之一跟四分之一相乘得到的結果。而 <code>'c'</code> 發生的機率是八分之三，是因為二分之一乘上四分之三。<code>'d'</code> 同樣也是八分之三。如果把所有的機率加起來，就會得到一，符合機率的規則。</p>
+
+<p>來看看怎麼用一個 list 表達我們要說明的東西：</p>
+<pre class="code">thisSituation :: Prob (Prob Char)  
+thisSituation = Prob  
+    [( Prob [('a',1%2),('b',1%2)] , 1%4 )  
+    ,( Prob [('c',1%2),('d',1%2)] , 3%4)  
+    ]</pre>
+<p>注意到這邊的型態是 <code>Prob (Prob Char)</code>。所以我們要思考的是如何把一串包含機率 list 的 list 打平。如果能成功寫出這樣的邏輯，<code>&gt;&gt;=</code> 不過就是 <code>join (fmap f m)</code>，我們便得到了一個 monad。我們這邊寫了一個 <code>flatten</code> 來做這件事。</p>
+<pre class="code">flatten :: Prob (Prob a) -&gt; Prob a  
+flatten (Prob xs) = Prob $ concat $ map multAll xs  
+    where multAll (Prob innerxs,p) = map (\(x,r) -&gt; (x,p*r)) innerxs</pre>
+<p><code>multAll</code> 接受一個 tuple，裡面包含一個 probability list 跟一個伴隨的機率值 <code>p</code>，所以我們要作的事是把 list 裡面的機率值都乘以 <code>p</code>，並回傳一個新的 tuple 包含新的 list 跟新的機率值。我們將 <code>multAll</code> map over 到我們的 probability list 上，我們就成功地打平了我們的 list。</p>
+
+<p>現在我們就能定義我們的 <code>Monad</code> instance。</p>
+<pre class="code">instance Monad Prob where  
+    return x = Prob [(x,1%1)]  
+    m &gt;&gt;= f = flatten (fmap f m)  
+    fail _ = Prob []</pre><img src="../img/ride.png" alt="" style="float:right" class="floatright" />
+<p>由於我們已經把所有苦工的做完了，定義這個 instance 顯得格外輕鬆。我們也定義了 <code>fail</code>，我們定義他的方式跟定義 list 一樣。如果在 <code>do</code> 中發生了失敗的 pattern match，那就會呼叫 <code>fail</code>。</p>
+
+<p>檢查我們定義的 instance 是否遵守 monad law 也是很重要的。monad law 的第一個定律是 <code>return x &gt;&gt;= f</code> 應該要等價於 <code>f x</code>。要寫出嚴格的證明會很麻煩，但我們可以觀察到下列事實：首先用 <code>return</code> 做一個最小的 context，然後用 <code>fmap</code> 將一個函數 map over 這個 context，再將他打平。這樣做出來的 probability list，每一個機率值都相當於將我們最初放到 minimal context 中的值乘上 <code>1%1</code>。同樣的邏輯，也可以看出 <code>m &gt;&gt;= return</code> 是等價於 <code>m</code>。第三個定律是 <code>f &lt;=&lt; (g &lt;=&lt; h)</code> 應該要等價於 <code>(f &lt;=&lt; g) &lt;=&lt; h</code>。我們可以從乘法有結合律的性質，以及 list monad 的特性上推出 probability monad 也符合這個定律。<code>1%2 * (1%3 * 1%5)</code> 等於 <code>(1%2 * 1%3) * 1%5</code>。</p>
+
+<p>現在我們有了一個 monad，這樣有什麼好處呢？他可以幫助我們計算機率值。我們可以把機率事件看作是具有 context 的 value，而 probability monad 可以保證機率值能正確地被計算成最終的結果。</p>
+
+<p>好比說我們現在有兩個普通的硬幣以及一個灌鉛的硬幣。灌鉛的硬幣十次中有九次會出現正面，只有一次會出現反面。如果我們一次丟擲這三個硬幣，有多大的機會他們都會出現正面呢？讓我們先來表達丟擲硬幣這件事，分別丟的是灌鉛的跟普通的硬幣。</p>
+<pre class="code">data Coin = Heads | Tails deriving (Show, Eq)  
+
+coin :: Prob Coin  
+coin = Prob [(Heads,1%2),(Tails,1%2)]  
+
+loadedCoin :: Prob Coin  
+loadedCoin = Prob [(Heads,1%10),(Tails,9%10)]</pre>
+<p>最後，來看看擲硬幣的函數：</p>
+<pre class="code">import Data.List (all)  
+  
+flipThree :: Prob Bool  
+flipThree = do  
+  a &lt;- coin  
+  b &lt;- coin  
+  c &lt;- loadedCoin  
+  return (all (==Tails) [a,b,c])</pre>
+<p>試著跑一下的話，我們會看到儘管我們用了不公平的硬幣，三個反面的機率還是不高。</p>
+<pre class="code">ghci&gt; getProb flipThree  
+[(False,1 % 40),(False,9 % 40),(False,1 % 40),(False,9 % 40),  
+ (False,1 % 40),(False,9 % 40),(False,1 % 40),(True,9 % 40)]</pre>
+<p>同時出現正面的機率是四十分之九，差不多是 25%的機會。我們的 monad 並沒有辦法 join 所有都是 <code>False</code> 的情形，也就是所有硬幣都是出現反面的情況。不過那不是個嚴重的問題，可以寫個函數來將同樣的結果變成一種結果，這就留給讀者當作習題。</p>
+
+<p>在這章節中，我們從提出問題到真的寫出型態，並確認這個型態是一個 monad，寫出他的 instance 並實際操作他。這是個很棒的經驗。現在讀者們應該對於 monad 有不少的了解才是。</p>
+
+            <ul class="nav">
+                <li class="left">  <img src="../img/prv.png" alt="prev" /><a href="a-fistful-of-monads.html">來看看幾種 Monad</a></li>
+                <li class="center"><a href="chapters.html">Index</a></li>
+                <li class="right"> <a href="zippers.html">Zippers 資料結構</a><img src="../img/nxt.png" alt="next" /></li>
+            </ul>
+        </div>
+        <div id="footer">
+        </div>
+        <div id="feedback">Send feedback</div>
+    </body>
+</html>

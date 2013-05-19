@@ -1,0 +1,409 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <style type="text/css">
+            @import url(../css/style.css);
+            @import url(../css/feedback.css);
+        </style>
+        <script type="text/javascript" src="../js/jquery.js"></script>
+        <script type="text/javascript" src="../js/jquery.chili-2.2.js"></script>
+        <script type="text/javascript" src="../js/script.js"></script>
+        <script type="text/javascript" src="../js/html2canvas.js"></script>
+        <script type="text/javascript" src="../js/jsfeedback.js"></script>
+        <script type="text/javascript">
+             ChiliBook.recipeFolder = "../js/chili/";  
+             ChiliBook.automaticSelector = "pre";
+        </script>
+        <script type="text/javascript">
+            $(function(){
+                $('#feedback').click(function(){
+                    $('body').feedback();
+                })
+            });
+        </script>
+        <script type="text/javascript">
+            var _gaq = _gaq || [];
+            _gaq.push(['_setAccount', 'UA-32830659-1']);
+            _gaq.push(['_trackPageview']);
+
+            (function() {
+                var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+                ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+                    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+            })();
+        </script>
+        <title>Zippers 資料結構</title>
+    </head>
+    <body>
+        <div id="header">
+            <img id="beta" alt="beta" src="../img/beta.png" />
+        </div>
+
+        <div id="main">
+            <ul class="nav">
+                <li class="left">  <img src="../img/prv.png" alt="prev" /><a href="for-a-few-monads-more.html">再來看看更多 Monad</a></li>
+                <li class="center"><a href="chapters.html">Index</a></li>
+                <li class="right"></li>
+            </ul>
+            <a name="Zippers_資料結構"></a><h1>Zippers 資料結構</h1>
+
+<img src="../img/60sdude.png" alt="" style="float:right" class="floatright" />
+<p>儘管 Haskell 的純粹性質帶來很多好處，但他讓一些在非純粹語言很容易處理的一些事情變得要用另一種方法解決。由於 referential transparency，同樣一件事在 Haskell 中是沒有分別的。所以如果我們有一個裝滿 5 的樹，而我們希望把其中一個換成 6，那我們必須要知道我們究竟是想改變哪個 5。我們也必須知道我們身處在這棵樹的哪裡。但在 Haskell 中，每個 5 都長得一樣，我們並不能因為他們在記憶體中的位址不同就把他們區分開來。我們也不能改變任何狀態，當我們想要改變一棵樹的時候，我們實際上是說我們要一棵新的樹，只是他長得很像舊的。一種解決方式是記住一條從根節點到現在這個節點的路徑。我們可以這樣表達：給定一棵樹，先往左走，再往右走，再往左走，然後改變你走到的元素。雖然這是可行的，但這非常沒有效率。如果我們想接連改變一個在附近的節點，我們必須再從根節點走一次。在這個章節中，我們會看到我們可以集中注意在某個資料結構上，這樣讓改變資料結構跟遍歷的動作非常有效率。</p>
+<a name="來走二元樹吧!"></a><h2>來走二元樹吧!</h2>
+
+
+<p>我們在生物課中學過，樹有非常多種。所以我們來自己發明棵樹吧！</p>
+<pre class="code">data Tree a = Empty | Node a (Tree a) (Tree a) deriving (Show)</pre>
+<p>這邊我們的樹不是空的就是有兩棵子樹。來看看一個範例：</p>
+<pre class="code">freeTree :: Tree Char  
+freeTree =   
+    Node 'P'  
+        (Node 'O'  
+             (Node 'L'  
+              (Node 'N' Empty Empty)  
+              (Node 'T' Empty Empty)  
+             )  
+             (Node 'Y'  
+              (Node 'S' Empty Empty)  
+              (Node 'A' Empty Empty)  
+             )  
+        )  
+        (Node 'L'  
+             (Node 'W'  
+                  (Node 'C' Empty Empty)  
+                  (Node 'R' Empty Empty)  
+             )  
+             (Node 'A'  
+                  (Node 'A' Empty Empty)  
+                  (Node 'C' Empty Empty)  
+             )  
+        )</pre>
+<p>畫成圖的話就是像這樣：</p>
+<img src="../img/pollywantsa.png" alt="" style="float:right" class="floatright" />
+<p>注意到 <code>W</code> 這個節點了嗎？如果我們想要把他變成 <code>P</code>。我們會怎麼做呢？一種方式是用 pattern match 的方式做，直到我們找到那個節點為止。要先往右走再往左走，再改變元素內容，像是這樣：</p>
+<pre class="code">changeToP :: Tree Char -&gt; Tree Char  
+changeToP (Node x l (Node y (Node _ m n) r)) = Node x l (Node y (Node 'P' m n) r)</pre>
+<p>這不只看起來很醜，而且很不容易閱讀。這到底是怎麼回事？我們使用 pattern match 來拆開我們的樹，我們把 root 綁定成 <code>x</code>，把左子樹綁定成 <code>l</code>。對於右子樹我們繼續使用 pattern match。直到我們碰到一個子樹他的 root 是 <code>'W'</code>。到此為止我們再重建整棵樹，新的樹只差在把 <code>'W'</code> 改成了 <code>'P'</code>。</p>
+
+<p>有沒有比較好的作法呢？有一種作法是我們寫一個函數，他接受一個樹跟一串 list，裡面包含有行走整個樹時的方向。方向可以是 <code>L</code> 或是 <code>R</code>，分別代表向左走或向右走。我們只要跟隨指令就可以走達指定的位置：</p>
+<pre class="code">data Direction = L | R deriving (Show)  
+type Directions = [Direction]  
+  
+changeToP :: Directions-&gt; Tree Char -&gt; Tree Char  
+changeToP (L:ds) (Node x l r) = Node x (changeToP ds l) r  
+changeToP (R:ds) (Node x l r) = Node x l (changeToP ds r)  
+changeToP [] (Node _ l r) = Node 'P' l r</pre>
+<p>如果在 list 中的第一個元素是 <code>L</code>，我們會建構一個左子樹變成 <code>'P'</code> 的新樹。當我們遞迴地呼叫 <code>changeToP</code>，我們只會傳給他剩下的部份，因為前面的部份已經看過了。對於 <code>R</code> 的 case 也一樣。如果 list 已經消耗完了，那表示我們已經走到我們的目的地，所以我們就回傳一個新的樹，他的 root 被修改成 <code>'P'</code>。</p>
+
+<p>要避免印出整棵樹，我們要寫一個函數告訴我們目的地究竟是什麼元素。</p>
+<pre class="code">elemAt :: Directions -&gt; Tree a -&gt; a  
+elemAt (L:ds) (Node _ l _) = elemAt ds l  
+elemAt (R:ds) (Node _ _ r) = elemAt ds r  
+elemAt [] (Node x _ _) = x</pre>
+<p>這函數跟 <code>changeToP</code> 很像，只是他不會記下沿路上的資訊，他只會記住目的地是什麼。我們把 <code>'W'</code> 變成 <code>'P'</code>，然後用他來查看。</p>
+<pre class="code">ghci&gt; let newTree = changeToP [R,L] freeTree  
+ghci&gt; elemAt [R,L] newTree  
+'P'</pre>
+<p>看起來運作正常。在這些函數裡面，包含方向的 list 比較像是一種"focus"，因為他特別指出了一棵子樹。一個像 <code>[R]</code> 這樣的 list 是聚焦在 root 的右子樹。一個空的 list 代表的是主樹本身。</p>
+
+<p>這個技巧看起來酷炫，但卻不太有效率，特別是在我們想要重複地改變內容的時候。假如我們有一個非常大的樹以及非常長的一串包含方向的 list。我們需要沿著方向從 root 一直走到樹的底部。如果我們想要改變一個鄰近的元素，我們仍需要從 root 開始走到樹的底部。這實在不太令人滿意。</p>
+
+<p>在下一個章節，我們會介紹一個比較好的方法，讓我們可以有效率地改變我們的 focus。</p>
+<a name="凡走過必留下痕跡"></a><h2>凡走過必留下痕跡</h2>
+
+<img src="../img/bread.png" alt="" style="float:right" class="floatright" />
+<p>我們需要一個比包含一串方向的 list 更好的聚焦的方法。如果我們能夠在從 root 走到指定地點的沿路上撒下些麵包屑，來紀錄我們的足跡呢？當我們往左走，我們便記住我們選擇了左邊，當我們往右走，便記住我們選擇了右邊。</p>
+
+<p>要找個東西來代表我們的麵包屑，就用一串 <code>Direction</code> (他可以是 <code>L</code> 或者是 <code>R</code>)，只是我們叫他 <code>BreadCrumb</code> 而不叫 <code>Direction</code>。這是因為現在我們把這串 direction 反過來看了：</p>
+<pre class="code">type Breadcrumbs = [Direction]</pre>
+<p>這邊有一個函數，他接受一棵樹跟一些麵包屑，並在我們往左走時在 list 的前頭加上 <code>L</code></p>
+<pre class="code">goLeft :: (Tree a, Breadcrumbs) -&gt; (Tree a, Breadcrumbs)
+goLeft (Node _ l _, bs) = (l, L:bs)</pre>
+<p>我們忽略 root 跟右子樹，直接回傳左子樹以及麵包屑，只是在現有的麵包屑前面加上 <code>L</code>。再來看看往右走的函數：</p>
+<pre class="code">goRight :: (Tree a, Breadcrumbs) -&gt; (Tree a, Breadcrumbs)  
+goRight (Node _ _ r, bs) = (r, R:bs)</pre>
+<p>幾乎是一模一樣。我們再來做一個先往右走再往左走的函數，讓他來走我們的 <code>freeTree</code></p>
+<pre class="code">ghci&gt; goLeft (goRight (freeTree, []))  
+(Node 'W' (Node 'C' Empty Empty) (Node 'R' Empty Empty),[L,R])</pre><img src="../img/almostzipper.png" alt="" style="float:left" class="floatleft" />
+<p>現在我們有了一棵樹，他的 root 是 <code>'W'</code>，而他的左子樹的 root 是 <code>'C'</code>，右子樹的 root 是 <code>'R'</code>。而由於我們先往右走再往左走，所以麵包屑是 <code>[L,R]</code>。</p>
+
+<p>要再表示得更清楚些，我們能用定義一個 <code>-:</code></p>
+<pre class="code">x -: f = f x</pre>
+<p>他讓我們可以將值餵給函數這件事反過來寫，先寫值，再來是 <code>-:</code>，最後是函數。所以我們可以寫成 <code>(freeTree, []) -: goRight</code> 而不是 <code>goRight (freeTree, [])</code>。我們便可以把上面的例子改寫地更清楚。</p>
+<pre class="code">ghci&gt; (freeTree, []) -: goRight -: goLeft  
+(Node 'W' (Node 'C' Empty Empty) (Node 'R' Empty Empty),[L,R])</pre><a name="Going_back_up"></a><h3>Going back up</h3>
+
+
+<p>如果我們想要往回上走回我們原來的路徑呢？根據留下的麵包屑，我們知道現在的樹是他父親的左子樹，而他的父親是祖父的右子樹。這些資訊並不足夠我們往回走。看起來要達到這件事情，我們除了單純紀錄方向之外，還必須把其他的資料都記錄下來。在這個案例中，也就是他的父親以及他的右子樹。</p>
+
+<p>一般來說，單單一個麵包屑有足夠的資訊讓我們重建父親的節點。所以他應該要包含所有我們沒有選擇的路徑的資訊，並且他應該要紀錄我們沿路走的方向。同時他不應該包含我們現在鎖定的子樹。因為那棵子樹已經在 tuple 的第一個部份中，如果我們也把他紀錄在麵包屑裡，那就會有重複的資訊。</p>
+
+<p>我們來修改一下我們麵包屑的定義，讓他包含我們之前丟掉的資訊。我們定義一個新的型態，而不用 <code>Direction</code>：</p>
+<pre class="code">data Crumb a = LeftCrumb a (Tree a) | RightCrumb a (Tree a) deriving (Show)</pre>
+<p>我們用 <code>LeftCrumb</code> 來包含我們沒有走的右子樹，而不僅僅只寫個 <code>L</code>。我們用 <code>RightCrumb</code> 來包含我們沒有走的左子樹，而不僅僅只寫個 <code>R</code>。</p>
+
+<p>這些麵包屑包含了所有重建樹所需要的資訊。他們像是軟碟一樣存了許多我們的足跡，而不僅僅只是方向而已。</p>
+
+<p>大致上可以把每個麵包屑想像成一個樹的節點，樹的節點有一個洞。當我們往樹的更深層走，麵包屑攜帶有我們所有走過得所有資訊，只除了目前我們鎖定的子樹。他也必須紀錄洞在哪裡。在 <code>LeftCrumb</code> 的案例中，我們知道我們是向左走，所以我們缺少的便是左子樹。</p>
+
+<p>我們也要把 <code>Breadcrumbs</code> 的 type synonym 改掉：</p>
+<pre class="code">type Breadcrumbs a = [Crumb a]</pre>
+<p>接著我們修改 <code>goLeft</code> 跟 <code>goRight</code> 來紀錄一些我們沒走過的路徑的資訊。不像我們之前選擇忽略他。<code>goLeft</code> 像是這樣：</p>
+<pre class="code">goLeft :: (Tree a, Breadcrumbs a) -&gt; (Tree a, Breadcrumbs a)
+goLeft (Node x l r, bs) = (l, LeftCrumb x r:bs)</pre>
+<p>你可以看到跟之前版本的 <code>goLeft</code> 很像，不只是將 <code>L</code> 推到 list 的最前端，我們還加入 <code>LeftCrumb</code> 來表示我們選擇向左走。而且我們在 <code>LeftCrumb</code> 裡面塞有我們之前走的節點，以及我們選擇不走的右子樹的資訊。</p>
+
+<p>要注意這個函數會假設我們鎖定的子樹並不是 <code>Empty</code>。一個空的樹並沒有任何子樹，所以如果我們選擇在一個空的樹中向左走，就會因為我們對 <code>Node</code> 做模式匹配而產生錯誤。我們沒有處理 <code>Empty</code> 的情況。</p>
+
+<p><code>goRight</code> 也是類似：</p>
+<pre class="code">goRight :: (Tree a, Breadcrumbs a) -&gt; (Tree a, Breadcrumbs a)  
+goRight (Node x l r, bs) = (r, RightCrumb x l:bs)</pre>
+<p>在之前我們只能向左或向右走，現在我們由於紀錄了關於父節點的資訊以及我們選擇不走的路的資訊，而獲得向上走的能力。來看看 <code>goUp</code> 函數：</p>
+<pre class="code">goUp :: (Tree a, Breadcrumbs a) -&gt; (Tree a, Breadcrumbs a)  
+goUp (t, LeftCrumb x r:bs) = (Node x t r, bs)  
+goUp (t, RightCrumb x l:bs) = (Node x l t, bs)</pre><img src="../img/asstronaut.png" alt="" style="float:left" class="floatleft" />
+<p>我們鎖定了 <code>t</code> 這棵樹並檢查最新的 <code>Crumb</code>。如果他是 <code>LeftCrumb</code>，那我們就建立一棵新的樹，其中 <code>t</code> 是他的左子樹並用關於我們沒走過得右子樹的資訊來填寫其他 <code>Node</code> 的資訊。由於我們使用了麵包屑的資訊來建立父子樹，所以新的 list 移除了我們的麵包屑。</p>
+
+<p>如果我們已經在樹的頂端並使用這個函數的話，他會引發錯誤。等一會我們會用 <code>Maybe</code> 來表達可能失敗的情況。</p>
+
+<p>有了 <code>Tree a</code> 跟 <code>Breadcrumbs a</code>，我們就有足夠的資訊來重建整棵樹，並且鎖定其中一棵子樹。這種方式讓我們可以輕鬆的往上，往左，往右走。這樣成對的資料結構我們叫做 Zipper，因為當我們改變鎖定的時候，他表現得很像是拉鍊一樣。所以我們便定義一個 type synonym:</p>
+<pre class="code">type Zipper a = (Tree a, Breadcrumbs a)</pre>
+<p>我個人是比較傾向於命名成 <code>Focus</code>，這樣可以清楚強調我們是鎖定在其中一部分，</p>
+
+<p>至於 Zipper 被更廣泛地使用，所以這邊仍維持叫他做 <code>Zipper</code>。</p>
+<a name="Manipulating_trees_under_focus"></a><h3>Manipulating trees under focus</h3>
+
+
+<p>現在我們具備了移動的能力，我們再來寫一個改變元素的函數，他能改變我們目前鎖定的子樹的 root。</p>
+<pre class="code">modify :: (a -&gt; a) -&gt; Zipper a -&gt; Zipper a  
+modify f (Node x l r, bs) = (Node (f x) l r, bs)  
+modify f (Empty, bs) = (Empty, bs)</pre>
+<p>如果我們鎖定一個節點，我們用 <code>f</code> 改變他的 root。如果我們鎖定一棵空的樹，那就什麼也不做。我們可以移來移去並走到我們想要改變的節點，改變元素後並鎖定在那個節點，之後我們可以很方便的移上移下。</p>
+<pre class="code">ghci&gt; let newFocus = modify (\_ -&gt; 'P') (goRight (goLeft (freeTree,[])))</pre>
+<p>我們往左走，然後往右走並將 root 取代為 <code>'P'</code>，用 <code>-:</code> 來表達的話就是：</p>
+<pre class="code">ghci&gt; let newFocus = (freeTree,[]) -: goLeft -: goRight -: modify (\_ -&gt; 'P')</pre>
+<p>我們也能往上走並置換節點為 <code>'X'</code>：</p>
+<pre class="code">ghci&gt; let newFocus2 = modify (\_ -&gt; 'X') (goUp newFocus)</pre>
+<p>如果我們用 <code>-:</code> 表達的話：</p>
+<pre class="code">ghci&gt; let newFocus2 = newFocus -: goUp -: modify (\_ -&gt; 'X')</pre>
+<p>往上走很簡單，畢竟麵包屑中含有我們沒走過的路徑的資訊，只是裡面的資訊是相反的，這有點像是要把襪子反過來才能用一樣。有了這些資訊，我們就不用再從 root 開始走一遍，我們只要把反過來的樹翻過來就好，然後鎖定他。</p>
+
+<p>每個節點有兩棵子樹，即使子樹是空的也是視作有樹。所以如果我們鎖定的是一棵空的子樹我們可以做的事就是把他變成非空的，也就是葉節點。</p>
+<pre class="code">attach :: Tree a -&gt; Zipper a -&gt; Zipper a  
+attach t (_, bs) = (t, bs)</pre>
+<p>我們接受一棵樹跟一個 zipper，回傳一個新的 zipper，鎖定的目標被換成了提供的樹。我們不只可以用這招把空的樹換成新的樹，我們也能把現有的子樹給換掉。讓我們來用一棵樹換掉我們 <code>freeTree</code> 的最左邊：</p>
+<pre class="code">ghci&gt; let farLeft = (freeTree,[]) -: goLeft -: goLeft -: goLeft -: goLeft  
+ghci&gt; let newFocus = farLeft -: attach (Node 'Z' Empty Empty)</pre>
+<p><code>newFocus</code> 現在鎖定在我們剛剛接上的樹上，剩下部份的資訊都放在麵包屑裡。如果我們用 <code>goUp</code> 走到樹的最上層，就會得到跟原來 <code>freeTree</code> 很像的樹，只差在最左邊多了 <code>'Z'</code>。</p>
+<a name="I'm_going_straight_to_top,_oh_yeah,_up_where_the_air_is_fresh_and_clean!"></a><h3>I'm going straight to top, oh yeah, up where the air is fresh and clean!</h3>
+
+
+<p>寫一個函數走到樹的最頂端是很簡單的：</p>
+<pre class="code">topMost :: Zipper a -&gt; Zipper a  
+topMost (t,[]) = (t,[])  
+topMost z = topMost (goUp z)</pre>
+<p>如果我們的麵包屑都沒了，就表示我們已經在樹的 root，我們便回傳目前的鎖定目標。晡然，我們便往上走來鎖定到父節點，然後遞迴地呼叫 <code>topMost</code>。我們現在可以在我們的樹上四處移動，呼叫 <code>modify</code> 或 <code>attach</code> 進行我們要的修改。我們用 <code>topMost</code> 來鎖定到 root，便可以滿意地欣賞我們的成果。</p>
+<a name="來看串列"></a><h2>來看串列</h2>
+
+
+<p>Zippers 幾乎可以套用在任何資料結構上，所以聽到他可以被套用在 list 上可別太驚訝。畢竟，list 就是樹，只是節點只有一個兒子，當我們實作我們自己的 list 的時候，我們定義了下面的型態：</p>
+<pre class="code">data List a = Empty | Cons a (List a) deriving (Show, Read, Eq, Ord)</pre><img src="../img/picard.png" alt="" style="float:right" class="floatright" />
+<p>跟我們二元樹的定義比較，我們就可以看出我們把 list 看作樹的原則是正確的。</p>
+
+<p>一串 list 像是 <code>[1,2,3]</code> 可以被寫作 <code>1:2:3:[]</code>。他由 list 的 head<code>1</code> 以及 list 的 tail <code>2:3:[]</code> 組成。而 <code>2:3:[]</code> 又由 <code>2</code> 跟 <code>3:[]</code> 組成。至於 <code>3:[]</code>，<code>3</code> 是 head 而 tail 是 <code>[]</code>。</p>
+
+<p>我們來幫 list 做個 zipper。list 改變鎖定的方式分為往前跟往後（tree 分為往上，往左跟往右）。在樹的情形中，鎖定的部份是一棵子樹跟留下的麵包屑。那究竟對於一個 list 而言一個麵包屑是什麼？當我們處理二元樹的時候，我們說麵包屑必須代表 root 的父節點跟其他未走過的子樹。他也必須記得我們是往左或往右走。所以必須要有除了鎖定的子樹以外的所有資訊。</p>
+
+<p>list 比 tree 要簡單，所以我們不需要記住我們是往左或往右，因為我們只有一種方式可以往 list 的更深層走。我們也不需要哪些路徑我們沒有走過的資訊。似乎我們所需要的資訊只有前一個元素。如果我們的 list 是像 <code>[3,4,5]</code>，而且我們知道前一個元素是 <code>2</code>，我們可以把 <code>2</code> 擺回 list 的 head，成為 <code>[2,3,4,5]</code>。</p>
+
+<p>由於一個單一的麵包屑只是一個元素，我們不需要把他擺進一個型態裡面，就像我們在做 tree zippers 時一樣擺進 <code>Crumb</code>：</p>
+<pre class="code">type ListZipper a = ([a],[a])</pre>
+<p>第一個 list 代表現在鎖定的 list，而第二個代表麵包屑。讓我們寫一下往前跟往後走的函數：</p>
+<pre class="code">goForward :: ListZipper a -&gt; ListZipper a  
+goForward (x:xs, bs) = (xs, x:bs)  
+  
+goBack :: ListZipper a -&gt; ListZipper a  
+goBack (xs, b:bs) = (b:xs, bs)</pre>
+<p>當往前走的時候，我們鎖定了 list 的 tail，而把 head 當作是麵包屑。當我們往回走，我們把最近的麵包屑欻來然後擺到 list 的最前頭。</p>
+
+<p>來看看兩個函數如何運作：</p>
+<pre class="code">ghci&gt; let xs = [1,2,3,4]  
+ghci&gt; goForward (xs,[])  
+([2,3,4],[1])  
+ghci&gt; goForward ([2,3,4],[1])  
+([3,4],[2,1])  
+ghci&gt; goForward ([3,4],[2,1])  
+([4],[3,2,1])  
+ghci&gt; goBack ([4],[3,2,1])  
+([3,4],[2,1])</pre>
+<p>我們看到在這個案例中麵包屑只不過是一部分反過來的 list。所有我們走過的元素都被丟進麵包屑裡面，所以要往回走很容易，只要把資訊從麵包屑裡面撿回來就好。</p>
+
+<p>這樣的形式也比較容易看出我們為什麼稱呼他為 Zipper，因為他真的就像是拉鍊一般。</p>
+
+<p>如果你正在寫一個文字編輯器，那你可以用一個裝滿字串的 list 來表達每一行文字。你也可以加一個 Zipper 以便知道現在游標移動到那一行。有了 Zipper 你就很容易的可以新增或刪除現有的每一行。</p>
+<a name="陽春的檔案系統"></a><h2>陽春的檔案系統</h2>
+
+
+<p>理解了 Zipper 是如何運作之後，我們來用一棵樹來表達一個簡單的檔案系統，然後用一個 Zipper 來增強他的功能。讓我們可以在資料夾間移動，就像我們平常對檔案系統的操作一般。</p>
+
+<p>這邊我們採用一個比較簡化的版本，檔案系統只有檔案跟資料夾。檔案是資料的基本單位，只是他有一個名字。而資料夾就是用來讓這些檔案比較有結構，並且能包含其他資料夾與檔案。所以說檔案系統中的元件不是一個檔案就是一個資料夾，所以我們便用如下的方法定義型態：</p>
+<pre class="code">type Name = String  
+type Data = String  
+data FSItem = File Name Data | Folder Name [FSItem] deriving (Show)</pre>
+<p>一個檔案是由兩個字串組成，代表他的名字跟他的內容。一個資料夾由一個字串跟一個 list 組成，字串代表名字，而 list 是裝有的元件，如果 list 是空的，就代表他是一個空的資料夾。</p>
+
+<p>這邊是一個裝有些檔案與資料夾的資料夾：</p>
+<pre class="code">myDisk :: FSItem  
+    myDisk = 
+        Folder "root"   
+            [ File "goat_yelling_like_man.wmv" "baaaaaa"  
+            , File "pope_time.avi" "god bless"  
+            , Folder "pics"  
+                [ File "ape_throwing_up.jpg" "bleargh"  
+                , File "watermelon_smash.gif" "smash!!"  
+                , File "skull_man(scary).bmp" "Yikes!"  
+                ]  
+            , File "dijon_poupon.doc" "best mustard"  
+            , Folder "programs"  
+                [ File "fartwizard.exe" "10gotofart"  
+                , File "owl_bandit.dmg" "mov eax, h00t"  
+                , File "not_a_virus.exe" "really not a virus"  
+                , Folder "source code"  
+                    [ File "best_hs_prog.hs" "main = print (fix error)"  
+                    , File "random.hs" "main = print 4"  
+                    ]  
+                ]  
+            ]</pre>
+<p>這就是目前我的磁碟的內容。</p>
+<a name="A_zipper_for_our_file_system"></a><h3>A zipper for our file system</h3>
+
+<img src="../img/spongedisk.png" alt="" style="float:right" class="floatright" />
+<p>我們有了一個檔案系統，我們需要一個 Zipper 來讓我們可以四處走動，並且增加、修改或移除檔案跟資料夾。就像二元樹或 list，我們會用麵包屑留下我們未走過路徑的資訊。正如我們說的，一個麵包屑就像是一個節點，只是他包含所有除了我們現在正鎖定的子樹的資訊。</p>
+
+<p>在這個案例中，一個麵包屑應該要像資料夾一樣，只差在他缺少了我們目前鎖定的資料夾的資訊。為什麼要像資料夾而不是檔案呢？因為如果我們鎖定了一個檔案，我們就沒辦法往下走了，所以要留下資訊說我們是從一個檔案走過來的並沒有道理。一個檔案就像是一棵空的樹一樣。</p>
+
+<p>如果我們鎖定在資料夾 <code>"root"</code>，然後鎖定在檔案 <code>"dijon_poupon.doc"</code>，那麵包屑裡的資訊會是什麼樣子呢？他應該要包含上一層資料夾的名字，以及在這個檔案前及之後的所有項目。我們要的就是一個 <code>Name</code> 跟兩串 list。藉由兩串 list 來表達之前跟之後的元素，我們就完全可以知道我們目前鎖定在哪。</p>
+
+<p>來看看我們麵包屑的型態：</p>
+<pre class="code">data FSCrumb = FSCrumb Name [FSItem] [FSItem] deriving (Show)</pre>
+<p>這是我們 Zipper 的 type synonym：</p>
+<pre class="code">type FSZipper = (FSItem, [FSCrumb])</pre>
+<p>要往上走是很容易的事。我們只要拿現有的麵包屑來組出現有的鎖定跟麵包屑：</p>
+<pre class="code">fsUp :: FSZipper -&gt; FSZipper  
+fsUp (item, FSCrumb name ls rs:bs) = (Folder name (ls ++ [item] ++ rs), bs)</pre>
+<p>由於我們的麵包屑有上一層資料夾的名字，跟資料夾中之前跟之後的元素，要往上走不費吹灰之力。</p>
+
+<p>至於要往更深層走呢？如果我們現在在 <code>"root"</code>，而我們希望走到 <code>"dijon_poupon.doc"</code>，那我們會在麵包屑中留下 <code>"root"</code>，在 <code>"dijon_poupon.doc"</code> 之前的元素，以及在他之後的元素。</p>
+
+<p>這邊有一個函數，給他一個名字，他會鎖定在在現有資料夾中的一個檔案：</p>
+<pre class="code">import Data.List (break)  
+  
+fsTo :: Name -&gt; FSZipper -&gt; FSZipper  
+fsTo name (Folder folderName items, bs) =   
+  let (ls, item:rs) = break (nameIs name) items  
+  in  (item, FSCrumb folderName ls rs:bs)  
+    
+nameIs :: Name -&gt; FSItem -&gt; Bool  
+nameIs name (Folder folderName _) = name == folderName  
+nameIs name (File fileName _) = name == fileName</pre>
+<p><code>fsTo</code> 接受一個 <code>Name</code> 跟 <code>FSZipper</code>，回傳一個新的 <code>FSZipper</code> 鎖定在某個檔案上。那個檔案必須在現在身處的資料夾才行。這函數不會四處找尋這檔案，他只會看現在的資料夾。</p>
+<img src="../img/cool.png" alt="" style="float:left" class="floatleft" />
+<p>首先我們用 <code>break</code> 來把身處資料夾中的檔案們分成在我們要找的檔案前的，跟之後的。如果記性好，<code>break</code> 會接受一個 predicate 跟一個 list，並回傳兩個 list 組成的 pair。第一個 list 裝有 predicate 會回傳 <code>False</code> 的元素，而一旦碰到一個元素回傳 <code>True</code>，他就把剩下的所有元素都放進第二個 list 中。我們用了一個輔助函數叫做 <code>nameIs</code>，他接受一個名字跟一個檔案系統的元素，如果名字相符的話他就會回傳 <code>True</code>。</p>
+
+<p>現在 <code>ls</code> 一個包含我們要找的元素之前元素的 list。<code>item</code> 就是我們要找的元素，而 <code>rs</code> 是剩下的部份。有了這些，我們不過就是把 <code>break</code> 傳回來的東西當作鎖定的目標，來建造一個麵包屑來包含所有必須的資訊。</p>
+
+<p>如果我們要找的元素不在資料夾中，那 <code>item:rs</code> 這個模式會福豪到一個空的 list，便會造成錯誤。如果我們現在的鎖定不是一個資料夾而是一個檔案，我們也會造成一個錯誤而讓程式當掉。</p>
+
+<p>現在我們有能力在我們的檔案系統中移上移下，我們就來嘗試從 root 走到 <code>"skull_man(scary).bmp"</code> 這個檔案吧：</p>
+<pre class="code">ghci&gt; let newFocus = (myDisk,[]) -: fsTo "pics" -: fsTo "skull_man(scary).bmp"</pre>
+<p><code>newFocus</code> 現在是一個鎖定在 "skull_man(scary).bmp"的 Zipper。我們把 zipper 的第一個部份拿出來看看：</p>
+<pre class="code">ghci&gt; fst newFocus  
+File "skull_man(scary).bmp" "Yikes!"</pre>
+<p>我們接著往上移動並鎖定在一個鄰近的檔案 <code>"watermelon_smash.gif"</code>：</p>
+<pre class="code">ghci&gt; let newFocus2 = newFocus -: fsUp -: fsTo "watermelon_smash.gif"  
+ghci&gt; fst newFocus2  
+File "watermelon_smash.gif" "smash!!"</pre><a name="Manipulating_our_file_system"></a><h3>Manipulating our file system</h3>
+
+
+<p>現在我們知道如何遍歷我們的檔案系統，因此操作也並不是難事。這邊便來寫個重新命名目前鎖定檔案或資料夾的函數：</p>
+<pre class="code">fsRename :: Name -&gt; FSZipper -&gt; FSZipper  
+fsRename newName (Folder name items, bs) = (Folder newName items, bs)  
+fsRename newName (File name dat, bs) = (File newName dat, bs)</pre>
+<p>我們可以重新命名 <code>"pics"</code> 資料夾為 <code>"cspi"</code>：</p>
+<pre class="code">ghci&gt; let newFocus = (myDisk,[]) -: fsTo "pics" -: fsRename "cspi" -: fsUp</pre>
+<p>我們走到 <code>"pics"</code> 這個資料夾，重新命名他然後再往回走。</p>
+
+<p>那寫一個新的元素在我們目前的資料夾呢？</p>
+<pre class="code">fsNewFile :: FSItem -&gt; FSZipper -&gt; FSZipper  
+fsNewFile item (Folder folderName items, bs) =   
+    (Folder folderName (item:items), bs)</pre>
+<p>注意這個函數會沒辦法處理當我們在鎖定在一個檔案卻要新增元素的情況。</p>
+
+<p>現在要在 <code>"pics"</code> 資料夾中加一個檔案然後走回 root：</p>
+<pre class="code">ghci&gt; let newFocus = (myDisk,[]) -: fsTo "pics" -: fsNewFile (File "heh.jpg" "lol") -: fsUp</pre>
+<p>當我們修改我們的檔案系統，他不會真的修改原本的檔案系統，而是回傳一份新的檔案系統。這樣我們就可以存取我們舊有的系統（也就是 <code>myDisk</code>）跟新的系統（<code>newFocus</code> 的第一個部份）使用一個 Zippers，我們就能自動獲得版本控制，代表我們能存取到舊的資料結構。這也不僅限於 Zippers，也是由於 Haskell 的資料結構有 immutable 的特性。但有了 Zipper，對於操作會變得更容易，我們可以自由地在資料結構中走動。</p>
+<a name="小心每一步"></a><h2>小心每一步</h2>
+
+
+<p>到目前為止，我們並沒有特別留意我們在走動時是否會超出界線。不論資料結構是二元樹，List 或檔案系統。舉例來說，我們的 <code>goLeft</code> 函數接受一個二元樹的 Zipper 並鎖定到他的左子樹：</p>
+<pre class="code">goLeft :: Zipper a -&gt; Zipper a  
+goLeft (Node x l r, bs) = (l, LeftCrumb x r:bs)</pre><img src="../img/bigtree.png" alt="" style="float:right" class="floatright" />
+<p>但如果我們走的樹其實是空的樹呢？也就是說，如果他不是 <code>Node</code> 而是 <code>Empty</code>？再這情況，我們會因為模式匹配不到東西而造成 runtime error。我們沒有處理空的樹的情形，也就是沒有子樹的情形。到目前為止，我們並沒有試著在左子樹不存在的情形下鎖定左子樹。但要走到一棵空的樹的左子樹並不合理，只是到目前為止我們視而不見而已。</p>
+
+<p>如果我們已經在樹的 root 但仍舊試著往上走呢？這種情形也同樣會造成錯誤。。用了 Zipper 讓我們每一步都好像是我們的最後一步一樣。也就是說每一步都有可能會失敗。這讓你想起什麼嗎？沒錯，就是 Monad。更正確的說是 <code>Maybe</code> monad，也就是有可能失敗的 context。</p>
+
+<p>我們用 <code>Maybe</code> monad 來加入可能失敗的 context。我們要把原本接受 Zipper 的函數都改成 monadic 的版本。首先，我們來處理 <code>goLeft</code> 跟 <code>goRight</code>。函數的失敗有可能反應在他們的結果，這個情況也不利外。所以來看下面的版本：</p>
+<pre class="code">goLeft :: Zipper a -&gt; Maybe (Zipper a)  
+goLeft (Node x l r, bs) = Just (l, LeftCrumb x r:bs)  
+goLeft (Empty, _) = Nothing  
+  
+goRight :: Zipper a -&gt; Maybe (Zipper a)  
+goRight (Node x l r, bs) = Just (r, RightCrumb x l:bs)  
+goRight (Empty, _) = Nothing</pre>
+<p>然後我們試著在一棵空的樹往左走，我們會得到 <code>Nothing</code>:</p>
+<pre class="code">ghci&gt; goLeft (Empty, [])  
+Nothing  
+ghci&gt; goLeft (Node 'A' Empty Empty, [])  
+Just (Empty,[LeftCrumb 'A' Empty])</pre>
+<p>看起來不錯。之前的問題是我們在麵包屑用完的情形下想往上走，那代表我們已經在樹的 root。如果我們不注意的話那 <code>goUp</code> 函數就會丟出錯誤。</p>
+<pre class="code">goUp :: Zipper a -&gt; Zipper a  
+goUp (t, LeftCrumb x r:bs) = (Node x t r, bs)  
+goUp (t, RightCrumb x l:bs) = (Node x l t, bs)</pre>
+<p>我們改一改讓他可以失敗得好看些：</p>
+<pre class="code">goUp :: Zipper a -&gt; Maybe (Zipper a)  
+goUp (t, LeftCrumb x r:bs) = Just (Node x t r, bs)  
+goUp (t, RightCrumb x l:bs) = Just (Node x l t, bs)  
+goUp (_, []) = Nothing</pre>
+<p>如果我們有麵包屑，那我們就能成功鎖定新的節點，如果沒有，就造成一個失敗。</p>
+
+<p>之前這些函數是接受 Zipper 並回傳 Zipper，這代表我們可以這樣操作：</p>
+<pre class="code">gchi&gt; let newFocus = (freeTree,[]) -: goLeft -: goRight</pre>
+<p>但現在我們不回傳 <code>Zipper a</code> 而回傳 <code>Maybe (Zipper a)</code>。所以沒辦法像上面串起來。我們在之前章節也有類似的問題。他是每次走一步，而他的每一步都有可能失敗。</p>
+
+<p>幸運的是我們可以從之前的經驗中學習，也就是使用 <code>&gt;&gt;=</code>，他接受一個有 context 的值（也就是 <code>Maybe (Zipper a)</code>），會把值餵進函數並保持其他 context 的。所以就像之前的例子，我們把 <code>-:</code> 換成 <code>&gt;&gt;=</code>。</p>
+<pre class="code">ghci&gt; let coolTree = Node 1 Empty (Node 3 Empty Empty)  
+ghci&gt; return (coolTree,[]) &gt;&gt;= goRight  
+Just (Node 3 Empty Empty,[RightCrumb 1 Empty])  
+ghci&gt; return (coolTree,[]) &gt;&gt;= goRight &gt;&gt;= goRight  
+Just (Empty,[RightCrumb 3 Empty,RightCrumb 1 Empty])  
+ghci&gt; return (coolTree,[]) &gt;&gt;= goRight &gt;&gt;= goRight &gt;&gt;= goRight  
+Nothing</pre>
+<p>我們用 <code>return</code> 來把 Zipper 放到一個 <code>Just</code> 裡面。然後用 <code>&gt;&gt;=</code> 來餵到 <code>goRight</code> 的函數中。首先我們做了一棵樹他的左子樹是空的，而右邊是有兩顆空子樹的一個節點。當我們嘗試往右走一步，便會得到成功的結果。往右走兩步也還可以，只是會鎖定在一棵空的子樹上。但往右走三步就沒辦法了，因為我們不能在一棵空子樹上往右走，這也是為什麼結果會是 <code>Nothing</code>。</p>
+
+<p>現在我們具備了安全網，能夠在出錯的時候通知我們。</p>
+
+<p>我們的檔案系統仍有許多情況會造成錯誤，例如試著鎖定一個檔案，或是不存在的資料夾。剩下的就留作習題。</p>
+
+            <ul class="nav">
+                <li class="left">  <img src="../img/prv.png" alt="prev" /><a href="for-a-few-monads-more.html">再來看看更多 Monad</a></li>
+                <li class="center"><a href="chapters.html">Index</a></li>
+                <li class="right"></li>
+            </ul>
+        </div>
+        <div id="footer">
+        </div>
+        <div id="feedback">Send feedback</div>
+    </body>
+</html>

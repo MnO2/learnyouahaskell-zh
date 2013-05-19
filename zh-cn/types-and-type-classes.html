@@ -1,0 +1,250 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <style type="text/css">
+            @import url(../css/style.css);
+            @import url(../css/feedback.css);
+        </style>
+        <script type="text/javascript" src="../js/jquery.js"></script>
+        <script type="text/javascript" src="../js/jquery.chili-2.2.js"></script>
+        <script type="text/javascript" src="../js/script.js"></script>
+        <script type="text/javascript" src="../js/html2canvas.js"></script>
+        <script type="text/javascript" src="../js/jsfeedback.js"></script>
+        <script type="text/javascript">
+             ChiliBook.recipeFolder = "../js/chili/";  
+             ChiliBook.automaticSelector = "pre";
+        </script>
+        <script type="text/javascript">
+            $(function(){
+                $('#feedback').click(function(){
+                    $('body').feedback();
+                })
+            });
+        </script>
+        <script type="text/javascript">
+            var _gaq = _gaq || [];
+            _gaq.push(['_setAccount', 'UA-32830659-1']);
+            _gaq.push(['_trackPageview']);
+
+            (function() {
+                var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+                ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+                    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+            })();
+        </script>
+        <title>Types and Typeclasses</title>
+    </head>
+    <body>
+        <div id="header">
+            <img id="beta" alt="beta" src="../img/beta.png" />
+        </div>
+
+        <div id="main">
+            <ul class="nav">
+                <li class="left">  <img src="../img/prv.png" alt="prev" /><a href="ready-begin.html">从零开始</a></li>
+                <li class="center"><a href="chapters.html">Index</a></li>
+                <li class="right"> <a href="syntax-on-function.html">函数的语法</a><img src="../img/nxt.png" alt="next" /></li>
+            </ul>
+            <a name="Types_and_Typeclasses"></a><h1>Types and Typeclasses</h1>
+
+<a name="Type"></a><h2>Type</h2>
+
+<img src="../img/cow.png" alt="" style="float:left" class="floatleft" />
+<p>之前我们有说过 Haskell 是 Static Type，这表示在编译时期每个表达式的类型都已经确定下来，这提高了代码的安全性。若代码中有让布林值与数字相除的动作，就不会通过编译。这样的好处就是与其让进程在运行时崩溃，不如在编译时就找出可能的错误。Haskell 中所有东西都有类型，因此在编译的时候编译器可以做到很多事情。</p>
+
+<p>与 Java 和 Pascal 不同，Haskell 支持类型推导。写下一个数字，你就没必要另告诉 Haskell 说"它是个数字"，它自己能推导出来。这样我们就不必在每个函数或表达式上都标明其类型了。在前面我们只简单涉及一下 Haskell 的类型方面的知识，但是理解这一类型系统对于 Haskell 的学习是至关重要的。</p>
+
+<p>类型是每个表达式都有的某种标签，它标明了这一表达式所属的范畴。例如，表达式 <code>True</code> 是 <code>boolean</code> 型，<code>"hello"</code>是个字串，等等。</p>
+
+<p>可以使用 ghci 来检测表达式的类型。使用 <code>:t</code> 命令后跟任何可用的表达式，即可得到该表达式的类型，先试一下：</p>
+<pre class="code">ghci&gt; :t 'a'  
+'a' :: Char  
+ghci&gt; :t True  
+True :: Bool  
+ghci&gt; :t "HELLO!"  
+"HELLO!" :: [Char]  
+ghci&gt; :t (True, 'a')  
+(True, 'a') :: (Bool, Char)  
+ghci&gt; :t 4 == 5  
+4 == 5 :: Bool</pre><img src="../img/bomb.png" alt="" style="float:right" class="floatright" />
+<p>可以看出，<code>:t</code> 命令处理一个表达式的输出结果为表达式后跟 <code>::</code> 及其类型，<code>::</code> 读作"它的类型为"。凡是明确的类型，其首字母必为大写。<code>'a'</code>, 如它的样子，是 <code>Char</code> 类型，易知是个字符 (character)。<code>True</code> 是 <code>Bool</code> 类型，也靠谱。不过这又是啥，检测 <code>"hello"</code> 得一个  <code>[Char]</code> 这方括号表示一个 List，所以我们可以将其读作"一组字符的 List"。而与 List 不同，每个 Tuple 都是独立的类型，于是 <code>(True,"a")</code> 的类型是 <code>(Bool,Char)</code>，而 <code>('a','b','c')</code> 的类型为 <code>(Char,Char,Char)</code>。<code>4==5</code> 一定回传 <code>False</code>，所以它的类型为 Bool。</p>
+
+<p>同样，函数也有类型。编写函数时，给它一个明确的类型声明是个好习惯，比较短的函数就不用多此一举了。还记得前面那个过滤大写字母的 List Comprehension 吗？给它加上类型声明便是这个样子：</p>
+<pre class="code">removeNonUppercase :: [Char] -&gt; [Char]  
+removeNonUppercase st = [ c | c &lt;- st, c `elem` ['A'..'Z']]</pre>
+<p> <code>removeNonUppercase</code> 的类型为 <code>[Char]-&gt;[Char]</code>，从它的参数和回传值的类型上可以看出，它将一个字串映射为另一个字串。<code>[Char]</code> 与 <code>String</code> 是等价的，但使用 <code>String</code> 会更清晰：<code>removeNonUppercase :: String -&gt; String</code>。编译器会自动检测出它的类型，我们还是标明了它的类型声明。要是多个参数的函数该怎样？如下便是一个将三个整数相加的简单函数。</p>
+<pre class="code">addThree :: Int -&gt; Int -&gt; Int -&gt; Int  
+addThree x y z = x + y + z</pre>
+<p>参数之间由 <code>-&gt;</code> 分隔，而与回传值之间并无特殊差异。回传值是最后一项，参数就是前三项。稍后，我们将讲解为何只用 <code>-&gt;</code> 而不是 <code>Int,Int,Int-&gt;Int</code> 之类"更好看"的方式来分隔参数。</p>
+
+<p>如果你打算给你编写的函数加上个类型声明却拿不准它的类型是啥，只要先不写类型声明，把函数体写出来，再使用 <code>:t</code> 命令测一下即可。函数也是表达式，所以 <code>:t</code> 对函数也是同样可用的。</p>
+
+<p>如下是几个常见的类型：</p>
+
+<p><strong>Int</strong> 表示整数。7 可以是 Int，但 7.2 不可以。Int 是有界的，也就是说它由上限和下限。对 32 位的机器而言，上限一般是 <code>214748364</code>，下限是 <code>-214748364</code>。</p>
+
+<p><strong>Integer</strong> 表示...厄...也是整数，但它是无界的。这就意味着可以用它存放非常非常大的数，我是说非常大。它的效率不如 Int 高。</p>
+<pre class="code">factorial :: Integer -&gt; Integer  
+factorial n = product [1..n]</pre><pre class="code">ghci&gt; factorial 50  
+30414093201713378043612608166064768844377641568960512000000000000</pre>
+<p><strong>Float</strong> 表示单精度的浮点数。</p>
+<pre class="code">circumference :: Float -&gt; Float  
+circumference r = 2 * pi * r</pre><pre class="code">ghci&gt; circumference 4.0  
+25.132742</pre>
+<p><strong>Double</strong> 表示双精度的浮点数。</p>
+<pre class="code">circumference' :: Double -&gt; Double  
+circumference' r = 2 * pi * r</pre><pre class="code">ghci&gt; circumference' 4.0  
+25.132741228718345</pre>
+<p><strong>Bool</strong> 表示布林值，它只有两种值：<code>True</code> 和 <code>False</code>。</p>
+
+<p><strong>Char</strong> 表示一个字符。一个字符由单引号括起，一组字符的 List 即为字串。</p>
+
+<p>Tuple 的类型取决于它的长度及其中项的类型。注意，空 Tuple 同样也是个类型，它只有一种值：<code>()</code>。</p>
+<a name="Type_variables"></a><h2>Type variables</h2>
+
+
+<p>你觉得 <code>head</code> 函数的类型是啥？它可以取任意类型的 List 的首项，是怎么做到的呢？我们查一下！</p>
+<pre class="code">ghci&gt; :t head  
+head :: [a] -&gt; a</pre><img src="../img/box.png" alt="" style="float:left" class="floatleft" />
+<p>嗯! <code>a</code> 是啥？类型吗？想想我们在前面说过，凡是类型其首字母必大写，所以它不会是个类型。它是个类型变量，意味着 a 可以是任意的类型。这一点与其他语言中的泛型 (generic) 很相似，但在 Haskell 中要更为强大。它可以让我们轻而易举地写出类型无关的函数。使用到类型变量的函数被称作"多态函数 "，<code>head</code> 函数的类型声明里标明了它可以取任意类型的 List 并回传其中的第一个元素。</p>
+
+<p>在命名上，类型变量使用多个字符是合法的，不过约定俗成，通常都是使用单个字符，如 <code>a</code>, <code>b</code> ,<code>c</code> ,<code>d</code>...</p>
+
+<p>还记得 <code>fst</code>？我们查一下它的类型：</p>
+<pre class="code">ghci&gt; :t fst  
+fst :: (a, b) -&gt; a</pre>
+<p>可以看到<code>fst</code>取一个包含两个类型的 Tuple 作参数，并以第一个项的类型作为回传值。这便是 <code>fst</code> 可以处理一个含有两种类型项的 pair 的原因。注意，<code>a</code> 和 <code>b</code> 是不同的类型变量，但它们不一定非得是不同的类型，它只是标明了首项的类型与回传值的类型相同。</p>
+<a name="Typeclasses入门"></a><h2>Typeclasses入门</h2>
+
+<img src="../img/classes.png" alt="" style="float:right" class="floatright" />
+<p>类型定义行为的接口，如果一个类型属于某 Typeclass，那它必实现了该 Typeclass 所描述的行为。很多从 OOP 走过来的人们往往会把 Typeclass 当成面向对象语言中的 <code>class</code> 而感到疑惑，厄，它们不是一回事。易于理解起见，你可以把它看做是 Java 的 interface。</p>
+
+<p><code>==</code> 函数的类型声明是怎样的？</p>
+<pre class="code">ghci&gt; :t (==)  
+(==) :: (Eq a) =&gt; a -&gt; a -&gt; Bool</pre><blockquote>
+<p><b>Note</b>: 判断相等的==运算符是函数，<code>+-*/</code>之类的运算符也是同样。在缺省条件下，它们多为中缀函数。若要检查它的类型，就必须得用括号括起使之作为另一个函数，或者说以首码函数的形式调用它。</p>
+</blockquote>
+
+<p>有意思。在这里我们见到个新东西：<code>=&gt;</code> 符号。它左边的部分叫做类型约束。我们可以这样阅读这段类型声明："相等函数取两个相同类型的值作为参数并回传一个布林值，而这两个参数的类型同在 Eq 类之中(即类型约束)"</p>
+
+<p><strong>Eq</strong> 这一 Typeclass 提供了判断相等性的接口，凡是可比较相等性的类型必属于 <code>Eq</code> class。</p>
+<pre class="code">ghci&gt; 5 == 5   
+True   
+ghci&gt; 5 /= 5   
+False   
+ghci&gt; 'a' == 'a'   
+True   
+ghci&gt; "Ho Ho" == "Ho Ho"   
+True   
+ghci&gt; 3.432 == 3.432   
+True</pre>
+<p><code>elem</code> 函数的类型为: <code>(Eq a)=&gt;a-&gt;[a]-&gt;Bool</code>。这是它在检测值是否存在于一个 List 时使用到了==的缘故。</p>
+
+<p>几个基本的 Typeclass：</p>
+
+<p><strong>Eq</strong> 包含可判断相等性的类型。提供实现的函数是 <code>==</code> 和 <code>/=</code>。所以，只要一个函数有Eq类的类型限制，那么它就必定在定义中用到了 <code>==</code> 和 <code>/=</code>。刚才说了，除函数以外的所有类型都属于 <code>Eq</code>，所以它们都可以判断相等性。</p>
+
+<p><strong>Ord</strong> 包含可比较大小的类型。除了函数以外，我们目前所谈到的所有类型都属于 <code>Ord</code> 类。<code>Ord</code> 包中包含了<code>&lt;, &gt;, &lt;=, &gt;=</code> 之类用于比较大小的函数。<code>compare</code> 函数取两个 <code>Ord</code> 类中的相同类型的值作参数，回传比较的结果。这个结果是如下三种类型之一：<code>GT, LT, EQ</code>。</p>
+<pre class="code">ghci&gt; :t (&gt;)  
+(&gt;) :: (Ord a) =&gt; a -&gt; a -&gt; Bool</pre>
+<p>类型若要成为Ord的成员，必先加入Eq家族。</p>
+<pre class="code">ghci&gt; "Abrakadabra" &lt; "Zebra"  
+True  
+ghci&gt; "Abrakadabra" `compare` "Zebra"  
+LT  
+ghci&gt; 5 &gt;= 2  
+True  
+ghci&gt; 5 `compare` 3  
+GT</pre>
+<p><strong>Show</strong> 的成员为可用字串表示的类型。目前为止，除函数以外的所有类型都是 <code>Show</code> 的成员。操作 Show Typeclass，最常用的函数表示 <code>show</code>。它可以取任一Show的成员类型并将其转为字串。</p>
+<pre class="code">ghci&gt; show 3  
+"3"  
+ghci&gt; show 5.334  
+"5.334"  
+ghci&gt; show True  
+"True"</pre>
+<p><strong>Read</strong> 是与 <code>Show</code> 相反的 Typeclass。<code>read</code> 函数可以将一个字串转为 <code>Read</code> 的某成员类型。</p>
+<pre class="code">ghci&gt; read "True" || False  
+True  
+ghci&gt; read "8.2" + 3.8  
+12.0  
+ghci&gt; read "5" - 2  
+3  
+ghci&gt; read "[1,2,3,4]" ++ [3]  
+[1,2,3,4,3]</pre>
+<p>一切良好，如上的所有类型都属于这一 Typeclass。尝试 <code>read "4"</code> 又会怎样？</p>
+<pre class="code">ghci&gt; read "4"  
+&lt; interactive &gt;:1:0:  
+    Ambiguous type variable `a' in the constraint:  
+      `Read a' arising from a use of `read' at &lt;interactive&gt;:1:0-7  
+    Probable fix: add a type signature that fixes these type variable(s)</pre>
+<p>ghci 跟我们说它搞不清楚我们想要的是什么样的回传值。注意调用 <code>read</code> 后跟的那部分，ghci 通过它来辨认其类型。若要一个 <code>boolean</code> 值，他就知道必须得回传一个 <code>Bool</code> 类型的值。但在这里它只知道我们要的类型属于 Read Typeclass，而不能明确到底是哪个。看一下 <code>read</code> 函数的类型声明吧：</p>
+<pre class="code">ghci&gt; :t read  
+read :: (Read a) =&gt; String -&gt; a</pre>
+<p>看，它的回传值属于 ReadTypeclass，但我们若用不到这个值，它就永远都不会得知该表达式的类型。所以我们需要在一个表达式后跟<code>::</code> 的<b>类型签名</b>，以明确其类型。如下：</p>
+<pre class="code">ghci&gt; read "5" :: Int  
+5  
+ghci&gt; read "5" :: Float  
+5.0  
+ghci&gt; (read "5" :: Float) * 4  
+20.0  
+ghci&gt; read "[1,2,3,4]" :: [Int]  
+[1,2,3,4]  
+ghci&gt; read "(3, 'a')" :: (Int, Char)  
+(3, 'a')</pre>
+<p>编译器可以辨认出大部分表达式的类型，但遇到 <code>read "5"</code> 的时候它就搞不清楚究竟该是 Int 还是 Float 了。只有经过运算，Haskell 才会明确其类型；同时由于 Haskell 是静态的，它还必须得在 编译前搞清楚所有值的类型。所以我们就最好提前给它打声招呼："嘿，这个表达式应该是这个类型，省的你认不出来！"</p>
+
+<p><strong>Enum</strong> 的成员都是连续的类型 -- 也就是可枚举。<code>Enum</code> 类存在的主要好处就在于我们可以在 <code>Range</code> 中用到它的成员类型：每个值都有后继子 (successer) 和前置子 (predecesor)，分别可以通过 <code>succ</code> 函数和 <code>pred</code> 函数得到。该 Typeclass 包含的类型有：<code>()</code>, <code>Bool</code>, <code>Char</code>, <code>Ordering</code>, <code>Int</code>, <code>Integer</code>, <code>Float</code> 和 <code>Double</code>。</p>
+<pre class="code">ghci&gt; ['a'..'e']  
+"abcde"  
+ghci&gt; [LT .. GT]  
+[LT,EQ,GT]  
+ghci&gt; [3 .. 5]  
+[3,4,5]  
+ghci&gt; succ 'B'  
+'C'</pre>
+<p><strong>Bounded</strong> 的成员都有一个上限和下限。</p>
+<pre class="code">ghci&gt; minBound :: Int  
+-2147483648  
+ghci&gt; maxBound :: Char  
+'\1114111'  
+ghci&gt; maxBound :: Bool  
+True  
+ghci&gt; minBound :: Bool  
+False</pre>
+<p><code>minBound</code> 和 <code>maxBound</code> 函数很有趣，它们的类型都是 <code>(Bounded a) =&gt; a</code>。可以说，它们都是多态常量。</p>
+
+<p>如果其中的项都属于 <code>Bounded</code> Typeclass，那么该 Tuple 也属于 <code>Bounded</code></p>
+<pre class="code">ghci&gt; maxBound :: (Bool, Int, Char)  
+(True,2147483647,'\1114111')</pre>
+<p><strong>Num</strong> 是表示数字的 Typeclass，它的成员类型都具有数字的特征。检查一个数字的类型：</p>
+<pre class="code">ghci&gt; :t 20  
+20 :: (Num t) =&gt; t</pre>
+<p>看样子所有的数字都是多态常量，它可以作为所有 <code>Num</code> Typeclass中的成员类型。以上便是 <code>Num</code> Typeclass 中包含的所有类型，检测 * 运算符的类型，可以发现它可以处理一切的数字：</p>
+<pre class="code">ghci&gt; :t (*)  
+(*) :: (Num a) =&gt; a -&gt; a -&gt; a</pre>
+<p>它只取两个相同类型的参数。所以 <code>(5 :: Int) * (6 :: Integer)</code> 会引发一个类型错误，而 <code>5 * (6 :: Integer)</code> 就不会有问题。</p>
+
+<p>类型只有亲近 <code>Show</code> 和 <code>Eq</code>，才可以加入 <code>Num</code>。</p>
+
+<p><strong>Integral</strong> 同样是表示数字的 Typeclass。<code>Num</code> 包含所有的数字：实数和整数。而 Intgral 仅包含整数，其中的成员类型有 <code>Int</code> 和 <code>Integer</code>。</p>
+
+<p><strong>Floating</strong> 仅包含浮点类型：<code>Float</code> 和 <code>Double</code>。</p>
+
+<p>有个函数在处理数字时会非常有用，它便是 <strong>fromIntegral</strong>。其类型声明为： <code>fromIntegral :: (Num b, Integral a) =&gt; a -&gt; b</code>。从中可以看出，它取一个整数做参数并回传一个更加通用的数字，这在同时处理整数和浮点时会尤为有用。举例来说，<code>length</code> 函数的类型声明为：<code>length :: [a] -&gt; Int</code>，而非更通用的形式，如 <code>(Num b) =&gt; length :: [a] -&gt; b</code>。这应该是历史原因吧，反正我觉得挺蠢。如果取了一个 List 长度的值再给它加 3.2 就会报错，因为这是将浮点数和整数相加。面对这种情况，我们就用 <code>fromIntegral (length [1,2,3,4]) + 3.2</code> 来解决。</p>
+
+<p>注意到，<code>fromIntegral</code> 的类型声明中用到了多个类型约束。如你所见，只要将多个类型约束放到括号里用逗号隔开即可。</p>
+
+            <ul class="nav">
+                <li class="left">  <img src="../img/prv.png" alt="prev" /><a href="ready-begin.html">从零开始</a></li>
+                <li class="center"><a href="chapters.html">Index</a></li>
+                <li class="right"> <a href="syntax-on-function.html">函数的语法</a><img src="../img/nxt.png" alt="next" /></li>
+            </ul>
+        </div>
+        <div id="footer">
+        </div>
+        <div id="feedback">Send feedback</div>
+    </body>
+</html>

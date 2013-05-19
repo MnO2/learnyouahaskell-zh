@@ -1,0 +1,432 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <style type="text/css">
+            @import url(../css/style.css);
+            @import url(../css/feedback.css);
+        </style>
+        <script type="text/javascript" src="../js/jquery.js"></script>
+        <script type="text/javascript" src="../js/jquery.chili-2.2.js"></script>
+        <script type="text/javascript" src="../js/script.js"></script>
+        <script type="text/javascript" src="../js/html2canvas.js"></script>
+        <script type="text/javascript" src="../js/jsfeedback.js"></script>
+        <script type="text/javascript">
+             ChiliBook.recipeFolder = "../js/chili/";  
+             ChiliBook.automaticSelector = "pre";
+        </script>
+        <script type="text/javascript">
+            $(function(){
+                $('#feedback').click(function(){
+                    $('body').feedback();
+                })
+            });
+        </script>
+        <script type="text/javascript">
+            var _gaq = _gaq || [];
+            _gaq.push(['_setAccount', 'UA-32830659-1']);
+            _gaq.push(['_trackPageview']);
+
+            (function() {
+                var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+                ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+                    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+            })();
+        </script>
+        <title>从零开始</title>
+    </head>
+    <body>
+        <div id="header">
+            <img id="beta" alt="beta" src="../img/beta.png" />
+        </div>
+
+        <div id="main">
+            <ul class="nav">
+                <li class="left">  <img src="../img/prv.png" alt="prev" /><a href="introduction.html">简介</a></li>
+                <li class="center"><a href="chapters.html">Index</a></li>
+                <li class="right"> <a href="types-and-type-classes.html">Types and Typeclasses</a><img src="../img/nxt.png" alt="next" /></li>
+            </ul>
+            <a name="从零开始"></a><h1>从零开始</h1>
+
+<a name="准备好了吗？"></a><h2>准备好了吗？</h2>
+
+<img src="../img/startingout.png" alt="" style="float:right" class="floatright" />
+<p>准备来开始我们的旅程！如果你就是那种从不看说明书的人，我推荐你还是回头看一下简介的最后一节。那里面讲了这个教学中你需要用到的工具及基本用法。我们首先要做的就是进入 ghc 的交互模式，接着就可以写几个函数体验一下 Haskell 了。打开终端机，输入 <code>ghci</code>，你会看到下列欢迎消息：</p>
+<pre class="code">GHCi, version 6.8.2: http://www.haskell.org/ghc/
+:? for help  Loading package base ... linking ... done.
+Prelude&gt;</pre>
+<p>恭喜您已经进入了 ghci 了！目前它的命令行提示是 <code>prelude&gt;</code>，不过它在你装载一些模块之后会变的比较长。为了美观起见，我们会输入指令 <code>set prompt "ghci&gt; "</code> 把它改成 <code>ghci&gt;</code>。</p>
+
+<p>首先来看一些简单的运算</p>
+<pre class="code">ghci&gt; 2 + 15
+17
+ghci&gt; 49 * 100
+4900
+ghci&gt; 1892 - 1472
+420
+ghci&gt; 5 / 2
+2.5
+ghci&gt;</pre>
+<p>很简单吧！你也可以在一行中使用多个运算符，他们会按照运算符优先级执行计算，而使用括号可以改变执行的优先级。</p>
+<pre class="code">ghci&gt; (50 * 100) - 4999
+1  
+ghci&gt; 50 * 100 - 4999
+1  
+ghci&gt; 50 * (100 - 4999)
+-244950 </pre>
+<p>但注意处理负数的时候有个小陷阱：我们执行 <code>5 * -3</code> 会 ghci 会回报错误。所以说，使用负数时最好将其置于括号之中，像 <code>5*(-3)</code> 就不会有问题。</p>
+
+<p>要进行布林代数 (Boolean Algebra) 的演算也是很直觉的。你也许早就会猜，<code>&amp;&amp;</code> 指的是布林代数上的 AND，而 <code>||</code> 指的是布林代数上的 OR，<code>not</code> 会把 <code>True</code> 变成 <code>False</code>，<code>False</code> 变成 <code>True</code>。</p>
+<pre class="code">ghci&gt; True &amp;&amp; False
+False
+ghci&gt; True &amp;&amp; True
+True
+ghci&gt; False || True
+True
+ghci&gt; not False
+True
+ghci&gt; not (True &amp;&amp; True)
+False</pre>
+<p>相等性可以这样判定</p>
+<pre class="code">ghci&gt; 5 == 5
+True
+ghci&gt; 1 == 0
+False
+ghci&gt; 5 /= 5
+False
+ghci&gt; 5 /= 4
+True
+ghci&gt; "hello" == "hello"
+True</pre>
+<p>那执行 <code>5+"llama"</code> 或者 <code>5==True</code> 会怎样？ 如果我们真的试着在 ghci 中跑，会得到下列的错误消息：</p>
+<pre class="code">No instance for (Num [Char])
+arising from a use of `+' at :1:0-9
+Possible fix: add an instance declaration for (Num [Char])
+In the expression: 5 + "llama"
+In the definition of `it': it = 5 + "llama"</pre>
+<p>这边 ghci 提示说 <code>"llama"</code> 并不是数值类型，所以它不知道该怎样才能给它加上 5。即便是 “four” 甚至是 “4” 也不可以，Haskell 不拿它当数值。执行 <code>True==5</code>, ghci 就会提示类型不匹配。<code>+</code> 运算符要求两端都是数值，而 <code>==</code> 运算符仅对两个可比较的值可用。这就要求他们的类型都必须一致，苹果和橘子就无法做比较。我们会在后面深入地理解类型的概念。Note: <code>5+4.0</code> 是可以执行的，5 既可以做被看做整数也可以被看做浮点数，但 4.0 则不能被看做整数。</p>
+<img src="../img/ringring.png" alt="" style="float:right" class="floatright" />
+<p>也许你并未察觉，不过从始至终我们一直都在使用函数。<code>*</code> 就是一个将两个数相乘的函数，就像三明治一样，用两个参数将它夹在中央，这被称作中缀函数。而其他大多数不能与数夹在一起的函数则被称作前缀函数。绝大部分函数都是前缀函数，在接下来我们就不多做区别。大多数命令式编程语言中的函数调用形式通常就是函数名，括号，由逗号分隔的参数表。而在 Haskell 中，函数调用的形式是函数名，空格，空格分隔的参数表。简单据个例子，我们调用 Haskell 中最无趣的函数：</p>
+<pre class="code">ghci&gt; succ 8
+9</pre>
+<p><code>succ</code> 函数返回一个数的后继 (successor)。而且如你所见，在 Haskell 中是用空格来将函数与参数分隔的。至于调用多个参数的函数也很容易，<code>min</code> 和 <code>max</code> 接受两个可比较大小的参数，并返回较大或者较小的那个数。</p>
+<pre class="code">ghci&gt; min 9 10
+9
+ghci&gt; min 3.4 3.2
+3.2
+ghci&gt; max 100 101
+101</pre>
+<p>函数调用拥有最高的优先级，如下两句是等效的</p>
+<pre class="code">ghci&gt; succ 9 + max 5 4 + 1
+16
+ghci&gt; (succ 9) + (max 5 4) + 1
+16</pre>
+<p>若要取 9 乘 10 的后继，<code>succ 9*10</code> 是不行的，程序会先取 9 的后继，然后再乘以 10 得 100。正确的写法应该是 <code>succ(9*10)</code>，得 91。如果某函数有两个参数，也可以用 <code>&#96;</code> 符号将它括起，以中缀函数的形式调用它。</p>
+
+<p>例如取两个整数相除所得商的 <code>div</code> 函数, <code>div 92 10</code> 可得 9，但这种形式不容易理解：究竟是哪个数是除数，哪个数被除？使用中缀函数的形式 <code>92 `div` 10</code> 就更清晰了。</p>
+
+<p>从命令式编程语言走过来的人们往往会觉得函数调用与括号密不可分，在 C 中，调用函数必加括号，就像 <code>foo()</code>, <code>bar(1)</code>,或者 <code>baz(3,"haha")</code>。而在 Haskell 中，函数的调用必使用空格，例如 <code>bar (bar 3)</code>，它并不表示以 <code>bar</code> 和 3 两个参数去调用 <code>bar</code>，而是以 <code>bar 3</code> 所得的结果作为参数去调用 <code>bar</code>。在 C 中，就相当于 <code>bar(bar(3))</code>。</p>
+<a name="初学者的第一个函数"></a><h2>初学者的第一个函数</h2>
+
+
+<p>在前一节中我们简单介绍了函数的调用，现在让我们编写我们自己的函数！打开你最喜欢的编辑器，输入如下代码，它的功能就是将一个数字乘以 2。</p>
+<pre class="code">doubleMe x = x + x</pre>
+<p>函数的声明与它的调用形式大致相同，都是先函数名，后跟由空格分隔的参数表。但在声明中一定要在 <code>=</code> 后面定义函数的行为。</p>
+
+<p>保存为 <code>baby.hs</code> 或任意名称，然后转至保存的位置，打开 ghci，执行 <code>:l baby.hs</code>。这样我们的函数就装载成功，可以调用了。</p>
+<pre class="code">ghci&gt; :l baby  
+[1 of 1] Compiling Main             ( baby.hs, interpreted )
+Ok, modules loaded: Main.
+ghci&gt; doubleMe 9
+18
+ghci&gt; doubleMe 8.3
+16.6</pre>
+<p><code>+</code> 运算符对整数和浮点都可用(实际上所有有数字特征的值都可以)，所以我们的函数可以处理一切数值。声明一个包含两个参数的函数如下：</p>
+<pre class="code">doubleUs x y = x*2 + y*2</pre>
+<p>很简单。将其写成 <code>doubleUs x y = x + x + y + y</code> 也可以。测试一下(记住要保存为 <code>baby.hs</code> 并到 ghci 下边执行 <code>:l baby.hs</code>)</p>
+<pre class="code">ghci&gt; doubleUs 4 9  26
+ghci&gt; doubleUs 2.3 34.2  73.0
+ghci&gt; doubleUs 28 88 + doubleMe 123
+478</pre>
+<p>你可以在其他函数中调用你编写的函数，如此一来我们可以将 <code>doubleMe</code> 函数改为：</p>
+<pre class="code">doubleUs x y = doubleMe x + doubleMe y</pre><img src="../img/baby.png" alt="" style="float:left" class="floatleft" />
+<p>这种情形在 Haskell 下边十分常见：编写一些简单的函数，然后将其组合，形成一个较为复杂的函数，这样可以减少重复工作。设想若是哪天有个数学家验证说 2 应该是 3，我们只需要将 <code>doubleMe</code> 改为 <code>x+x+x</code> 即可，由于 <code>doubleUs</code> 调用到 <code>doubleMe</code>，于是整个程序便进入了 2 即是 3 的古怪世界。</p>
+
+<p>Haskell 中的函数并没有顺序，所以先声明 <code>doubleUs</code> 还是先声明 <code>doubleMe</code> 都是同样的。如下，我们编写一个函数，它将小于 100 的数都乘以 2，因为大于 100 的数都已经足够大了！</p>
+<pre class="code">doubleSmallNumber x = if x &gt; 100
+                      then x
+                      else  x*2</pre>
+<p>接下来介绍 Haskell 的 <code>if</code> 语句。你也许会觉得和其他语言很像，不过存在一些不同。Haskell 中 <code>if</code> 语句的 <code>else</code> 部分是不可省略。在命令式语言中，你可以通过 <code>if</code> 语句来跳过一段代码，而在 <code>Haskell</code> 中，每个函数和表达式都要返回一个结果。对于这点我觉得将 <code>if</code> 语句置于一行之中会更易理解。Haskell 中的 <code>if</code> 语句的另一个特点就是它其实是个表达式，表达式就是返回一个值的一段代码：5 是个表达式，它返回 5；<code>4+8</code> 是个表达式；<code>x+y</code> 也是个表达式，它返 回 <code>x+y</code> 的结果。正由于 <code>else</code> 是强制的，<code>if</code> 语句一定会返回某个值，所以说 <code>if</code> 语句也是个表达式。如果要给刚刚定义的函数的结果都加上 1，可以如此修改：</p>
+<pre class="code">doubleSmallNumber' x = (if x &gt; 100 then x else x*2) + 1 </pre>
+<p>若是去掉括号，那就会只在小于 100 的时候加 1。注意函数名最后的那个单引号，它没有任何特殊含义，只是一个函数名的合法字符罢了。通常，我们使用单引号来区分一个稍经修改但差别不大的函数。定义这样的函数也是可以的：</p>
+<pre class="code">conanO'Brien = "It's a-me, Conan O'Brien!"  </pre>
+<p>在这里有两点需要注意。首先就是我们没有大写 <code>conan</code> 的首字母，因为首字母大写的函数是不允许的，稍后我们将讨论其原因；另外就是这个函数并没有任何参数。没有参数的函数通常被称作“定义”(或者“名字”)，一旦定义，<code>conanO'Brien</code> 就与字串 <code>"It's a-me, Conan O'Brien!"</code> 完全等价，且它的值不可以修改。</p>
+<a name="List_入门"></a><h2>List 入门</h2>
+
+<img src="../img/list.png" alt="" style="float:right" class="floatright" />
+<p>在 Haskell 中，List 就像现实世界中的购物单一样重要。它是最常用的数据结构，并且十分强大，灵活地使用它可以解决很多问题。本节我们将对 List，字串和 list comprehension 有个初步了解。 在 Haskell 中，List 是一种单类型的数据结构，可以用来存储多个类型相同的元素。我们可以在里面装一组数字或者一组字符，但不能把字符和数字装在一起。</p>
+<blockquote>
+<p><b>Note</b>: 在 ghci 下，我们可以使用 <code>let</code> 关键字来定义一个常量。在 ghci 下执行 <code>let a =1</code> 与在脚本中编写 <code>a=1</code> 是等价的。</p>
+</blockquote>
+<pre class="code">ghci&gt; let lostNumbers = [4,8,15,16,23,48]  
+ghci&gt; lostNumbers  
+[4,8,15,16,23,48] </pre>
+<p>如你所见，一个 List 由方括号括起，其中的元素用逗号分隔开来。若试图写 <code>[1,2,'a',3,'b','c',4]</code> 这样的 List，Haskell 就会报出这几个字符不是数字的错误。字串实际上就是一组字符的 List，"Hello" 只是 <code>['h','e','l','l','o']</code> 的语法糖而已。所以我们可以使用处理 List 的函数来对字串进行操作。 将两个 List 合并是很常见的操作，这可以通过 <code>++</code> 运算符实现。</p>
+<pre class="code">ghci&gt; [1,2,3,4] ++ [9,10,11,12]  
+[1,2,3,4,9,10,11,12]  
+ghci&gt; "hello" ++ " " ++ "world"  
+"hello world"  
+ghci&gt; ['w','o'] ++ ['o','t']  
+"woot"</pre>
+<p>在使用 <code>++</code> 运算符处理长字串时要格外小心(对长 List 也是同样)，Haskell 会遍历整个的 List(<code>++</code> 符号左边的那个)。在处理较短的字串时问题还不大，但要是在一个 5000 万长度的 List 上追加元素，那可得执行好一会儿了。所以说，用 <code>:</code> 运算符往一个 List 前端插入元素会是更好的选择。</p>
+<pre class="code">ghci&gt; 'A':" SMALL CAT"  
+"A SMALL CAT"  
+ghci&gt; 5:[1,2,3,4,5] 
+[5,1,2,3,4,5] </pre>
+<p><code>:</code> 运算符可以连接一个元素到一个 List 或者字串之中，而 <code>++</code> 运算符则是连接两个 List。若要使用 <code>++</code> 运算符连接单个元素到一个 List 之中，就用方括号把它括起使之成为单个元素的 List。<code>[1,2,3]</code> 实际上是 <code>1:2:3:[]</code> 的语法糖。<code>[]</code> 表示一个空 List,若要从前端插入 3，它就成了 <code>[3]</code>, 再插入 2，它就成了 <code>[2,3]</code>，以此类推。</p>
+<blockquote>
+<p><b>Note</b>: <code>[],[[]],[[],[],[]]</code> 是不同的。第一个是一个空的 List，第二个是含有一个空 List 的 List，第三个是含有三个空 List 的 List。</p>
+</blockquote>
+
+<p>若是要按照索引取得 List 中的元素，可以使用 <code>!!</code> 运算符，索引的下标为 0。</p>
+<pre class="code">ghci&gt; "Steve Buscemi" !! 6  
+'B'  
+ghci&gt; [9.4,33.2,96.2,11.2,23.25] !! 1  
+33.2 </pre>
+<p>但你若是试图在一个只含有 4 个元素的 List 中取它的第 6 个元素，就会报错。要小心！</p>
+
+<p>List 同样也可以用来装 List，甚至是 List 的 List 的 List：</p>
+<pre class="code">ghci&gt; let b = [[1,2,3,4],[5,3,3,3],[1,2,2,3,4],[1,2,3]]
+ghci&gt; b
+[[1,2,3,4],[5,3,3,3],[1,2,2,3,4],[1,2,3]]
+ghci&gt; b ++ [[1,1,1,1]]
+[[1,2,3,4],[5,3,3,3],[1,2,2,3,4],[1,2,3],[1,1,1,1]]
+ghci&gt; [6,6,6]:b
+[[6,6,6],[1,2,3,4],[5,3,3,3],[1,2,2,3,4],[1,2,3]]
+ghci&gt; b !! 2
+[1,2,2,3,4]</pre>
+<p>List 中的 List 可以是不同长度，但必须得是相同的类型。如不可以在 List 中混合放置字符和数组相同，混合放置数值和字符的 List 也是同样不可以的。当 List 内装有可比较的元素时，使用 <code>&gt;</code> 和 <code>&gt;=</code> 可以比较 List 的大小。它会先比较第一个元素，若它们的值相等，则比较下一个，以此类推。</p>
+<pre class="code">ghci&gt; [3,2,1] &gt; [2,1,0]  
+True  
+ghci&gt; [3,2,1] &gt; [2,10,100]  
+True  
+ghci&gt; [3,4,2] &gt; [3,4]  
+True  
+ghci&gt; [3,4,2] &gt; [2,4]  
+True  
+ghci&gt; [3,4,2] == [3,4,2]  
+True </pre>
+<p>还可以对 List 做啥？如下是几个常用的函数:</p>
+
+<p><strong>head</strong> 返回一个 List 的头部，也就是 List 的首个元素。</p>
+<pre class="code">ghci&gt; head [5,4,3,2,1] 
+5</pre>
+<p><strong>tail</strong> 返回一个 List 的尾部，也就是 List 除去头部之后的部分。</p>
+<pre class="code">ghci&gt; tail [5,4,3,2,1]  
+[4,3,2,1]  </pre>
+<p><strong>last</strong> 返回一个 List 的最后一个元素。</p>
+<pre class="code">ghci&gt; last [5,4,3,2,1]  
+1  </pre>
+<p><strong>init</strong> 返回一个 List 除去最后一个元素的部分。</p>
+<pre class="code">ghci&gt; init [5,4,3,2,1]
+[5,4,3,2]</pre>
+<p>如果我们把 List 想象为一头怪兽，那这就是它的样子：</p>
+<img src="../img/listmonster.png" alt="" style="float:none" class="floatnone" />
+<p>试一下，若是取一个空 List 的 <code>head</code> 又会怎样？</p>
+<pre class="code">ghci&gt; head []  
+*** Exception: Prelude.head: empty list </pre>
+<p>糟糕，程序直接跳出错误。如果怪兽都不存在的话，那他的头也不会存在。在使用 <code>head</code>，<code>tail</code>，<code>last</code> 和 <code>init</code> 时要小心别用到空的 List 上，这个错误不会在编译时被捕获。所以说做些工作以防止从空 List 中取值会是个好的做法。</p>
+
+<p><strong>length</strong> 返回一个 List 的长度。</p>
+<pre class="code">ghci&gt; length [5,4,3,2,1]  
+5 </pre>
+<p><strong>null</strong> 检查一个 List 是否为空。如果是，则返回 <code>True</code>，否则返回 <code>False</code>。应当避免使用 <code>xs==[]</code> 之类的语句来判断 List 是否为空，使用 null 会更好。</p>
+<pre class="code">ghci&gt; null [1,2,3]  
+False  
+ghci&gt; null []  
+True </pre>
+<p><strong>reverse</strong> 将一个 List 反转:</p>
+<pre class="code">ghci&gt; reverse [5,4,3,2,1]  
+[1,2,3,4,5] </pre>
+<p><strong>take</strong> 返回一个 List 的前几个元素，看：</p>
+<pre class="code">ghci&gt; take 3 [5,4,3,2,1]  
+[5,4,3]  
+ghci&gt; take 1 [3,9,3]  
+[3]  
+ghci&gt; take 5 [1,2]  
+[1,2]  
+ghci&gt; take 0 [6,6,6] 
+[] </pre>
+<p>如上，若是图取超过 List 长度的元素个数，只能得到原 List。若 <code>take 0</code> 个元素，则会得到一个空 List！ <code>drop</code> 与 <code>take</code> 的用法大体相同，它会删除一个 List 中的前几个元素。</p>
+<pre class="code">ghci&gt; drop 3 [8,4,2,1,5,6]  
+[1,5,6]  
+ghci&gt; drop 0 [1,2,3,4]  
+[1,2,3,4]  
+ghci&gt; drop 100 [1,2,3,4]  
+[]  </pre>
+<p><strong>maximum</strong> 返回一个 List 中最大的那个元素。<code>minimun</code> 返回最小的。</p>
+<pre class="code">ghci&gt; minimum [8,4,2,1,5,6]  
+1  
+ghci&gt; maximum [1,9,2,3,4]  
+9  </pre>
+<p><strong>sum</strong> 返回一个 List 中所有元素的和。<code>product</code> 返回一个 List 中所有元素的积。</p>
+<pre class="code">ghci&gt; sum [5,2,1,6,3,2,5,7]  
+31  
+ghci&gt; product [6,2,1,2]  
+24  
+ghci&gt; product [1,2,5,6,7,9,2,0]  
+0  </pre>
+<p><strong>elem</strong> 判断一个元素是否在包含于一个 List，通常以中缀函数的形式调用它。</p>
+<pre class="code">ghci&gt; 4 `elem` [3,4,5,6]  
+True  
+ghci&gt; 10 `elem` [3,4,5,6]  
+False </pre>
+<p>这就是几个基本的 List 操作函数，我们会在往后的一节中了解更多的函数。</p>
+<a name="使用_Range"></a><h2>使用 Range</h2>
+
+<img src="../img/cowboy.png" alt="" style="float:right" class="floatright" />
+<p>今天如果想得到一个包含 1 到 20 之间所有数的 List，你会怎么做? 我们可以将它们一个一个用键盘打出来，但很明显地这不是一个完美的方案，特别是你追求一个好的编程语言的时候。我们想用的是区间 (Range)。Range 是构造 List 方法之一，而其中的值必须是可枚举的，像 1、2、3、4...字符同样也可以枚举，字母表就是 <code>A..Z</code> 所有字符的枚举。而名字就不可以枚举了，<code>"john"</code> 后面是谁？我不知道。</p>
+
+<p>要得到包含 1 到 20 中所有自然数的 List，只要 <code>[1..20]</code> 即可，这与用手写 <code>[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]</code> 是完全等价的。其实用手写一两个还不是什么大事，但若是手写一个非常长的 List 那就铁定是个笨方法。</p>
+<pre class="code">ghci&gt; [1..20]
+[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]
+ghci&gt; ['a'..'z']
+"abcdefghijklmnopqrstuvwxyz"
+ghci&gt; ['K'..'Z']  
+"KLMNOPQRSTUVWXYZ"</pre>
+<p>Range 的特点是他还允许你指定每一步该跨多远。譬如说，今天的问题换成是要得到 1 到 20 间所有的偶数或者 3 的倍数该怎样？</p>
+<pre class="code">ghci&gt; [2,4..20]
+[2,4,6,8,10,12,14,16,18,20]
+ghci&gt; [3,6..20]
+[3,6,9,12,15,18]</pre>
+<p>仅需用逗号将前两个元素隔开，再标上上限即可。尽管 Range 很聪明，但它恐怕还满足不了一些人对它的期许。你就不能通过 <code>[1,2,4..100]</code>这样的语句来获得所有 2 的幂。一方面是因为步长只能标明一次，另一方面就是仅凭前几项，数组的后项是不能确定的。要得到 20 到 1 的 List，<code>[20..1]</code> 是不可以的。必须得 <code>[20,19..1]</code>。 在 Range 中使用浮点数要格外小心！出于定义的原因，浮点数并不精确。若是使用浮点数的话，你就会得到如下的糟糕结果</p>
+<pre class="code">ghci&gt; [0.1, 0.3 .. 1]
+[0.1,0.3,0.5,0.7,0.8999999999999999,1.0999999999999999]</pre>
+<p>我的建议就是避免在 Range 中使用浮点数。</p>
+
+<p>你也可以不标明 Range 的上限，从而得到一个无限长度的 List。在后面我们会讲解关于无限 List 的更多细节。取前 24 个 13 的倍数该怎样？恩，你完全可以 <code>[13,26..24*13]</code>，但有更好的方法： <code>take 24 [13,26..]</code>。</p>
+
+<p>由于 Haskell 是惰性的，它不会对无限长度的 List 求值，否则会没完没了的。它会等着，看你会从它那儿取多少。在这里它见你只要 24 个元素，便欣然交差。如下是几个生成无限 List 的函数 <code>cycle</code> 接受一个 List 做参数并返回一个无限 List 。如果你只是想看一下它的运算结果而已，它会运行个没完的。所以应该在某处划好范围。</p>
+<pre class="code">ghci&gt; take 10 (cycle [1,2,3])
+[1,2,3,1,2,3,1,2,3,1]
+ghci&gt; take 12 (cycle "LOL ")
+"LOL LOL LOL "</pre>
+<p><strong>repeat</strong> 接受一个值作参数，并返回一个仅包含该值的无限 List。这与用 <code>cycle</code> 处理单元素 List 差不多。</p>
+<pre class="code">ghci&gt; take 10 (repeat 5)
+[5,5,5,5,5,5,5,5,5,5]</pre>
+<p>其实，你若只是想得到包含相同元素的 List ，使用 <code>replicate</code> 会更简单，如 <code>replicate 3 10</code>，得 <code>[10,10,10]</code>。</p>
+<a name="List_Comprehension"></a><h2>List Comprehension</h2>
+
+<img src="../img/kermit.png" alt="" style="float:right" class="floatright" />
+<p>学过数学的你对集合的 comprehension (Set Comprehension) 概念一定不会陌生。通过它，可以从既有的集合中按照规则产生一个新集合。前十个偶数的 set comprehension 可以表示为<img src="../img/setnotation.png" alt=""></img>，竖线左端的部分是输出函数，<code>x</code> 是变量，<code>N</code> 是输入集合。在 Haskell 下，我们可以通过类似 <code>take 10 [2,4..]</code> 的代码来实现。但若是把简单的乘 2 改成更复杂的函数操作该怎么办呢？用 list comprehension，它与 set comprehension 十分的相似，用它取前十个偶数轻而易举。这个 list comprehension 可以表示为：</p>
+<pre class="code">ghci&gt; [x*2 | x &lt;- [1..10]]
+[2,4,6,8,10,12,14,16,18,20]</pre>
+<p>如你所见，结果正确。给这个 comprehension 再添个限制条件 (predicate)，它与前面的条件由一个逗号分隔。在这里，我们要求只取乘以 2 后大于等于 12 的元素。</p>
+<pre class="code">ghci&gt; [x*2 | x &lt;- [1..10], x*2 &gt;= 12]
+[12,14,16,18,20]</pre>
+<p>cool，灵了。若是取 50 到 100 间所有除7的余数为 3 的元素该怎么办？简单：</p>
+<pre class="code">ghci&gt; [ x | x &lt;- [50..100], x `mod` 7 == 3]
+[52,59,66,73,80,87,94]</pre>
+<p>成功！从一个 List 中筛选出符合特定限制条件的操作也可以称为过滤 (flitering)。即取一组数并且按照一定的限制条件过滤它们。再举个例子 吧，假如我们想要一个 comprehension，它能够使 List 中所有大于 10 的奇数变为 <code>"BANG"</code>，小于 10 的奇数变为 <code>"BOOM"</code>，其他则统统扔掉。方便重用起见，我们将这个 comprehension 置于一个函数之中。</p>
+<pre class="code">boomBangs xs = [ if x &lt; 10 then "BOOM!" else "BANG!" | x &lt;- xs, odd x]</pre>
+<p>这个 comprehension 的最后部分就是限制条件，使用 <code>odd</code> 函数判断是否为奇数：返回 <code>True</code>，就是奇数，该 List 中的元素才被包含。</p>
+<pre class="code">ghci&gt; boomBangs [7..13]
+["BOOM!","BOOM!","BANG!","BANG!"]</pre>
+<p>也可以加多个限制条件。若要达到 10 到 20 间所有不等于 13，15 或 19 的数，可以这样：</p>
+<pre class="code">ghci&gt; [ x | x &lt;- [10..20], x /= 13, x /= 15, x /= 19]
+[10,11,12,14,16,17,18,20]</pre>
+<p>除了多个限制条件之外，从多个 List 中取元素也是可以的。这样的话 comprehension 会把所有的元素组合交付给我们的输出函数。在不过滤的前提 下，取自两个长度为 4 的集合的 comprehension 会产生一个长度为 16 的 List。假设有两个 List，<code>[2,5,10]</code> 和 <code>[8,10,11]</code>， 要取它们所有组合的积，可以这样：</p>
+<pre class="code">ghci&gt; [ x*y | x &lt;- [2,5,10], y &lt;- [8,10,11]]
+[16,20,22,40,50,55,80,100,110]</pre>
+<p>意料之中，得到的新 List 长度为 9。若只取乘积为 50 的结果该如何？</p>
+<pre class="code">ghci&gt; [ x*y | x &lt;-[2,5,10], y &lt;- [8,10,11], x*y &gt; 50]
+[55,80,100,110]</pre>
+<p>取个包含一组名词和形容词的 List comprehension 吧，写诗的话也许用得着。</p>
+<pre class="code">ghci&gt; let nouns = ["hobo","frog","pope"]
+ghci&gt; let adjectives = ["lazy","grouchy","scheming"]
+ghci&gt; [adjective ++ " " ++ noun | adjective &lt;- adjectives, noun &lt;- nouns]
+["lazy hobo","lazy frog","lazy pope","grouchy hobo","grouchy frog", "grouchy pope","scheming hobo",
+"scheming frog","scheming pope"]</pre>
+<p>明白！让我们编写自己的 <code>length</code> 函数吧！就叫做 <code>length'</code>!</p>
+<pre class="code">length' xs = sum [1 | _ &lt;- xs]</pre>
+<p><code>_</code> 表示我们并不关心从 List 中取什么值，与其弄个永远不用的变量，不如直接一个 <code>_</code>。这个函数将一个 List 中所有元素置换为 1，并且使其相加求和。得到的结果便是我们的 List 长度。友情提示：字串也是 List，完全可以使用 list comprehension 来处理字串。如下是个除去字串中所有非大写字母的函数：</p>
+<pre class="code">removeNonUppercase st = [ c | c &lt;- st, c `elem` ['A'..'Z']]</pre>
+<p>测试一下：</p>
+<pre class="code">ghci&gt; removeNonUppercase "Hahaha! Ahahaha!"
+"HA"
+ghci&gt; removeNonUppercase "IdontLIKEFROGS"
+"ILIKEFROGS"</pre>
+<p>在这里，限制条件做了所有的工作。它说：只有在 <code>['A'..'Z']</code> 之间的字符才可以被包含。</p>
+
+<p>若操作含有 List 的 List，使用嵌套的 List comprehension 也是可以的。假设有个包含许多数值的 List 的 List，让我们在不拆开它的前提下除去其中的所有奇数：</p>
+<pre class="code">ghci&gt; let xxs = [[1,3,5,2,3,1,2,4,5],[1,2,3,4,5,6,7,8,9],[1,2,4,2,1,6,3,1,3,2,3,6]]
+ghci&gt; [ [ x | x &lt;- xs, even x ] | xs &lt;- xxs]
+[[2,2,4],[2,4,6,8],[2,4,2,6,2,6]]</pre>
+<p>将 List Comprehension 分成多行也是可以的。若非在 ghci 之下，还是将 List Comprehension 分成多行好，尤其是需要嵌套的时候。</p>
+<a name="Tuple"></a><h2>Tuple</h2>
+
+<img src="../img/tuple.png" alt="" style="float:right" class="floatright" />
+<p>从某种意义上讲，Tuple (元组)很像 List --都是将多个值存入一个个体的容器。但它们却有着本质的不同，一组数字的 List 就是一组数字，它们的类型相 同，且不关心其中包含元素的数量。而 Tuple 则要求你对需要组合的数据的数目非常的明确，它的类型取决于其中项的数目与其各自的类型。Tuple 中的项 由括号括起，并由逗号隔开。</p>
+
+<p>另外的不同之处就是 Tuple 中的项不必为同一类型，在 Tuple 里可以存入多类型项的组合。</p>
+
+<p>动脑筋，在 Haskell 中表示二维矢量该如何？使用 List 是一种方法，它倒也工作良好。若要将一组矢量置于一个 List 中来表示平面图形又该怎样？我们可以写类似 <code>[[1,2],[8,11],[4,5]]</code> 的代码来实现。但问题在于，<code>[[1,2],[8,11,5],[4,5]]</code> 也是同样合法的，因为其中元素的类型都相同。尽管这样并不靠谱，但编译时并不会报错。然而一个长度为 2 的 Tuple (也可以称作序对，Pair) ，是一个独立的类型，这便意味着一个包含一组序对的 List 不能再加入一个三元组，所以说把原先的方括号改为圆括号使用 Tuple 会 更好: <code>[(1,2),(8,11),(4,5)]</code>。若试图表示这样的图形： <code>[(1,2),(8,11,5),(4,5)]</code>，就会报出以下的错误：</p>
+<pre class="code">Couldn't match expected type `(t, t1)'
+against inferred type `(t2, t3, t4)'
+In the expression: (8, 11, 5)
+In the expression: [(1, 2), (8, 11, 5), (4, 5)]
+In the definition of `it': it = [(1, 2), (8, 11, 5), (4, 5)]</pre>
+<p>这告诉我们说程序在试图将序对和三元组置于同一 List 中，而这是不允许的。同样 <code>[(1,2),("one",2)]</code> 这样的 List 也不行，因为 其中的第一个 Tuple 是一对数字，而第二个 Tuple 却成了一个字串和一个数字。Tuple 可以用来保存多个数据，如，我们要表示一个人的名字与年 龄，可以使用这样的 Tuple: <code>("Christopher", "Walken", 55)</code>。从这个例子里也可以看出，Tuple 中也可以存储 List。</p>
+
+<p>使用 Tuple 前应当事先明确一条数据中应该由多少个项。每个不同长度的 Tuple 都是独立的类型，所以你就不可以写个函数来给它追加元素。而唯一能做的，就是通过函数来给一个 List 追加序对，三元组或是四元组等内容。</p>
+
+<p>可以有单元素的 List，但 Tuple 不行。想想看，单元素的 Tuple 本身就只有一个值，对我们又有啥意义？不靠谱。</p>
+
+<p>同 List 相同，只要其中的项是可比较的，Tuple 也可以比较大小，只是你不可以像比较不同长度的 List 那样比较不同长度的 Tuple 。如下是两个有用的序对操作函数：</p>
+
+<p><strong>fst</strong> 返回一个序对的首项。</p>
+<pre class="code">ghci&gt; fst (8,11)
+8
+ghci&gt; fst ("Wow", False)
+"Wow"</pre>
+<p><strong>snd</strong> 返回序对的尾项。</p>
+<pre class="code">ghci&gt; snd (8,11)
+11
+ghci&gt; snd ("Wow", False)
+False</pre><blockquote>
+<p><b>Note</b>：这两个函数仅对序对有效，而不能应用于三元组，四元组和五元组之上。稍后，我们将过一遍从 Tuple 中取数据的所有方式。</p>
+</blockquote>
+
+<p>有个函数很 cool，它就是 <code>zip</code>。它可以用来生成一组序对 (Pair) 的 List。它取两个 List，然后将它们交叉配对，形成一组序对的 List。它很简单，却很实用，尤其是你需要组合或是遍历两个 List 时。如下是个例子：</p>
+<pre class="code">ghci&gt; zip [1,2,3,4,5] [5,5,5,5,5]
+[(1,5),(2,5),(3,5),(4,5),(5,5)]
+ghci&gt; zip [1 .. 5] ["one", "two", "three", "four", "five"]
+[(1,"one"),(2,"two"),(3,"three"),(4,"four"),(5,"five")]</pre>
+<p>它把元素配对并返回一个新的 List。第一个元素配第一个，第二个元素配第二个..以此类推。注意，由于序对中可以含有不同的类型，<code>zip</code> 函数可能会将不同类型的序对组合在一起。若是两个不同长度的 List 会怎么样？</p>
+<pre class="code">ghci&gt; zip [5,3,2,6,2,7,2,5,4,6,6] ["im","a","turtle"]
+[(5,"im"),(3,"a"),(2,"turtle")]</pre>
+<p>较长的那个会在中间断开，去匹配较短的那个。由于 Haskell 是惰性的，使用 <code>zip</code> 同时处理有限和无限的 List 也是可以的：</p>
+<pre class="code">ghci&gt; zip [1..] ["apple", "orange", "cherry", "mango"]
+[(1,"apple"),(2,"orange"),(3,"cherry"),(4,"mango")]</pre>
+<p>接下来考虑一个同时应用到 List 和 Tuple 的问题：如何取得所有三边长度皆为整数且小于等于 10，周长为 24 的直角三角形？首先，把所有三遍长度小于等于 10 的三角形都列出来：</p>
+<pre class="code">ghci&gt; let triangles = [ (a,b,c) | c &lt;- [1..10], b &lt;- [1..10], a &lt;- [1..10] ]</pre>
+<p>刚才我们是从三个 List 中取值，并且通过输出函数将其组合为一个三元组。只要在 ghci 下边调用 triangle，你就会得到所有三边都小于等于 10 的三角形。我们接下来给它添加一个限制条件，令其必须为直角三角形。同时也考虑上 <code>b</code> 边要短于斜边，<code>a</code> 边要短于 <code>b</code> 边情况：</p>
+<pre class="code">ghci&gt; let rightTriangles = [ (a,b,c) | c &lt;- [1..10], b &lt;- [1..c], a &lt;- [1..b], a^2 + b^2 == c^2]</pre>
+<p>已经差不多了。最后修改函数，告诉它只要周长为 24 的三角形。</p>
+<pre class="code">ghci&gt; let rightTriangles' = [ (a,b,c) | c &lt;- [1..10], b &lt;- [1..c], a &lt;- [1..b], a^2 + b^2 == c^2, a+b+c == 24]
+ghci&gt; rightTriangles'
+[(6,8,10)]</pre>
+<p>得到正确结果！这便是函数式编程语言的一般思路：先取一个初始的集合并将其变形，执行过滤条件，最终取得正确的结果。</p>
+
+            <ul class="nav">
+                <li class="left">  <img src="../img/prv.png" alt="prev" /><a href="introduction.html">简介</a></li>
+                <li class="center"><a href="chapters.html">Index</a></li>
+                <li class="right"> <a href="types-and-type-classes.html">Types and Typeclasses</a><img src="../img/nxt.png" alt="next" /></li>
+            </ul>
+        </div>
+        <div id="footer">
+        </div>
+        <div id="feedback">Send feedback</div>
+    </body>
+</html>
