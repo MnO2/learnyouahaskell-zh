@@ -999,3 +999,23 @@ form.bs-docs-example {
     float: none;
   }
 }
+
+
+
+@media amzn-mobi, amzn-kf8 {
+
+.bs-docs-social { display: none; }
+.pull-right { display: none; }
+ul.bs-docs-social-buttons { display: none; }
+
+
+}
+
+@media amzn-mobi {
+.langbox { display: none; }
+}
+
+@media amzn-kf8 {
+.langbox { display: none; }
+}
+

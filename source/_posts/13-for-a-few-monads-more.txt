@@ -43,9 +43,9 @@ ghci> isBigGang 30
 
 到目前為止都還不錯，``isBigGang`` 回傳一個值跟他的 context。對於正常的數值來說這樣的寫法都能運作良好。但如果我們想要把一個已經具有 context 的值，像是 ``(3, "Smallish gang.")``，餵給 ``isBigGang`` 呢？我們又面對了同樣的問題：如果我們有一個能接受正常數值並回傳一個具有 context 值的 function，那我們要如何餵給他一個具有 context 的值？
 
-當我們在研究 ``Maybe`` monad 的時候，我們寫了一個 ``applyMaybe``。他接受一個 ``Maybe a`` 值跟一個 ``a -> Maybe b`` 型態的函數，他會把 ``Maybe a`` 餵給這個 function，即便這個 function 其實是接受 ``a`` 而非 ``Maybe a``。``applyMaybe`` 有針對這樣的 context 做處裡，也就是會留意有可能發生的失敗情況。但在 ``a -> Maybe b`` 裡面，我們可以只專心處裡正常數值即可。因為 ``applyMaybe`` (之後變成了 ``>>=``)會幫我們處裡需要檢查 ``Nothing`` 或 ``Just`` 的情況。
+當我們在研究 ``Maybe`` monad 的時候，我們寫了一個 ``applyMaybe``。他接受一個 ``Maybe a`` 值跟一個 ``a -> Maybe b`` 型態的函數，他會把 ``Maybe a`` 餵給這個 function，即便這個 function 其實是接受 ``a`` 而非 ``Maybe a``。``applyMaybe`` 有針對這樣的 context 做處理，也就是會留意有可能發生的失敗情況。但在 ``a -> Maybe b`` 裡面，我們可以只專心處理正常數值即可。因為 ``applyMaybe`` (之後變成了 ``>>=``)會幫我們處理需要檢查 ``Nothing`` 或 ``Just`` 的情況。
 
-我們再來寫一個接受附加 log 值的函數，也就是 ``(a, String)`` 型態的值跟 ``a -> (b, String)`` 型態的函數。我們稱呼這個函數為 ``applyLog``。這個函數有的 context 是附加 log 值，而不是一個可能會失敗的 context，因此 ``applyLog`` 會確保原有的 log 被保留，並附上從函數產生出的新的 log。這邊我們來看一下實做：
+我們再來寫一個接受附加 log 值的函數，也就是 ``(a, String)`` 型態的值跟 ``a -> (b, String)`` 型態的函數。我們稱呼這個函數為 ``applyLog``。這個函數有的 context 是附加 log 值，而不是一個可能會失敗的 context，因此 ``applyLog`` 會確保原有的 log 被保留，並附上從函數產生出的新的 log。這邊我們來看一下實作：
 
 {{
 applyLog :: (a,String) -> (a -> (b,String)) -> (b,String)  
@@ -72,7 +72,7 @@ ghci> ("Bathcat","Got outlaw name.") `applyLog` (\x -> (length x, "Applied lengt
 (7,"Got outlaw name.Applied length")  
 }}
 
-可以看到在 lambda 裡面 ``x`` 只是個正常的字串而不是 tuple，且 ``applyLog`` 幫我們處裡掉附加 log 的動作。
+可以看到在 lambda 裡面 ``x`` 只是個正常的字串而不是 tuple，且 ``applyLog`` 幫我們處理掉附加 log 的動作。
 
 ===Monoids 的好處
 
@@ -86,7 +86,7 @@ applyLog :: (a,[c]) -> (a -> (b,[c])) -> (b,[c])
 
 我們用一個 List 來代表 Log。包含在 List 中的元素型態必須跟原有的 List 跟回傳的 List 型態相同，否則我們沒辦法用 ``++`` 來把他們接起來。
 
-這能夠運作在 bytestring 上嗎？絕對沒問題。只是我們現在的型態只對 List 有效。我們必須要另外做一個 bytestring 版本的 ``applyLog``。但我們注意到 List 跟 bytestring 都是 monoids。因此他們都是 ``Monoid`` type class 的 instance，那代表他們都有實做 ``mappend``。對 List 以及 bytestring 而言，``mappend`` 都是拿來串接的。
+這能夠運作在 bytestring 上嗎？絕對沒問題。只是我們現在的型態只對 List 有效。我們必須要另外做一個 bytestring 版本的 ``applyLog``。但我們注意到 List 跟 bytestring 都是 monoids。因此他們都是 ``Monoid`` type class 的 instance，那代表他們都有實作 ``mappend``。對 List 以及 bytestring 而言，``mappend`` 都是拿來串接的。
 
 {{
 ghci> [1,2,3] `mappend` [4,5,6]  
@@ -95,7 +95,7 @@ ghci> B.pack [99,104,105] `mappend` B.pack [104,117,97,104,117,97]
 Chunk "chi" (Chunk "huahua" Empty)  
 }}
 
-修改後我們的 ``applyLog`` 可以運作在任何 monoid 上。我們必須要修改型態宣告來表示這件事，同時也要在實做中把 ``++`` 改成 ``mappend``：
+修改後我們的 ``applyLog`` 可以運作在任何 monoid 上。我們必須要修改型態宣告來表示這件事，同時也要在實作中把 ``++`` 改成 ``mappend``：
 
 {{
 applyLog :: (Monoid m) => (a,m) -> (a -> (b,m)) -> (b,m)  
@@ -123,7 +123,7 @@ ghci> Sum 3 `mappend` Sum 9
 Sum {getSum = 12}  
 }}
 
-``addDrink`` 的實做很簡單，如果我們想吃豆子，他會回傳 ``"milk"`` 以及伴隨的 ``Sum 25``，同樣的如果我們要吃"jerky"，他就會回傳"whiskey"，要吃其他東西的話，就會回傳"beer"。乍看之下這個函數沒什麼特別，但如果用 ``applyLog`` 的話就會有趣些。
+``addDrink`` 的實作很簡單，如果我們想吃豆子，他會回傳 ``"milk"`` 以及伴隨的 ``Sum 25``，同樣的如果我們要吃 "jerky"，他就會回傳 "whiskey"，要吃其他東西的話，就會回傳 "beer"。乍看之下這個函數沒什麼特別，但如果用 ``applyLog`` 的話就會有趣些。
 
 {{
 ghci> ("beans", Sum 10) `applyLog` addDrink  

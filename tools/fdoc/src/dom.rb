@@ -160,12 +160,8 @@ module FD
     end
 
     class Code < Node
-        attr :value
         def init(str) 
-            @value=str
-        end
-        def ==(other)
-            super && self.value==other.value
+            self << T.new(str) if str
         end
     end
 

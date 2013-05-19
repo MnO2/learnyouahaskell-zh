@@ -1,3 +1,6 @@
+@media only screen
+and (min-device-width: 810px) {
+
 ol {
     margin: 20px 0 40px 0;
     padding-left: 40px;
@@ -32,3 +35,6 @@ ol ul li a {
 li a:hover {
     color: #BD2A33;
 }
+
+}
+
