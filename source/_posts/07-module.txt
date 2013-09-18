@@ -10,13 +10,13 @@ Haskell 的標準庫就是一組模組，每個模組都含有一組功能相近
 
 在 Haskell中，裝載模組的語法為 ``import``，這必須得在函數的定義之前，所以一般都是將它置於程式碼的頂部。無疑，一段程式碼中可以裝載很多模組，只要將 ``import`` 語句分行寫開即可。裝載 ``Data.List`` 試下，它裡面有很多實用的 List 處理函數.
 
-執行 ``import Data.List``，這樣一來 ``Data.List`` 中包含的所有函數就都進入了全局命名空間。也就是說，你可以在程式碼的任意位置呼叫這些函數.``Data.List`` 模組中有個 ``nub`` 函數，它可以篩掉一個 List 中的所有重複元素。用點號將 ``length`` 和 ``nub`` 組合: ``length 。nub ``，即可得到一個與 ``(\xs -> length (nub xs))`` 等價的函數。
+執行 ``import Data.List``，這樣一來 ``Data.List`` 中包含的所有函數就都進入了全局命名空間。也就是說，你可以在程式碼的任意位置呼叫這些函數.``Data.List`` 模組中有個 ``nub`` 函數，它可以篩掉一個 List 中的所有重複元素。用點號將 ``length`` 和 ``nub`` 組合: ``length . nub ``，即可得到一個與 ``(\xs -> length (nub xs))`` 等價的函數。
 
 {{
 import Data.List  
   
 numUniques :: (Eq a) => [a] -> Int  
-numUniques = length 。nub  
+numUniques = length . nub  
 }}
 
 你也可以在 ghci 中裝載模組，若要呼叫 ``Data.List`` 中的函數，就這樣:
@@ -254,7 +254,7 @@ ghci> group [1,1,1,1,2,2,2,2,3,3,2,2,2,5,6,7]
 若在 ``group`` 一個 List 之前給它排序就可以得到每個元素在該 List 中的出現次數。
 
 {{
-ghci> map (\l@(x:xs) -> (x,length l)) 。group 。sort $ [1,1,1,1,2,2,2,2,3,3,2,2,2,5,6,7]  
+ghci> map (\l@(x:xs) -> (x,length l)) . group . sort $ [1,1,1,1,2,2,2,2,3,3,2,2,2,5,6,7]  
 [(1,4),(2,7),(3,2),(5,1),(6,1),(7,1)]  
 }}
 
@@ -420,9 +420,9 @@ ghci> nub "Lots of words and stuff"
 {{
 ghci> delete 'h' "hey there ghang!"  
 "ey there ghang!"  
-ghci> delete 'h' 。delete 'h' $ "hey there ghang!"  
+ghci> delete 'h' . delete 'h' $ "hey there ghang!"  
 "ey tere ghang!"  
-ghci> delete 'h' 。delete 'h' 。delete 'h' $ "hey there ghang!"  
+ghci> delete 'h' . delete 'h' . delete 'h' $ "hey there ghang!"  
 "ey tere gang!"  
 }}
 
@@ -623,7 +623,7 @@ encode shift msg =
   in map chr shifted  
 }}
 
-先將一個字串轉為一組數字，然後給它加上某數，再轉回去。如果你是標準的組合牛仔，大可將函數寫為: ``map (chr 。(+ shift) 。ord) msg``。試一下它的效果:
+先將一個字串轉為一組數字，然後給它加上某數，再轉回去。如果你是標準的組合牛仔，大可將函數寫為: ``map (chr . (+ shift) . ord) msg``。試一下它的效果:
 
 {{
 ghci> encode 3 "Heeeeey"  
@@ -742,7 +742,7 @@ ghci> Map.insert 3 100
 Map.empty fromList [(3,100)] 
 ghci> Map.insert 5 600 (Map.insert 4 200 ( Map.insert 3 100  Map.empty)) 
 fromList [(3,100),(4,200),(5,600)]
-ghci> Map.insert 5 600 。Map.insert 4 200 . Map.insert 3 100 $ Map.empty 
+ghci> Map.insert 5 600 . Map.insert 4 200 . Map.insert 3 100 $ Map.empty 
 fromList [(3,100),(4,200),(5,600)]
 }}
 
@@ -809,7 +809,7 @@ ghci> Map.toList .Map.insert 9 2 $ Map.singleton 4 3
 [(4,3),(9,2)]
 }}
 
-**keys** 與 **elems** 各自返回一組由鍵或值組成的 List，``keys`` 與 ``map fst 。Map.toList`` 等價，``elems`` 與 ``map snd . Map.toList``等價. ``fromListWith`` 是個很酷的小函數，它與 ``fromList`` 很像，只是它不會直接忽略掉重複鍵，而是交給一個函數來處理它們。假設一個姑娘可以有多個號碼，而我們有個像這樣的關聯列表: 
+**keys** 與 **elems** 各自返回一組由鍵或值組成的 List，``keys`` 與 ``map fst . Map.toList`` 等價，``elems`` 與 ``map snd . Map.toList``等價. ``fromListWith`` 是個很酷的小函數，它與 ``fromList`` 很像，只是它不會直接忽略掉重複鍵，而是交給一個函數來處理它們。假設一個姑娘可以有多個號碼，而我們有個像這樣的關聯列表: 
 
 {{
 phoneBook = [("betty","555-2938") ,("betty","342-2492") ,("bonnie","452-2928") ,("patsy","493-2928") ,("patsy","943-2929") ,("patsy","827-9162") ,("lucille","205-2928") ,("wendy","939-8282") ,("penny","853-2492") ,("penny","555-2111") ]
@@ -878,7 +878,7 @@ import qualified Data.Set as Set
 假定我們有兩個字串，要找出同時存在於兩個字串的字元
 
 {{
-text1 = "I just had an anime dream。Anime..。Reality..。Are they so different?"  
+text1 = "I just had an anime dream. Anime... Reality... Are they so different?"  
 text2 = "The old man left his garbage can out and now his trash is all over my lawn!"  
 }}
 
