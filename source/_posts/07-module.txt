@@ -432,7 +432,7 @@ ghci> delete 'h' 。delete 'h' 。delete 'h' $ "hey there ghang!"
 ghci> [1..10] \\ [2,5,9]  
 [1,3,4,6,7,8,10]  
 ghci> "Im a big baby" \\ "big"  
-"Im a baby"  
+"Im a  baby"  
 }}
 
 **union** 與集合的並集也是很相似，它返回兩個 List 的並集，即遍歷第二個 List 若存在某元素不屬於第一個 List，則追加到第一個 List。看，第二個 List 中的重複元素就都沒了!
