@@ -42,18 +42,18 @@ ghci> multWithEighteen 10
 前面提到，以不全的參數呼叫函數可以方便地創造新的函數。例如，搞個取一數與 100 比較大小的函數該如何? 大可這樣:
 
 {{
-compareWithHundred :: (Num a，Ord a) => a -> Ordering
+compareWithHundred :: (Num a, Ord a) => a -> Ordering
 compareWithHundred x = compare 100 x
 }}
 
 用 99 呼叫它，就可以得到一個 ``GT``。 簡單。 注意下在等號兩邊都有 ``x``。 想想 ``compare 100`` 會回傳什麼？一個取一數與 100 比較的函數。 Wow，這不正是我們想要的? 這樣重寫:
 
 {{
-compareWithHundred :: (Num a，Ord a) => a -> Ordering
+compareWithHundred :: (Num a, Ord a) => a -> Ordering
 compareWithHundred = compare 100
 }}
 
-型別聲明依然相同，因為 ``compare 100`` 回傳函數。``compare`` 的型別為 ``(Ord a) => a -> (a -> Ordering)``，用 100 呼叫它後回傳的函數型別為 ``(Num a，Ord a) => a -> Ordering``，同時由於 100 還是 ``Num`` 型別類的實例，所以還得另留一個類約束。
+型別聲明依然相同，因為 ``compare 100`` 回傳函數。``compare`` 的型別為 ``(Ord a) => a -> (a -> Ordering)``，用 100 呼叫它後回傳的函數型別為 ``(Num a, Ord a) => a -> Ordering``，同時由於 100 還是 ``Num`` 型別類的實例，所以還得另留一個類約束。
 
 Yo! 你得保證已經弄明白了 Curried functions 與不全呼叫的原理，它們很重要！
 
