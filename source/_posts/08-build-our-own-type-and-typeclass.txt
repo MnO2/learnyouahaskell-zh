@@ -1266,7 +1266,7 @@ ghci> fmap (*4) (foldr treeInsert EmptyTree [5,7,3,2,1,7])
 Node 28 (Node 4 EmptyTree (Node 8 EmptyTree (Node 12 EmptyTree (Node 20 EmptyTree EmptyTree)))) EmptyTree
 }}
 
-那 ``Eitehr a b`` 又如何？他可以是一個 functor 嗎？``Functor`` 限制型別構造子只能接受一個型別參數，但 ``Either`` 卻接受兩個。聰明的你會想到我可以 partial apply ``Either``，先餵給他一個參數，並把另一個參數當作 free parameter。來看看 ``Either a`` 在標準函式庫中是如何被定義的：
+那 ``Either a b`` 又如何？他可以是一個 functor 嗎？``Functor`` 限制型別構造子只能接受一個型別參數，但 ``Either`` 卻接受兩個。聰明的你會想到我可以 partial apply ``Either``，先餵給他一個參數，並把另一個參數當作 free parameter。來看看 ``Either a`` 在標準函式庫中是如何被定義的：
 
 {{
 instance Functor (Either a) where
