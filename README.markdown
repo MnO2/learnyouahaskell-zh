@@ -22,7 +22,7 @@ bundle install
 
 ### Arch 用户安装说明
 ```
-yaourt -Ss opencc
+pacman -S opencc
 cd learnyouahaskell-zh-tw.github.com/
 bundle install
 ```
