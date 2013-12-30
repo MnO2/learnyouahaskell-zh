@@ -512,13 +512,13 @@ True
 
 不過類似 ``Just (*3)``, ``Just(*2)`` 之類的程式碼是不可以的。因為 ``(*3)`` 和 ``(*2)`` 都是函數，而函數不是 ``Ord`` 類的成員。
 
-作枚舉，使用數字型別就能輕易做到。不過使用 ``Enmu`` 和 ``Bounded`` 型別類會更好，看下這個型別：
+作枚舉，使用數字型別就能輕易做到。不過使用 ``Enum`` 和 ``Bounded`` 型別類會更好，看下這個型別：
 
 {{
 data Day = Monday | Tuesday | Wednesday | Thursday | Friday | Saturday | Sunday
 }}
 
-所有的值構造子都是 ``nullary`` 的(也就是沒有參數)，每個東西都有前置子和後繼子，我們可以讓它成為 ``Enmu`` 型別類的成員。同樣，每個東西都有可能的最小值和最大值，我們也可以讓它成為 ``Bounded`` 型別類的成員。在這裡，我們就同時將它搞成其它可 derive型別類的 instance。再看看我們能拿它做啥：
+所有的值構造子都是 ``nullary`` 的(也就是沒有參數)，每個東西都有前置子和後繼子，我們可以讓它成為 ``Enum`` 型別類的成員。同樣，每個東西都有可能的最小值和最大值，我們也可以讓它成為 ``Bounded`` 型別類的成員。在這裡，我們就同時將它搞成其它可 derive型別類的 instance。再看看我們能拿它做啥：
 
 {{
 data Day = Monday | Tuesday | Wednesday | Thursday | Friday | Saturday | Sunday
