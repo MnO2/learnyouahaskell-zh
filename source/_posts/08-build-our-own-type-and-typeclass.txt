@@ -1058,7 +1058,7 @@ instance (Eq m) => Eq (Maybe m) where
 當定義 instance 的時候，如果你需要提供具體型別（像是在 ``a -> a -> Bool`` 中的 ``a``），那你必須要加上括號跟型別參數來構造一個具體型別。
 
 
-要知道你在定義 instnace 的時候，型別參數會被取代。``class Eq a where`` 中的 ``a`` 會被取代成真實的型別。所以試著想像把型別放進型別宣告中。``(==) :: Maybe -> Maybe -> Bool`` 並非合法。但 ``(==) :: (Eq m) => Maybe m -> Maybe m -> Bool`` 則是。這是不論我們要定義什麼，通用的型別宣告都是 ``(==) :: (Eq a) => a -> a -> Bool``
+要知道你在定義 instance 的時候，型別參數會被取代。``class Eq a where`` 中的 ``a`` 會被取代成真實的型別。所以試著想像把型別放進型別宣告中。``(==) :: Maybe -> Maybe -> Bool`` 並非合法。但 ``(==) :: (Eq m) => Maybe m -> Maybe m -> Bool`` 則是。這是不論我們要定義什麼，通用的型別宣告都是 ``(==) :: (Eq a) => a -> a -> Bool``
 
 
 還有一件事要確認。如果你想看看一個 typeclass 有定義哪些 instance。可以在 ghci 中輸入 ``:info YourTypeClass``。所以輸入 ``info Num`` 會告訴你這個 typeclass 定義了哪些函數，還有哪些型別屬於這個 typeclass。``:info`` 也可以查詢型別跟型別構造子的資訊。如果你輸入 ``:info Maybe``。他會顯示 ``Maybe`` 所屬的所有 typeclass。``:info`` 也能告訴你函數的型別宣告。
@@ -1250,7 +1250,7 @@ Nothing
 }}
 
 
-另外 ``Tree a`` 的型別也可以被 map over 且被定義成 ``Functor`` 的一個 instnace。他可以被想成是一個盒子，而 ``Tree`` 的型別構造子也剛好接受單一一個型別參數。如果你把 ``fmap`` 看作是一個特別為 ``Tree`` 寫的函數，他的型別宣告會長得像這樣 ``(a -> b) -> Tree a -> Tree b``。不過我們在這邊會用到遞迴。map over 一棵空的樹會得到一棵空的樹。map over 一棵非空的樹會得到一棵被函數映射過的樹，他的 root 會先被映射，然後左右子樹都分別遞迴地被函數映射。
+另外 ``Tree a`` 的型別也可以被 map over 且被定義成 ``Functor`` 的一個 instance。他可以被想成是一個盒子，而 ``Tree`` 的型別構造子也剛好接受單一一個型別參數。如果你把 ``fmap`` 看作是一個特別為 ``Tree`` 寫的函數，他的型別宣告會長得像這樣 ``(a -> b) -> Tree a -> Tree b``。不過我們在這邊會用到遞迴。map over 一棵空的樹會得到一棵空的樹。map over 一棵非空的樹會得到一棵被函數映射過的樹，他的 root 會先被映射，然後左右子樹都分別遞迴地被函數映射。
 
 {{
 instance Functor Tree where
@@ -1292,7 +1292,7 @@ data Either a b = Left a | Right b
 注意到 ``'`` 在這邊並沒有特別的意思，他只是用來表示他跟另一個東西有點像，只有一點點差別而已。
 
 
-你可以自己試試看把 ``Map k`` 變成 ``Functor`` 的一個 instnace。
+你可以自己試試看把 ``Map k`` 變成 ``Functor`` 的一個 instance。
 
 看過了 ``Functor`` 這個 typeclass，我們知道 typeclass 可以拿來代表高階的概念。我們也練習過不少 partially applying type 跟定義 instance。在下幾章中，我們也會看到 functor 必須要遵守的定律。
 

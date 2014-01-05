@@ -34,7 +34,7 @@ ghci> (-) <$> [3,4] <*> [1,2,3]
 [2,1,0,3,2,1]  
 }}
 
-所以我們可以視他們為 aaplicative values，``Maybe a`` 代表可能會失敗的 computation，``[a]`` 代表同時有好多結果的 computation (non-deterministic computation)，而 ``IO a`` 代表會有 side-effects 的 computation。
+所以我們可以視他們為 applicative values，``Maybe a`` 代表可能會失敗的 computation，``[a]`` 代表同時有好多結果的 computation (non-deterministic computation)，而 ``IO a`` 代表會有 side-effects 的 computation。
 
 Monad 是一個從 Applicative functors 很自然的一個演進結果。對於他們我們主要考量的點是：如果你有一個具有 context 的值 ``m a``，你能如何把他丟進一個只接受普通值 ``a`` 的函數中，並回傳一個具有 context 的值？也就是說，你如何套用一個型態為 ``a -> m b`` 的函數至 ``m a``？基本上，我們要求的函數是：
 
@@ -133,7 +133,7 @@ ghci> Just 1 `applyMaybe` \x -> if x > 2 then Just x else Nothing
 Nothing  
 }}
 
-這正是我們期待的結果。如果左邊的 monadic value 是 ``Nothing``，那整個結果就是 ``Nothing``。如果右邊的函數是 ``Nothing``，那結果也會是 ``Nothing``。這跟我們之前把 ``Maybe`` 當作 aaplicative 時，過程中有任何一個 ``Nothing`` 整個結果就會是 ``Nothing`` 一樣。
+這正是我們期待的結果。如果左邊的 monadic value 是 ``Nothing``，那整個結果就是 ``Nothing``。如果右邊的函數是 ``Nothing``，那結果也會是 ``Nothing``。這跟我們之前把 ``Maybe`` 當作 applicative 時，過程中有任何一個 ``Nothing`` 整個結果就會是 ``Nothing`` 一樣。
 
 對於 ``Maybe`` 而言，我們已經找到一個方法處理漂亮值的方式。我們作到這件事的同時，也保留了 ``Maybe`` 代表可能造成錯誤的計算的意義。
 
@@ -367,7 +367,7 @@ Nothing
 
 正如預期的，最後的情形代表了失敗的情況。我們再進一步看看這是怎麼產生的。首先 ``return`` 把 ``(0,0)`` 放到一個最小的 context 中，得到 ``Just (0,0)``。然後是 ``Just (0.0) >>= landLeft 1``。由於 ``Just (0,0)`` 是一個 ``Just`` 的值。``landLeft 1`` 被套用至 ``(0,0)`` 而得到 ``Just (1,0)``。這反應了我們仍保持在平衡的狀態。接著是 ``Just (1,0) >>= landright 4`` 而得到了 ``Just (1,4)``。距離不平衡只有一步之遙了。他又被餵給 ``landLeft (-1)``，這組合成了 ``landLeft (-1) (1,4)``。由於失去了平衡，我們變得到了 ``Nothing``。而我們把 ``Nothing`` 餵給 ``landRight (-2)``，由於他是 ``Nothing``，也就自動得到了 ``Nothing``。
 
-如果只把 ``Maybe`` 當作 aaplicative 用的話是沒有辦法達到我們要的效果的。你試著做一遍就會卡住。因為 applicative functor 並不允許 applicative value 之間有彈性的互動。他們最多就是讓我們可以用 applicative style 來傳遞參數給函數。applicative operators 能拿到他們的結果並把他用 applicative 的方式餵給另一個函數，並把最終的 applicative 值放在一起。但在每一步之間並沒有太多允許我們作手腳的機會。而我們的範例需要每一步都倚賴前一步的結果。當每一隻鳥降落的時候，我們都會把前一步的結果拿出來看看。好知道結果到底應該成功或失敗。
+如果只把 ``Maybe`` 當作 applicative 用的話是沒有辦法達到我們要的效果的。你試著做一遍就會卡住。因為 applicative functor 並不允許 applicative value 之間有彈性的互動。他們最多就是讓我們可以用 applicative style 來傳遞參數給函數。applicative operators 能拿到他們的結果並把他用 applicative 的方式餵給另一個函數，並把最終的 applicative 值放在一起。但在每一步之間並沒有太多允許我們作手腳的機會。而我們的範例需要每一步都倚賴前一步的結果。當每一隻鳥降落的時候，我們都會把前一步的結果拿出來看看。好知道結果到底應該成功或失敗。
 
 我們也能寫出一個函數，完全不管現在究竟有幾隻鳥停在竿子上，只是要害皮爾斯滑倒。我們可以稱呼這個函數叫做 ``banana``：
 
@@ -891,7 +891,7 @@ False
 
 [$../img/judgedog.png]
 
-正如 aaplicative functors 以及 functors，Monad 也有一些要遵守的定律。我們定義一個 ``Monad`` 的 instance 並不代表他是一個 monad，只代表他被定義成那個 type class 的 instance。一個型態要是 monad，則必須遵守單子律。這些定律讓我們可以對這個型態的行為做一些合理的假設。
+正如 applicative functors 以及 functors，Monad 也有一些要遵守的定律。我們定義一個 ``Monad`` 的 instance 並不代表他是一個 monad，只代表他被定義成那個 type class 的 instance。一個型態要是 monad，則必須遵守單子律。這些定律讓我們可以對這個型態的行為做一些合理的假設。
 
 Haskell 允許任何型態是任何 type class 的 instance。但他不會檢查單子律是否有被遵守，所以如果我們要寫一個 ``Monad`` 的 instance，那最好我們確定他有遵守單子律。我們可以不用擔心標準函式庫中的型態是否有遵守單子律。但之後我們定義自己的型態時，我們必須自己檢查是否有遵守單子律。不用擔心，他們不會很複雜。
 
