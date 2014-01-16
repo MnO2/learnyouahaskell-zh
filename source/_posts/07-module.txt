@@ -952,24 +952,20 @@ False
 對集合也可以執行 ``map`` 和 ``filter``:
 
 {{
-ghci> Set.fromList [2,3,4] `Set.isSubsetOf` Set.fromList [1,2,3,4,5]  
-True  
-ghci> Set.fromList [1,2,3,4,5] `Set.isSubsetOf` Set.fromList [1,2,3,4,5]  
-True  
-ghci> Set.fromList [1,2,3,4,5] `Set.isProperSubsetOf` Set.fromList [1,2,3,4,5]  
-False  
-ghci> Set.fromList [2,3,4,8] `Set.isSubsetOf` Set.fromList [1,2,3,4,5]  
-False  
-}}
-
-
-集合有一常見用途，那就是先 ``fromList`` 刪掉重複元素後再 ``toList`` 轉回去。儘管 ``Data.List`` 模組的 ``nub`` 函數完全可以完成這一工作，但在對付大 List 時則會明顯的力不從心。使用集合則會快很多，``nub`` 函數只需 List 中的元素屬於 ``Eq`` 型別類就行了，而若要使用集合，它必須得屬於 ``Ord`` 型別類  
-
-{{
 ghci> Set.filter odd $ Set.fromList [3,4,5,6,7,2,3,4]  
 fromList [3,5,7]  
 ghci> Set.map (+1) $ Set.fromList [3,4,5,6,7,2,3,4]  
 fromList [3,4,5,6,7,8]  
+}}
+
+集合有一常見用途，那就是先 ``fromList`` 刪掉重複元素後再 ``toList`` 轉回去。儘管 ``Data.List`` 模組的 ``nub`` 函數完全可以完成這一工作，但在對付大 List 時則會明顯的力不從心。使用集合則會快很多，``nub`` 函數只需 List 中的元素屬於 ``Eq`` 型別類就行了，而若要使用集合，它必須得屬於 ``Ord`` 型別類  
+
+{{
+ghci> let setNub xs = Set.toList $ Set.fromList xs  
+ghci> setNub "HEY WHATS CRACKALACKIN"  
+" ACEHIKLNRSTWY"  
+ghci> nub "HEY WHATS CRACKALACKIN"  
+"HEY WATSCRKLIN"
 }}
 
 在處理較大的 List 時，``setNub`` 要比 ``nub`` 快，但也可以從中看出，``nub`` 保留了 List 中元素的原有順序，而 ``setNub`` 不。
