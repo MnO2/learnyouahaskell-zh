@@ -1,6 +1,6 @@
 * {
     margin: 0;
-	/*padding: 0;*/
+    /*padding: 0;*/
 }
 
 @media only screen
@@ -35,13 +35,15 @@ p {
 }
 
 p code {
-    background: #eee;
+    background: hsl(0, 0%, 0%);
     font: normal 15px;
     font-family: Monaco, "wenquanyi micro hei mono", "Courier New", "Consolas", monospace;
     overflow: auto;
-    padding: 0 6px 0 6px;
+    padding: 1px 6px;
     margin: 0 6px 0 6px;
     white-space: nowrap;
+    color: hsl(0, 100%, 100%);
+    border-radius: 2px;
 }
 
 p strong {
@@ -74,6 +76,7 @@ pre.code {
     padding: 10px;
     margin-bottom: 25px;
     overflow: auto;
+    border-radius: 2px;
 }
 
 blockquote {
