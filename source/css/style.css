@@ -6,30 +6,23 @@
 @media only screen
 and (min-device-width: 810px) {
 
-@font-face {
-  font-family: 'Inder';
-  font-style: normal;
-  font-weight: 400;
-  src: local('Inder Regular'), local('Inder-Regular'), url(Inder.woff) format('woff');
-}
-
 body {
-    font: normal 14px Inder, "wenquanyi micro hei", Arial,serif,Courier New,黑体;
+    font: normal 14px Optima, Ubuntu, Verdana, "Hiragino Sans GB", "wenquanyi micro hei", Arial,serif,Courier New,黑体;
 }
 
 h1 {
-    font: normal 60px Inder, "wenquanyi micro hei", georgia,Arial,serif,Courier New;
+    font: normal 60px Optima, Ubuntu, Verdana, "Hiragino Sans GB", "wenquanyi micro hei", georgia,Arial,serif,Courier New;
     line-height: 80px;
     margin-top: 30px;
 }
 
 h2 {
-    font: Inder, "wenquanyi micro hei", bold 30px Arial,serif;
+    font: Optima, Ubuntu, Verdana, "Hiragino Sans GB", "wenquanyi micro hei", bold 30px Arial,serif;
     margin-top: 40px;
 }
 
 p {
-    font: normal 14px Inder, "wenquanyi micro hei", Arial, serif;
+    font: normal 14px Optima, Ubuntu, Verdana, "Hiragino Sans GB", "wenquanyi micro hei", Arial, serif;
     line-height: 25px;
     margin: 13px 0 13px 0;
 }
