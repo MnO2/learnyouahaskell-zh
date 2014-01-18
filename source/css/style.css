@@ -89,7 +89,7 @@ ul.nav {
     height: 30px;
     margin: 25px auto 25px auto;
 }
-ul.nav li { display: block; max-width: 250px; height: 30px; font-size:17px; }
+ul.nav li { display: block; max-width: 250px; height: 30px; font-size:17px; width: 33% }
 ul.nav img { height: 17px; max-width: 20px; padding: 0; margin: 0;}
 
 ul.nav .left { left: 10px; float: left; text-align: left; }
