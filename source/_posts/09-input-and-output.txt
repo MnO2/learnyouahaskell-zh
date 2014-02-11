@@ -919,7 +919,7 @@ dispatch =  [ ("add", add)
 main = do  
     (command:args) <- getArgs  
     let (Just action) = lookup command dispatch  
-    action args  V
+    action args  
 }}
 
 首先，我們取出引數並把他們綁定到 ``(command:args)``。如果你還記得 pattern matching，這麼做會把第一個引數綁定到 ``command``，把其他的綁定到 ``args``。如果我們像這樣執行程式 ``todo add todo.txt "Spank the monkey"``，``command`` 會變成 ``"add"``，而 ``args`` 會變成 ``["todo.txt", "Spank the monkey"]``。
@@ -1342,9 +1342,9 @@ List 是一種有用又酷的資料結構。到目前為止，我們幾乎無處
 
 這樣額外的負擔在大多數時候不會造成困擾，但當我們要讀取一個很大的檔案的時候就是個問題了。這也是為什麼 Haskell 要有 ``bytestrings``。Bytestrings 有點像 list，但他每一個元素都是一個 byte (8 bits)，而且他們惰性的程度也是不同。
 
-Bytesstrings 有兩種：strict 跟 lazy。Strict bytestrings 放在 ``Data.ByteString``，他們把惰性的性質完全拿掉。不會有所謂任何的「保證」，一個 strict bytestring 就代表一連串的 bytes。因此你不會有一個無限長的 strict bytestrings。如果你 evaluate 第一個 byte，你就必須 evalute 整個 bytestring。這麼做的優點是他會比較少 overhaed，因為他沒有　"Thunk"（也就是用 Haskell 術語來說的「保證」）。缺點就是他可能會快速消耗你的記憶體，因為你把他們一次都讀進了記憶體。
+Bytestrings 有兩種：strict 跟 lazy。Strict bytestrings 放在 ``Data.ByteString``，他們把惰性的性質完全拿掉。不會有所謂任何的「保證」，一個 strict bytestring 就代表一連串的 bytes。因此你不會有一個無限長的 strict bytestrings。如果你 evaluate 第一個 byte，你就必須 evalute 整個 bytestring。這麼做的優點是他會比較少 overhaed，因為他沒有　"Thunk"（也就是用 Haskell 術語來說的「保證」）。缺點就是他可能會快速消耗你的記憶體，因為你把他們一次都讀進了記憶體。
 
-另一種 bytestring 是放在 ``Data.ByteString.Lazy`` 中。他們具有惰性，但又不像 list 那麼極端。就像我們之前說的，List 的 thunk 個數是跟 list 中有幾個元素一模一樣。這也是為什麼他們速度沒辦法滿足一些特殊需求。Lazy bytestrings 則用另一種作法，他們被存在 chunks 中（不要跟 Thunk 搞混），每一個 chunck 的大小是 64K。所以如果你 evaluate lazy bytestring 中的 byte，則前 64K 會被 evaluated。在那個 chunck 之後，就是一些「保證」會有剩餘的 chunk。lazy bytestrings 有點像裝了一堆大小為 64K 的 strict bytestrings 的 list。當你用 lazy bytestring 處理一個檔案的時候，他是一個 chunk 一個 chunk 去讀。這很棒是因為他不會讓我們一下使用大量的記憶體，而且 64K 有很高的可能性能夠裝進你 CPU 的 L2 Cache。
+另一種 bytestring 是放在 ``Data.ByteString.Lazy`` 中。他們具有惰性，但又不像 list 那麼極端。就像我們之前說的，List 的 thunk 個數是跟 list 中有幾個元素一模一樣。這也是為什麼他們速度沒辦法滿足一些特殊需求。Lazy bytestrings 則用另一種作法，他們被存在 chunks 中（不要跟 Thunk 搞混），每一個 chunk 的大小是 64K。所以如果你 evaluate lazy bytestring 中的 byte，則前 64K 會被 evaluated。在那個 chunck 之後，就是一些「保證」會有剩餘的 chunk。lazy bytestrings 有點像裝了一堆大小為 64K 的 strict bytestrings 的 list。當你用 lazy bytestring 處理一個檔案的時候，他是一個 chunk 一個 chunk 去讀。這很棒是因為他不會讓我們一下使用大量的記憶體，而且 64K 有很高的可能性能夠裝進你 CPU 的 L2 Cache。
 
 如果你大概看過 ``Data.ByteString.Lazy`` 的文件，你會看到到他有一堆函數的名稱跟 ``Data.List`` 中的函數名稱相同，只是出現的 type signature 是 ``ByteString`` 而不是 ``[a]``，是 ``Word8`` 而不是 ``a``。同樣名稱的函數基本上表現的行為跟 list 中的差不多。因為名稱是一樣的，所以必須用 qualified import 才不會在裝載進 GHCI 的時候造成衝突。
 

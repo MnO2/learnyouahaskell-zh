@@ -170,7 +170,7 @@ class Monad m where
 
 [^../img/tur2.png]
 
-接下來定義的函數是 bind: ``>>=``。他就像是函數套用一樣，只差在他不接受普通值，他是接受一個 monadic value（也就是具有 context 的值）並且把他餵給一個接受普通值得函數，並回傳一個 monadic value。
+接下來定義的函數是 bind: ``>>=``。他就像是函數套用一樣，只差在他不接受普通值，他是接受一個 monadic value（也就是具有 context 的值）並且把他餵給一個接受普通值的函數，並回傳一個 monadic value。
 
 
 接下來，我們定義了 ``>>``。我們不會介紹他，因為他有一個事先定義好的實作，基本上我們在實作 ``Monad`` typeclass 的時候都不會去理他。
@@ -331,7 +331,7 @@ ghci> landRight 1 (0,0) >>= landLeft 2
 Just (2,1)  
 }}
 
-``landLeft 2 的型態是 ``Pole -> Maybe Pole``。我們不能餵給他 ``Maybe Pole`` 的東西。而 ``landRight 1 (0,0)`` 的結果就是 ``Maybe Pole``，所以我們用 ``>>=`` 來接受一個有 context 的值然後拿給 ``landLeft 2``。``>>=`` 的確讓我們把 ``Maybe`` 當作有 context 的值，因為當我們丟 ``Nothing`` 給 ``landLeft 2`` 的時候，結果會是 ``Nothing``。
+``landLeft 2`` 的型態是 ``Pole -> Maybe Pole``。我們不能餵給他 ``Maybe Pole`` 的東西。而 ``landRight 1 (0,0)`` 的結果就是 ``Maybe Pole``，所以我們用 ``>>=`` 來接受一個有 context 的值然後拿給 ``landLeft 2``。``>>=`` 的確讓我們把 ``Maybe`` 當作有 context 的值，因為當我們丟 ``Nothing`` 給 ``landLeft 2`` 的時候，結果會是 ``Nothing``。
 
 {{ 
 ghci> Nothing >>= landLeft 2  
@@ -719,7 +719,7 @@ ghci> [ x | x <- [1..50], '7' `elem` show x ]
 [7,17,27,37,47]  
 }}
 
-我們用 ``show`` 跟 ``x`` 來把數值轉成字串，然後檢查 ``'7'` 是否包含在字串裡面。要看看 filtering 要如何轉換成用 list monad 來表達，我們可以考慮使用 ``guard`` 函數，還有 ``MonadPlus`` 這個 type class。``MonadPlus`` 這個 type class 是用來針對可以同時表現成 monoid 的 monad。下面是他的定義：
+我們用 ``show`` 跟 ``x`` 來把數值轉成字串，然後檢查 ``'7'`` 是否包含在字串裡面。要看看 filtering 要如何轉換成用 list monad 來表達，我們可以考慮使用 ``guard`` 函數，還有 ``MonadPlus`` 這個 type class。``MonadPlus`` 這個 type class 是用來針對可以同時表現成 monoid 的 monad。下面是他的定義：
 
 {{
 class Monad m => MonadPlus m where  
@@ -954,9 +954,9 @@ Left identity 跟 right identity 是描述 ``return`` 的行為。他重要的�
 
 單子律最後一條是說當我們用 ``>>=`` 把一串 monadic function 串在一起，他們的先後順序不應該影響結果：
 
-  * ``(m >>= f) >>= g 跟 ``m >>= (\x -> f x >>= g)`` 是相等的
+  * ``(m >>= f) >>= g`` 跟 ``m >>= (\x -> f x >>= g)`` 是相等的
 
-究竟這邊說的是什麼呢？我們有一個 monadic value ``m``，以及兩個 monadic function ``f`` 跟 ``g``。當我們寫下 ``(m >>= f) >>= g``，代表的是我們把 ``m`` 餵給 ``f``，他的結果是一個 monadic value。然後我們把這個結果餵給 ``g``。而在 ``m >>= (\x -> f x >>= g)`` 中，我們接受一個 monadic value 然後餵給一個函數，這個函數會把 ``f x`` 的結果丟給 ``g``。我們不太容易直接看出兩者箱，所以先來看個範例比較好理解。
+究竟這邊說的是什麼呢？我們有一個 monadic value ``m``，以及兩個 monadic function ``f`` 跟 ``g``。當我們寫下 ``(m >>= f) >>= g``，代表的是我們把 ``m`` 餵給 ``f``，他的結果是一個 monadic value。然後我們把這個結果餵給 ``g``。而在 ``m >>= (\x -> f x >>= g)`` 中，我們接受一個 monadic value 然後餵給一個函數，這個函數會把 ``f x`` 的結果丟給 ``g``。我們不太容易直接看出兩者相同，所以先來看個範例比較好理解。
 
 還記得之前皮爾斯的範例嗎？要模擬鳥停在他的平衡竿上，我們把好幾個函數串在一起
 
