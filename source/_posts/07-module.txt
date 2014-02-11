@@ -69,7 +69,7 @@ import qualified Data.Map as M
 == Data.List
 
  
-顯而易見，``Data.List`` 是關於 List 操作的模組，它提供了一組非常有用的 List 處理函數。在前面我們已經見過了其中的幾個函數(如 ``map`` 和 ``filter``)，這是 ``Prelude`` 模組出於方便起見，導出了幾個 ``Data.List`` 裡的函數。因為這幾個函數是直接引用自 ``Data.List``，所以就無需使用 ``qulified import``。在下面，我們來看看幾個以前沒見過的函數:
+顯而易見，``Data.List`` 是關於 List 操作的模組，它提供了一組非常有用的 List 處理函數。在前面我們已經見過了其中的幾個函數(如 ``map`` 和 ``filter``)，這是 ``Prelude`` 模組出於方便起見，導出了幾個 ``Data.List`` 裡的函數。因為這幾個函數是直接引用自 ``Data.List``，所以就無需使用 ``qualified import``。在下面，我們來看看幾個以前沒見過的函數:
 
 **intersperse** 取一個元素與 List 作參數，並將該元素置於 List 中每對元素的中間。如下是個例子:
 
@@ -280,6 +280,8 @@ search needle haystack =
 
 首先，對搜索的 List 呼叫 ``tails``，然後遍歷每個 List 來檢查它是不是我們想要的.
 
+由此我們便實現了一個類似 **isIndexOf** 的函數，**isInfixOf** 從一個 List 中搜索一個子 List，若該 List 包含子 List，則返回 ``True``.
+
 {{
 ghci> "cat" `isInfixOf` "im a cat burglar"  
 True  
@@ -288,8 +290,6 @@ False
 ghci> "cats" `isInfixOf` "im a cat burglar"  
 False  
 }}
-
-由此我們便實現了一個類似 **isIndexOf** 的函數，**isInfixOf** 從一個 List 中搜索一個子 List，若該 List 包含子 List，則返回 ``True``.
 
 **isPrefixOf** 與 **isSuffixOf** 分別檢查一個 List 是否以某子 List 開頭或者結尾.
 
@@ -315,7 +315,7 @@ ghci> partition (>3) [1,3,5,6,3,2,1,0,3,7]
 ([5,6,7],[1,3,3,2,1,0,3]) 
 }}
 
-瞭解 ``span`` 和 ``break`` 的差異是很重要的.
+瞭解這個與 ``span`` 和 ``break`` 的差異是很重要的.
 
 {{
 ghci> span (`elem` ['A'..'Z']) "BOBsidneyMORGANeddy"  
@@ -324,7 +324,7 @@ ghci> span (`elem` ['A'..'Z']) "BOBsidneyMORGANeddy"
 
 ``span`` 和 ``break`` 會在遇到第一個符合或不符合條件的元素處斷開，而 ``partition`` 則會遍歷整個 List。
 
-**find** 取一個 List 和限制條件作參數，並返迴首個符合該條件的元素，而這個元素是個 ``Maybe`` 值。在下章，我們將深入地探討相關的算法和資料結構，但在這裡你只需瞭解 ``Maybe`` 值是 ``Just something`` 或 ``Nothing`` 就夠了。與一個 List 可以為空也可以包含多個元素相似，一個 ``Maybe`` 可以為空，也可以是單一元素。同樣與 List 類似，一個 Int 型的 List 可以寫作 ``[Int]``，``Maybe``有個 Int 型可以寫作 ``Maybe Int``。先試一下 ``find`` 函數再說.
+**find** 取一個 List 和限制條件作參數，並返回首個符合該條件的元素，而這個元素是個 ``Maybe`` 值。在下章，我們將深入地探討相關的算法和資料結構，但在這裡你只需瞭解 ``Maybe`` 值是 ``Just something`` 或 ``Nothing`` 就夠了。與一個 List 可以為空也可以包含多個元素相似，一個 ``Maybe`` 可以為空，也可以是單一元素。同樣與 List 類似，一個 Int 型的 List 可以寫作 ``[Int]``，``Maybe``有個 Int 型可以寫作 ``Maybe Int``。先試一下 ``find`` 函數再說.
 
 {{
 ghci> find (>4) [1,2,3,4,5,6]  
@@ -368,7 +368,7 @@ ghci> findIndices (`elem` ['A'..'Z']) "Where Are The Caps?"
 [0,6,10,14] 
 }}
 
-在前面，我們講過了 ``zip`` 和 ``zipWith``，它們只能將兩個 List 組到一個二元組數或二參函數中，但若要組三個 List 該怎麼辦? 好說~ 有 ``zip3``,``zip4``,,,,和 ``zipWith3``, ``zipWith4``...直到 7。這看起來像是個 hack，但工作良好。連着組 8 個 List 的情況很少遇到。還有個聰明辦法可以組起無限多個 List，但限於我們目前的水平，就先不談了.
+在前面，我們講過了 ``zip`` 和 ``zipWith``，它們只能將兩個 List 組到一個二元組數或二參函數中，但若要組三個 List 該怎麼辦? 好說~ 有 ``zip3``,``zip4``...,和 ``zipWith3``, ``zipWith4``...直到 7。這看起來像是個 hack，但工作良好。連着組 8 個 List 的情況很少遇到。還有個聰明辦法可以組起無限多個 List，但限於我們目前的水平，就先不談了.
 
 {{
 ghci> zipWith3 (\x y z -> x + y + z) [1,2,3] [4,5,2,2] [2,2,3]  
@@ -514,7 +514,7 @@ ghci> sortBy (compare `on` length) xs
 
 [$../img/legochar.png]
 
-**isControl **判斷一個字元是否是控制字元。
+**isControl** 判斷一個字元是否是控制字元。
 **isSpace** 判斷一個字元是否是空格字元，包括空格，tab，換行符等.
 **isLower** 判斷一個字元是否為小寫.
 **isUper** 判斷一個字元是否為大寫。
@@ -557,6 +557,11 @@ ghci>
 }}
 
 Hmm，不錯，有點 ``words`` 的樣子了。只是還有空格在裡面，恩，該怎麼辦? 我知道，用 ``filter`` 濾掉它們!
+
+{{
+ghci> filter (not . any isSpace) . groupBy ((==) `on` isSpace) $ "hey guys its me"  
+["hey","guys","its","me"]  
+}}
 
 啊哈.
 
@@ -619,7 +624,7 @@ ghci> map ord "abcdefgh"
 encode :: Int -> String -> String  
 encode shift msg = 
   let ords = map ord msg  
-  shifted = map (+ shift) ords  
+      shifted = map (+ shift) ords  
   in map chr shifted  
 }}
 
@@ -682,7 +687,8 @@ findKey key xs = snd . head . filter (\(k,v) -> key == k) $ xs
 
 {{
 findKey :: (Eq k) => k -> [(k,v)] -> Maybe v 
-findKey key [] = Nothing findKey key ((k,v):xs) = 
+findKey key [] = Nothing
+findKey key ((k,v):xs) = 
      if key == k then 
          Just v 
      else 
@@ -738,8 +744,8 @@ fromList []
 {{
 ghci> Map.empty 
 fromList [] 
-ghci> Map.insert 3 100 
-Map.empty fromList [(3,100)] 
+ghci> Map.insert 3 100 Map.empty
+fromList [(3,100)] 
 ghci> Map.insert 5 600 (Map.insert 4 200 ( Map.insert 3 100  Map.empty)) 
 fromList [(3,100),(4,200),(5,600)]
 ghci> Map.insert 5 600 . Map.insert 4 200 . Map.insert 3 100 $ Map.empty 
@@ -805,21 +811,37 @@ fromList [(2,'A'),(4,'B')]
 ``toList`` 是 ``fromList`` 的反函數。
 
 {{
-ghci> Map.toList .Map.insert 9 2 $ Map.singleton 4 3 
+ghci> Map.toList . Map.insert 9 2 $ Map.singleton 4 3 
 [(4,3),(9,2)]
 }}
 
 **keys** 與 **elems** 各自返回一組由鍵或值組成的 List，``keys`` 與 ``map fst . Map.toList`` 等價，``elems`` 與 ``map snd . Map.toList``等價. ``fromListWith`` 是個很酷的小函數，它與 ``fromList`` 很像，只是它不會直接忽略掉重複鍵，而是交給一個函數來處理它們。假設一個姑娘可以有多個號碼，而我們有個像這樣的關聯列表: 
 
 {{
-phoneBook = [("betty","555-2938") ,("betty","342-2492") ,("bonnie","452-2928") ,("patsy","493-2928") ,("patsy","943-2929") ,("patsy","827-9162") ,("lucille","205-2928") ,("wendy","939-8282") ,("penny","853-2492") ,("penny","555-2111") ]
+phoneBook =   
+    [("betty","555-2938")  
+    ,("betty","342-2492")  
+    ,("bonnie","452-2928")  
+    ,("patsy","493-2928")  
+    ,("patsy","943-2929")  
+    ,("patsy","827-9162")  
+    ,("lucille","205-2928")  
+    ,("wendy","939-8282")  
+    ,("penny","853-2492")  
+    ,("penny","555-2111")  
+    ]  
 }}
 
 如果用 ``fromList`` 來生成 ``map``，我們會丟掉許多號碼! 如下才是正確的做法: 
 
 {{
-phoneBookToMap :: (Ord k) => [(k，String)] -> Map.Map k String phoneBookToMap xs = Map.fromListWith (\number1 number2 -> number1 ++ "，" ++ number2) xs ghci> Map.lookup "patsy" $ phoneBookToMap phoneBook 
-"827-9162，943-2929，493-2928" 
+phoneBookToMap :: (Ord k) => [(k, String)] -> Map.Map k String  
+phoneBookToMap xs = Map.fromListWith (\number1 number2 -> number1 ++ ", " ++ number2) xs  
+}}
+
+{{
+ghci> Map.lookup "patsy" $ phoneBookToMap phoneBook 
+"827-9162, 943-2929, 493-2928" 
 ghci> Map.lookup "wendy" $ phoneBookToMap phoneBook
 "939-8282" 
 ghci> Map.lookup "betty" $ phoneBookToMap phoneBook 
@@ -856,7 +878,7 @@ ghci> Map.insertWith (+) 3 100 $ Map.fromList [(3,4),(5,103),(6,339)]
 fromList [(3,104),(5,103),(6,339)]
 }}
 
-``Data.Map`` 裡面還有不少函數，這個文檔中的列表就很全了.
+``Data.Map`` 裡面還有不少函數，[http://www.haskell.org/ghc/docs/latest/html/libraries/containers/Data-Map.html 這個文檔]中的列表就很全了.
 
 
 == Data.Set

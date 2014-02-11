@@ -6,7 +6,7 @@
 
 我們也看過了 ``Maybe`` 是如何把值加上一個可能會失敗的 context。我們學習到 List Monad 是如何加進多重結果的 context。我們也了解 ``IO`` Monad 如何運作，而且我們在知道什麼是 Monad 之前就已經知道他了。
 
-在這個章節，我們會介紹一些其他的 Monad。他們可以把值變成 monadiv value，因此可以讓我們的程式更簡潔清晰。多見識幾個 Monad 也可以敏銳我們對 Monad 的直覺。
+在這個章節，我們會介紹一些其他的 Monad。他們可以把值變成 monadic value，因此可以讓我們的程式更簡潔清晰。多見識幾個 Monad 也可以敏銳我們對 Monad 的直覺。
 
 我們即將要介紹的 Monad 都包含在 ``mtl`` 這個套建中。一個 Haskell package 包含了一堆模組。而 ``mtl`` 已經包含在 Haskell Platform 中，所以你可能不用另外安裝。要檢查你有沒有這套件，你可以下 ``ghc-pkg list``。這會列出你已經安裝的套件，其中應該包含 ``mtl`` 後面接著對應的版號。
 
@@ -295,7 +295,7 @@ ghci> mapM_ putStrLn $ snd $ runWriter (gcd' 8 3)
 Finished with 1  
 }}
 
-把普通的演算法轉換成具有 log 是很棒的經驗，我們不過是把普通的 value 重寫成 Monadiv value，剩下的就靠 ``>>=`` 跟 ``Writer`` 來幫我們處理一切。用這樣的方法我們幾乎可以對任何函數加上 logging 的功能。我們只要把普通的值換成 ``Writer``，然後把一般的函數呼叫換成 ``>>=`` (當然也可以用 ``do``)
+把普通的演算法轉換成具有 log 是很棒的經驗，我們不過是把普通的 value 重寫成 Monadic value，剩下的就靠 ``>>=`` 跟 ``Writer`` 來幫我們處理一切。用這樣的方法我們幾乎可以對任何函數加上 logging 的功能。我們只要把普通的值換成 ``Writer``，然後把一般的函數呼叫換成 ``>>=`` (當然也可以用 ``do``)
 
 ===Inefficient list construction
 當製作 ``Writer`` Monad 的時候，要特別注意你是使用哪種 monoid。使用 list 的話效能有時候是沒辦法接受的。因為 list 是使用 ``++`` 來作為 ``mappend`` 的實現。而 ``++`` 在 list 很長的時候是非常慢的。
@@ -519,7 +519,7 @@ addStuff = do
   return (a+b)  
 }}
 
-這跟我們之前寫的 applicative expression 差不多，只差在他是運作在 monad 上。一個 ``do`` expression 的結果永遠會是一個 monadic vlaue，這個也不例外。而這個 monadic value 其實是一個函數。只是在這邊他接受一個數字，然後套用 ``(*2)``，把結果綁定到 ``a`` 上面。而 ``(+10)`` 也同用被套用到同樣的參數。結果被綁訂到 ``b`` 上。``return`` 就如其他 monad 一樣，只是製作一個簡單的 monadiv value 而不會作多餘的事情。這讓整個函數的結果是 ``a+b``。如果我們試著跑跑看，會得到之前的結果。
+這跟我們之前寫的 applicative expression 差不多，只差在他是運作在 monad 上。一個 ``do`` expression 的結果永遠會是一個 monadic vlaue，這個也不例外。而這個 monadic value 其實是一個函數。只是在這邊他接受一個數字，然後套用 ``(*2)``，把結果綁定到 ``a`` 上面。而 ``(+10)`` 也同用被套用到同樣的參數。結果被綁定到 ``b`` 上。``return`` 就如其他 monad 一樣，只是製作一個簡單的 monadic value 而不會作多餘的事情。這讓整個函數的結果是 ``a+b``。如果我們試著跑跑看，會得到之前的結果。
 
 {{
 ghci> addStuff 3  
@@ -888,7 +888,7 @@ Right 103
 
 ==一些實用的 Moandic functions
 
-在這個章節，我們會看看一些操作 monadiv value 的函數。這樣的函數通常我們稱呼他們為 monadiv function。其中有些你是第一次見到，但有些不過是 ``filter`` 或 ``foldl`` 的變形。讓我們來看看吧！
+在這個章節，我們會看看一些操作 monadic value 的函數。這樣的函數通常我們稱呼他們為 monadic function。其中有些你是第一次見到，但有些不過是 ``filter`` 或 ``foldl`` 的變形。讓我們來看看吧！
 
 ===liftM 
 
@@ -965,7 +965,7 @@ Nothing
 
 他有點像 ``fmap``，只是函數本身有一個 context。我們必須把他從 context 中抽出，對 ``f a`` 做 map over 的東做，然後再放回 context 中。由於在 Haskel 中函數預設都是 curried，我們便能用 ``<$>`` 以及 ``<*>`` 來讓接受多個參數的函數也能接受 applicative 種類的值。
 
-總之 ``<*>`` 跟 ``fmap`` 很類似，他也能只用 ``Monad`` 保證的性質實作出來。``ap``` 這個函數基本上就是 ``<*>``，只是他是限制在 ``Monad`` 上而不是 ``Applicative`` 上。這邊是他的定義：
+總之 ``<*>`` 跟 ``fmap`` 很類似，他也能只用 ``Monad`` 保證的性質實作出來。``ap`` 這個函數基本上就是 ``<*>``，只是他是限制在 ``Monad`` 上而不是 ``Applicative`` 上。這邊是他的定義：
 
 {{
 ap :: (Monad m) => m (a -> b) -> m a -> m b  
@@ -1041,7 +1041,7 @@ ghci> runWriter $ join (Writer (Writer (1,"aaa"),"bbb"))
 (1,"bbbaaa")  
 }}
 
-```"bbb"`` 先被加到 monoid 中，接著 ``"aaa"`` 被附加上去。你想要檢視 ``Writer`` 中的值的話，必須先把值寫進去才行。
+``"bbb"`` 先被加到 monoid 中，接著 ``"aaa"`` 被附加上去。你想要檢視 ``Writer`` 中的值的話，必須先把值寫進去才行。
 
 要對 ``Either`` 做 ``join`` 跟對 ``Maybe`` 做 ``join`` 是很類似的：
 
@@ -1054,7 +1054,7 @@ ghci> join (Left "error") :: Either String Int
 Left "error"  
 }}
 
-如果我們對一個包了另外一個改變狀態的計算的進行改變狀態的計算，要作 ``join`` 的動作會讓外面的掀被計算，然後才是計算裡面的：
+如果我們對一個包了另外一個改變狀態的計算的進行改變狀態的計算，要作 ``join`` 的動作會讓外面的先被計算，然後才是計算裡面的：
 
 {{
 ghci> runState (join (State $ \s -> (push 10,1:2:s))) [0,0,0]  
@@ -1264,7 +1264,7 @@ foldingFunction :: [Double] -> String -> Maybe [Double]
 
 他不是回傳一個 ``Just`` 的堆疊就是回傳 ``Nothing``。
 
-``reads`` 函數就像 ``read`` 一樣，差別在於他回傳一個 list。在成功讀取的情況下 list 中只工讀取的那個元素。如果他失敗了，他會回傳一個空的 list。除了回傳讀取的元素，他也回傳剩下讀取失敗的元素。他必須要看完整串輸入，我們想把他弄成一個 ``readMaybe`` 的函數，好方便我們進行。
+``reads`` 函數就像 ``read`` 一樣，差別在於他回傳一個 list。在成功讀取的情況下 list 中只包含讀取的那個元素。如果他失敗了，他會回傳一個空的 list。除了回傳讀取的元素，他也回傳剩下讀取失敗的元素。他必須要看完整串輸入，我們想把他弄成一個 ``readMaybe`` 的函數，好方便我們進行。
 
 {{
 readMaybe :: (Read a) => String -> Maybe a  
@@ -1317,7 +1317,7 @@ solveRPN st = do
   return result  
 }}
 
-我們仍是接受一個字串把他斷成一串 word。然後我們用一個空的堆疊來作 folding 的動作，只差在我們用的是 ``foldM`` 而不是 ``foldl``。``foldM`` 的結果會是 ``Maybe``，``Maybe`` 裡面包含了一個只有一個元素的 list。我們用 ``do`` expression 來取出值，把他綁定到 ``result`` 上。當 ``foldM`` 回傳 ``Nothing`` 的時候，整個結果就變成 ``Nothing``。也特別注意我們有在 ``do`` 裡面做 pattern match 的動作，所以如果 list 中不是只有一個元素的話，最後結果便會是 ``Nohting``。最後一行我們用 ``return result`` 來展示 RPN 計算的結果，把他包在一個 ``Maybe`` 裡面。
+我們仍是接受一個字串把他斷成一串 word。然後我們用一個空的堆疊來作 folding 的動作，只差在我們用的是 ``foldM`` 而不是 ``foldl``。``foldM`` 的結果會是 ``Maybe``，``Maybe`` 裡面包含了一個只有一個元素的 list。我們用 ``do`` expression 來取出值，把他綁定到 ``result`` 上。當 ``foldM`` 回傳 ``Nothing`` 的時候，整個結果就變成 ``Nothing``。也特別注意我們有在 ``do`` 裡面做 pattern match 的動作，所以如果 list 中不是只有一個元素的話，最後結果便會是 ``Nothing``。最後一行我們用 ``return result`` 來展示 RPN 計算的結果，把他包在一個 ``Maybe`` 裡面。
 
 {{
 ghci> solveRPN "1 2 * 4 +"  
@@ -1448,7 +1448,7 @@ ghci> fmap negate (Prob [(3,1%2),(5,1%4),(9,1%4)])
 Prob {getProb = [(-3,1 % 2),(-5,1 % 4),(-9,1 % 4)]}  
 }}
 
-要注意機率的和永遠是 ``1``。如果我們沒有漏掉某種情形的話，沒有道理他們加起來的值不為 ``1``。一個有 75%機率是正面以及 50%機率是反面的硬幣根本沒什麼道理。
+要注意機率的和永遠是 ``1``。如果我們沒有漏掉某種情形的話，沒有道理他們加起來的值不為 ``1``。一個有 75% 機率是正面以及 50% 機率是反面的硬幣根本沒什麼道理。
 
 接著要問一個重要的問題，他是一個 monad 嗎？我們知道 list 是一個 monad，所以他很有可能也是一個 monad。首先來想想 ``return``。他在 list 是怎麼運作的？他接受一個普通的值並把他放到一個 list 中變成只有一個元素的 list。那在這邊又如何？由於他是一個最小的 context，他也應該是一個元素的 list。那機率值呢？``return x`` 的值永遠都是 ``x``，所以機率值不應該是 ``0``，而應該是 ``1``。
 
@@ -1466,7 +1466,7 @@ Prob {getProb = [(-3,1 % 2),(-5,1 % 4),(-9,1 % 4)]}
 thisSituation :: Prob (Prob Char)  
 thisSituation = Prob  
     [( Prob [('a',1%2),('b',1%2)] , 1%4 )  
-    ,( Prob [('c',1%2),('d',1%2)] , 3%4)  
+    ,( Prob [('c',1%2),('d',1%2)] , 3%4 )  
     ]
 }}
 
