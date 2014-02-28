@@ -12,7 +12,7 @@ GHCi, version 6.8.2: http://www.haskell.org/ghc/
 Prelude>
 }}
 
-恭喜您已經進入了 ghci 了！目前它的命令列提示是 ``prelude>``，不過它在你裝載一些模組之後會變的比較長。為了美觀起見，我們會輸入指令 ``set prompt "ghci> "`` 把它改成 ``ghci>``。
+恭喜您已經進入了 ghci 了！目前它的命令列提示是 ``prelude>``，不過它在你裝載一些模組之後會變的比較長。為了美觀起見，我們會輸入指令 ``:set prompt "ghci> "`` 把它改成 ``ghci>``。
 
 首先來看一些簡單的運算
 
