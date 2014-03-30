@@ -158,7 +158,7 @@ ghci> doubleUs 28 88 + doubleMe 123
 478
 }}
 
-你可以在其他函數中呼叫你編寫的函數，如此一來我們可以將 ``doubleMe`` 函數改為：
+你可以在其他函數中呼叫你編寫的函數，如此一來我們可以將 ``doubleUs`` 函數改為：
 
 {{
 doubleUs x y = doubleMe x + doubleMe y
