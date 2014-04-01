@@ -289,7 +289,7 @@ ghci> :t (*)
 
 型別只有親近 ``Show`` 和 ``Eq``，才可以加入 ``Num``。
 
-**Integral** 同樣是表示數字的 Typeclass。``Num`` 包含所有的數字：實數和整數。而 Intgral 僅包含整數，其中的成員型別有 ``Int`` 和 ``Integer``。
+**Integral** 同樣是表示數字的 Typeclass。``Num`` 包含所有的數字：實數和整數。而 Integral 僅包含整數，其中的成員型別有 ``Int`` 和 ``Integer``。
 
 **Floating** 僅包含浮點型別：``Float`` 和 ``Double``。
 
