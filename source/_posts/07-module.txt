@@ -462,7 +462,7 @@ ghci> insert 3 [1,2,4,3,2,1]
 [1,2,3,4,3,2,1]  
 }}
 
-``length``，``take``，``drop``，``splitAt``，``!!`` 和 ``replicate`` 之類的函數有個共同點。那就是它們的參數中都有個 Int 值，我覺得使用 Intergal 或 Num 型別類會更好，但出於歷史原因，修改這些會破壞掉許多既有的程式碼。在 ``Data.List`` 中包含了更通用的替代版，如: ``genericLength，genericTake，genericDrop，genericSplitAt，genericIndex`` 和 ``genericReplicate``。``length`` 的型別聲明為 `` length :: [a] -> Int``，而我們若要像這樣求它的平均值，``let xs = [1..6] in sum xs / length xs`` ，就會得到一個型別錯誤，因為 ``/`` 運算符不能對 Int 型使用! 而 ``genericLength`` 的型別聲明則為 ``genericLength :: (Num a) => [b] -> a``，Num 既可以是整數又可以是浮點數，``let xs = [1..6] in sum xs / genericLength xs`` 這樣再求平均數就不會有問題了.
+``length``，``take``，``drop``，``splitAt``，``!!`` 和 ``replicate`` 之類的函數有個共同點。那就是它們的參數中都有個 Int 值（或者返回Int值），我覺得使用 Intergal 或 Num 型別類會更好，但出於歷史原因，修改這些會破壞掉許多既有的程式碼。在 ``Data.List`` 中包含了更通用的替代版，如: ``genericLength，genericTake，genericDrop，genericSplitAt，genericIndex`` 和 ``genericReplicate``。``length`` 的型別聲明為 `` length :: [a] -> Int``，而我們若要像這樣求它的平均值，``let xs = [1..6] in sum xs / length xs`` ，就會得到一個型別錯誤，因為 ``/`` 運算符不能對 Int 型使用! 而 ``genericLength`` 的型別聲明則為 ``genericLength :: (Num a) => [b] -> a``，Num 既可以是整數又可以是浮點數，``let xs = [1..6] in sum xs / genericLength xs`` 這樣再求平均數就不會有問題了.
 
 ``nub``, ``delete``, ``union``, ``intsect`` 和 ``group`` 函數也有各自的通用替代版 ``nubBy``，``deleteBy``，``unionBy``，``intersectBy`` 和 ``groupBy``，它們的區別就是前一組函數使用 ``(==)`` 來測試是否相等，而帶 ``By`` 的那組則取一個函數作參數來判定相等性，``group`` 就與 ``groupBy (==)`` 等價.
 
