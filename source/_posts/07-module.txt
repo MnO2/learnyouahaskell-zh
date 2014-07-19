@@ -280,7 +280,7 @@ search needle haystack =
 
 首先，對搜索的 List 呼叫 ``tails``，然後遍歷每個 List 來檢查它是不是我們想要的.
 
-由此我們便實現了一個類似 **isIndexOf** 的函數，**isInfixOf** 從一個 List 中搜索一個子 List，若該 List 包含子 List，則返回 ``True``.
+由此我們便實現了一個類似 **isInfixOf** 的函數，**isInfixOf** 從一個 List 中搜索一個子 List，若該 List 包含子 List，則返回 ``True``.
 
 {{
 ghci> "cat" `isInfixOf` "im a cat burglar"  
