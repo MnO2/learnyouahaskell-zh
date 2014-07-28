@@ -29,7 +29,7 @@
                 })
             });
         </script>
-        <script type="text/javascript">
+        <script defer type="text/javascript">
             var _gaq = _gaq || [];
             _gaq.push(['_setAccount', 'UA-32830659-1']);
             _gaq.push(['_trackPageview']);
@@ -50,7 +50,7 @@
         <div id="main">
             <ul class="nav">
                 <li class="left">  <img src="../img/prv.png" alt="prev" /><a href="modules.html">模組 (Modules)</a></li>
-                <li class="center"><a href="chapters.html">Index</a></li>
+                <li class="center"><a href="chapters.html">目录</a></li>
                 <li class="right"> <a href="input-and-output.html">輸入與輸出</a><img src="../img/nxt.png" alt="next" /></li>
             </ul>
             <a name="構造我們自己的_Types_和_Typeclasses"></a><h1>構造我們自己的 Types 和 Typeclasses</h1>
@@ -185,7 +185,7 @@ ghci&gt; flavor guy
                      , phoneNumber :: String
                      , flavor :: String
                      } deriving (Show)</pre>
-<p>與原先讓那些項一個挨一個的空格隔開不同，這裡用了花括號 <code>{}</code>。先寫出項的名字，如 <code>firstName</code>，後跟兩個冒號(也叫 Raamayim Nekudotayim，哈哈~(譯者不知道什麼意思~囧))，標明其型別，返回的數據型別仍與以前相同。這樣的好處就是，可以用函數從中直接按項取值。通過 Record Syntax，Haskell 就自動生成了這些函數：<code>firstName</code>, <code>lastName</code>, <code>age</code>, <code>height</code>, <code>phoneNumber</code> 和 <code>flavor</code>。</p>
+<p>與原先讓那些項一個挨一個的空格隔開不同，這裡用了花括號 <code>{}</code>。先寫出項的名字，如 <code>firstName</code>，後跟兩個冒號(也叫 Paamayim Nekudotayim，哈哈~(譯者不知道什麼意思~囧))，標明其型別，返回的數據型別仍與以前相同。這樣的好處就是，可以用函數從中直接按項取值。通過 Record Syntax，Haskell 就自動生成了這些函數：<code>firstName</code>, <code>lastName</code>, <code>age</code>, <code>height</code>, <code>phoneNumber</code> 和 <code>flavor</code>。</p>
 <pre class="code">ghci&gt; :t flavor
 flavor :: Person -&gt; String
 ghci&gt; :t firstName
@@ -240,7 +240,8 @@ Just 10.0</pre>
 <p>但是，這樣我們又得到了什麼好處？回答很可能是，一無所得。因為我們只定義了處理 <code>Car String String Int</code> 型別的函數，像以前，我們還可以弄個簡單函數來描述車的屬性。</p>
 <pre class="code">tellCar :: Car -&gt; String
 tellCar (Car {company = c, model = m, year = y}) = "This " ++ c ++ " " ++ m ++ " was made in " ++ show y</pre><pre class="code">ghci&gt; let stang = Car {company="Ford", model="Mustang", year=1967}
-ghci&gt; tellCar stang  "This Ford Mustang was made in 1967"</pre>
+ghci&gt; tellCar stang
+"This Ford Mustang was made in 1967"</pre>
 <p>可愛的小函數！它的型別聲明得很漂亮，而且工作良好。好，如果改成 <code>Car a b c</code> 又會怎樣？</p>
 <pre class="code">tellCar :: (Show a) =&gt; Car String String a -&gt; String
 tellCar (Car {company = c, model = m, year = y}) = "This " ++ c ++ " " ++ m ++ " was made in " ++ show y</pre>
@@ -355,11 +356,11 @@ ghci&gt; Just 3 `compare` Just 2
 GT
 ghci&gt; Just 100 &gt; Just 50
 True</pre>
-<p>不過類似 <code>Just (*3)</code>, <code>Just(*2)</code> 之類的程式碼是不可以的。因為 <code>(*3)</code> 和 <code>(*2)</code> 都是函數，而函數不是 <code>Ord</code> 類的成員。</p>
+<p>不過類似 <code>Just (*3) &gt; Just (*2)</code> 之類的程式碼是不可以的。因為 <code>(*3)</code> 和 <code>(*2)</code> 都是函數，而函數不是 <code>Ord</code> 類的成員。</p>
 
-<p>作枚舉，使用數字型別就能輕易做到。不過使用 <code>Enmu</code> 和 <code>Bounded</code> 型別類會更好，看下這個型別：</p>
+<p>作枚舉，使用數字型別就能輕易做到。不過使用 <code>Enum</code> 和 <code>Bounded</code> 型別類會更好，看下這個型別：</p>
 <pre class="code">data Day = Monday | Tuesday | Wednesday | Thursday | Friday | Saturday | Sunday</pre>
-<p>所有的值構造子都是 <code>nullary</code> 的(也就是沒有參數)，每個東西都有前置子和後繼子，我們可以讓它成為 <code>Enmu</code> 型別類的成員。同樣，每個東西都有可能的最小值和最大值，我們也可以讓它成為 <code>Bounded</code> 型別類的成員。在這裡，我們就同時將它搞成其它可 derive型別類的 instance。再看看我們能拿它做啥：</p>
+<p>所有的值構造子都是 <code>nullary</code> 的(也就是沒有參數)，每個東西都有前置子和後繼子，我們可以讓它成為 <code>Enum</code> 型別類的成員。同樣，每個東西都有可能的最小值和最大值，我們也可以讓它成為 <code>Bounded</code> 型別類的成員。在這裡，我們就同時將它搞成其它可 derive型別類的 instance。再看看我們能拿它做啥：</p>
 <pre class="code">data Day = Monday | Tuesday | Wednesday | Thursday | Friday | Saturday | Sunday
            deriving (Eq, Ord, Show, Read, Bounded, Enum)</pre>
 <p>由於它是 <code>Show</code> 和 <code>Read</code> 型別類的成員，我們可以將這個型別的值與字元串相互轉換。</p>
@@ -557,7 +558,7 @@ ghci&gt; a .++ b
 
 <p>這邊我們來定義一棵樹的結構：他不是一棵空的樹就是帶有值並含有兩棵子樹。聽起來非常符合 algebraic data type 的結構！</p>
 <pre class="code">data Tree a = EmptyTree | Node a (Tree a) (Tree a) deriving (Show, Read, Eq)</pre>
-<p>我們不太想手動來建顆二元搜尋樹，所以我們要來寫一個函數，他接受一棵樹還有一個元素，把這個元素安插到這棵二元搜尋樹中。當拿這個元素跟樹的節點比較結果比較小的話，我們就往左走，如果比較大，就往右走。重複這個動作直到我們走到一棵空的樹。一旦碰到空的樹的話，我們就把元素插入節點。</p>
+<p>我們不太想手動來建棵二元搜尋樹，所以我們要來寫一個函數，他接受一棵樹還有一個元素，把這個元素安插到這棵二元搜尋樹中。當拿這個元素跟樹的節點比較結果比較小的話，我們就往左走，如果比較大，就往右走。重複這個動作直到我們走到一棵空的樹。一旦碰到空的樹的話，我們就把元素插入節點。</p>
 
 <p>在 C 語言中，我們是用修改指標的方式來達成這件事。但在 Haskell 中，我們沒辦法修改我們的樹。所以我們在決定要往左或往右走的時候就做一棵新的子樹，走到最後要安插節點的時候也是做一棵新的樹。因此我們插入函數的型態會是 <code>a -&gt; Tree a -&gt; Tree a</code>。他接受一個元素跟一棵樹，並回傳一棵包含了新元素的新的樹。這看起來很沒效率的樣子，但別擔心，惰性的特性可以讓我們不用擔心這個。</p>
 
@@ -620,7 +621,7 @@ False</pre>
 
 <p>如果我們寫成 <code>class Eq equatable where</code> 還有 <code>(==) :: equatable -&gt; equatable -&gt; Bool</code> 這樣的形式，對一些人可能比較容易理解。</p>
 
-<p>總之我們實作了 <code>Eq</code> 中需要定義的函數本體，只是我們定義他的方式是用交互遞迴的形式。我們描述兩個 <code>Eq</code> 的 instance 藥箱等，那他們就不能不一樣，而他們如果不一樣，那他們就是不相等。我們其實不必這樣寫，但很快你會看到這其實是有用的。</p>
+<p>總之我們實作了 <code>Eq</code> 中需要定義的函數本體，只是我們定義他的方式是用交互遞迴的形式。我們描述兩個 <code>Eq</code> 的 instance 要相等，那他們就不能不一樣，而他們如果不一樣，那他們就是不相等。我們其實不必這樣寫，但很快你會看到這其實是有用的。</p>
 
 <p>如果我們說 <code>class Eq a where</code> 然後定義 <code>(==) :: a -&gt; a -&gt; Bool</code>，那我們之後檢查函數的型別時會發現他的型別是 <code>(Eq a) =&gt; a -&gt; a -&gt; Bool</code>。</p>
 
@@ -688,9 +689,9 @@ ghci&gt; [Red, Yellow, Green]
 
 <p>當定義 instance 的時候，如果你需要提供具體型別（像是在 <code>a -&gt; a -&gt; Bool</code> 中的 <code>a</code>），那你必須要加上括號跟型別參數來構造一個具體型別。</p>
 
-<p>要知道你在定義 instnace 的時候，型別參數會被取代。<code>class Eq a where</code> 中的 <code>a</code> 會被取代成真實的型別。所以試著想像把型別放進型別宣告中。<code>(==) :: Maybe -&gt; Maybe -&gt; Bool</code> 並非合法。但 <code>(==) :: (Eq m) =&gt; Maybe m -&gt; Maybe m -&gt; Bool</code> 則是。這是不論我們要定義什麼，通用的型別宣告都是 <code>(==) :: (Eq a) =&gt; a -&gt; a -&gt; Bool</code></p>
+<p>要知道你在定義 instance 的時候，型別參數會被取代。<code>class Eq a where</code> 中的 <code>a</code> 會被取代成真實的型別。所以試著想像把型別放進型別宣告中。<code>(==) :: Maybe -&gt; Maybe -&gt; Bool</code> 並非合法。但 <code>(==) :: (Eq m) =&gt; Maybe m -&gt; Maybe m -&gt; Bool</code> 則是。這是不論我們要定義什麼，通用的型別宣告都是 <code>(==) :: (Eq a) =&gt; a -&gt; a -&gt; Bool</code></p>
 
-<p>還有一件事要確認。如果你想看看一個 typeclass 有定義哪些 instance。可以在 ghci 中輸入 <code>:info YourTypeClass</code>。所以輸入 <code>info Num</code> 會告訴你這個 typeclass 定義了哪些函數，還有哪些型別屬於這個 typeclass。<code>:info</code> 也可以查詢型別跟型別構造子的資訊。如果你輸入 <code>:info Maybe</code>。他會顯示 <code>Maybe</code> 所屬的所有 typeclass。<code>:info</code> 也能告訴你函數的型別宣告。</p>
+<p>還有一件事要確認。如果你想看看一個 typeclass 有定義哪些 instance。可以在 ghci 中輸入 <code>:info YourTypeClass</code>。所以輸入 <code>:info Num</code> 會告訴你這個 typeclass 定義了哪些函數，還有哪些型別屬於這個 typeclass。<code>:info</code> 也可以查詢型別跟型別構造子的資訊。如果你輸入 <code>:info Maybe</code>。他會顯示 <code>Maybe</code> 所屬的所有 typeclass。<code>:info</code> 也能告訴你函數的型別宣告。</p>
 <a name="yes-no_typeclass"></a><h2>yes-no typeclass</h2>
 
 
@@ -809,7 +810,7 @@ ghci&gt; fmap (*2) (Just 200)
 Just 400
 ghci&gt; fmap (*2) Nothing
 Nothing</pre>
-<p>另外 <code>Tree a</code> 的型別也可以被 map over 且被定義成 <code>Functor</code> 的一個 instnace。他可以被想成是一個盒子，而 <code>Tree</code> 的型別構造子也剛好接受單一一個型別參數。如果你把 <code>fmap</code> 看作是一個特別為 <code>Tree</code> 寫的函數，他的型別宣告會長得像這樣 <code>(a -&gt; b) -&gt; Tree a -&gt; Tree b</code>。不過我們在這邊會用到遞迴。map over 一棵空的樹會得到一棵空的樹。map over 一棵非空的樹會得到一棵被函數映射過的樹，他的 root 會先被映射，然後左右子樹都分別遞迴地被函數映射。</p>
+<p>另外 <code>Tree a</code> 的型別也可以被 map over 且被定義成 <code>Functor</code> 的一個 instance。他可以被想成是一個盒子，而 <code>Tree</code> 的型別構造子也剛好接受單一一個型別參數。如果你把 <code>fmap</code> 看作是一個特別為 <code>Tree</code> 寫的函數，他的型別宣告會長得像這樣 <code>(a -&gt; b) -&gt; Tree a -&gt; Tree b</code>。不過我們在這邊會用到遞迴。map over 一棵空的樹會得到一棵空的樹。map over 一棵非空的樹會得到一棵被函數映射過的樹，他的 root 會先被映射，然後左右子樹都分別遞迴地被函數映射。</p>
 <pre class="code">instance Functor Tree where
     fmap f EmptyTree = EmptyTree
     fmap f (Node x leftsub rightsub) =
@@ -817,7 +818,7 @@ Nothing</pre>
 EmptyTree
 ghci&gt; fmap (*4) (foldr treeInsert EmptyTree [5,7,3,2,1,7])
 Node 28 (Node 4 EmptyTree (Node 8 EmptyTree (Node 12 EmptyTree (Node 20 EmptyTree EmptyTree)))) EmptyTree</pre>
-<p>那 <code>Eitehr a b</code> 又如何？他可以是一個 functor 嗎？<code>Functor</code> 限制型別構造子只能接受一個型別參數，但 <code>Either</code> 卻接受兩個。聰明的你會想到我可以 partial apply <code>Either</code>，先餵給他一個參數，並把另一個參數當作 free parameter。來看看 <code>Either a</code> 在標準函式庫中是如何被定義的：</p>
+<p>那 <code>Either a b</code> 又如何？他可以是一個 functor 嗎？<code>Functor</code> 限制型別構造子只能接受一個型別參數，但 <code>Either</code> 卻接受兩個。聰明的你會想到我可以 partial apply <code>Either</code>，先餵給他一個參數，並把另一個參數當作 free parameter。來看看 <code>Either a</code> 在標準函式庫中是如何被定義的：</p>
 <pre class="code">instance Functor (Either a) where
     fmap f (Right x) = Right (f x)
     fmap f (Left x) = Left x</pre>
@@ -831,7 +832,7 @@ Node 28 (Node 4 EmptyTree (Node 8 EmptyTree (Node 12 EmptyTree (Node 20 EmptyTre
 
 <p>注意到 <code>'</code> 在這邊並沒有特別的意思，他只是用來表示他跟另一個東西有點像，只有一點點差別而已。</p>
 
-<p>你可以自己試試看把 <code>Map k</code> 變成 <code>Functor</code> 的一個 instnace。</p>
+<p>你可以自己試試看把 <code>Map k</code> 變成 <code>Functor</code> 的一個 instance。</p>
 
 <p>看過了 <code>Functor</code> 這個 typeclass，我們知道 typeclass 可以拿來代表高階的概念。我們也練習過不少 partially applying type 跟定義 instance。在下幾章中，我們也會看到 functor 必須要遵守的定律。</p>
 
@@ -911,7 +912,7 @@ Barry :: (* -&gt; *) -&gt; * -&gt; * -&gt; *</pre>
 
             <ul class="nav">
                 <li class="left">  <img src="../img/prv.png" alt="prev" /><a href="modules.html">模組 (Modules)</a></li>
-                <li class="center"><a href="chapters.html">Index</a></li>
+                <li class="center"><a href="chapters.html">目录</a></li>
                 <li class="right"> <a href="input-and-output.html">輸入與輸出</a><img src="../img/nxt.png" alt="next" /></li>
             </ul>
         </div>

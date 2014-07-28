@@ -29,7 +29,7 @@
                 })
             });
         </script>
-        <script type="text/javascript">
+        <script defer type="text/javascript">
             var _gaq = _gaq || [];
             _gaq.push(['_setAccount', 'UA-32830659-1']);
             _gaq.push(['_trackPageview']);
@@ -50,7 +50,7 @@
         <div id="main">
             <ul class="nav">
                 <li class="left">  <img src="../img/prv.png" alt="prev" /><a href="types-and-type-classes.html">Types and Typeclasses</a></li>
-                <li class="center"><a href="chapters.html">Index</a></li>
+                <li class="center"><a href="chapters.html">目录</a></li>
                 <li class="right"> <a href="recursion.html">遞迴</a><img src="../img/nxt.png" alt="next" /></li>
             </ul>
             <a name="函數的語法"></a><h1>函數的語法</h1>
@@ -72,13 +72,13 @@ sayMe 3 = "Three!"  
 sayMe 4 = "Four!"  
 sayMe 5 = "Five!"  
 sayMe x = "Not between 1 and 5"  </pre>
-<p>注意下，如果我們把最後匹配一切的那個模式挪到最前，它的結果就全都是 <code>"Not between 1 and 5"  </code> 了。因為它自己匹配了一切數字，不給後面的模式留機會。</p>
+<p>注意下，如果我們把最後匹配一切的那個模式挪到最前，它的結果就全都是 <code>"Not between 1 and 5"</code> 了。因為它自己匹配了一切數字，不給後面的模式留機會。</p>
 
 <p>記得前面實現的那個階乘函數麼？當時是把 <code>n</code> 的階乘定義成了 <code>product [1..n]</code>。也可以寫出像數學那樣的遞迴實現，先說明 0 的階乘是 1 ，再說明每個正整數的階乘都是這個數與它前驅 (predecessor) 對應的階乘的積。如下便是翻譯到 Haskell 的樣子：</p>
 <pre class="code">factorial :: (Integral a) =&gt; a -&gt; a  
 factorial 0 = 1  
 factorial n = n * factorial (n - 1)  </pre>
-<p>這就是我們定義的第一個遞迴函數。遞迴在 Haskell 中十分重要，我們會在後面深入理解。如果拿一個數(如 3)呼叫 <code>factorial</code> 函數，這就是接下來的計算步驟：先計算 <code>3*factorial 2</code>，<code>factorial 2</code> 等於 <code>2*factorial 1</code>，也就是 <code>3*(2*(factorial 1))</code>。<code>factorial 1</code> 等於 <code>1*factorial 0</code>，好，得 <code>3*(2*(1*factorial 0))</code>，遞迴在這裡到頭了，嗯 --- 我們在萬能匹配前面有定義，0 的階乘是 1.於是最終的結果等於 <code>3*(2*(1*1))</code>。若是把第二個模式放在前面，它就會捕獲包括 0 在內的一切數字，這一來我們的計算就永遠都不會停止了。這便是為什麼說模式的順序是如此重要：它總是優先匹配最符合的那個，最後才是那個萬能的。</p>
+<p>這就是我們定義的第一個遞迴函數。遞迴在 Haskell 中十分重要，我們會在後面深入理解。如果拿一個數(如 3)呼叫 <code>factorial</code> 函數，這就是接下來的計算步驟：先計算 <code>3*factorial 2</code>，<code>factorial 2</code> 等於 <code>2*factorial 1</code>，也就是 <code>3*(2*(factorial 1))</code>。<code>factorial 1</code> 等於 <code>1*factorial 0</code>，好，得 <code>3*(2*(1*factorial 0))</code>，遞迴在這裡到頭了，嗯 --- 我們在萬能匹配前面有定義，0 的階乘是 1。於是最終的結果等於 <code>3*(2*(1*1))</code>。若是把第二個模式放在前面，它就會捕獲包括 0 在內的一切數字，這一來我們的計算就永遠都不會停止了。這便是為什麼說模式的順序是如此重要：它總是優先匹配最符合的那個，最後才是那個萬能的。</p>
 
 <p>模式匹配也會失敗。假如這個函數：</p>
 <pre class="code">charName :: Char -&gt; String  
@@ -170,7 +170,7 @@ capital all@(x:xs) = "The first letter of " ++ all ++ " is " ++ [x]  </pre><pre
 
 <p>模式用來檢查一個值是否合適並從中取值，而 guard 則用來檢查一個值的某項屬性是否為真。咋一聽有點像是 <code>if</code> 語句，實際上也正是如此。不過處理多個條件分支時 guard 的可讀性要高些，並且與模式匹配契合的很好。</p>
 <img src="../img/guards.png" alt="" style="float:right" class="floatright" />
-<p>在講解它的語法前，我們先看一個用到 guard 的函數。它會依據你的 BMI 值 (body mass index，身體質量指數)來不同程度地侮辱你。BMI 值即為體重除以身高的平方。如果小於 18.5，就是太瘦；如果在 18.5 到 25 之間，就是正常；25 到 30 之間，超重；如果超過 30，肥胖。這就是那個函數(我們目前暫不為您計算 bmi，它只是直接取一個 emi 值)。</p>
+<p>在講解它的語法前，我們先看一個用到 guard 的函數。它會依據你的 BMI 值 (body mass index，身體質量指數)來不同程度地侮辱你。BMI 值即為體重除以身高的平方。如果小於 18.5，就是太瘦；如果在 18.5 到 25 之間，就是正常；25 到 30 之間，超重；如果超過 30，肥胖。這就是那個函數(我們目前暫不為您計算 BMI，它只是直接取一個 BMI 值)。</p>
 <pre class="code">bmiTell :: (RealFloat a) =&gt; a -&gt; String  
 bmiTell bmi  
     | bmi &lt;= 18.5 = "You're underweight, you emo, you!"  
@@ -349,7 +349,7 @@ describeList xs = "The list is " ++ what xs  
           what xs = "a longer list."  </pre>
             <ul class="nav">
                 <li class="left">  <img src="../img/prv.png" alt="prev" /><a href="types-and-type-classes.html">Types and Typeclasses</a></li>
-                <li class="center"><a href="chapters.html">Index</a></li>
+                <li class="center"><a href="chapters.html">目录</a></li>
                 <li class="right"> <a href="recursion.html">遞迴</a><img src="../img/nxt.png" alt="next" /></li>
             </ul>
         </div>

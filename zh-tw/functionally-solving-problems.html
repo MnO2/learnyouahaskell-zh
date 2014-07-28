@@ -29,7 +29,7 @@
                 })
             });
         </script>
-        <script type="text/javascript">
+        <script defer type="text/javascript">
             var _gaq = _gaq || [];
             _gaq.push(['_setAccount', 'UA-32830659-1']);
             _gaq.push(['_trackPageview']);
@@ -50,7 +50,7 @@
         <div id="main">
             <ul class="nav">
                 <li class="left">  <img src="../img/prv.png" alt="prev" /><a href="input-and-output.html">輸入與輸出</a></li>
-                <li class="center"><a href="chapters.html">Index</a></li>
+                <li class="center"><a href="chapters.html">目录</a></li>
                 <li class="right"> <a href="functors-applicative-functors-and-monoids.html">Functors, Applicative Functors 與 Monoids</a><img src="../img/nxt.png" alt="next" /></li>
             </ul>
             <a name="函數式地思考來解決問題"></a><h1>函數式地思考來解決問題</h1>
@@ -185,7 +185,7 @@ ghci&gt; solveRPN "10 2 ^"
 
 <p>  * 想想如何在 Haskell 中表達我們的資料。</p>
 
-<p>  * 在 Haskell 中藥如何對這些資料做運算來產生出解答。</p>
+<p>  * 在 Haskell 中要如何對這些資料做運算來產生出解答。</p>
 
 <p>在介紹 RPN 計算機的章節中，我們首先自己用人腦計算表達式，在心中維持一個堆疊然後一項一項處理。我們決定用一個字串來表達我們的表達式。最後，我們用 left fold 來走過我們這一串 list，並算出結果。</p>
 
@@ -212,12 +212,12 @@ ghci&gt; solveRPN "10 2 ^"
 <p>接下來的問題是，我們要如何用 Haskell 的型別來代表這裡的道路配置呢？一種方式就是把起始點跟交叉點都當作圖的節點，並連到其他的交叉點。如果我們想像其實起點也有一條長度為 1 的虛擬道路連接彼此，那每個交叉點或是節點就都連接對面的節點了。同時他們也連到下一個交叉點。唯一的例外是最後一個節點，他們只連接到對面。</p>
 <pre class="code">data Node = Node Road Road | EndNode Road  
 data Road = Road Int Node</pre>
-<p>一個節點要碼是一個普通的節點，他包含有通往下一個交叉點的路徑資訊，還有往對面道路的資訊。或是一個終端點，只包含往對面節點的道路資訊。一條道路包涵他多長，還有他指向哪裡。例如說，道路 A 的第一個部份就可寫成 <code>Road 50 a1</code>。其中 <code>a1</code> 是 <code>Node x y</code> 這樣一個節點。而 <code>x</code> 跟 <code>y</code> 則分別指向 B1 跟 A2。</p>
+<p>一個節點要碼是一個普通的節點，他包含有通往下一個交叉點的路徑資訊，還有往對面道路的資訊。或是一個終端點，只包含往對面節點的道路資訊。一條道路包含他多長，還有他指向哪裡。例如說，道路 A 的第一個部份就可寫成 <code>Road 50 a1</code>。其中 <code>a1</code> 是 <code>Node x y</code> 這樣一個節點。而 <code>x</code> 跟 <code>y</code> 則分別指向 B1 跟 A2。</p>
 
 <p>另一種方式就是用 <code>Maybe</code> 來代表往下一個交叉點走的路。每個節點有指到對面節點的路徑部份，但只有不是終端節點的節點才有指向下一個交叉點的路。</p>
 <pre class="code">data Node = Node Road (Maybe Road)  
 data Road = Road Int Node</pre>
-<p>這些是用 Haskell 來代表道路系統的方式，而我們也能靠他們來解決問題。但也許我們可以想出更簡單的模型？如果我們想想之前手算的方式，我們每次檢查都只有檢查三調路徑的長度而已。在道路 A 的部份，跟在道路 B 的部份，還有接觸兩個部份並將他們連接起來的部份。當我們觀察到 A1 跟 B1 的最短路徑時，我們只考慮第一組的三個部份，他們分別花費 50, 10 跟 30。所以道路系統可以用四組來表示：<code>50, 10, 30</code>，<code>5, 90, 20</code>，<code>40, 2, 25</code> 跟 <code>10, 8, 0</code>。</p>
+<p>這些是用 Haskell 來代表道路系統的方式，而我們也能靠他們來解決問題。但也許我們可以想出更簡單的模型？如果我們想想之前手算的方式，我們每次檢查都只有檢查三條路徑的長度而已。在道路 A 的部份，跟在道路 B 的部份，還有接觸兩個部份並將他們連接起來的部份。當我們觀察到 A1 跟 B1 的最短路徑時，我們只考慮第一組的三個部份，他們分別花費 50, 10 跟 30。所以道路系統可以用四組來表示：<code>50, 10, 30</code>，<code>5, 90, 20</code>，<code>40, 2, 25</code> 跟 <code>10, 8, 0</code>。</p>
 
 <p>讓我們資料型別越簡單越好，不過這樣已經是極限了。</p>
 <pre class="code">data Section = Section { getA :: Int, getB :: Int, getC :: Int } deriving (Show)  
@@ -323,7 +323,7 @@ The price is: 75</pre>
 
             <ul class="nav">
                 <li class="left">  <img src="../img/prv.png" alt="prev" /><a href="input-and-output.html">輸入與輸出</a></li>
-                <li class="center"><a href="chapters.html">Index</a></li>
+                <li class="center"><a href="chapters.html">目录</a></li>
                 <li class="right"> <a href="functors-applicative-functors-and-monoids.html">Functors, Applicative Functors 與 Monoids</a><img src="../img/nxt.png" alt="next" /></li>
             </ul>
         </div>

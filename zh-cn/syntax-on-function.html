@@ -29,7 +29,7 @@
                 })
             });
         </script>
-        <script type="text/javascript">
+        <script defer type="text/javascript">
             var _gaq = _gaq || [];
             _gaq.push(['_setAccount', 'UA-32830659-1']);
             _gaq.push(['_trackPageview']);
@@ -50,7 +50,7 @@
         <div id="main">
             <ul class="nav">
                 <li class="left">  <img src="../img/prv.png" alt="prev" /><a href="types-and-type-classes.html">Types and Typeclasses</a></li>
-                <li class="center"><a href="chapters.html">Index</a></li>
+                <li class="center"><a href="chapters.html">目录</a></li>
                 <li class="right"> <a href="recursion.html">递归</a><img src="../img/nxt.png" alt="next" /></li>
             </ul>
             <a name="函数的语法"></a><h1>函数的语法</h1>
@@ -72,13 +72,13 @@ sayMe 3 = "Three!"  
 sayMe 4 = "Four!"  
 sayMe 5 = "Five!"  
 sayMe x = "Not between 1 and 5"  </pre>
-<p>注意下，如果我们把最后匹配一切的那个模式挪到最前，它的结果就全都是 <code>"Not between 1 and 5"  </code> 了。因为它自己匹配了一切数字，不给后面的模式留机会。</p>
+<p>注意下，如果我们把最后匹配一切的那个模式挪到最前，它的结果就全都是 <code>"Not between 1 and 5"</code> 了。因为它自己匹配了一切数字，不给后面的模式留机会。</p>
 
 <p>记得前面实现的那个阶乘函数么？当时是把 <code>n</code> 的阶乘定义成了 <code>product [1..n]</code>。也可以写出像数学那样的递归实现，先说明 0 的阶乘是 1 ，再说明每个正整数的阶乘都是这个数与它前驱 (predecessor) 对应的阶乘的积。如下便是翻译到 Haskell 的样子：</p>
 <pre class="code">factorial :: (Integral a) =&gt; a -&gt; a  
 factorial 0 = 1  
 factorial n = n * factorial (n - 1)  </pre>
-<p>这就是我们定义的第一个递归函数。递归在 Haskell 中十分重要，我们会在后面深入理解。如果拿一个数(如 3)调用 <code>factorial</code> 函数，这就是接下来的计算步骤：先计算 <code>3*factorial 2</code>，<code>factorial 2</code> 等于 <code>2*factorial 1</code>，也就是 <code>3*(2*(factorial 1))</code>。<code>factorial 1</code> 等于 <code>1*factorial 0</code>，好，得 <code>3*(2*(1*factorial 0))</code>，递归在这里到头了，嗯 --- 我们在万能匹配前面有定义，0 的阶乘是 1.于是最终的结果等于 <code>3*(2*(1*1))</code>。若是把第二个模式放在前面，它就会捕获包括 0 在内的一切数字，这一来我们的计算就永远都不会停止了。这便是为什么说模式的顺序是如此重要：它总是优先匹配最符合的那个，最后才是那个万能的。</p>
+<p>这就是我们定义的第一个递归函数。递归在 Haskell 中十分重要，我们会在后面深入理解。如果拿一个数(如 3)调用 <code>factorial</code> 函数，这就是接下来的计算步骤：先计算 <code>3*factorial 2</code>，<code>factorial 2</code> 等于 <code>2*factorial 1</code>，也就是 <code>3*(2*(factorial 1))</code>。<code>factorial 1</code> 等于 <code>1*factorial 0</code>，好，得 <code>3*(2*(1*factorial 0))</code>，递归在这里到头了，嗯 --- 我们在万能匹配前面有定义，0 的阶乘是 1。于是最终的结果等于 <code>3*(2*(1*1))</code>。若是把第二个模式放在前面，它就会捕获包括 0 在内的一切数字，这一来我们的计算就永远都不会停止了。这便是为什么说模式的顺序是如此重要：它总是优先匹配最符合的那个，最后才是那个万能的。</p>
 
 <p>模式匹配也会失败。假如这个函数：</p>
 <pre class="code">charName :: Char -&gt; String  
@@ -170,7 +170,7 @@ capital all@(x:xs) = "The first letter of " ++ all ++ " is " ++ [x]  </pre><pre
 
 <p>模式用来检查一个值是否合适并从中取值，而 guard 则用来检查一个值的某项属性是否为真。咋一听有点像是 <code>if</code> 语句，实际上也正是如此。不过处理多个条件分支时 guard 的可读性要高些，并且与模式匹配契合的很好。</p>
 <img src="../img/guards.png" alt="" style="float:right" class="floatright" />
-<p>在讲解它的语法前，我们先看一个用到 guard 的函数。它会依据你的 BMI 值 (body mass index，身体质量指数)来不同程度地侮辱你。BMI 值即为体重除以身高的平方。如果小于 18.5，就是太瘦；如果在 18.5 到 25 之间，就是正常；25 到 30 之间，超重；如果超过 30，肥胖。这就是那个函数(我们目前暂不为您计算 bmi，它只是直接取一个 emi 值)。</p>
+<p>在讲解它的语法前，我们先看一个用到 guard 的函数。它会依据你的 BMI 值 (body mass index，身体质量指数)来不同程度地侮辱你。BMI 值即为体重除以身高的平方。如果小于 18.5，就是太瘦；如果在 18.5 到 25 之间，就是正常；25 到 30 之间，超重；如果超过 30，肥胖。这就是那个函数(我们目前暂不为您计算 BMI，它只是直接取一个 BMI 值)。</p>
 <pre class="code">bmiTell :: (RealFloat a) =&gt; a -&gt; String  
 bmiTell bmi  
     | bmi &lt;= 18.5 = "You're underweight, you emo, you!"  
@@ -349,7 +349,7 @@ describeList xs = "The list is " ++ what xs  
           what xs = "a longer list."  </pre>
             <ul class="nav">
                 <li class="left">  <img src="../img/prv.png" alt="prev" /><a href="types-and-type-classes.html">Types and Typeclasses</a></li>
-                <li class="center"><a href="chapters.html">Index</a></li>
+                <li class="center"><a href="chapters.html">目录</a></li>
                 <li class="right"> <a href="recursion.html">递归</a><img src="../img/nxt.png" alt="next" /></li>
             </ul>
         </div>

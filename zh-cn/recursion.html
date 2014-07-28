@@ -29,7 +29,7 @@
                 })
             });
         </script>
-        <script type="text/javascript">
+        <script defer type="text/javascript">
             var _gaq = _gaq || [];
             _gaq.push(['_setAccount', 'UA-32830659-1']);
             _gaq.push(['_trackPageview']);
@@ -50,7 +50,7 @@
         <div id="main">
             <ul class="nav">
                 <li class="left">  <img src="../img/prv.png" alt="prev" /><a href="syntax-on-function.html">函数的语法</a></li>
-                <li class="center"><a href="chapters.html">Index</a></li>
+                <li class="center"><a href="chapters.html">目录</a></li>
                 <li class="right"> <a href="high-order-function.html">高阶函数</a><img src="../img/nxt.png" alt="next" /></li>
             </ul>
             <a name="递归"></a><h1>递归</h1>
@@ -153,7 +153,7 @@ quicksort (x:xs) =
 [1,2,2,3,3,4,4,5,6,7,8,9,10]  
 ghci&gt; quicksort "the quick brown fox jumps over the lazy dog"  
 " abcdeeefghhijklmnoooopqrrsttuuvwxyz"</pre>
-<p>booyah! 如我所说的一样! 若给 <code>[5,1,9,4,6,7,3]</code> 排序，这个算法就会取出它的头部，即 5。 将其至于分别比它大和比它小的两个 List 中间，得 <code>[1,4,3] ++ [5] ++ [9,6,7]</code>, 我们便知道了当排序结束之时，5会在第四位，因为有3个数比它小每，也有三个数比它大。好的，接着排 <code>[1,4,3]</code> 与 <code>[9,6,7]</code>, 结果就出来了！对它们的排序也是使用同样的函数，将它们分成许多小块，最终到达临界条件，即空 List 经排序依然为空，有个插图：</p>
+<p>booyah! 如我所说的一样! 若给 <code>[5,1,9,4,6,7,3]</code> 排序，这个算法就会取出它的头部，即 5。 将其置于分别比它大和比它小的两个 List 中间，得 <code>[1,4,3] ++ [5] ++ [9,6,7]</code>, 我们便知道了当排序结束之时，5会在第四位，因为有3个数比它小每，也有三个数比它大。好的，接着排 <code>[1,4,3]</code> 与 <code>[9,6,7]</code>, 结果就出来了！对它们的排序也是使用同样的函数，将它们分成许多小块，最终到达临界条件，即空 List 经排序依然为空，有个插图：</p>
 
 <p>橙色的部分表示已定位并不再移动的元素。从左到右看，便是一个排过序的 List。在这里我们将所有元素与 <code>head</code> 作比较，而实际上就快速排序算法而言，选择任意元素都是可以的。被选择的元素就被称作锚 （<code>pivot</code>），以方便模式匹配。小于锚的元素都在浅绿的部分，大于锚都在深绿部分，这个黄黄的坡就表示了快速排序的执行方式：</p>
 <img src="../img/quicksort.png" alt="" style="float:none" class="floatnone" /><a name="用递归来思考"></a><h2>用递归来思考</h2>
@@ -169,7 +169,7 @@ ghci&gt; quicksort "the quick brown fox jumps over the lazy dog"
 
             <ul class="nav">
                 <li class="left">  <img src="../img/prv.png" alt="prev" /><a href="syntax-on-function.html">函数的语法</a></li>
-                <li class="center"><a href="chapters.html">Index</a></li>
+                <li class="center"><a href="chapters.html">目录</a></li>
                 <li class="right"> <a href="high-order-function.html">高阶函数</a><img src="../img/nxt.png" alt="next" /></li>
             </ul>
         </div>

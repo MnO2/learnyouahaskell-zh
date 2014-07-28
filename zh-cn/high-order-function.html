@@ -29,7 +29,7 @@
                 })
             });
         </script>
-        <script type="text/javascript">
+        <script defer type="text/javascript">
             var _gaq = _gaq || [];
             _gaq.push(['_setAccount', 'UA-32830659-1']);
             _gaq.push(['_trackPageview']);
@@ -50,7 +50,7 @@
         <div id="main">
             <ul class="nav">
                 <li class="left">  <img src="../img/prv.png" alt="prev" /><a href="recursion.html">递归</a></li>
-                <li class="center"><a href="chapters.html">Index</a></li>
+                <li class="center"><a href="chapters.html">目录</a></li>
                 <li class="right"> <a href="modules.html">模块 (Modules)</a><img src="../img/nxt.png" alt="next" /></li>
             </ul>
             <a name="高阶函数"></a><h1>高阶函数</h1>
@@ -80,12 +80,12 @@ ghci&gt; let multWithEighteen = multTwoWithNine 2
 ghci&gt; multWithEighteen 10
 180</pre>
 <p>前面提到，以不全的参数调用函数可以方便地创造新的函数。例如，搞个取一数与 100 比较大小的函数该如何? 大可这样:</p>
-<pre class="code">compareWithHundred :: (Num a，Ord a) =&gt; a -&gt; Ordering
+<pre class="code">compareWithHundred :: (Num a, Ord a) =&gt; a -&gt; Ordering
 compareWithHundred x = compare 100 x</pre>
 <p>用 99 调用它，就可以得到一个 <code>GT</code>。 简单。 注意下在等号两边都有 <code>x</code>。 想想 <code>compare 100</code> 会回传什么？一个取一数与 100 比较的函数。 Wow，这不正是我们想要的? 这样重写:</p>
-<pre class="code">compareWithHundred :: (Num a，Ord a) =&gt; a -&gt; Ordering
+<pre class="code">compareWithHundred :: (Num a, Ord a) =&gt; a -&gt; Ordering
 compareWithHundred = compare 100</pre>
-<p>类型声明依然相同，因为 <code>compare 100</code> 回传函数。<code>compare</code> 的类型为 <code>(Ord a) =&gt; a -&gt; (a -&gt; Ordering)</code>，用 100 调用它后回传的函数类型为 <code>(Num a，Ord a) =&gt; a -&gt; Ordering</code>，同时由于 100 还是 <code>Num</code> 类型类的实例，所以还得另留一个类约束。</p>
+<p>类型声明依然相同，因为 <code>compare 100</code> 回传函数。<code>compare</code> 的类型为 <code>(Ord a) =&gt; a -&gt; (a -&gt; Ordering)</code>，用 100 调用它后回传的函数类型为 <code>(Num a, Ord a) =&gt; a -&gt; Ordering</code>，同时由于 100 还是 <code>Num</code> 类型类的实例，所以还得另留一个类约束。</p>
 
 <p>Yo! 你得保证已经弄明白了 Curried functions 与不全调用的原理，它们很重要！</p>
 
@@ -248,10 +248,10 @@ numLongChains = length (filter isLong (map chain [1..100]))
     where isLong xs = length xs &gt; 15</pre>
 <p>我们把 <code>chain</code> 函数 <code>map</code> 到 <code>[1..100]</code>，得到一组链的 List，然后用个限制条件过滤长度大于 15 的链。过滤完毕后就可以得出结果list中的元素个数.</p>
 <blockquote>
-<p><b>Note</b>: 这函数的类型为 <code>numLongChains :: Int</code>。这是由于历史原因，<code>length</code> 回传一个 <code>Int</code> 而非 <code>Num</code> 的成员类型，若要得到一个更通用的 <code>Num a</code>，我们可以使用 <code>fromInterval</code> 函数来处理所得结果.</p>
+<p><b>Note</b>: 这函数的类型为 <code>numLongChains :: Int</code>。这是由于历史原因，<code>length</code> 回传一个 <code>Int</code> 而非 <code>Num</code> 的成员类型，若要得到一个更通用的 <code>Num a</code>，我们可以使用 <code>fromIntegral</code> 函数来处理所得结果.</p>
 </blockquote>
 
-<p>用 <code>map</code>，我们可以写出类似 <code>map (*) [0..]</code> 之类的代码。 如果只是为了例证 Curried functions 和不全调用的函数是真正的值及其原理，那就是你可以把函数传递或把函数装在 List 中(只是你还不能将它们转换为字串)。 迄今为止，我们还只是 <code>map</code> 单参数的函数到 List，如 <code>map (*2) [0..]</code> 可得一组类型为 <code>(Num a) =&gt; [a]</code> 的 List，而 <code>map (*) [0..]</code> 也是完全没问题的。<code>*</code> 的类型为 <code>(Num a) -&gt; a -&gt; a -&gt; a</code>，用单个参数调用二元函数会回传一个一元函数。如果用 <code>*</code> 来 <code>map</code>  一个 <code>[0..]</code> 的 List，就会得到一组一元函数组成的 List，即 <code> (Num a) =&gt; [a-&gt;a]</code>。<code>map (*) [0..]</code> 所得的结果写起来大约就是 <code>[(*0),(*1),(*2)..]</code>.</p>
+<p>用 <code>map</code>，我们可以写出类似 <code>map (*) [0..]</code> 之类的代码。 如果只是为了例证 Curried functions 和不全调用的函数是真正的值及其原理，那就是你可以把函数传递或把函数装在 List 中(只是你还不能将它们转换为字串)。 迄今为止，我们还只是 <code>map</code> 单参数的函数到 List，如 <code>map (*2) [0..]</code> 可得一组类型为 <code>(Num a) =&gt; [a]</code> 的 List，而 <code>map (*) [0..]</code> 也是完全没问题的。<code>*</code> 的类型为 <code>(Num a) -&gt; a -&gt; a -&gt; a</code>，用单个参数调用二元函数会回传一个一元函数。如果用 <code>*</code> 来 <code>map</code>  一个 <code>[0..]</code> 的 List，就会得到一组一元函数组成的 List，即 <code> (Num a) =&gt; [a-&gt;a]</code>。<code>map (*) [0..]</code> 所得的结果写起来大约就是 <code>[(0*),(1*),(2*)..]</code>.</p>
 <pre class="code">ghci&gt; let listOfFuns = map (*) [0..]  
 ghci&gt; (listOfFuns !! 4) 5  
 20</pre>
@@ -429,7 +429,7 @@ oddSquareSum =
 
             <ul class="nav">
                 <li class="left">  <img src="../img/prv.png" alt="prev" /><a href="recursion.html">递归</a></li>
-                <li class="center"><a href="chapters.html">Index</a></li>
+                <li class="center"><a href="chapters.html">目录</a></li>
                 <li class="right"> <a href="modules.html">模块 (Modules)</a><img src="../img/nxt.png" alt="next" /></li>
             </ul>
         </div>

@@ -29,7 +29,7 @@
                 })
             });
         </script>
-        <script type="text/javascript">
+        <script defer type="text/javascript">
             var _gaq = _gaq || [];
             _gaq.push(['_setAccount', 'UA-32830659-1']);
             _gaq.push(['_trackPageview']);
@@ -50,7 +50,7 @@
         <div id="main">
             <ul class="nav">
                 <li class="left">  <img src="../img/prv.png" alt="prev" /><a href="introduction.html">簡介</a></li>
-                <li class="center"><a href="chapters.html">Index</a></li>
+                <li class="center"><a href="chapters.html">目录</a></li>
                 <li class="right"> <a href="types-and-type-classes.html">Types and Typeclasses</a><img src="../img/nxt.png" alt="next" /></li>
             </ul>
             <a name="從零開始"></a><h1>從零開始</h1>
@@ -62,7 +62,7 @@
 <pre class="code">GHCi, version 6.8.2: http://www.haskell.org/ghc/
 :? for help  Loading package base ... linking ... done.
 Prelude&gt;</pre>
-<p>恭喜您已經進入了 ghci 了！目前它的命令列提示是 <code>prelude&gt;</code>，不過它在你裝載一些模組之後會變的比較長。為了美觀起見，我們會輸入指令 <code>set prompt "ghci&gt; "</code> 把它改成 <code>ghci&gt;</code>。</p>
+<p>恭喜您已經進入了 ghci 了！目前它的命令列提示是 <code>prelude&gt;</code>，不過它在你裝載一些模組之後會變的比較長。為了美觀起見，我們會輸入指令 <code>:set prompt "ghci&gt; "</code> 把它改成 <code>ghci&gt;</code>。</p>
 
 <p>首先來看一些簡單的運算</p>
 <pre class="code">ghci&gt; 2 + 15
@@ -113,7 +113,7 @@ In the expression: 5 + "llama"
 In the definition of `it': it = 5 + "llama"</pre>
 <p>這邊 ghci 提示說 <code>"llama"</code> 並不是數值型別，所以它不知道該怎樣才能給它加上 5。即便是 “four” 甚至是 “4” 也不可以，Haskell 不拿它當數值。執行 <code>True==5</code>, ghci 就會提示型別不匹配。<code>+</code> 運算子要求兩端都是數值，而 <code>==</code> 運算子僅對兩個可比較的值可用。這就要求他們的型別都必須一致，蘋果和橘子就無法做比較。我們會在後面深入地理解型別的概念。Note: <code>5+4.0</code> 是可以執行的，5 既可以做被看做整數也可以被看做浮點數，但 4.0 則不能被看做整數。</p>
 <img src="../img/ringring.png" alt="" style="float:right" class="floatright" />
-<p>也許你並未察覺，不過從始至終我們一直都在使用函數。<code>*</code> 就是一個將兩個數相乘的函數，就像三明治一樣，用兩個參數將它夾在中央，這被稱作中綴函數。而其他大多數不能與數夾在一起的函數則被稱作前綴函數。絶大部分函數都是前綴函數，在接下來我們就不多做區別。大多數命令式程式語言中的函數呼叫形式通常就是函數名，括號，由逗號分隔的參數列。而在 Haskell 中，函數呼叫的形式是函數名，空格，空格分隔的參數列。簡單據個例子，我們呼叫 Haskell 中最無趣的函數：</p>
+<p>也許你並未察覺，不過從始至終我們一直都在使用函數。<code>*</code> 就是一個將兩個數相乘的函數，就像三明治一樣，用兩個參數將它夾在中央，這被稱作中綴函數。而其他大多數不能與數夾在一起的函數則被稱作前綴函數。絶大部分函數都是前綴函數，在接下來我們就不多做區別。大多數命令式程式語言中的函數呼叫形式通常就是函數名，括號，由逗號分隔的參數列。而在 Haskell 中，函數呼叫的形式是函數名，空格，空格分隔的參數列。簡單舉個例子，我們呼叫 Haskell 中最無趣的函數：</p>
 <pre class="code">ghci&gt; succ 8
 9</pre>
 <p><code>succ</code> 函數返回一個數的後繼 (successor)。而且如你所見，在 Haskell 中是用空格來將函數與參數分隔的。至於呼叫多個參數的函數也很容易，<code>min</code> 和 <code>max</code> 接受兩個可比較大小的參數，並返回較大或者較小的那個數。</p>
@@ -132,7 +132,7 @@ ghci&gt; (succ 9) + (max 5 4) + 1
 
 <p>例如取兩個整數相除所得商的 <code>div</code> 函數, <code>div 92 10</code> 可得 9，但這種形式不容易理解：究竟是哪個數是除數，哪個數被除？使用中綴函數的形式 <code>92 `div` 10</code> 就更清晰了。</p>
 
-<p>從命令式程式語言走過來的人們往往會覺得函數呼叫與括號密不可分，在 C 中，呼叫函數必加括號，就像 <code>foo()</code>, <code>bar(1)</code>,或者 <code>baz(3,"haha")</code>。而在 Haskell 中，函數的呼叫必使用空格，例如 <code>bar (bar 3)</code>，它並不表示以 <code>bar</code> 和 3 兩個參數去呼叫 <code>bar</code>，而是以 <code>bar 3</code> 所得的結果作為參數去呼叫 <code>bar</code>。在 C 中，就相當於 <code>bar(bar(3))</code>。</p>
+<p>從命令式程式語言走過來的人們往往會覺得函數呼叫與括號密不可分，在 C 中，呼叫函數必加括號，就像 <code>foo()</code>, <code>bar(1)</code>,或者 <code>baz(3,"haha")</code>。而在 Haskell 中，函數的呼叫使用空格，例如 <code>bar (bar 3)</code>，它並不表示以 <code>bar</code> 和 3 兩個參數去呼叫 <code>bar</code>，而是以 <code>bar 3</code> 所得的結果作為參數去呼叫 <code>bar</code>。在 C 中，就相當於 <code>bar(bar(3))</code>。</p>
 <a name="初學者的第一個函數"></a><h2>初學者的第一個函數</h2>
 
 
@@ -151,11 +151,13 @@ ghci&gt; doubleMe 8.3
 <p><code>+</code> 運算子對整數和浮點都可用(實際上所有有數字特徵的值都可以)，所以我們的函數可以處理一切數值。聲明一個包含兩個參數的函數如下：</p>
 <pre class="code">doubleUs x y = x*2 + y*2</pre>
 <p>很簡單。將其寫成 <code>doubleUs x y = x + x + y + y</code> 也可以。測試一下(記住要保存為 <code>baby.hs</code> 併到 ghci 下邊執行 <code>:l baby.hs</code>)</p>
-<pre class="code">ghci&gt; doubleUs 4 9  26
-ghci&gt; doubleUs 2.3 34.2  73.0
+<pre class="code">ghci&gt; doubleUs 4 9
+26
+ghci&gt; doubleUs 2.3 34.2
+73.0
 ghci&gt; doubleUs 28 88 + doubleMe 123
 478</pre>
-<p>你可以在其他函數中呼叫你編寫的函數，如此一來我們可以將 <code>doubleMe</code> 函數改為：</p>
+<p>你可以在其他函數中呼叫你編寫的函數，如此一來我們可以將 <code>doubleUs</code> 函數改為：</p>
 <pre class="code">doubleUs x y = doubleMe x + doubleMe y</pre><img src="../img/baby.png" alt="" style="float:left" class="floatleft" />
 <p>這種情形在 Haskell 下邊十分常見：編寫一些簡單的函數，然後將其組合，形成一個較為複雜的函數，這樣可以減少重複工作。設想若是哪天有個數學家驗證說 2 應該是 3，我們只需要將 <code>doubleMe</code> 改為 <code>x+x+x</code> 即可，由於 <code>doubleUs</code> 呼叫到 <code>doubleMe</code>，於是整個程式便進入了 2 即是 3 的古怪世界。</p>
 
@@ -163,7 +165,7 @@ ghci&gt; doubleUs 28 88 + doubleMe 123
 <pre class="code">doubleSmallNumber x = if x &gt; 100
                       then x
                       else  x*2</pre>
-<p>接下來介紹 Haskell 的 <code>if</code> 語句。你也許會覺得和其他語言很像，不過存在一些不同。Haskell 中 <code>if</code> 語句的 <code>else</code> 部分是不可省略。在命令式語言中，你可以通過 <code>if</code> 語句來跳過一段程式碼，而在 <code>Haskell</code> 中，每個函數和表達式都要返回一個結果。對於這點我覺得將 <code>if</code> 語句置於一行之中會更易理解。Haskell 中的 <code>if</code> 語句的另一個特點就是它其實是個表達式，表達式就是返回一個值的一段程式碼：5 是個表達式，它返回 5；<code>4+8</code> 是個表達式；<code>x+y</code> 也是個表達式，它返 回 <code>x+y</code> 的結果。正由於 <code>else</code> 是強制的，<code>if</code> 語句一定會返回某個值，所以說 <code>if</code> 語句也是個表達式。如果要給剛剛定義的函數的結果都加上 1，可以如此修改：</p>
+<p>接下來介紹 Haskell 的 <code>if</code> 語句。你也許會覺得和其他語言很像，不過存在一些不同。Haskell 中 <code>if</code> 語句的 <code>else</code> 部分是不可省略。在命令式語言中，你可以通過 <code>if</code> 語句來跳過一段程式碼，而在 <code>Haskell</code> 中，每個函數和表達式都要返回一個結果。對於這點我覺得將 <code>if</code> 語句置於一行之中會更易理解。Haskell 中的 <code>if</code> 語句的另一個特點就是它其實是個表達式，表達式就是返回一個值的一段程式碼：5 是個表達式，它返回 5；<code>4+8</code> 是個表達式；<code>x+y</code> 也是個表達式，它返回 <code>x+y</code> 的結果。正由於 <code>else</code> 是強制的，<code>if</code> 語句一定會返回某個值，所以說 <code>if</code> 語句也是個表達式。如果要給剛剛定義的函數的結果都加上 1，可以如此修改：</p>
 <pre class="code">doubleSmallNumber' x = (if x &gt; 100 then x else x*2) + 1 </pre>
 <p>若是去掉括號，那就會只在小於 100 的時候加 1。注意函數名最後的那個單引號，它沒有任何特殊含義，只是一個函數名的合法字元罷了。通常，我們使用單引號來區分一個稍經修改但差別不大的函數。定義這樣的函數也是可以的：</p>
 <pre class="code">conanO'Brien = "It's a-me, Conan O'Brien!"  </pre>
@@ -173,7 +175,7 @@ ghci&gt; doubleUs 28 88 + doubleMe 123
 <img src="../img/list.png" alt="" style="float:right" class="floatright" />
 <p>在 Haskell 中，List 就像現實世界中的購物單一樣重要。它是最常用的資料結構，並且十分強大，靈活地使用它可以解決很多問題。本節我們將對 List，字串和 list comprehension 有個初步瞭解。 在 Haskell 中，List 是一種單型別的資料結構，可以用來存儲多個型別相同的元素。我們可以在裡面裝一組數字或者一組字元，但不能把字元和數字裝在一起。</p>
 <blockquote>
-<p><b>Note</b>: 在 ghci 下，我們可以使用 <code>let</code> 關鍵字來定義一個常量。在 ghci 下執行 <code>let a =1</code> 與在腳本中編寫 <code>a=1</code> 是等價的。</p>
+<p><b>Note</b>: 在 ghci 下，我們可以使用 <code>let</code> 關鍵字來定義一個常量。在 ghci 下執行 <code>let a=1</code> 與在腳本中編寫 <code>a=1</code> 是等價的。</p>
 </blockquote>
 <pre class="code">ghci&gt; let lostNumbers = [4,8,15,16,23,48]  
 ghci&gt; lostNumbers  
@@ -345,7 +347,7 @@ ghci&gt; take 12 (cycle "LOL ")
 <p>除了多個限制條件之外，從多個 List 中取元素也是可以的。這樣的話 comprehension 會把所有的元素組合交付給我們的輸出函數。在不過濾的前提 下，取自兩個長度為 4 的集合的 comprehension 會產生一個長度為 16 的 List。假設有兩個 List，<code>[2,5,10]</code> 和 <code>[8,10,11]</code>， 要取它們所有組合的積，可以這樣：</p>
 <pre class="code">ghci&gt; [ x*y | x &lt;- [2,5,10], y &lt;- [8,10,11]]
 [16,20,22,40,50,55,80,100,110]</pre>
-<p>意料之中，得到的新 List 長度為 9。若只取乘積為 50 的結果該如何？</p>
+<p>意料之中，得到的新 List 長度為 9。若只取乘積大于 50 的結果該如何？</p>
 <pre class="code">ghci&gt; [ x*y | x &lt;-[2,5,10], y &lt;- [8,10,11], x*y &gt; 50]
 [55,80,100,110]</pre>
 <p>取個包含一組名詞和形容詞的 List comprehension 吧，寫詩的話也許用得着。</p>
@@ -373,7 +375,7 @@ ghci&gt; [ [ x | x &lt;- xs, even x ] | xs &lt;- xxs]
 <a name="Tuple"></a><h2>Tuple</h2>
 
 <img src="../img/tuple.png" alt="" style="float:right" class="floatright" />
-<p>從某種意義上講，Tuple (元組)很像 List --都是將多個值存入一個個體的容器。但它們卻有着本質的不同，一組數字的 List 就是一組數字，它們的型別相 同，且不關心其中包含元素的數量。而 Tuple 則要求你對需要組合的數據的數目非常的明確，它的型別取決於其中項的數目與其各自的型別。Tuple 中的項 由括號括起，並由逗號隔開。</p>
+<p>從某種意義上講，Tuple (元組)很像 List --都是將多個值存入一個個體的容器。但它們卻有着本質的不同，一組數字的 List 就是一組數字，它們的型別相同，且不關心其中包含元素的數量。而 Tuple 則要求你對需要組合的數據的數目非常的明確，它的型別取決於其中項的數目與其各自的型別。Tuple 中的項由括號括起，並由逗號隔開。</p>
 
 <p>另外的不同之處就是 Tuple 中的項不必為同一型別，在 Tuple 裡可以存入多型別項的組合。</p>
 
@@ -427,7 +429,7 @@ ghci&gt; rightTriangles'
 
             <ul class="nav">
                 <li class="left">  <img src="../img/prv.png" alt="prev" /><a href="introduction.html">簡介</a></li>
-                <li class="center"><a href="chapters.html">Index</a></li>
+                <li class="center"><a href="chapters.html">目录</a></li>
                 <li class="right"> <a href="types-and-type-classes.html">Types and Typeclasses</a><img src="../img/nxt.png" alt="next" /></li>
             </ul>
         </div>

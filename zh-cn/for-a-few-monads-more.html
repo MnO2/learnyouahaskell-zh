@@ -29,7 +29,7 @@
                 })
             });
         </script>
-        <script type="text/javascript">
+        <script defer type="text/javascript">
             var _gaq = _gaq || [];
             _gaq.push(['_setAccount', 'UA-32830659-1']);
             _gaq.push(['_trackPageview']);
@@ -50,7 +50,7 @@
         <div id="main">
             <ul class="nav">
                 <li class="left">  <img src="../img/prv.png" alt="prev" /><a href="a-fistful-of-monads.html">来看看几种 Monad</a></li>
-                <li class="center"><a href="chapters.html">Index</a></li>
+                <li class="center"><a href="chapters.html">目录</a></li>
                 <li class="right"> <a href="zippers.html">Zippers 数据结构</a><img src="../img/nxt.png" alt="next" /></li>
             </ul>
             <a name="再来看看更多_Monad"></a><h1>再来看看更多 Monad</h1>
@@ -60,7 +60,7 @@
 
 <p>我们也看过了 <code>Maybe</code> 是如何把值加上一个可能会失败的 context。我们学习到 List Monad 是如何加进多重结果的 context。我们也了解 <code>IO</code> Monad 如何运作，而且我们在知道什么是 Monad 之前就已经知道他了。</p>
 
-<p>在这个章节，我们会介绍一些其他的 Monad。他们可以把值变成 monadiv value，因此可以让我们的程序更简洁清晰。多见识几个 Monad 也可以敏锐我们对 Monad 的直觉。</p>
+<p>在这个章节，我们会介绍一些其他的 Monad。他们可以把值变成 monadic value，因此可以让我们的程序更简洁清晰。多见识几个 Monad 也可以敏锐我们对 Monad 的直觉。</p>
 
 <p>我们即将要介绍的 Monad 都包含在 <code>mtl</code> 这个套建中。一个 Haskell package 包含了一堆模块。而 <code>mtl</code> 已经包含在 Haskell Platform 中，所以你可能不用另外安装。要检查你有没有这套件，你可以下 <code>ghc-pkg list</code>。这会列出你已经安装的套件，其中应该包含 <code>mtl</code> 后面接着对应的版号。</p>
 <a name="你所不知道的_Writer_Monad"></a><h2>你所不知道的 Writer Monad</h2>
@@ -235,7 +235,7 @@ gcd' a b
 3 mod 2 = 1  
 2 mod 1 = 0  
 Finished with 1</pre>
-<p>把普通的算法转换成具有 log 是很棒的经验，我们不过是把普通的 value 重写成 Monadiv value，剩下的就靠 <code>&gt;&gt;=</code> 跟 <code>Writer</code> 来帮我们处理一切。用这样的方法我们几乎可以对任何函数加上 logging 的功能。我们只要把普通的值换成 <code>Writer</code>，然后把一般的函数调用换成 <code>&gt;&gt;=</code> (当然也可以用 <code>do</code>)</p>
+<p>把普通的算法转换成具有 log 是很棒的经验，我们不过是把普通的 value 重写成 Monadic value，剩下的就靠 <code>&gt;&gt;=</code> 跟 <code>Writer</code> 来帮我们处理一切。用这样的方法我们几乎可以对任何函数加上 logging 的功能。我们只要把普通的值换成 <code>Writer</code>，然后把一般的函数调用换成 <code>&gt;&gt;=</code> (当然也可以用 <code>do</code>)</p>
 <a name="Inefficient_list_construction"></a><h3>Inefficient list construction</h3>
 
 
@@ -373,7 +373,7 @@ addStuff = do
   a &lt;- (*2)  
   b &lt;- (+10)  
   return (a+b)</pre>
-<p>这跟我们之前写的 applicative expression 差不多，只差在他是运作在 monad 上。一个 <code>do</code> expression 的结果永远会是一个 monadic vlaue，这个也不例外。而这个 monadic value 其实是一个函数。只是在这边他接受一个数字，然后套用 <code>(*2)</code>，把结果绑定到 <code>a</code> 上面。而 <code>(+10)</code> 也同用被套用到同样的参数。结果被绑订到 <code>b</code> 上。<code>return</code> 就如其他 monad 一样，只是制作一个简单的 monadiv value 而不会作多余的事情。这让整个函数的结果是 <code>a+b</code>。如果我们试着跑跑看，会得到之前的结果。</p>
+<p>这跟我们之前写的 applicative expression 差不多，只差在他是运作在 monad 上。一个 <code>do</code> expression 的结果永远会是一个 monadic vlaue，这个也不例外。而这个 monadic value 其实是一个函数。只是在这边他接受一个数字，然后套用 <code>(*2)</code>，把结果绑定到 <code>a</code> 上面。而 <code>(+10)</code> 也同用被套用到同样的参数。结果被绑定到 <code>b</code> 上。<code>return</code> 就如其他 monad 一样，只是制作一个简单的 monadic value 而不会作多余的事情。这让整个函数的结果是 <code>a+b</code>。如果我们试着跑跑看，会得到之前的结果。</p>
 <pre class="code">ghci&gt; addStuff 3  
 19</pre>
 <p>其中 <code>3</code> 会被喂给 <code>(*2)</code> 跟 <code>(+10)</code>。而且他也会被喂给 <code>return (a+b)</code>，只是他会忽略掉 <code>3</code> 而永远回传 <code>a+b</code> 正因为如此，function monad 也被称作 reader monad。所有函数都从一个固定的地方读取。要写得更清楚一些，可以把 <code>addStuff</code> 改写如下：</p>
@@ -602,7 +602,7 @@ Right 103</pre>
 <a name="一些实用的_Moandic_functions"></a><h2>一些实用的 Moandic functions</h2>
 
 
-<p>在这个章节，我们会看看一些操作 monadiv value 的函数。这样的函数通常我们称呼他们为 monadiv function。其中有些你是第一次见到，但有些不过是 <code>filter</code> 或 <code>foldl</code> 的变形。让我们来看看吧！</p>
+<p>在这个章节，我们会看看一些操作 monadic value 的函数。这样的函数通常我们称呼他们为 monadic function。其中有些你是第一次见到，但有些不过是 <code>filter</code> 或 <code>foldl</code> 的变形。让我们来看看吧！</p>
 <a name="liftM"></a><h3>liftM</h3>
 
 <img src="../img/wolf.png" alt="" style="float:right" class="floatright" />
@@ -652,7 +652,7 @@ Nothing</pre>
 <pre class="code">(&lt;*&gt;) :: (Applicative f) =&gt; f (a -&gt; b) -&gt; f a -&gt; f b</pre>
 <p>他有点像 <code>fmap</code>，只是函数本身有一个 context。我们必须把他从 context 中抽出，对 <code>f a</code> 做 map over 的东做，然后再放回 context 中。由于在 Haskel 中函数缺省都是 curried，我们便能用 <code>&lt;$&gt;</code> 以及 <code>&lt;*&gt;</code> 来让接受多个参数的函数也能接受 applicative 种类的值。</p>
 
-<p>总之 <code>&lt;*&gt;</code> 跟 <code>fmap</code> 很类似，他也能只用 <code>Monad</code> 保证的性质实作出来。<code>ap</code> 这个函数基本上就是 &lt;*&gt;，只是他是限制在 Monad 上而不是 Applicative` 上。这边是他的定义：</p>
+<p>总之 <code>&lt;*&gt;</code> 跟 <code>fmap</code> 很类似，他也能只用 <code>Monad</code> 保证的性质实作出来。<code>ap</code> 这个函数基本上就是 <code>&lt;*&gt;</code>，只是他是限制在 <code>Monad</code> 上而不是 <code>Applicative</code> 上。这边是他的定义：</p>
 <pre class="code">ap :: (Monad m) =&gt; m (a -&gt; b) -&gt; m a -&gt; m b  
 ap mf m = do  
     f &lt;- mf  
@@ -699,7 +699,7 @@ Nothing</pre>
 <p>我们必须用 <code>mappend</code>：</p>
 <pre class="code">ghci&gt; runWriter $ join (Writer (Writer (1,"aaa"),"bbb"))  
 (1,"bbbaaa")</pre>
-<p><code>`"bbb"</code> 先被加到 monoid 中，接着 <code>"aaa"</code> 被附加上去。你想要查看 <code>Writer</code> 中的值的话，必须先把值写进去才行。</p>
+<p><code>"bbb"</code> 先被加到 monoid 中，接着 <code>"aaa"</code> 被附加上去。你想要查看 <code>Writer</code> 中的值的话，必须先把值写进去才行。</p>
 
 <p>要对 <code>Either</code> 做 <code>join</code> 跟对 <code>Maybe</code> 做 <code>join</code> 是很类似的：</p>
 <pre class="code">ghci&gt; join (Right (Right 9)) :: Either String Int  
@@ -708,7 +708,7 @@ ghci&gt; join (Right (Left "error")) :: Either String Int
 Left "error"  
 ghci&gt; join (Left "error") :: Either String Int  
 Left "error"</pre>
-<p>如果我们对一个包了另外一个改变状态的计算的进行改变状态的计算，要作 <code>join</code> 的动作会让外面的掀被计算，然后才是计算里面的：</p>
+<p>如果我们对一个包了另外一个改变状态的计算的进行改变状态的计算，要作 <code>join</code> 的动作会让外面的先被计算，然后才是计算里面的：</p>
 <pre class="code">ghci&gt; runState (join (State $ \s -&gt; (push 10,1:2:s))) [0,0,0]  
 ((),[10,1,2,0,0,0])</pre>
 <p>这边的 lambda 函数接受一个状态，并把 <code>2</code> 跟 <code>1</code> 放到堆叠中，并把 <code>push 10</code> 当作他的结果。当对整个东西做 <code>join</code> 的时候，他会先把 <code>2</code> 跟 <code>1</code> 放到堆叠上，然后进行 <code>push 10</code> 的计算，因而把 <code>10</code> 放到堆叠的顶端。</p>
@@ -829,7 +829,7 @@ foldingFunction xs numberString = read numberString:xs</pre>
 <pre class="code">foldingFunction :: [Double] -&gt; String -&gt; Maybe [Double]</pre>
 <p>他不是回传一个 <code>Just</code> 的堆叠就是回传 <code>Nothing</code>。</p>
 
-<p><code>reads</code> 函数就像 <code>read</code> 一样，差别在于他回传一个 list。在成功读取的情况下 list 中只工读取的那个元素。如果他失败了，他会回传一个空的 list。除了回传读取的元素，他也回传剩下读取失败的元素。他必须要看完整串输入，我们想把他弄成一个 <code>readMaybe</code> 的函数，好方便我们进行。</p>
+<p><code>reads</code> 函数就像 <code>read</code> 一样，差别在于他回传一个 list。在成功读取的情况下 list 中只包含读取的那个元素。如果他失败了，他会回传一个空的 list。除了回传读取的元素，他也回传剩下读取失败的元素。他必须要看完整串输入，我们想把他弄成一个 <code>readMaybe</code> 的函数，好方便我们进行。</p>
 <pre class="code">readMaybe :: (Read a) =&gt; String -&gt; Maybe a  
 readMaybe st = case reads st of [(x,"")] -&gt; Just x  
                                 _ -&gt; Nothing</pre>
@@ -862,7 +862,7 @@ solveRPN :: String -&gt; Maybe Double
 solveRPN st = do  
   [result] &lt;- foldM foldingFunction [] (words st)  
   return result</pre>
-<p>我们仍是接受一个字串把他断成一串 word。然后我们用一个空的堆叠来作 folding 的动作，只差在我们用的是 <code>foldM</code> 而不是 <code>foldl</code>。<code>foldM</code> 的结果会是 <code>Maybe</code>，<code>Maybe</code> 里面包含了一个只有一个元素的 list。我们用 <code>do</code> expression 来取出值，把他绑定到 <code>result</code> 上。当 <code>foldM</code> 回传 <code>Nothing</code> 的时候，整个结果就变成 <code>Nothing</code>。也特别注意我们有在 <code>do</code> 里面做 pattern match 的动作，所以如果 list 中不是只有一个元素的话，最后结果便会是 <code>Nohting</code>。最后一行我们用 <code>return result</code> 来展示 RPN 计算的结果，把他包在一个 <code>Maybe</code> 里面。</p>
+<p>我们仍是接受一个字串把他断成一串 word。然后我们用一个空的堆叠来作 folding 的动作，只差在我们用的是 <code>foldM</code> 而不是 <code>foldl</code>。<code>foldM</code> 的结果会是 <code>Maybe</code>，<code>Maybe</code> 里面包含了一个只有一个元素的 list。我们用 <code>do</code> expression 来取出值，把他绑定到 <code>result</code> 上。当 <code>foldM</code> 回传 <code>Nothing</code> 的时候，整个结果就变成 <code>Nothing</code>。也特别注意我们有在 <code>do</code> 里面做 pattern match 的动作，所以如果 list 中不是只有一个元素的话，最后结果便会是 <code>Nothing</code>。最后一行我们用 <code>return result</code> 来展示 RPN 计算的结果，把他包在一个 <code>Maybe</code> 里面。</p>
 <pre class="code">ghci&gt; solveRPN "1 2 * 4 +"  
 Just 6.0  
 ghci&gt; solveRPN "1 2 * 4 + 5 *"  
@@ -937,7 +937,7 @@ newtype Prob a = Prob { getProb :: [(a,Rational)] } deriving Show</pre>
 <p>我们可以用 pattern matching 的方式把 <code>newtype</code> 解开来，套用函数 <code>f</code> 之后再包回去。过程中不会动到机率值。</p>
 <pre class="code">ghci&gt; fmap negate (Prob [(3,1%2),(5,1%4),(9,1%4)])  
 Prob {getProb = [(-3,1 % 2),(-5,1 % 4),(-9,1 % 4)]}</pre>
-<p>要注意机率的和永远是 <code>1</code>。如果我们没有漏掉某种情形的话，没有道理他们加起来的值不为 <code>1</code>。一个有 75%机率是正面以及 50%机率是反面的硬币根本没什么道理。</p>
+<p>要注意机率的和永远是 <code>1</code>。如果我们没有漏掉某种情形的话，没有道理他们加起来的值不为 <code>1</code>。一个有 75% 机率是正面以及 50% 机率是反面的硬币根本没什么道理。</p>
 
 <p>接着要问一个重要的问题，他是一个 monad 吗？我们知道 list 是一个 monad，所以他很有可能也是一个 monad。首先来想想 <code>return</code>。他在 list 是怎么运作的？他接受一个普通的值并把他放到一个 list 中变成只有一个元素的 list。那在这边又如何？由于他是一个最小的 context，他也应该是一个元素的 list。那机率值呢？<code>return x</code> 的值永远都是 <code>x</code>，所以机率值不应该是 <code>0</code>，而应该是 <code>1</code>。</p>
 
@@ -949,7 +949,7 @@ Prob {getProb = [(-3,1 % 2),(-5,1 % 4),(-9,1 % 4)]}</pre>
 <pre class="code">thisSituation :: Prob (Prob Char)  
 thisSituation = Prob  
     [( Prob [('a',1%2),('b',1%2)] , 1%4 )  
-    ,( Prob [('c',1%2),('d',1%2)] , 3%4)  
+    ,( Prob [('c',1%2),('d',1%2)] , 3%4 )  
     ]</pre>
 <p>注意到这边的型态是 <code>Prob (Prob Char)</code>。所以我们要思考的是如何把一串包含机率 list 的 list 打平。如果能成功写出这样的逻辑，<code>&gt;&gt;=</code> 不过就是 <code>join (fmap f m)</code>，我们便得到了一个 monad。我们这边写了一个 <code>flatten</code> 来做这件事。</p>
 <pre class="code">flatten :: Prob (Prob a) -&gt; Prob a  
@@ -995,7 +995,7 @@ flipThree = do
 
             <ul class="nav">
                 <li class="left">  <img src="../img/prv.png" alt="prev" /><a href="a-fistful-of-monads.html">来看看几种 Monad</a></li>
-                <li class="center"><a href="chapters.html">Index</a></li>
+                <li class="center"><a href="chapters.html">目录</a></li>
                 <li class="right"> <a href="zippers.html">Zippers 数据结构</a><img src="../img/nxt.png" alt="next" /></li>
             </ul>
         </div>

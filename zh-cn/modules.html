@@ -29,7 +29,7 @@
                 })
             });
         </script>
-        <script type="text/javascript">
+        <script defer type="text/javascript">
             var _gaq = _gaq || [];
             _gaq.push(['_setAccount', 'UA-32830659-1']);
             _gaq.push(['_trackPageview']);
@@ -50,7 +50,7 @@
         <div id="main">
             <ul class="nav">
                 <li class="left">  <img src="../img/prv.png" alt="prev" /><a href="high-order-function.html">高阶函数</a></li>
-                <li class="center"><a href="chapters.html">Index</a></li>
+                <li class="center"><a href="chapters.html">目录</a></li>
                 <li class="right"> <a href="make-types-and-classes-for-ourselves.html">构造我们自己的 Types 和 Typeclasses</a><img src="../img/nxt.png" alt="next" /></li>
             </ul>
             <a name="模块_(Modules)"></a><h1>模块 (Modules)</h1>
@@ -64,11 +64,11 @@
 
 <p>在 Haskell中，装载模块的语法为 <code>import</code>，这必须得在函数的定义之前，所以一般都是将它置于代码的顶部。无疑，一段代码中可以装载很多模块，只要将 <code>import</code> 语句分行写开即可。装载 <code>Data.List</code> 试下，它里面有很多实用的 List 处理函数.</p>
 
-<p>执行 <code>import Data.List</code>，这样一来 <code>Data.List</code> 中包含的所有函数就都进入了全局命名空间。也就是说，你可以在代码的任意位置调用这些函数.<code>Data.List</code> 模块中有个 <code>nub</code> 函数，它可以筛掉一个 List 中的所有重复元素。用点号将 <code>length</code> 和 <code>nub</code> 组合: <code>length 。nub </code>，即可得到一个与 <code>(\xs -&gt; length (nub xs))</code> 等价的函数。</p>
+<p>执行 <code>import Data.List</code>，这样一来 <code>Data.List</code> 中包含的所有函数就都进入了全局命名空间。也就是说，你可以在代码的任意位置调用这些函数.<code>Data.List</code> 模块中有个 <code>nub</code> 函数，它可以筛掉一个 List 中的所有重复元素。用点号将 <code>length</code> 和 <code>nub</code> 组合: <code>length . nub </code>，即可得到一个与 <code>(\xs -&gt; length (nub xs))</code> 等价的函数。</p>
 <pre class="code">import Data.List  
   
 numUniques :: (Eq a) =&gt; [a] -&gt; Int  
-numUniques = length 。nub</pre>
+numUniques = length . nub</pre>
 <p>你也可以在 ghci 中装载模块，若要调用 <code>Data.List</code> 中的函数，就这样:</p>
 <pre class="code">ghci&gt; :m Data.List</pre>
 <p>若要在 ghci 中装载多个模块，不必多次 <code>:m</code> 命令，一下就可以全部搞定:</p>
@@ -91,7 +91,7 @@ numUniques = length 。nub</pre>
 <a name="Data.List"></a><h2>Data.List</h2>
 
 
-<p>显而易见，<code>Data.List</code> 是关于 List 操作的模块，它提供了一组非常有用的 List 处理函数。在前面我们已经见过了其中的几个函数(如 <code>map</code> 和 <code>filter</code>)，这是 <code>Prelude</code> 模块出于方便起见，导出了几个 <code>Data.List</code> 里的函数。因为这几个函数是直接引用自 <code>Data.List</code>，所以就无需使用 <code>qulified import</code>。在下面，我们来看看几个以前没见过的函数:</p>
+<p>显而易见，<code>Data.List</code> 是关于 List 操作的模块，它提供了一组非常有用的 List 处理函数。在前面我们已经见过了其中的几个函数(如 <code>map</code> 和 <code>filter</code>)，这是 <code>Prelude</code> 模块出于方便起见，导出了几个 <code>Data.List</code> 里的函数。因为这几个函数是直接引用自 <code>Data.List</code>，所以就无需使用 <code>qualified import</code>。在下面，我们来看看几个以前没见过的函数:</p>
 
 <p><strong>intersperse</strong> 取一个元素与 List 作参数，并将该元素置于 List 中每对元素的中间。如下是个例子:</p>
 <pre class="code">ghci&gt; intersperse '.' "MONKEY"  
@@ -111,7 +111,7 @@ ghci&gt; transpose ["hey","there","guys"]
 <p>假如有两个多项式 <code>3x&lt;sup&gt;2&lt;/sup&gt; + 5x + 9</code>，<code>10x&lt;sup&gt;3&lt;/sup&gt; + 9</code> 和 <code>8x&lt;sup&gt;3&lt;/sup&gt; + 5x&lt;sup&gt;2&lt;/sup&gt; + x - 1</code>，将其相加，我们可以列三个 List: <code>[0,3,5,9]</code>，<code>[10,0,0,9]</code> 和 <code>[8,5,1,-1]</code> 来表示。再用如下的方法取得结果.</p>
 <pre class="code">ghci&gt; map sum $ transpose [[0,3,5,9],[10,0,0,9],[8,5,1,-1]]  
 [18,8,6,17]</pre><img src="../img/legolists.png" alt="" style="float:left" class="floatleft" />
-<p>使用 <code>transpose</code> 处理这三个 List 之后，三次幂就倒了第一行，二次幂到了第二行，以此类推。在用 <code>sum</code> 函数将其映射，即可得到正确的结果。</p>
+<p>使用 <code>transpose</code> 处理这三个 List 之后，三次幂就到了第一行，二次幂到了第二行，以此类推。在用 <code>sum</code> 函数将其映射，即可得到正确的结果。</p>
 
 <p><strong>foldl'</strong> 和 <strong>foldl1'</strong> 是它们各自惰性实现的严格版本。在用 <code>fold</code> 处理较大的 List 时，经常会遇到堆栈溢出的问题。而这罪魁祸首就是 <code>fold</code> 的惰性: 在执行 <code>fold</code> 时，累加器的值并不会被立即更新，而是做一个"在必要时会取得所需的结果"的承诺。每过一遍累加器，这一行为就重复一次。而所有的这堆"承诺"最终就会塞满你的堆栈。严格的 <code>fold</code> 就不会有这一问题，它们不会作"承诺"，而是直接计算中间值的结果并继续执行下去。如果用惰性 <code>fold</code> 时经常遇到溢出错误，就应换用它们的严格版。</p>
 
@@ -173,7 +173,7 @@ ghci&gt; takeWhile (/=' ') "This is a sentence"
 " is a sentence"  
 ghci&gt; dropWhile (&lt;3) [1,2,2,2,3,4,5,4,3,2,1]  
 [3,4,5,4,3,2,1]</pre>
-<p>给一 <code>Tuple</code> 组成的 List，这 Tuple 的首相表示股票价格，第二三四项分别表示年,月,日。我们想知道它是在哪天首次突破 $1000 的!</p>
+<p>给一 <code>Tuple</code> 组成的 List，这 Tuple 的首项表示股票价格，第二三四项分别表示年,月,日。我们想知道它是在哪天首次突破 $1000 的!</p>
 <pre class="code">ghci&gt; let stock = [(994.4,2008,9,1),(995.2,2008,9,2),(999.2,2008,9,3),(1001.4,2008,9,4),(998.3,2008,9,5)]  
 ghci&gt; head (dropWhile (\(val,y,m,d) -&gt; val &lt; 1000) stock)  
 (1001.4,2008,9,4)</pre>
@@ -196,7 +196,7 @@ ghci&gt; sort "This will be sorted soon"
 <pre class="code">ghci&gt; group [1,1,1,1,2,2,2,2,3,3,2,2,2,5,6,7]  
 [[1,1,1,1],[2,2,2,2],[3,3],[2,2,2],[5],[6],[7]]</pre>
 <p>若在 <code>group</code> 一个 List 之前给它排序就可以得到每个元素在该 List 中的出现次数。</p>
-<pre class="code">ghci&gt; map (\l@(x:xs) -&gt; (x,length l)) 。group 。sort $ [1,1,1,1,2,2,2,2,3,3,2,2,2,5,6,7]  
+<pre class="code">ghci&gt; map (\l@(x:xs) -&gt; (x,length l)) . group . sort $ [1,1,1,1,2,2,2,2,3,3,2,2,2,5,6,7]  
 [(1,4),(2,7),(3,2),(5,1),(6,1),(7,1)]</pre>
 <p><strong>inits</strong> 和 <strong>tails</strong> 与 <code>init</code> 和 <code>tail</code> 相似，只是它们会递归地调用自身直到什么都不剩，看:</p>
 <pre class="code">ghci&gt; inits "w00t"  
@@ -211,14 +211,14 @@ search needle haystack =
   let nlen = length needle  
   in foldl (\acc x -&gt; if take nlen x == needle then True else acc) False (tails haystack)</pre>
 <p>首先，对搜索的 List 调用 <code>tails</code>，然后遍历每个 List 来检查它是不是我们想要的.</p>
+
+<p>由此我们便实现了一个类似 <strong>isIndexOf</strong> 的函数，<strong>isInfixOf</strong> 从一个 List 中搜索一个子 List，若该 List 包含子 List，则返回 <code>True</code>.</p>
 <pre class="code">ghci&gt; "cat" `isInfixOf` "im a cat burglar"  
 True  
 ghci&gt; "Cat" `isInfixOf` "im a cat burglar"  
 False  
 ghci&gt; "cats" `isInfixOf` "im a cat burglar"  
 False</pre>
-<p>由此我们便实现了一个类似 <strong>isIndexOf</strong> 的函数，<strong>isInfixOf</strong> 从一个 List 中搜索一个子 List，若该 List 包含子 List，则返回 <code>True</code>.</p>
-
 <p><strong>isPrefixOf</strong> 与 <strong>isSuffixOf</strong> 分别检查一个 List 是否以某子 List 开头或者结尾.</p>
 <pre class="code">ghci&gt; "hey" `isPrefixOf` "hey there!"  
 True  
@@ -235,7 +235,7 @@ False</pre>
 ("BOBMORGAN","sidneyeddy")  
 ghci&gt; partition (&gt;3) [1,3,5,6,3,2,1,0,3,7]  
 ([5,6,7],[1,3,3,2,1,0,3])</pre>
-<p>了解 <code>span</code> 和 <code>break</code> 的差异是很重要的.</p>
+<p>了解这个与 <code>span</code> 和 <code>break</code> 的差异是很重要的.</p>
 <pre class="code">ghci&gt; span (`elem` ['A'..'Z']) "BOBsidneyMORGANeddy"  
 ("BOB","sidneyMORGANeddy")</pre>
 <p><code>span</code> 和 <code>break</code> 会在遇到第一个符合或不符合条件的元素处断开，而 <code>partition</code> 则会遍历整个 List。</p>
@@ -268,7 +268,7 @@ ghci&gt; findIndex (==7) [5,3,2,1,6,4]
 Nothing  
 ghci&gt; findIndices (`elem` ['A'..'Z']) "Where Are The Caps?"  
 [0,6,10,14]</pre>
-<p>在前面，我们讲过了 <code>zip</code> 和 <code>zipWidth</code>，它们只能将两个 List 组到一个二元组数或二参函数中，但若要组三个 List 该怎么办? 好说~ 有 <code>zip3</code>,<code>zip4</code>,,,,和 <code>zipWith3</code>, <code>zipWidth4</code>...直到 7。这看起来像是个 hack，但工作良好。连着组 8 个 List 的情况很少遇到。还有个聪明办法可以组起无限多个 List，但限于我们目前的水平，就先不谈了.</p>
+<p>在前面，我们讲过了 <code>zip</code> 和 <code>zipWith</code>，它们只能将两个 List 组到一个二元组数或二参函数中，但若要组三个 List 该怎么办? 好说~ 有 <code>zip3</code>,<code>zip4</code>...,和 <code>zipWith3</code>, <code>zipWith4</code>...直到 7。这看起来像是个 hack，但工作良好。连着组 8 个 List 的情况很少遇到。还有个聪明办法可以组起无限多个 List，但限于我们目前的水平，就先不谈了.</p>
 <pre class="code">ghci&gt; zipWith3 (\x y z -&gt; x + y + z) [1,2,3] [4,5,2,2] [2,2,3]  
 [7,9,8]  
 ghci&gt; zip4 [2,3,3] [2,2,2] [5,5,3] [2,2,2]  
@@ -298,15 +298,15 @@ ghci&gt; nub "Lots of words and stuff"
 <p><strong>delete</strong> 取一个元素和 List 作参数，会删掉该 List 中首次出现的这一元素.</p>
 <pre class="code">ghci&gt; delete 'h' "hey there ghang!"  
 "ey there ghang!"  
-ghci&gt; delete 'h' 。delete 'h' $ "hey there ghang!"  
+ghci&gt; delete 'h' . delete 'h' $ "hey there ghang!"  
 "ey tere ghang!"  
-ghci&gt; delete 'h' 。delete 'h' 。delete 'h' $ "hey there ghang!"  
+ghci&gt; delete 'h' . delete 'h' . delete 'h' $ "hey there ghang!"  
 "ey tere gang!"</pre>
 <p><strong>\\</strong> 表示 List 的差集操作，这与集合的差集很相似，它会除掉左边 List 中所有存在于右边 List 中的元素.</p>
 <pre class="code">ghci&gt; [1..10] \\ [2,5,9]  
 [1,3,4,6,7,8,10]  
 ghci&gt; "Im a big baby" \\ "big"  
-"Im a baby"</pre>
+"Im a  baby"</pre>
 <p><strong>union</strong> 与集合的并集也是很相似，它返回两个 List 的并集，即遍历第二个 List 若存在某元素不属于第一个 List，则追加到第一个 List。看，第二个 List 中的重复元素就都没了!</p>
 <pre class="code">ghci&gt; "hey man" `union` "man what's up"  
 "hey manwt'sup"  
@@ -315,18 +315,18 @@ ghci&gt; [1..7] `union` [5..10]
 <p><strong>intersection</strong> 相当于集合的交集。它返回两个 List 的相同部分.</p>
 <pre class="code">ghci&gt; [1..7] `intersect` [5..10]  
 [5,6,7]</pre>
-<p><strong>insert</strong> 可以将一个元素插入一个可排序的 List，并将其置于首个大于它的元素之前，如果使用 <code>insert</code> 来给一个排过序的 List 插入元素，返回的结果依然是排序的.</p>
+<p><strong>insert</strong> 可以将一个元素插入一个可排序的 List，并将其置于首个大于等于它的元素之前，如果使用 <code>insert</code> 来给一个排过序的 List 插入元素，返回的结果依然是排序的.</p>
 <pre class="code">ghci&gt; insert 4 [1,2,3,5,6,7]  
 [1,2,3,4,5,6,7]  
 ghci&gt; insert 'g' $ ['a'..'f'] ++ ['h'..'z']  
 "abcdefghijklmnopqrstuvwxyz"  
 ghci&gt; insert 3 [1,2,4,3,2,1]  
 [1,2,3,4,3,2,1]</pre>
-<p><code>length</code>，<code>take</code>，<code>drop</code>，<code>splitAt</code> 和 <code>replace</code> 之类的函数有个共同点。那就是它们的参数中都有个 Int 值，我觉得使用 Intergal 或 Num 类型类会更好，但出于历史原因，修改这些会破坏掉许多既有的代码。在 <code>Data.List</code> 中包含了更通用的替代版，如: <code>genericLength，genericTake，genericDrop，genericSplitAt，genericIndex</code> 和 <code>genericReplicate</code>。<code>length</code> 的类型声明为 <code> length :: [a] -&gt; Int</code>，而我们若要像这样求它的平均值，<code>let xs = [1..6] in sum xs / length xs</code> ，就会得到一个类型错误，因为 <code>/</code> 运算符不能对 Int 型使用! 而 <code>genericLength</code> 的类型声明则为 <code>genericLength :: (Num a) =&gt; [b] -&gt; a</code>，Num 既可以是整数又可以是浮点数，<code>let xs = [1..6] in sum xs / genericLength xs</code> 这样再求平均数就不会有问题了.</p>
+<p><code>length</code>，<code>take</code>，<code>drop</code>，<code>splitAt</code>，<code>!!</code> 和 <code>replicate</code> 之类的函数有个共同点。那就是它们的参数中都有个 Int 值（或者返回Int值），我觉得使用 Intergal 或 Num 类型类会更好，但出于历史原因，修改这些会破坏掉许多既有的代码。在 <code>Data.List</code> 中包含了更通用的替代版，如: <code>genericLength，genericTake，genericDrop，genericSplitAt，genericIndex</code> 和 <code>genericReplicate</code>。<code>length</code> 的类型声明为 <code> length :: [a] -&gt; Int</code>，而我们若要像这样求它的平均值，<code>let xs = [1..6] in sum xs / length xs</code> ，就会得到一个类型错误，因为 <code>/</code> 运算符不能对 Int 型使用! 而 <code>genericLength</code> 的类型声明则为 <code>genericLength :: (Num a) =&gt; [b] -&gt; a</code>，Num 既可以是整数又可以是浮点数，<code>let xs = [1..6] in sum xs / genericLength xs</code> 这样再求平均数就不会有问题了.</p>
 
 <p><code>nub</code>, <code>delete</code>, <code>union</code>, <code>intsect</code> 和 <code>group</code> 函数也有各自的通用替代版 <code>nubBy</code>，<code>deleteBy</code>，<code>unionBy</code>，<code>intersectBy</code> 和 <code>groupBy</code>，它们的区别就是前一组函数使用 <code>(==)</code> 来测试是否相等，而带 <code>By</code> 的那组则取一个函数作参数来判定相等性，<code>group</code> 就与 <code>groupBy (==)</code> 等价.</p>
 
-<p>假如有个记录某函数在每秒的值的 List，而我们要按照它小于零或者大于零的交界处将其分为一组子 List。如果用 <code>group</code>，它只能将相邻并相等的元素组到一起，而在这里我们的标准是它是否为负数。<code>groupBy</code> 登场! 它取一个含两个参数的函数作为参数来判定相等性.</p>
+<p>假如有个记录某函数在每秒的值的 List，而我们要按照它小于零或者大于零的交界处将其分为一组子 List。如果用 <code>group</code>，它只能将相邻并相等的元素组到一起，而在这里我们的标准是它们是否互为相反数。<code>groupBy</code> 登场! 它取一个含两个参数的函数作为参数来判定相等性.</p>
 <pre class="code">ghci&gt; let values = [-4.3，-2.4，-1.2，0.4，2.3，5.9，10.5，29.1，5.3，-2.4，-14.5，2.9，2.3]  
 ghci&gt; groupBy (\x y -&gt; (x &gt; 0) == (y &gt; 0)) values  
 [[-4.3,-2.4,-1.2],[0.4,2.3,5.9,10.5,29.1,5.3],[-2.4,-14.5],[2.9,2.3]]</pre>
@@ -352,7 +352,7 @@ ghci&gt; sortBy (compare `on` length) xs
 
 <p><code>Data.Char</code>模块中含有一系列用于判定字符范围的函数，如下:</p>
 <img src="../img/legochar.png" alt="" style="float:right" class="floatright" />
-<p><strong>isControl </strong>判断一个字符是否是控制字符。</p>
+<p><strong>isControl</strong> 判断一个字符是否是控制字符。</p>
 
 <p><strong>isSpace</strong> 判断一个字符是否是空格字符，包括空格，tab，换行符等.</p>
 
@@ -406,7 +406,8 @@ ghci&gt; groupBy ((==) `on` isSpace) "hey guys its me"
 ["hey"," ","guys"," ","its"," ","me"]  
 ghci&gt;</pre>
 <p>Hmm，不错，有点 <code>words</code> 的样子了。只是还有空格在里面，恩，该怎么办? 我知道，用 <code>filter</code> 滤掉它们!</p>
-
+<pre class="code">ghci&gt; filter (not . any isSpace) . groupBy ((==) `on` isSpace) $ "hey guys its me"  
+["hey","guys","its","me"]</pre>
 <p>啊哈.</p>
 
 <p><code>Data.Char</code> 中也含有与 <code>Ordering</code> 相似的类型。<code>Ordering</code> 可以有两个值，<code>LT</code>，<code>GT</code> 和 <code>EQ</code>。这就是个枚举，它表示了两个元素作比较可能的结果. <code>GeneralCategory</code> 类型也是个枚举，它表示了一个字符可能所在的分类。而得到一个字符所在分类的主要方法就是使用  <code>generalCategory</code>  函数.它的类型为: <code>generalCategory :: Char -&gt; GeneralCategory</code>。那 31 个分类就不在此一一列出了，试下这个函数先:</p>
@@ -453,9 +454,9 @@ ghci&gt; map ord "abcdefgh"
 <pre class="code">encode :: Int -&gt; String -&gt; String  
 encode shift msg = 
   let ords = map ord msg  
-  shifted = map (+ shift) ords  
+      shifted = map (+ shift) ords  
   in map chr shifted</pre>
-<p>先将一个字串转为一组数字，然后给它加上某数，再转回去。如果你是标准的组合牛仔，大可将函数写为: <code>map (chr 。(+ shift) 。ord) msg</code>。试一下它的效果:</p>
+<p>先将一个字串转为一组数字，然后给它加上某数，再转回去。如果你是标准的组合牛仔，大可将函数写为: <code>map (chr . (+ shift) . ord) msg</code>。试一下它的效果:</p>
 <pre class="code">ghci&gt; encode 3 "Heeeeey"  
 "Khhhhh|"  
 ghci&gt; encode 4 "Heeeeey"  
@@ -486,7 +487,8 @@ ghci&gt; decode 5 . encode 5 $ "This is a sentence"
 findKey key xs = snd . head . filter (\(k,v) -&gt; key == k) $ xs</pre><img src="../img/legomap.png" alt="" style="float:right" class="floatright" />
 <p>简洁漂亮。这个函数取一个键和 List 做参数，过滤这一 List 仅保留键匹配的项，并返回首个键值对。但若该关联列表中不存在这个键那会怎样? 哼，那就会在试图从空 List 中取 <code>head</code> 时引发一个运行时错误。无论如何也不能让进程就这么轻易地崩溃吧，所以就应该用 <code>Maybe</code> 类型。如果没找到相应的键，就返回 <code>Nothing</code>。而找到了就返回 <code>Just something</code>。而这 <code>something</code> 就是键对应的值。</p>
 <pre class="code">findKey :: (Eq k) =&gt; k -&gt; [(k,v)] -&gt; Maybe v 
-findKey key [] = Nothing findKey key ((k,v):xs) = 
+findKey key [] = Nothing
+findKey key ((k,v):xs) = 
      if key == k then 
          Just v 
      else 
@@ -521,11 +523,11 @@ fromList []</pre>
 <p><strong>insert</strong> 取一个键，一个值和一个 <code>map</code> 做参数，给这个 <code>map</code> 插入新的键值对，并返回一个新的 <code>map</code>。</p>
 <pre class="code">ghci&gt; Map.empty 
 fromList [] 
-ghci&gt; Map.insert 3 100 
-Map.empty fromList [(3,100)] 
+ghci&gt; Map.insert 3 100 Map.empty
+fromList [(3,100)] 
 ghci&gt; Map.insert 5 600 (Map.insert 4 200 ( Map.insert 3 100  Map.empty)) 
 fromList [(3,100),(4,200),(5,600)]
-ghci&gt; Map.insert 5 600 。Map.insert 4 200 . Map.insert 3 100 $ Map.empty 
+ghci&gt; Map.insert 5 600 . Map.insert 4 200 . Map.insert 3 100 $ Map.empty 
 fromList [(3,100),(4,200),(5,600)]</pre>
 <p>通过 <code>empty</code>，<code>insert</code> 与 <code>fold</code>，我们可以编写出自己的 <code>fromList</code>。</p>
 <pre class="code">fromList' :: (Ord k) =&gt; [(k,v)] -&gt; Map.Map k v 
@@ -560,13 +562,25 @@ fromList [(1,100),(2,400),(3,900)]
 ghci&gt; Map.filter isUpper $ Map.fromList [(1,'a'),(2,'A'),(3,'b'),(4,'B')] 
 fromList [(2,'A'),(4,'B')]</pre>
 <p><code>toList</code> 是 <code>fromList</code> 的反函数。</p>
-<pre class="code">ghci&gt; Map.toList .Map.insert 9 2 $ Map.singleton 4 3 
+<pre class="code">ghci&gt; Map.toList . Map.insert 9 2 $ Map.singleton 4 3 
 [(4,3),(9,2)]</pre>
-<p><strong>keys</strong> 与 <strong>elems</strong> 各自返回一组由键或值组成的 List，<code>keys</code> 与 <code>map fst 。Map.toList</code> 等价，<code>elems</code> 与 <code>map snd . Map.toList</code>等价. <code>fromListWith</code> 是个很酷的小函数，它与 <code>fromList</code> 很像，只是它不会直接忽略掉重复键，而是交给一个函数来处理它们。假设一个姑娘可以有多个号码，而我们有个像这样的关联列表: </p>
-<pre class="code">phoneBook = [("betty","555-2938") ,("betty","342-2492") ,("bonnie","452-2928") ,("patsy","493-2928") ,("patsy","943-2929") ,("patsy","827-9162") ,("lucille","205-2928") ,("wendy","939-8282") ,("penny","853-2492") ,("penny","555-2111") ]</pre>
+<p><strong>keys</strong> 与 <strong>elems</strong> 各自返回一组由键或值组成的 List，<code>keys</code> 与 <code>map fst . Map.toList</code> 等价，<code>elems</code> 与 <code>map snd . Map.toList</code>等价. <code>fromListWith</code> 是个很酷的小函数，它与 <code>fromList</code> 很像，只是它不会直接忽略掉重复键，而是交给一个函数来处理它们。假设一个姑娘可以有多个号码，而我们有个像这样的关联列表: </p>
+<pre class="code">phoneBook =   
+    [("betty","555-2938")  
+    ,("betty","342-2492")  
+    ,("bonnie","452-2928")  
+    ,("patsy","493-2928")  
+    ,("patsy","943-2929")  
+    ,("patsy","827-9162")  
+    ,("lucille","205-2928")  
+    ,("wendy","939-8282")  
+    ,("penny","853-2492")  
+    ,("penny","555-2111")  
+    ]</pre>
 <p>如果用 <code>fromList</code> 来生成 <code>map</code>，我们会丢掉许多号码! 如下才是正确的做法: </p>
-<pre class="code">phoneBookToMap :: (Ord k) =&gt; [(k，String)] -&gt; Map.Map k String phoneBookToMap xs = Map.fromListWith (\number1 number2 -&gt; number1 ++ "，" ++ number2) xs ghci&gt; Map.lookup "patsy" $ phoneBookToMap phoneBook 
-"827-9162，943-2929，493-2928" 
+<pre class="code">phoneBookToMap :: (Ord k) =&gt; [(k, String)] -&gt; Map.Map k String  
+phoneBookToMap xs = Map.fromListWith (\number1 number2 -&gt; number1 ++ ", " ++ number2) xs</pre><pre class="code">ghci&gt; Map.lookup "patsy" $ phoneBookToMap phoneBook 
+"827-9162, 943-2929, 493-2928" 
 ghci&gt; Map.lookup "wendy" $ phoneBookToMap phoneBook
 "939-8282" 
 ghci&gt; Map.lookup "betty" $ phoneBookToMap phoneBook 
@@ -585,7 +599,7 @@ fromList [(2,108),(3,62),(4,37)]</pre>
 <p><strong>insertWith</strong> 之于 <code>insert</code>，恰如 <code>fromListWith</code> 之于 <code>fromList</code>。它会将一个键值对插入一个 <code>map</code> 之中，而该 <code>map</code> 若已经包含这个键，就问问这个函数该怎么办。</p>
 <pre class="code">ghci&gt; Map.insertWith (+) 3 100 $ Map.fromList [(3,4),(5,103),(6,339)] 
 fromList [(3,104),(5,103),(6,339)]</pre>
-<p><code>Data.Map</code> 里面还有不少函数，这个文档中的列表就很全了.</p>
+<p><code>Data.Map</code> 里面还有不少函数，<a href="http://www.haskell.org/ghc/docs/latest/html/libraries/containers/Data-Map.html">这个文档</a>中的列表就很全了.</p>
 <a name="Data.Set"></a><h2>Data.Set</h2>
 
 <img src="../img/legosets.png" alt="" style="float:right" class="floatright" />
@@ -598,7 +612,7 @@ fromList [(3,104),(5,103),(6,339)]</pre>
 <p>然后在 ghci 中装载</p>
 
 <p>假定我们有两个字串，要找出同时存在于两个字串的字符</p>
-<pre class="code">text1 = "I just had an anime dream。Anime..。Reality..。Are they so different?"  
+<pre class="code">text1 = "I just had an anime dream. Anime... Reality... Are they so different?"  
 text2 = "The old man left his garbage can out and now his trash is all over my lawn!"</pre>
 <p><strong>fromList</strong> 函数同你想的一样，它取一个 List 作参数并将其转为一个集合  </p>
 <pre class="code">ghci&gt; let set1 = Set.fromList text1  
@@ -643,19 +657,16 @@ False
 ghci&gt; Set.fromList [2,3,4,8] `Set.isSubsetOf` Set.fromList [1,2,3,4,5]  
 False</pre>
 <p>对集合也可以执行 <code>map</code> 和 <code>filter</code>:</p>
-<pre class="code">ghci&gt; Set.fromList [2,3,4] `Set.isSubsetOf` Set.fromList [1,2,3,4,5]  
-True  
-ghci&gt; Set.fromList [1,2,3,4,5] `Set.isSubsetOf` Set.fromList [1,2,3,4,5]  
-True  
-ghci&gt; Set.fromList [1,2,3,4,5] `Set.isProperSubsetOf` Set.fromList [1,2,3,4,5]  
-False  
-ghci&gt; Set.fromList [2,3,4,8] `Set.isSubsetOf` Set.fromList [1,2,3,4,5]  
-False</pre>
-<p>集合有一常见用途，那就是先 <code>fromList</code> 删掉重复元素后再 <code>toList</code> 转回去。尽管 <code>Data.List</code> 模块的 <code>nub</code> 函数完全可以完成这一工作，但在对付大 List 时则会明显的力不从心。使用集合则会快很多，<code>nub</code> 函数只需 List 中的元素属于 <code>Eq</code> 类型类就行了，而若要使用集合，它必须得属于 <code>Ord</code> 类型类  </p>
 <pre class="code">ghci&gt; Set.filter odd $ Set.fromList [3,4,5,6,7,2,3,4]  
 fromList [3,5,7]  
 ghci&gt; Set.map (+1) $ Set.fromList [3,4,5,6,7,2,3,4]  
 fromList [3,4,5,6,7,8]</pre>
+<p>集合有一常见用途，那就是先 <code>fromList</code> 删掉重复元素后再 <code>toList</code> 转回去。尽管 <code>Data.List</code> 模块的 <code>nub</code> 函数完全可以完成这一工作，但在对付大 List 时则会明显的力不从心。使用集合则会快很多，<code>nub</code> 函数只需 List 中的元素属于 <code>Eq</code> 类型类就行了，而若要使用集合，它必须得属于 <code>Ord</code> 类型类  </p>
+<pre class="code">ghci&gt; let setNub xs = Set.toList $ Set.fromList xs  
+ghci&gt; setNub "HEY WHATS CRACKALACKIN"  
+" ACEHIKLNRSTWY"  
+ghci&gt; nub "HEY WHATS CRACKALACKIN"  
+"HEY WATSCRKLIN"</pre>
 <p>在处理较大的 List 时，<code>setNub</code> 要比 <code>nub</code> 快，但也可以从中看出，<code>nub</code> 保留了 List 中元素的原有顺序，而 <code>setNub</code> 不。</p>
 <a name="建立自己的模块"></a><h2>建立自己的模块</h2>
 
@@ -767,7 +778,7 @@ import qualified Geometry.Cube as Cube</pre>
 
             <ul class="nav">
                 <li class="left">  <img src="../img/prv.png" alt="prev" /><a href="high-order-function.html">高阶函数</a></li>
-                <li class="center"><a href="chapters.html">Index</a></li>
+                <li class="center"><a href="chapters.html">目录</a></li>
                 <li class="right"> <a href="make-types-and-classes-for-ourselves.html">构造我们自己的 Types 和 Typeclasses</a><img src="../img/nxt.png" alt="next" /></li>
             </ul>
         </div>

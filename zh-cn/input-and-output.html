@@ -29,7 +29,7 @@
                 })
             });
         </script>
-        <script type="text/javascript">
+        <script defer type="text/javascript">
             var _gaq = _gaq || [];
             _gaq.push(['_setAccount', 'UA-32830659-1']);
             _gaq.push(['_trackPageview']);
@@ -50,7 +50,7 @@
         <div id="main">
             <ul class="nav">
                 <li class="left">  <img src="../img/prv.png" alt="prev" /><a href="make-types-and-classes-for-ourselves.html">构造我们自己的 Types 和 Typeclasses</a></li>
-                <li class="center"><a href="chapters.html">Index</a></li>
+                <li class="center"><a href="chapters.html">目录</a></li>
                 <li class="right"> <a href="functionally-solving-problems.html">函数式地思考来解决问题</a><img src="../img/nxt.png" alt="next" /></li>
             </ul>
             <a name="输入与输出"></a><h1>输入与输出</h1>
@@ -708,7 +708,7 @@ dispatch =  [ ("add", add)
 <pre class="code">main = do  
     (command:args) &lt;- getArgs  
     let (Just action) = lookup command dispatch  
-    action args  V</pre>
+    action args</pre>
 <p>首先，我们取出引数并把他们绑定到 <code>(command:args)</code>。如果你还记得 pattern matching，这么做会把第一个引数绑定到 <code>command</code>，把其他的绑定到 <code>args</code>。如果我们像这样执行程序 <code>todo add todo.txt "Spank the monkey"</code>，<code>command</code> 会变成 <code>"add"</code>，而 <code>args</code> 会变成 <code>["todo.txt", "Spank the monkey"]</code>。</p>
 
 <p>在下一行，我们在一个分派的串列中寻到我们的指令是哪个。由于 <code>"add"</code> 指向 <code>add</code>，我们的结果便是 <code>Just add</code>。我们再度使用了 pattern matching 来把我们的函数从 <code>Maybe</code> 中取出。但如果我们想要的指令不在分派的串列中呢？那样 lookup 就会回传 <code>Nothing</code>，但我们这边并不特别处理失败的情况，所以 pattern matching 会失败然后我们的程序就会当掉。</p>
@@ -1013,9 +1013,9 @@ main = do
 
 <p>这样额外的负担在大多数时候不会造成困扰，但当我们要读取一个很大的文件的时候就是个问题了。这也是为什么 Haskell 要有 <code>bytestrings</code>。Bytestrings 有点像 list，但他每一个元素都是一个 byte (8 bits)，而且他们惰性的程度也是不同。</p>
 
-<p>Bytesstrings 有两种：strict 跟 lazy。Strict bytestrings 放在 <code>Data.ByteString</code>，他们把惰性的性质完全拿掉。不会有所谓任何的「保证」，一个 strict bytestring 就代表一连串的 bytes。因此你不会有一个无限长的 strict bytestrings。如果你 evaluate 第一个 byte，你就必须 evalute 整个 bytestring。这么做的优点是他会比较少 overhaed，因为他没有　"Thunk"（也就是用 Haskell 术语来说的「保证」）。缺点就是他可能会快速消耗你的记忆体，因为你把他们一次都读进了记忆体。</p>
+<p>Bytestrings 有两种：strict 跟 lazy。Strict bytestrings 放在 <code>Data.ByteString</code>，他们把惰性的性质完全拿掉。不会有所谓任何的「保证」，一个 strict bytestring 就代表一连串的 bytes。因此你不会有一个无限长的 strict bytestrings。如果你 evaluate 第一个 byte，你就必须 evalute 整个 bytestring。这么做的优点是他会比较少 overhaed，因为他没有　"Thunk"（也就是用 Haskell 术语来说的「保证」）。缺点就是他可能会快速消耗你的记忆体，因为你把他们一次都读进了记忆体。</p>
 
-<p>另一种 bytestring 是放在 <code>Data.ByteString.Lazy</code> 中。他们具有惰性，但又不像 list 那么极端。就像我们之前说的，List 的 thunk 个数是跟 list 中有几个元素一模一样。这也是为什么他们速度没办法满足一些特殊需求。Lazy bytestrings 则用另一种作法，他们被存在 chunks 中（不要跟 Thunk 搞混），每一个 chunck 的大小是 64K。所以如果你 evaluate lazy bytestring 中的 byte，则前 64K 会被 evaluated。在那个 chunck 之后，就是一些「保证」会有剩余的 chunk。lazy bytestrings 有点像装了一堆大小为 64K 的 strict bytestrings 的 list。当你用 lazy bytestring 处理一个文件的时候，他是一个 chunk 一个 chunk 去读。这很棒是因为他不会让我们一下使用大量的记忆体，而且 64K 有很高的可能性能够装进你 CPU 的 L2 Cache。</p>
+<p>另一种 bytestring 是放在 <code>Data.ByteString.Lazy</code> 中。他们具有惰性，但又不像 list 那么极端。就像我们之前说的，List 的 thunk 个数是跟 list 中有几个元素一模一样。这也是为什么他们速度没办法满足一些特殊需求。Lazy bytestrings 则用另一种作法，他们被存在 chunks 中（不要跟 Thunk 搞混），每一个 chunk 的大小是 64K。所以如果你 evaluate lazy bytestring 中的 byte，则前 64K 会被 evaluated。在那个 chunck 之后，就是一些「保证」会有剩余的 chunk。lazy bytestrings 有点像装了一堆大小为 64K 的 strict bytestrings 的 list。当你用 lazy bytestring 处理一个文件的时候，他是一个 chunk 一个 chunk 去读。这很棒是因为他不会让我们一下使用大量的记忆体，而且 64K 有很高的可能性能够装进你 CPU 的 L2 Cache。</p>
 
 <p>如果你大概看过 <code>Data.ByteString.Lazy</code> 的文档，你会看到到他有一堆函数的名称跟 <code>Data.List</code> 中的函数名称相同，只是出现的 type signature 是 <code>ByteString</code> 而不是 <code>[a]</code>，是 <code>Word8</code> 而不是 <code>a</code>。同样名称的函数基本上表现的行为跟 list 中的差不多。因为名称是一样的，所以必须用 qualified import 才不会在装载进 GHCI 的时候造成冲突。</p>
 <pre class="code">import qualified Data.ByteString.Lazy as B
@@ -1230,7 +1230,7 @@ handler e
 
             <ul class="nav">
                 <li class="left">  <img src="../img/prv.png" alt="prev" /><a href="make-types-and-classes-for-ourselves.html">构造我们自己的 Types 和 Typeclasses</a></li>
-                <li class="center"><a href="chapters.html">Index</a></li>
+                <li class="center"><a href="chapters.html">目录</a></li>
                 <li class="right"> <a href="functionally-solving-problems.html">函数式地思考来解决问题</a><img src="../img/nxt.png" alt="next" /></li>
             </ul>
         </div>

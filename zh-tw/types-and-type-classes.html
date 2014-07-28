@@ -29,7 +29,7 @@
                 })
             });
         </script>
-        <script type="text/javascript">
+        <script defer type="text/javascript">
             var _gaq = _gaq || [];
             _gaq.push(['_setAccount', 'UA-32830659-1']);
             _gaq.push(['_trackPageview']);
@@ -50,7 +50,7 @@
         <div id="main">
             <ul class="nav">
                 <li class="left">  <img src="../img/prv.png" alt="prev" /><a href="ready-begin.html">從零開始</a></li>
-                <li class="center"><a href="chapters.html">Index</a></li>
+                <li class="center"><a href="chapters.html">目录</a></li>
                 <li class="right"> <a href="syntax-on-function.html">函數的語法</a><img src="../img/nxt.png" alt="next" /></li>
             </ul>
             <a name="Types_and_Typeclasses"></a><h1>Types and Typeclasses</h1>
@@ -75,7 +75,7 @@ ghci&gt; :t (True, 'a')
 (True, 'a') :: (Bool, Char)  
 ghci&gt; :t 4 == 5  
 4 == 5 :: Bool</pre><img src="../img/bomb.png" alt="" style="float:right" class="floatright" />
-<p>可以看出，<code>:t</code> 命令處理一個表達式的輸出結果為表達式後跟 <code>::</code> 及其型別，<code>::</code> 讀作"它的型別為"。凡是明確的型別，其首字母必為大寫。<code>'a'</code>, 如它的樣子，是 <code>Char</code> 型別，易知是個字元 (character)。<code>True</code> 是 <code>Bool</code> 型別，也靠譜。不過這又是啥，檢測 <code>"hello"</code> 得一個  <code>[Char]</code> 這方括號表示一個 List，所以我們可以將其讀作"一組字元的 List"。而與 List 不同，每個 Tuple 都是獨立的型別，於是 <code>(True,"a")</code> 的型別是 <code>(Bool,Char)</code>，而 <code>('a','b','c')</code> 的型別為 <code>(Char,Char,Char)</code>。<code>4==5</code> 一定回傳 <code>False</code>，所以它的型別為 Bool。</p>
+<p>可以看出，<code>:t</code> 命令處理一個表達式的輸出結果為表達式後跟 <code>::</code> 及其型別，<code>::</code> 讀作"它的型別為"。凡是明確的型別，其首字母必為大寫。<code>'a'</code>, 如它的樣子，是 <code>Char</code> 型別，易知是個字元 (character)。<code>True</code> 是 <code>Bool</code> 型別，也靠譜。不過這又是啥，檢測 <code>"hello"</code> 得一個  <code>[Char]</code> 這方括號表示一個 List，所以我們可以將其讀作"一組字元的 List"。而與 List 不同，每個 Tuple 都是獨立的型別，於是 <code>(True,'a')</code> 的型別是 <code>(Bool,Char)</code>，而 <code>('a','b','c')</code> 的型別為 <code>(Char,Char,Char)</code>。<code>4==5</code> 一定回傳 <code>False</code>，所以它的型別為 Bool。</p>
 
 <p>同樣，函數也有型別。編寫函數時，給它一個明確的型別聲明是個好習慣，比較短的函數就不用多此一舉了。還記得前面那個過濾大寫字母的 List Comprehension 嗎？給它加上型別聲明便是這個樣子：</p>
 <pre class="code">removeNonUppercase :: [Char] -&gt; [Char]  
@@ -89,7 +89,7 @@ addThree x y z = x + y + z</pre>
 
 <p>如下是幾個常見的型別：</p>
 
-<p><strong>Int</strong> 表示整數。7 可以是 Int，但 7.2 不可以。Int 是有界的，也就是說它由上限和下限。對 32 位的機器而言，上限一般是 <code>214748364</code>，下限是 <code>-214748364</code>。</p>
+<p><strong>Int</strong> 表示整數。7 可以是 Int，但 7.2 不可以。Int 是有界的，也就是說它由上限和下限。對 32 位的機器而言，上限一般是 <code>2147483647</code>，下限是 <code>-2147483648</code>。</p>
 
 <p><strong>Integer</strong> 表示...厄...也是整數，但它是無界的。這就意味着可以用它存放非常非常大的數，我是說非常大。它的效率不如 Int 高。</p>
 <pre class="code">factorial :: Integer -&gt; Integer  
@@ -235,7 +235,7 @@ False</pre>
 
 <p>型別只有親近 <code>Show</code> 和 <code>Eq</code>，才可以加入 <code>Num</code>。</p>
 
-<p><strong>Integral</strong> 同樣是表示數字的 Typeclass。<code>Num</code> 包含所有的數字：實數和整數。而 Intgral 僅包含整數，其中的成員型別有 <code>Int</code> 和 <code>Integer</code>。</p>
+<p><strong>Integral</strong> 同樣是表示數字的 Typeclass。<code>Num</code> 包含所有的數字：實數和整數。而 Integral 僅包含整數，其中的成員型別有 <code>Int</code> 和 <code>Integer</code>。</p>
 
 <p><strong>Floating</strong> 僅包含浮點型別：<code>Float</code> 和 <code>Double</code>。</p>
 
@@ -245,7 +245,7 @@ False</pre>
 
             <ul class="nav">
                 <li class="left">  <img src="../img/prv.png" alt="prev" /><a href="ready-begin.html">從零開始</a></li>
-                <li class="center"><a href="chapters.html">Index</a></li>
+                <li class="center"><a href="chapters.html">目录</a></li>
                 <li class="right"> <a href="syntax-on-function.html">函數的語法</a><img src="../img/nxt.png" alt="next" /></li>
             </ul>
         </div>

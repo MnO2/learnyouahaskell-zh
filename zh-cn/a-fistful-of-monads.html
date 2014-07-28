@@ -29,7 +29,7 @@
                 })
             });
         </script>
-        <script type="text/javascript">
+        <script defer type="text/javascript">
             var _gaq = _gaq || [];
             _gaq.push(['_setAccount', 'UA-32830659-1']);
             _gaq.push(['_trackPageview']);
@@ -50,7 +50,7 @@
         <div id="main">
             <ul class="nav">
                 <li class="left">  <img src="../img/prv.png" alt="prev" /><a href="functors-applicative-functors-and-monoids.html">Functors, Applicative Functors 与 Monoids</a></li>
-                <li class="center"><a href="chapters.html">Index</a></li>
+                <li class="center"><a href="chapters.html">目录</a></li>
                 <li class="right"> <a href="for-a-few-monads-more.html">再来看看更多 Monad</a><img src="../img/nxt.png" alt="next" /></li>
             </ul>
             <a name="来看看几种_Monad"></a><h1>来看看几种 Monad</h1>
@@ -77,7 +77,7 @@ ghci&gt; (++) &lt;$&gt; Just "klingon" &lt;*&gt; Nothing
 Nothing  
 ghci&gt; (-) &lt;$&gt; [3,4] &lt;*&gt; [1,2,3]  
 [2,1,0,3,2,1]</pre>
-<p>所以我们可以视他们为 aaplicative values，<code>Maybe a</code> 代表可能会失败的 computation，<code>[a]</code> 代表同时有好多结果的 computation (non-deterministic computation)，而 <code>IO a</code> 代表会有 side-effects 的 computation。</p>
+<p>所以我们可以视他们为 applicative values，<code>Maybe a</code> 代表可能会失败的 computation，<code>[a]</code> 代表同时有好多结果的 computation (non-deterministic computation)，而 <code>IO a</code> 代表会有 side-effects 的 computation。</p>
 
 <p>Monad 是一个从 Applicative functors 很自然的一个演进结果。对于他们我们主要考量的点是：如果你有一个具有 context 的值 <code>m a</code>，你能如何把他丢进一个只接受普通值 <code>a</code> 的函数中，并回传一个具有 context 的值？也就是说，你如何套用一个型态为 <code>a -&gt; m b</code> 的函数至 <code>m a</code>？基本上，我们要求的函数是：</p>
 <pre class="code">(&gt;&gt;=) :: (Monad m) =&gt; m a -&gt; (a -&gt; m b) -&gt; m b</pre>
@@ -144,7 +144,7 @@ Nothing</pre>
 Just 3  
 ghci&gt; Just 1 `applyMaybe` \x -&gt; if x &gt; 2 then Just x else Nothing  
 Nothing</pre>
-<p>这正是我们期待的结果。如果左边的 monadic value 是 <code>Nothing</code>，那整个结果就是 <code>Nothing</code>。如果右边的函数是 <code>Nothing</code>，那结果也会是 <code>Nothing</code>。这跟我们之前把 <code>Maybe</code> 当作 aaplicative 时，过程中有任何一个 <code>Nothing</code> 整个结果就会是 <code>Nothing</code> 一样。</p>
+<p>这正是我们期待的结果。如果左边的 monadic value 是 <code>Nothing</code>，那整个结果就是 <code>Nothing</code>。如果右边的函数是 <code>Nothing</code>，那结果也会是 <code>Nothing</code>。这跟我们之前把 <code>Maybe</code> 当作 applicative 时，过程中有任何一个 <code>Nothing</code> 整个结果就会是 <code>Nothing</code> 一样。</p>
 
 <p>对于 <code>Maybe</code> 而言，我们已经找到一个方法处理漂亮值的方式。我们作到这件事的同时，也保留了 <code>Maybe</code> 代表可能造成错误的计算的意义。</p>
 
@@ -172,7 +172,7 @@ Nothing</pre>
 <p>提醒一下：<code>return</code> 跟其他语言中的 <code>return</code> 是完全不一样的。他并不是结束一个函数的执行，他只不过是把一个普通值包进一个 context 里面。</p>
 </blockquote>
 <img src="../img/tur2.png" alt="" style="float:left" class="floatleft" />
-<p>接下来定义的函数是 bind: <code>&gt;&gt;=</code>。他就像是函数套用一样，只差在他不接受普通值，他是接受一个 monadic value（也就是具有 context 的值）并且把他喂给一个接受普通值得函数，并回传一个 monadic value。</p>
+<p>接下来定义的函数是 bind: <code>&gt;&gt;=</code>。他就像是函数套用一样，只差在他不接受普通值，他是接受一个 monadic value（也就是具有 context 的值）并且把他喂给一个接受普通值的函数，并回传一个 monadic value。</p>
 
 <p>接下来，我们定义了 <code>&gt;&gt;</code>。我们不会介绍他，因为他有一个事先定义好的实作，基本上我们在实作 <code>Monad</code> typeclass 的时候都不会去理他。</p>
 
@@ -272,7 +272,7 @@ Nothing</pre>
 <p>我们需要一种方法可以把拿到的 <code>Maybe Pole</code> 塞到拿 <code>Pole</code> 的函数中，然后回传 <code>Maybe Pole</code>。而我们有 <code>&gt;&gt;=</code>，他对 <code>Maybe</code> 做的事就是我们要的</p>
 <pre class="code">ghci&gt; landRight 1 (0,0) &gt;&gt;= landLeft 2  
 Just (2,1)</pre>
-<p><code>landLeft 2 的型态是 </code>Pole -&gt; Maybe Pole<code>。我们不能喂给他 </code>Maybe Pole<code> 的东西。而 </code>landRight 1 (0,0)<code> 的结果就是 </code>Maybe Pole<code>，所以我们用 </code>&gt;&gt;=<code> 来接受一个有 context 的值然后拿给 </code>landLeft 2<code>。</code>&gt;&gt;=<code> 的确让我们把 </code>Maybe<code> 当作有 context 的值，因为当我们丢 </code>Nothing<code> 给 </code>landLeft 2<code> 的时候，结果会是 </code>Nothing。</p>
+<p><code>landLeft 2</code> 的型态是 <code>Pole -&gt; Maybe Pole</code>。我们不能喂给他 <code>Maybe Pole</code> 的东西。而 <code>landRight 1 (0,0)</code> 的结果就是 <code>Maybe Pole</code>，所以我们用 <code>&gt;&gt;=</code> 来接受一个有 context 的值然后拿给 <code>landLeft 2</code>。<code>&gt;&gt;=</code> 的确让我们把 <code>Maybe</code> 当作有 context 的值，因为当我们丢 <code>Nothing</code> 给 <code>landLeft 2</code> 的时候，结果会是 <code>Nothing</code>。</p>
 <pre class="code">ghci&gt; Nothing &gt;&gt;= landLeft 2  
 Nothing</pre>
 <p>这样我们可以把这些新写的用 <code>&gt;&gt;=</code> 串在一起。让 monadic value 可以喂进只吃普通值的函数。</p>
@@ -290,7 +290,7 @@ Just (2,4)</pre>
 Nothing</pre><img src="../img/banana.png" alt="" style="float:right" class="floatright" />
 <p>正如预期的，最后的情形代表了失败的情况。我们再进一步看看这是怎么产生的。首先 <code>return</code> 把 <code>(0,0)</code> 放到一个最小的 context 中，得到 <code>Just (0,0)</code>。然后是 <code>Just (0.0) &gt;&gt;= landLeft 1</code>。由于 <code>Just (0,0)</code> 是一个 <code>Just</code> 的值。<code>landLeft 1</code> 被套用至 <code>(0,0)</code> 而得到 <code>Just (1,0)</code>。这反应了我们仍保持在平衡的状态。接着是 <code>Just (1,0) &gt;&gt;= landright 4</code> 而得到了 <code>Just (1,4)</code>。距离不平衡只有一步之遥了。他又被喂给 <code>landLeft (-1)</code>，这组合成了 <code>landLeft (-1) (1,4)</code>。由于失去了平衡，我们变得到了 <code>Nothing</code>。而我们把 <code>Nothing</code> 喂给 <code>landRight (-2)</code>，由于他是 <code>Nothing</code>，也就自动得到了 <code>Nothing</code>。</p>
 
-<p>如果只把 <code>Maybe</code> 当作 aaplicative 用的话是没有办法达到我们要的效果的。你试着做一遍就会卡住。因为 applicative functor 并不允许 applicative value 之间有弹性的交互。他们最多就是让我们可以用 applicative style 来传递参数给函数。applicative operators 能拿到他们的结果并把他用 applicative 的方式喂给另一个函数，并把最终的 applicative 值放在一起。但在每一步之间并没有太多允许我们作手脚的机会。而我们的范例需要每一步都倚赖前一步的结果。当每一只鸟降落的时候，我们都会把前一步的结果拿出来看看。好知道结果到底应该成功或失败。</p>
+<p>如果只把 <code>Maybe</code> 当作 applicative 用的话是没有办法达到我们要的效果的。你试着做一遍就会卡住。因为 applicative functor 并不允许 applicative value 之间有弹性的交互。他们最多就是让我们可以用 applicative style 来传递参数给函数。applicative operators 能拿到他们的结果并把他用 applicative 的方式喂给另一个函数，并把最终的 applicative 值放在一起。但在每一步之间并没有太多允许我们作手脚的机会。而我们的范例需要每一步都倚赖前一步的结果。当每一只鸟降落的时候，我们都会把前一步的结果拿出来看看。好知道结果到底应该成功或失败。</p>
 
 <p>我们也能写出一个函数，完全不管现在究竟有几只鸟停在竿子上，只是要害皮尔斯滑倒。我们可以称呼这个函数叫做 <code>banana</code>：</p>
 <pre class="code">banana :: Pole -&gt; Maybe Pole  
@@ -501,7 +501,7 @@ listOfTuples = do
 <p>List comprehension 允许我们 filter 我们的结果。举例来说，我们可以只要包含 <code>7</code> 在表示位数里面的数值。</p>
 <pre class="code">ghci&gt; [ x | x &lt;- [1..50], '7' `elem` show x ]  
 [7,17,27,37,47]</pre>
-<p>我们用 <code>show</code> 跟 <code>x</code> 来把数值转成字串，然后检查 <code>'7'` 是否包含在字串里面。要看看 filtering 要如何转换成用 list monad 来表达，我们可以考虑使用 </code>guard<code> 函数，还有 </code>MonadPlus<code> 这个 type class。</code>MonadPlus 这个 type class 是用来针对可以同时表现成 monoid 的 monad。下面是他的定义：</p>
+<p>我们用 <code>show</code> 跟 <code>x</code> 来把数值转成字串，然后检查 <code>'7'</code> 是否包含在字串里面。要看看 filtering 要如何转换成用 list monad 来表达，我们可以考虑使用 <code>guard</code> 函数，还有 <code>MonadPlus</code> 这个 type class。<code>MonadPlus</code> 这个 type class 是用来针对可以同时表现成 monoid 的 monad。下面是他的定义：</p>
 <pre class="code">class Monad m =&gt; MonadPlus m where  
     mzero :: m a  
     mplus :: m a -&gt; m a -&gt; m a</pre>
@@ -598,7 +598,7 @@ False</pre>
 <a name="Monad_laws_(单子律)"></a><h2>Monad laws (单子律)</h2>
 
 <img src="../img/judgedog.png" alt="" style="float:right" class="floatright" />
-<p>正如 aaplicative functors 以及 functors，Monad 也有一些要遵守的定律。我们定义一个 <code>Monad</code> 的 instance 并不代表他是一个 monad，只代表他被定义成那个 type class 的 instance。一个型态要是 monad，则必须遵守单子律。这些定律让我们可以对这个型态的行为做一些合理的假设。</p>
+<p>正如 applicative functors 以及 functors，Monad 也有一些要遵守的定律。我们定义一个 <code>Monad</code> 的 instance 并不代表他是一个 monad，只代表他被定义成那个 type class 的 instance。一个型态要是 monad，则必须遵守单子律。这些定律让我们可以对这个型态的行为做一些合理的假设。</p>
 
 <p>Haskell 允许任何型态是任何 type class 的 instance。但他不会检查单子律是否有被遵守，所以如果我们要写一个 <code>Monad</code> 的 instance，那最好我们确定他有遵守单子律。我们可以不用担心标准函式库中的型态是否有遵守单子律。但之后我们定义自己的型态时，我们必须自己检查是否有遵守单子律。不用担心，他们不会很复杂。</p>
 <a name="Left_identity"></a><h3>Left identity</h3>
@@ -645,9 +645,9 @@ Wah!</pre>
 
 <p>单子律最后一条是说当我们用 <code>&gt;&gt;=</code> 把一串 monadic function 串在一起，他们的先后顺序不应该影响结果：</p>
 
-<p>  * <code>(m &gt;&gt;= f) &gt;&gt;= g 跟 </code>m &gt;&gt;= (\x -&gt; f x &gt;&gt;= g) 是相等的</p>
+<p>  * <code>(m &gt;&gt;= f) &gt;&gt;= g</code> 跟 <code>m &gt;&gt;= (\x -&gt; f x &gt;&gt;= g)</code> 是相等的</p>
 
-<p>究竟这边说的是什么呢？我们有一个 monadic value <code>m</code>，以及两个 monadic function <code>f</code> 跟 <code>g</code>。当我们写下 <code>(m &gt;&gt;= f) &gt;&gt;= g</code>，代表的是我们把 <code>m</code> 喂给 <code>f</code>，他的结果是一个 monadic value。然后我们把这个结果喂给 <code>g</code>。而在 <code>m &gt;&gt;= (\x -&gt; f x &gt;&gt;= g)</code> 中，我们接受一个 monadic value 然后喂给一个函数，这个函数会把 <code>f x</code> 的结果丢给 <code>g</code>。我们不太容易直接看出两者箱，所以先来看个范例比较好理解。</p>
+<p>究竟这边说的是什么呢？我们有一个 monadic value <code>m</code>，以及两个 monadic function <code>f</code> 跟 <code>g</code>。当我们写下 <code>(m &gt;&gt;= f) &gt;&gt;= g</code>，代表的是我们把 <code>m</code> 喂给 <code>f</code>，他的结果是一个 monadic value。然后我们把这个结果喂给 <code>g</code>。而在 <code>m &gt;&gt;= (\x -&gt; f x &gt;&gt;= g)</code> 中，我们接受一个 monadic value 然后喂给一个函数，这个函数会把 <code>f x</code> 的结果丢给 <code>g</code>。我们不太容易直接看出两者相同，所以先来看个范例比较好理解。</p>
 
 <p>还记得之前皮尔斯的范例吗？要仿真鸟停在他的平衡竿上，我们把好几个函数串在一起</p>
 <pre class="code">ghci&gt; return (0,0) &gt;&gt;= landRight 2 &gt;&gt;= landLeft 2 &gt;&gt;= landRight 2  
@@ -684,7 +684,7 @@ ghci&gt; h 3
 
             <ul class="nav">
                 <li class="left">  <img src="../img/prv.png" alt="prev" /><a href="functors-applicative-functors-and-monoids.html">Functors, Applicative Functors 与 Monoids</a></li>
-                <li class="center"><a href="chapters.html">Index</a></li>
+                <li class="center"><a href="chapters.html">目录</a></li>
                 <li class="right"> <a href="for-a-few-monads-more.html">再来看看更多 Monad</a><img src="../img/nxt.png" alt="next" /></li>
             </ul>
         </div>

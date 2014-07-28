@@ -29,7 +29,7 @@
                 })
             });
         </script>
-        <script type="text/javascript">
+        <script defer type="text/javascript">
             var _gaq = _gaq || [];
             _gaq.push(['_setAccount', 'UA-32830659-1']);
             _gaq.push(['_trackPageview']);
@@ -50,7 +50,7 @@
         <div id="main">
             <ul class="nav">
                 <li class="left">  <img src="../img/prv.png" alt="prev" /><a href="for-a-few-monads-more.html">再来看看更多 Monad</a></li>
-                <li class="center"><a href="chapters.html">Index</a></li>
+                <li class="center"><a href="chapters.html">目录</a></li>
                 <li class="right"></li>
             </ul>
             <a name="Zippers_数据结构"></a><h1>Zippers 数据结构</h1>
@@ -320,7 +320,7 @@ nameIs name (File fileName _) = name == fileName</pre>
 
 <p>现在 <code>ls</code> 一个包含我们要找的元素之前元素的 list。<code>item</code> 就是我们要找的元素，而 <code>rs</code> 是剩下的部份。有了这些，我们不过就是把 <code>break</code> 传回来的东西当作锁定的目标，来建造一个面包屑来包含所有必须的信息。</p>
 
-<p>如果我们要找的元素不在文件夹中，那 <code>item:rs</code> 这个模式会福豪到一个空的 list，便会造成错误。如果我们现在的锁定不是一个文件夹而是一个文件，我们也会造成一个错误而让程序当掉。</p>
+<p>如果我们要找的元素不在文件夹中，那 <code>item:rs</code> 这个模式会符合到一个空的 list，便会造成错误。如果我们现在的锁定不是一个文件夹而是一个文件，我们也会造成一个错误而让程序当掉。</p>
 
 <p>现在我们有能力在我们的文件系统中移上移下，我们就来尝试从 root 走到 <code>"skull_man(scary).bmp"</code> 这个文件吧：</p>
 <pre class="code">ghci&gt; let newFocus = (myDisk,[]) -: fsTo "pics" -: fsTo "skull_man(scary).bmp"</pre>
@@ -404,7 +404,7 @@ Nothing</pre>
 
             <ul class="nav">
                 <li class="left">  <img src="../img/prv.png" alt="prev" /><a href="for-a-few-monads-more.html">再来看看更多 Monad</a></li>
-                <li class="center"><a href="chapters.html">Index</a></li>
+                <li class="center"><a href="chapters.html">目录</a></li>
                 <li class="right"></li>
             </ul>
         </div>

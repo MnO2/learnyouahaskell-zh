@@ -29,7 +29,7 @@
                 })
             });
         </script>
-        <script type="text/javascript">
+        <script defer type="text/javascript">
             var _gaq = _gaq || [];
             _gaq.push(['_setAccount', 'UA-32830659-1']);
             _gaq.push(['_trackPageview']);
@@ -50,7 +50,7 @@
         <div id="main">
             <ul class="nav">
                 <li class="left">  <img src="../img/prv.png" alt="prev" /><a href="modules.html">模块 (Modules)</a></li>
-                <li class="center"><a href="chapters.html">Index</a></li>
+                <li class="center"><a href="chapters.html">目录</a></li>
                 <li class="right"> <a href="input-and-output.html">输入与输出</a><img src="../img/nxt.png" alt="next" /></li>
             </ul>
             <a name="构造我们自己的_Types_和_Typeclasses"></a><h1>构造我们自己的 Types 和 Typeclasses</h1>
@@ -185,7 +185,7 @@ ghci&gt; flavor guy
                      , phoneNumber :: String
                      , flavor :: String
                      } deriving (Show)</pre>
-<p>与原先让那些项一个挨一个的空格隔开不同，这里用了花括号 <code>{}</code>。先写出项的名字，如 <code>firstName</code>，后跟两个冒号(也叫 Raamayim Nekudotayim，哈哈~(译者不知道什么意思~囧))，标明其类型，返回的数据类型仍与以前相同。这样的好处就是，可以用函数从中直接按项取值。通过 Record Syntax，Haskell 就自动生成了这些函数：<code>firstName</code>, <code>lastName</code>, <code>age</code>, <code>height</code>, <code>phoneNumber</code> 和 <code>flavor</code>。</p>
+<p>与原先让那些项一个挨一个的空格隔开不同，这里用了花括号 <code>{}</code>。先写出项的名字，如 <code>firstName</code>，后跟两个冒号(也叫 Paamayim Nekudotayim，哈哈~(译者不知道什么意思~囧))，标明其类型，返回的数据类型仍与以前相同。这样的好处就是，可以用函数从中直接按项取值。通过 Record Syntax，Haskell 就自动生成了这些函数：<code>firstName</code>, <code>lastName</code>, <code>age</code>, <code>height</code>, <code>phoneNumber</code> 和 <code>flavor</code>。</p>
 <pre class="code">ghci&gt; :t flavor
 flavor :: Person -&gt; String
 ghci&gt; :t firstName
@@ -240,7 +240,8 @@ Just 10.0</pre>
 <p>但是，这样我们又得到了什么好处？回答很可能是，一无所得。因为我们只定义了处理 <code>Car String String Int</code> 类型的函数，像以前，我们还可以弄个简单函数来描述车的属性。</p>
 <pre class="code">tellCar :: Car -&gt; String
 tellCar (Car {company = c, model = m, year = y}) = "This " ++ c ++ " " ++ m ++ " was made in " ++ show y</pre><pre class="code">ghci&gt; let stang = Car {company="Ford", model="Mustang", year=1967}
-ghci&gt; tellCar stang  "This Ford Mustang was made in 1967"</pre>
+ghci&gt; tellCar stang
+"This Ford Mustang was made in 1967"</pre>
 <p>可爱的小函数！它的类型声明得很漂亮，而且工作良好。好，如果改成 <code>Car a b c</code> 又会怎样？</p>
 <pre class="code">tellCar :: (Show a) =&gt; Car String String a -&gt; String
 tellCar (Car {company = c, model = m, year = y}) = "This " ++ c ++ " " ++ m ++ " was made in " ++ show y</pre>
@@ -355,11 +356,11 @@ ghci&gt; Just 3 `compare` Just 2
 GT
 ghci&gt; Just 100 &gt; Just 50
 True</pre>
-<p>不过类似 <code>Just (*3)</code>, <code>Just(*2)</code> 之类的代码是不可以的。因为 <code>(*3)</code> 和 <code>(*2)</code> 都是函数，而函数不是 <code>Ord</code> 类的成员。</p>
+<p>不过类似 <code>Just (*3) &gt; Just (*2)</code> 之类的代码是不可以的。因为 <code>(*3)</code> 和 <code>(*2)</code> 都是函数，而函数不是 <code>Ord</code> 类的成员。</p>
 
-<p>作枚举，使用数字类型就能轻易做到。不过使用 <code>Enmu</code> 和 <code>Bounded</code> 类型类会更好，看下这个类型：</p>
+<p>作枚举，使用数字类型就能轻易做到。不过使用 <code>Enum</code> 和 <code>Bounded</code> 类型类会更好，看下这个类型：</p>
 <pre class="code">data Day = Monday | Tuesday | Wednesday | Thursday | Friday | Saturday | Sunday</pre>
-<p>所有的值构造子都是 <code>nullary</code> 的(也就是没有参数)，每个东西都有前置子和后继子，我们可以让它成为 <code>Enmu</code> 类型类的成员。同样，每个东西都有可能的最小值和最大值，我们也可以让它成为 <code>Bounded</code> 类型类的成员。在这里，我们就同时将它搞成其它可 derive类型类的 instance。再看看我们能拿它做啥：</p>
+<p>所有的值构造子都是 <code>nullary</code> 的(也就是没有参数)，每个东西都有前置子和后继子，我们可以让它成为 <code>Enum</code> 类型类的成员。同样，每个东西都有可能的最小值和最大值，我们也可以让它成为 <code>Bounded</code> 类型类的成员。在这里，我们就同时将它搞成其它可 derive类型类的 instance。再看看我们能拿它做啥：</p>
 <pre class="code">data Day = Monday | Tuesday | Wednesday | Thursday | Friday | Saturday | Sunday
            deriving (Eq, Ord, Show, Read, Bounded, Enum)</pre>
 <p>由于它是 <code>Show</code> 和 <code>Read</code> 类型类的成员，我们可以将这个类型的值与字符串相互转换。</p>
@@ -557,7 +558,7 @@ ghci&gt; a .++ b
 
 <p>这边我们来定义一棵树的结构：他不是一棵空的树就是带有值并含有两棵子树。听起来非常符合 algebraic data type 的结构！</p>
 <pre class="code">data Tree a = EmptyTree | Node a (Tree a) (Tree a) deriving (Show, Read, Eq)</pre>
-<p>我们不太想手动来建颗二元搜寻树，所以我们要来写一个函数，他接受一棵树还有一个元素，把这个元素安插到这棵二元搜寻树中。当拿这个元素跟树的节点比较结果比较小的话，我们就往左走，如果比较大，就往右走。重复这个动作直到我们走到一棵空的树。一旦碰到空的树的话，我们就把元素插入节点。</p>
+<p>我们不太想手动来建棵二元搜寻树，所以我们要来写一个函数，他接受一棵树还有一个元素，把这个元素安插到这棵二元搜寻树中。当拿这个元素跟树的节点比较结果比较小的话，我们就往左走，如果比较大，就往右走。重复这个动作直到我们走到一棵空的树。一旦碰到空的树的话，我们就把元素插入节点。</p>
 
 <p>在 C 语言中，我们是用修改指标的方式来达成这件事。但在 Haskell 中，我们没办法修改我们的树。所以我们在决定要往左或往右走的时候就做一棵新的子树，走到最后要安插节点的时候也是做一棵新的树。因此我们插入函数的型态会是 <code>a -&gt; Tree a -&gt; Tree a</code>。他接受一个元素跟一棵树，并回传一棵包含了新元素的新的树。这看起来很没效率的样子，但别担心，惰性的特性可以让我们不用担心这个。</p>
 
@@ -620,7 +621,7 @@ False</pre>
 
 <p>如果我们写成 <code>class Eq equatable where</code> 还有 <code>(==) :: equatable -&gt; equatable -&gt; Bool</code> 这样的形式，对一些人可能比较容易理解。</p>
 
-<p>总之我们实作了 <code>Eq</code> 中需要定义的函数本体，只是我们定义他的方式是用交互递归的形式。我们描述两个 <code>Eq</code> 的 instance 药箱等，那他们就不能不一样，而他们如果不一样，那他们就是不相等。我们其实不必这样写，但很快你会看到这其实是有用的。</p>
+<p>总之我们实作了 <code>Eq</code> 中需要定义的函数本体，只是我们定义他的方式是用交互递归的形式。我们描述两个 <code>Eq</code> 的 instance 要相等，那他们就不能不一样，而他们如果不一样，那他们就是不相等。我们其实不必这样写，但很快你会看到这其实是有用的。</p>
 
 <p>如果我们说 <code>class Eq a where</code> 然后定义 <code>(==) :: a -&gt; a -&gt; Bool</code>，那我们之后检查函数的类型时会发现他的类型是 <code>(Eq a) =&gt; a -&gt; a -&gt; Bool</code>。</p>
 
@@ -688,9 +689,9 @@ ghci&gt; [Red, Yellow, Green]
 
 <p>当定义 instance 的时候，如果你需要提供具体类型（像是在 <code>a -&gt; a -&gt; Bool</code> 中的 <code>a</code>），那你必须要加上括号跟类型参数来构造一个具体类型。</p>
 
-<p>要知道你在定义 instnace 的时候，类型参数会被取代。<code>class Eq a where</code> 中的 <code>a</code> 会被取代成真实的类型。所以试着想像把类型放进类型宣告中。<code>(==) :: Maybe -&gt; Maybe -&gt; Bool</code> 并非合法。但 <code>(==) :: (Eq m) =&gt; Maybe m -&gt; Maybe m -&gt; Bool</code> 则是。这是不论我们要定义什么，通用的类型宣告都是 <code>(==) :: (Eq a) =&gt; a -&gt; a -&gt; Bool</code></p>
+<p>要知道你在定义 instance 的时候，类型参数会被取代。<code>class Eq a where</code> 中的 <code>a</code> 会被取代成真实的类型。所以试着想像把类型放进类型宣告中。<code>(==) :: Maybe -&gt; Maybe -&gt; Bool</code> 并非合法。但 <code>(==) :: (Eq m) =&gt; Maybe m -&gt; Maybe m -&gt; Bool</code> 则是。这是不论我们要定义什么，通用的类型宣告都是 <code>(==) :: (Eq a) =&gt; a -&gt; a -&gt; Bool</code></p>
 
-<p>还有一件事要确认。如果你想看看一个 typeclass 有定义哪些 instance。可以在 ghci 中输入 <code>:info YourTypeClass</code>。所以输入 <code>info Num</code> 会告诉你这个 typeclass 定义了哪些函数，还有哪些类型属于这个 typeclass。<code>:info</code> 也可以查询类型跟类型构造子的信息。如果你输入 <code>:info Maybe</code>。他会显示 <code>Maybe</code> 所属的所有 typeclass。<code>:info</code> 也能告诉你函数的类型宣告。</p>
+<p>还有一件事要确认。如果你想看看一个 typeclass 有定义哪些 instance。可以在 ghci 中输入 <code>:info YourTypeClass</code>。所以输入 <code>:info Num</code> 会告诉你这个 typeclass 定义了哪些函数，还有哪些类型属于这个 typeclass。<code>:info</code> 也可以查询类型跟类型构造子的信息。如果你输入 <code>:info Maybe</code>。他会显示 <code>Maybe</code> 所属的所有 typeclass。<code>:info</code> 也能告诉你函数的类型宣告。</p>
 <a name="yes-no_typeclass"></a><h2>yes-no typeclass</h2>
 
 
@@ -809,7 +810,7 @@ ghci&gt; fmap (*2) (Just 200)
 Just 400
 ghci&gt; fmap (*2) Nothing
 Nothing</pre>
-<p>另外 <code>Tree a</code> 的类型也可以被 map over 且被定义成 <code>Functor</code> 的一个 instnace。他可以被想成是一个盒子，而 <code>Tree</code> 的类型构造子也刚好接受单一一个类型参数。如果你把 <code>fmap</code> 看作是一个特别为 <code>Tree</code> 写的函数，他的类型宣告会长得像这样 <code>(a -&gt; b) -&gt; Tree a -&gt; Tree b</code>。不过我们在这边会用到递归。map over 一棵空的树会得到一棵空的树。map over 一棵非空的树会得到一棵被函数映射过的树，他的 root 会先被映射，然后左右子树都分别递归地被函数映射。</p>
+<p>另外 <code>Tree a</code> 的类型也可以被 map over 且被定义成 <code>Functor</code> 的一个 instance。他可以被想成是一个盒子，而 <code>Tree</code> 的类型构造子也刚好接受单一一个类型参数。如果你把 <code>fmap</code> 看作是一个特别为 <code>Tree</code> 写的函数，他的类型宣告会长得像这样 <code>(a -&gt; b) -&gt; Tree a -&gt; Tree b</code>。不过我们在这边会用到递归。map over 一棵空的树会得到一棵空的树。map over 一棵非空的树会得到一棵被函数映射过的树，他的 root 会先被映射，然后左右子树都分别递归地被函数映射。</p>
 <pre class="code">instance Functor Tree where
     fmap f EmptyTree = EmptyTree
     fmap f (Node x leftsub rightsub) =
@@ -817,7 +818,7 @@ Nothing</pre>
 EmptyTree
 ghci&gt; fmap (*4) (foldr treeInsert EmptyTree [5,7,3,2,1,7])
 Node 28 (Node 4 EmptyTree (Node 8 EmptyTree (Node 12 EmptyTree (Node 20 EmptyTree EmptyTree)))) EmptyTree</pre>
-<p>那 <code>Eitehr a b</code> 又如何？他可以是一个 functor 吗？<code>Functor</code> 限制类型构造子只能接受一个类型参数，但 <code>Either</code> 却接受两个。聪明的你会想到我可以 partial apply <code>Either</code>，先喂给他一个参数，并把另一个参数当作 free parameter。来看看 <code>Either a</code> 在标准函式库中是如何被定义的：</p>
+<p>那 <code>Either a b</code> 又如何？他可以是一个 functor 吗？<code>Functor</code> 限制类型构造子只能接受一个类型参数，但 <code>Either</code> 却接受两个。聪明的你会想到我可以 partial apply <code>Either</code>，先喂给他一个参数，并把另一个参数当作 free parameter。来看看 <code>Either a</code> 在标准函式库中是如何被定义的：</p>
 <pre class="code">instance Functor (Either a) where
     fmap f (Right x) = Right (f x)
     fmap f (Left x) = Left x</pre>
@@ -831,7 +832,7 @@ Node 28 (Node 4 EmptyTree (Node 8 EmptyTree (Node 12 EmptyTree (Node 20 EmptyTre
 
 <p>注意到 <code>'</code> 在这边并没有特别的意思，他只是用来表示他跟另一个东西有点像，只有一点点差别而已。</p>
 
-<p>你可以自己试试看把 <code>Map k</code> 变成 <code>Functor</code> 的一个 instnace。</p>
+<p>你可以自己试试看把 <code>Map k</code> 变成 <code>Functor</code> 的一个 instance。</p>
 
 <p>看过了 <code>Functor</code> 这个 typeclass，我们知道 typeclass 可以拿来代表高端的概念。我们也练习过不少 partially applying type 跟定义 instance。在下几章中，我们也会看到 functor 必须要遵守的定律。</p>
 
@@ -911,7 +912,7 @@ Barry :: (* -&gt; *) -&gt; * -&gt; * -&gt; *</pre>
 
             <ul class="nav">
                 <li class="left">  <img src="../img/prv.png" alt="prev" /><a href="modules.html">模块 (Modules)</a></li>
-                <li class="center"><a href="chapters.html">Index</a></li>
+                <li class="center"><a href="chapters.html">目录</a></li>
                 <li class="right"> <a href="input-and-output.html">输入与输出</a><img src="../img/nxt.png" alt="next" /></li>
             </ul>
         </div>

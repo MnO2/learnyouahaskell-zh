@@ -29,7 +29,7 @@
                 })
             });
         </script>
-        <script type="text/javascript">
+        <script defer type="text/javascript">
             var _gaq = _gaq || [];
             _gaq.push(['_setAccount', 'UA-32830659-1']);
             _gaq.push(['_trackPageview']);
@@ -50,7 +50,7 @@
         <div id="main">
             <ul class="nav">
                 <li class="left">  <img src="../img/prv.png" alt="prev" /><a href="functionally-solving-problems.html">函数式地思考来解决问题</a></li>
-                <li class="center"><a href="chapters.html">Index</a></li>
+                <li class="center"><a href="chapters.html">目录</a></li>
                 <li class="right"> <a href="a-fistful-of-monads.html">来看看几种 Monad</a><img src="../img/nxt.png" alt="next" /></li>
             </ul>
             <a name="Functors,_Applicative_Functors_与_Monoids"></a><h1>Functors, Applicative Functors 与 Monoids</h1>
@@ -64,12 +64,12 @@
 <img src="../img/frogtor.png" alt="" style="float:right" class="floatright" />
 <p>我们已经在之前的章节提到 functors。如果你还没读那个章节，也许你应该先去看看。或是你直接假装你已经读过了。</p>
 
-<p>来快速复习一下：Functors 是可以被 map over 的对象，像是 lists，<code>Maybe</code>，trees 等等。在 Haskell 中我们是用 <code>Functor</code> 这个 typeclass 来描述他。这个 typeclass 只有一个 method，叫做 <code>fmap</code>，他的型态是 <code>fmap :: (a -&gt; b) -&gt;  fa -&gt; f b</code>。这型态说明了如果给我一个从 <code>a</code> 映到 <code>b</code> 的函数，以及一个装了 <code>a</code> 的盒子，我会回给你一个装了 <code>b</code> 的盒子。就好像用这个函数将每个元素都转成 <code>b</code> 一样</p>
+<p>来快速复习一下：Functors 是可以被 map over 的对象，像是 lists，<code>Maybe</code>，trees 等等。在 Haskell 中我们是用 <code>Functor</code> 这个 typeclass 来描述他。这个 typeclass 只有一个 method，叫做 <code>fmap</code>，他的型态是 <code>fmap :: (a -&gt; b) -&gt;  f a -&gt; f b</code>。这型态说明了如果给我一个从 <code>a</code> 映到 <code>b</code> 的函数，以及一个装了 <code>a</code> 的盒子，我会回给你一个装了 <code>b</code> 的盒子。就好像用这个函数将每个元素都转成 <code>b</code> 一样</p>
 <blockquote>
 <p><b>给一点建议</b>。这盒子的比喻尝试让你抓到些 functors 是如何运作的感觉。在之后我们也会用相同的比喻来比喻 applicative functors 跟 monads。在多数情况下这种比喻是恰当的，但不要过度引申，有些 functors 是不适用这个比喻的。一个比较正确的形容是 functors 是一个计算语境（computational context）。这个语境可能是这个 computation 可能带有值，或是有可能会失败（像 <code>Maybe</code> 跟 <code>Either a</code>），或是他可能有多个值（像 lists），等等。</p>
 </blockquote>
 
-<p>如果一个 type constructor 要是 <code>Functor</code> 的 instance，那他的 kind 必须是 <code>* -&gt; *</code>，这代表他必须刚好接受一个 type 当作 type parameter。像是 <code>Maybe</code> 可以是 Functor 的一个 instance，因为他接受一个 type parameter，来做成像是 <code>Maybe Int</code>，或是 <code>Maybe String</code>。如果一个 type constructor 接受两个参数，像是 <code>Either</code>，我们必须给他两个 type parameter。所以我们不能这样写：<code>instance Functor Either where</code>，但我们可以写 <code>instance Functor (Either a) where</code>，如果我们把 <code>fmap</code> 限缩成只是 <code>Either a</code> 的，那他的型态就是 <code>fmap :: (b -&gt; c) -&gt; Either a b -&gt; Either a c</code>。就像你看到的，<code>Either a</code> 的是固定的一部分，因为 <code>Either a</code> 只恰好接受一个 type parameter，但 <code>Either</code> 则要接球两个 type parameters。这样 fmap 的型态变成 <code>fmap :: (b -&gt; c) -&gt; Either b -&gt; Either c</code>，这不太合理。</p>
+<p>如果一个 type constructor 要是 <code>Functor</code> 的 instance，那他的 kind 必须是 <code>* -&gt; *</code>，这代表他必须刚好接受一个 type 当作 type parameter。像是 <code>Maybe</code> 可以是 Functor 的一个 instance，因为他接受一个 type parameter，来做成像是 <code>Maybe Int</code>，或是 <code>Maybe String</code>。如果一个 type constructor 接受两个参数，像是 <code>Either</code>，我们必须给他两个 type parameter。所以我们不能这样写：<code>instance Functor Either where</code>，但我们可以写 <code>instance Functor (Either a) where</code>，如果我们把 <code>fmap</code> 限缩成只是 <code>Either a</code> 的，那他的型态就是 <code>fmap :: (b -&gt; c) -&gt; Either a b -&gt; Either a c</code>。就像你看到的，<code>Either a</code> 的是固定的一部分，因为 <code>Either a</code> 只恰好接受一个 type parameter，但 <code>Either</code> 则要接受两个 type parameters。这样 fmap 的型态变成 <code>fmap :: (b -&gt; c) -&gt; Either b -&gt; Either c</code>，这不太合理。</p>
 
 <p>我们知道有许多态态都是 <code>Functor</code> 的 instance，像是 <code>[]</code>，<code>Maybe</code>，<code>Either a</code> 以及我们自己写的 <code>Tree</code>。我们也看到了如何用一个函数 map 他们。在这一章节，我们再多举两个例子，也就是 <code>IO</code> 跟 <code>(-&gt;) r</code>。</p>
 
@@ -104,12 +104,12 @@
 import Data.List  
   
 main = do line &lt;- fmap (intersperse '-' . reverse . map toUpper) getLine  
-        putStrLn line</pre><pre class="code">$ runhaskell fmapping_io.hs  
+          putStrLn line</pre><pre class="code">$ runhaskell fmapping_io.hs  
 hello there  
 E-R-E-H-T- -O-L-L-E-H</pre>
 <p>正如你想的，<code>intersperse '-' . reverse . map toUpper</code> 合成了一个 function，他接受一个字串，将他转成大写，然后反过来，再用 <code>intersperse '-'</code> 安插'-'。他是比较漂亮版本的 <code>(\xs -&gt; intersperse '-' (reverse (map toUpper xs)))</code>。</p>
 
-<p>另一个 <code>Functor</code> 的案例是 <code>(-&gt;) r</code>，只是我们先前没有注意到。你可能会困惑到底 <code>(-&gt;) r</code> 究竟代表什么？一个 <code>r -&gt; a</code> 的型态可以写成 <code>(-&gt;) r a</code>，就像是 <code>2 + 3</code> 可以写成 <code>(+) 2 3</code> 一样。我们可以从一个不同的角度来看待 <code>(-&gt;) r a</code>，他其实只是一个接受两个参数的 type constructor，好比 <code>Either</code>。但记住我们说过 <code>Functor</code> 只能接受一个 type constructor。这也是为什么 <code>(-&gt;)</code> 不是 <code>Functor</code> 的一个 instance，但 <code>(-&gt;) r</code> 则是。如果程序的语法允许的话，你也可以将 <code>(-&gt;) r</code> 写成(r -&gt;)。就如 <code>(2+)</code> 代表的其实是 <code>(+) 2</code>。至于细节是如何呢？我们可以看看 <code>Control.Monad.Instances</code>。</p>
+<p>另一个 <code>Functor</code> 的案例是 <code>(-&gt;) r</code>，只是我们先前没有注意到。你可能会困惑到底 <code>(-&gt;) r</code> 究竟代表什么？一个 <code>r -&gt; a</code> 的型态可以写成 <code>(-&gt;) r a</code>，就像是 <code>2 + 3</code> 可以写成 <code>(+) 2 3</code> 一样。我们可以从一个不同的角度来看待 <code>(-&gt;) r a</code>，他其实只是一个接受两个参数的 type constructor，好比 <code>Either</code>。但记住我们说过 <code>Functor</code> 只能接受一个 type constructor。这也是为什么 <code>(-&gt;)</code> 不是 <code>Functor</code> 的一个 instance，但 <code>(-&gt;) r</code> 则是。如果程序的语法允许的话，你也可以将 <code>(-&gt;) r</code> 写成 <code>(r -&gt;)</code>。就如 <code>(2+)</code> 代表的其实是 <code>(+) 2</code>。至于细节是如何呢？我们可以看看 <code>Control.Monad.Instances</code>。</p>
 <blockquote>
 <p>我们通常说一个接受任何东西以及回传随便一个东西的函数型态是 <code>a -&gt; b</code>。<code>r -&gt; a</code> 是同样意思，只是把符号代换了一下。</p>
 </blockquote>
@@ -276,7 +276,7 @@ ghci&gt; fmap (\f -&gt; f 9) a
 
 <p>第一个定义的是 <code>pure</code>。他的类型宣告是 <code>pure :: a -&gt; f a</code>。<code>f</code> 代表 applicative functor 的 instance。由于 Haskell 有一个优秀的类型系统，其中函数又是将一些参数映射成结果，我们可以从类型宣告中读出许多消息。<code>pure</code> 应该要接受一个值，然后回传一个包含那个值的 applicative functor。我们这边是用盒子来作比喻，即使有一些比喻不完全符合现实的情况。尽管这样，<code>a -&gt; f a</code> 仍有许多丰富的信息，他确实告诉我们他会接受一个值并回传一个 applicative functor，里面装有结果。</p>
 
-<p>对于 <code>pure</code> 比较好的书法是把一个普通值放到一个缺省的 context 下，一个最小的 context 但仍然包含这个值。</p>
+<p>对于 <code>pure</code> 比较好的说法是把一个普通值放到一个缺省的 context 下，一个最小的 context 但仍然包含这个值。</p>
 
 <p><code>&lt;*&gt;</code> 也非常有趣。他的类型是 <code>f (a -&gt; b) -&gt; f a -&gt; f b</code>。这有让你联想到什么吗？没错！就是 <code>fmap :: (a -&gt; b) -&gt; f a -&gt; f b</code>。他有点像加强版的 <code>fmap</code>。然而 <code>fmap</code> 接受一个函数跟一个 functor，然后套用 functor 之中的函数。<code>&lt;*&gt;</code> 则是接受一个装有函数的 functor 跟另一个 functor，然后取出第一个 functor 中的函数将他对第二个 functor 中的值做 map。</p>
 
@@ -289,7 +289,7 @@ ghci&gt; fmap (\f -&gt; f 9) a
 
 <p>首先看到 <code>pure</code>。他只不过是接受一个东西然后包成 applicative functor。我们写成 <code>pure = Just</code> 是因为 <code>Just</code> 不过就是一个普通函数。我们其实也可以写成 <code>pure x = Just x</code>。</p>
 
-<p>接着我们定义了 <code>&lt;*&gt;</code>。我们无法从 <code>Nothing</code> 中抽出一个涮，因为 <code>Nothing</code> 并不包含一个函数。所以我们说如果我们要尝试从 <code>Nothing</code> 中取出一个函数，结果必定是 <code>Nothing</code>。如果你看看 <code>Applicative</code> 的定义，你会看到他有 <code>Functor</code> 的限制，他代表 <code>&lt;*&gt;</code> 的两个参数都会是 functors。如果第一个参数不是 <code>Nothing</code>，而是一个装了函数的 <code>Just</code>，而且我们希望将这个函数对第二个参数做 map。这个也考虑到第二个参数是 <code>Nothing</code> 的情况，因为 <code>fmap</code> 任何一个函数至 <code>Nothing</code> 会回传 <code>Nothing</code>。</p>
+<p>接着我们定义了 <code>&lt;*&gt;</code>。我们无法从 <code>Nothing</code> 中抽出一个函数，因为 <code>Nothing</code> 并不包含一个函数。所以我们说如果我们要尝试从 <code>Nothing</code> 中取出一个函数，结果必定是 <code>Nothing</code>。如果你看看 <code>Applicative</code> 的定义，你会看到他有 <code>Functor</code> 的限制，他代表 <code>&lt;*&gt;</code> 的两个参数都会是 functors。如果第一个参数不是 <code>Nothing</code>，而是一个装了函数的 <code>Just</code>，而且我们希望将这个函数对第二个参数做 map。这个也考虑到第二个参数是 <code>Nothing</code> 的情况，因为 <code>fmap</code> 任何一个函数至 <code>Nothing</code> 会回传 <code>Nothing</code>。</p>
 
 <p>对于 <code>Maybe</code> 而言，如果左边是 <code>Just</code>，那 <code>&lt;*&gt;</code> 会从其中抽出了一个函数来 map 右边的值。如果有任何一个参数是 <code>Nothing</code>。那结果便是 <code>Nothing</code>。</p>
 
@@ -317,10 +317,10 @@ Nothing</pre><img src="../img/whale.png" alt="" style="float:right" class="float
 
 <p>这样很棒吧！用 applicative style 的方式来使用 applicative functors。像是 <code>pure f &lt;*&gt; x &lt;*&gt; y &lt;*&gt; ...</code> 就让我们可以拿一个接受多个参数的函数，而且这些参数不一定是被包在 functor 中。就这样来套用在多个在 functor context 的值。这个函数可以吃任意多的参数，毕竟 <code>&lt;*&gt;</code> 只是做 partial application 而已。</p>
 
-<p>如果我们考虑到 <code>pure f &lt;*&gt; x</code> 等于 <code>fmap f x</code> 的话，这样的用法就更方便了。这是 applicative laws 的其中一条。我们稍后会更仔细地查看这条定律。现在我们先依直觉来使用他。就像我们先前所说的，<code>pure</code> 把一个值放进一个缺省的 context 中。如果我们要把一个函数放在一个缺省的 context，然后把他取出并套用在放在另一个 applicative functor 的值。我们会做的事就是把函数 map over 那个 applicative functor。但我们不会写成 <code>pure f &lt;*&gt; x &lt;*&gt; y &lt;*&gt; ...</code>，而是写成 <code>fmap f x &lt;*&gt; y &lt;*&gt; ...</code>。这也是为什么 <code>Control.Aaplicative</code> 会 export 一个函数 <code>&lt;$&gt;</code>，他基本上就是中缀版的 <code>fmap</code>。他是这么被定义的：</p>
+<p>如果我们考虑到 <code>pure f &lt;*&gt; x</code> 等于 <code>fmap f x</code> 的话，这样的用法就更方便了。这是 applicative laws 的其中一条。我们稍后会更仔细地查看这条定律。现在我们先依直觉来使用他。就像我们先前所说的，<code>pure</code> 把一个值放进一个缺省的 context 中。如果我们要把一个函数放在一个缺省的 context，然后把他取出并套用在放在另一个 applicative functor 的值。我们会做的事就是把函数 map over 那个 applicative functor。但我们不会写成 <code>pure f &lt;*&gt; x &lt;*&gt; y &lt;*&gt; ...</code>，而是写成 <code>fmap f x &lt;*&gt; y &lt;*&gt; ...</code>。这也是为什么 <code>Control.Applicative</code> 会 export 一个函数 <code>&lt;$&gt;</code>，他基本上就是中缀版的 <code>fmap</code>。他是这么被定义的：</p>
 <pre class="code">(&lt;$&gt;) :: (Functor f) =&gt; (a -&gt; b) -&gt; f a -&gt; f b  
 f &lt;$&gt; x = fmap f x</pre><blockquote>
-<p>要记住类型变量跟参数的名字还有值绑定的名称不冲突。<code>f</code> 在函数的类型宣告中是类型变量，说名 <code>f</code> 应该要满足 <code>Functor</code> typeclass 的条件。而在函数本体中的 <code>f</code> 则表示一个函数，我们将他 map over x。我们同样用 <code>f</code> 来表示他们并代表他们是相同的东西。</p>
+<p>要记住类型变量跟参数的名字还有值绑定的名称不冲突。<code>f</code> 在函数的类型宣告中是类型变量，说明 <code>f</code> 应该要满足 <code>Functor</code> typeclass 的条件。而在函数本体中的 <code>f</code> 则表示一个函数，我们将他 map over x。我们同样用 <code>f</code> 来表示他们并代表他们是相同的东西。</p>
 </blockquote>
 
 <p><code>&lt;$&gt;</code> 的使用显示了 applicative style 的好处。如果我们想要将 <code>f</code> 套用三个 applicative functor。我们可以写成 <code>f &lt;$&gt; x &lt;*&gt; y &lt;*&gt; z</code>。如果参数不是 applicative functor 而是普通值的话。我们则写成 <code>f x y z</code>。</p>
@@ -372,7 +372,7 @@ Just "Hey"</pre>
 [55,80,100,110]</pre>
 <p>很容易看到 <code>pure f &lt;*&gt; xs</code> 等价于 <code>fmap f xs</code>。而 <code>pure f</code> 就是 <code>[f]</code>，而且 <code>[f] &lt;*&gt; xs</code> 可将左边的每个函数套用至右边的每个值。但左边其实只有一个函数，所以他做起来就像是 mapping。</p>
 
-<p>另一个我们已经看过的 <code>Applicative</code> 的 instnace 是 <code>IO</code>，来看看他是怎么实作的：</p>
+<p>另一个我们已经看过的 <code>Applicative</code> 的 instance 是 <code>IO</code>，来看看他是怎么实作的：</p>
 <pre class="code">instance Applicative IO where  
     pure = return  
     a &lt;*&gt; b = do  
@@ -412,7 +412,7 @@ myAction = (++) &lt;$&gt; getLine &lt;*&gt; getLine</pre>
 <pre class="code">instance Applicative ((-&gt;) r) where  
     pure x = (\_ -&gt; x)  
     f &lt;*&gt; g = \x -&gt; f x (g x)</pre>
-<p>当我们用 <code>pure</code> 将一个值包成 applicative functor 的时候，他产生的结果永远都会是那个值。也就是最小的 context。那夜市为什么对于 function 的 <code>pure</code> 实作来讲，他就是接受一个值，然后造一个函数永远回传那个值，不管他被喂了什么参数。如果你限定 <code>pure</code> 的类型至 <code>(-&gt;) r</code> 上，他就会是 <code>pure :: a -&gt; (r -&gt; a)</code>。</p>
+<p>当我们用 <code>pure</code> 将一个值包成 applicative functor 的时候，他产生的结果永远都会是那个值。也就是最小的 context。那也是为什么对于 function 的 <code>pure</code> 实作来讲，他就是接受一个值，然后造一个函数永远回传那个值，不管他被喂了什么参数。如果你限定 <code>pure</code> 的类型至 <code>(-&gt;) r</code> 上，他就会是 <code>pure :: a -&gt; (r -&gt; a)</code>。</p>
 <pre class="code">ghci&gt; (pure 3) "blah"  
 3</pre>
 <p>由于 currying 的关系，函数套用是 left-associative，所以我们忽略掉括弧。</p>
@@ -484,7 +484,7 @@ sequenceA (x:xs) = (:) &lt;$&gt; x &lt;*&gt; sequenceA xs</pre>
 <p>另一种实作 <code>sequenceA</code> 的方式是用 fold。要记得几乎任何需要走遍整个 list 并 accumulate 成一个结果的都可以用 fold 来实作。</p>
 <pre class="code">sequenceA :: (Applicative f) =&gt; [f a] -&gt; f [a]  
 sequenceA = foldr (liftA2 (:)) (pure [])</pre>
-<p>我们从右往左走，并且起始的 acuumulator 是用 <code>pure []</code>。我们是用 <code>liftA2 (:)</code> 来结合 accumulator 跟 list 中最后的元素，而得到一个 applicative，里面装有一个单一元素的一个 list。然后我们再用 <code>liftA2 (:)</code> 来结合 accumulator 跟最后一个元素，最直到我们只剩下 accumulator 为止，而得到一个 applicative，里面装有所有结果。</p>
+<p>我们从右往左走，并且起始的 accumulator 是用 <code>pure []</code>。我们是用 <code>liftA2 (:)</code> 来结合 accumulator 跟 list 中最后的元素，而得到一个 applicative，里面装有一个单一元素的一个 list。然后我们再用 <code>liftA2 (:)</code> 来结合 accumulator 跟最后一个元素，直到我们只剩下 accumulator 为止，而得到一个 applicative，里面装有所有结果。</p>
 
 <p>我们来试试看套用在不同 applicative 上。</p>
 <pre class="code">ghci&gt; sequenceA [Just 3, Just 2, Just 1]  
@@ -596,7 +596,7 @@ woo
 <pre class="code">data ZipList a = ZipList [a]</pre>
 <p>也就是一个只有一个值构造子的类型而且那个构造子里面只有一个字段。我们也可以用 record syntax 来定义一个解开的函数：</p>
 <pre class="code">data ZipList a = ZipList { getZipList :: [a] }</pre>
-<p>这样听起来不错。这样我们就有两种方式来让一个类型来表现一个 typeclass，我们可以用 <code>data</code> 关键自来把一个类型包在另一个里面，然后再将他定义成第二种表现方式。</p>
+<p>这样听起来不错。这样我们就有两种方式来让一个类型来表现一个 typeclass，我们可以用 <code>data</code> 关键字来把一个类型包在另一个里面，然后再将他定义成第二种表现方式。</p>
 
 <p>而在 Haskell 中 <code>newtype</code> 正是为了这种情形，我们想将一个类型包在另一个类型中。在实际的函式库中 <code>ZipList a</code> 是这样定义了：</p>
 <pre class="code">newtype ZipList a = ZipList { getZipList :: [a] }</pre>
@@ -627,7 +627,7 @@ False</pre>
 <a name="Using_newtype_to_make_type_class_instances"></a><h3>Using newtype to make type class instances</h3>
 
 
-<p>有好几次我们想要让我们的类型属于某个 typeclass，但类型变量并没有符合我们想要的。要把 <code>Maybe</code> 定义成 <code>Functor</code> 的 instnace 很容易，因为 <code>Functor</code> 这个 typeclass 被定义如下：</p>
+<p>有好几次我们想要让我们的类型属于某个 typeclass，但类型变量并没有符合我们想要的。要把 <code>Maybe</code> 定义成 <code>Functor</code> 的 instance 很容易，因为 <code>Functor</code> 这个 typeclass 被定义如下：</p>
 <pre class="code">class Functor f where  
     fmap :: (a -&gt; b) -&gt; f a -&gt; f b</pre>
 <p>我们先定义如下：</p>
@@ -636,7 +636,7 @@ False</pre>
 <pre class="code">fmap :: (a -&gt; b) -&gt; Maybe a -&gt; Maybe b</pre><img src="../img/shamrock.png" alt="" style="float:right" class="floatright" />
 <p>看起来不错吧？现在我们想要 tuple 成为 <code>Functor</code> 的一个 instance，所以当我们用 <code>fmap</code> 来 map over 一个 tuple 时，他会先套用到 tuple 中的第一个元素。这样当我们做 <code>fmap (+3) (1,1)</code> 会得到 <code>(4,1)</code>。不过要定义出这样的 instance 有些困难。对于 <code>Maybe</code>，我们只要写 <code>instance Functor Maybe where</code>，这是因为对于只吃一个参数的类型构造子我们很容易定义成 <code>Functor</code> 的 instance。但对于 <code>(a,b)</code> 这样的就没办法。要绕过这样的困境，我们可以用 <code>newtype</code> 来重新定义我们的 tuple，这样第二个类型参数就代表了 tuple 中的第一个元素部份。</p>
 <pre class="code">newtype Pair b a = Pair { getPair :: (a,b) }</pre>
-<p>现在我们可以将他定义成 <code>Functor</code> 的 instnace，所以函数被 map over tuple 中的第一个部份。</p>
+<p>现在我们可以将他定义成 <code>Functor</code> 的 instance，所以函数被 map over tuple 中的第一个部份。</p>
 <pre class="code">instance Functor (Pair c) where  
     fmap f (Pair (x,y)) = Pair (f x, y)</pre>
 <p>正如你看到的，我们可以对 newtype 定义的类型做模式匹配。我们用模式匹配来拿到底层的 tuple，然后我们将 <code>f</code> 来套用至 tuple 的第一个部份，然后我们用 <code>Pair</code> 这个值构造子来将 tuple 转换成 <code>Pair b a</code>。如果我们问 <code>fmap</code> 的类型究竟是什么，他会是：</p>
@@ -656,18 +656,18 @@ ghci&gt; getPair $ fmap reverse (Pair ("london calling", 3))
 <p>就像我们之前说得，Haskell 缺省是具备 lazy 的特性，这代表只有当我们要将函数的结果印出来的时候计算才会发生。或者说，只有当我们真的需要结果的时候计算才会发生。在 Haskell 中 <code>undefined</code> 代表会造成错误的计算。如果我们试着计算他，也就是将他印到终端中，Haskell 会丢出错误。</p>
 <pre class="code">ghci&gt; undefined  
 *** Exception: Prelude.undefined</pre>
-<p>然而，如果我们做一个 list，其中包含一些 <code>undefined</code> 的值，但却邀邱一个不是 <code>undefined</code> 的 head，那一切都会顺利地被计算，因为 Haskell 并不需要 list 中其他元素来得到结果。我们仅仅需要看道地一个元素而已。</p>
+<p>然而，如果我们做一个 list，其中包含一些 <code>undefined</code> 的值，但却要求一个不是 <code>undefined</code> 的 head，那一切都会顺利地被计算，因为 Haskell 并不需要 list 中其他元素来得到结果。我们仅仅需要看到第一个元素而已。</p>
 <pre class="code">ghci&gt; head [3,4,5,undefined,2,undefined]  
 3</pre>
 <p>现在们考虑下面的类型：</p>
 <pre class="code">data CoolBool = CoolBool { getCoolBool :: Bool }</pre>
-<p>这是一个用 <code>data</code> 关键字定义的 algebraic data type。他有一个值建构子并只有一个类型为 <code>Bool</code> 的字段。我们写一个函数来对 <code>CoolBool</code> 做模式匹配，并回传一个 <code>"hello"</code> 的值。他并不会馆 <code>CoolBool</code> 中装的究竟是 <code>True</code> 或 <code>False</code>。</p>
+<p>这是一个用 <code>data</code> 关键字定义的 algebraic data type。他有一个值建构子并只有一个类型为 <code>Bool</code> 的字段。我们写一个函数来对 <code>CoolBool</code> 做模式匹配，并回传一个 <code>"hello"</code> 的值。他并不会管 <code>CoolBool</code> 中装的究竟是 <code>True</code> 或 <code>False</code>。</p>
 <pre class="code">helloMe :: CoolBool -&gt; String  
 helloMe (CoolBool _) = "hello"</pre>
 <p>这次我们不喂给这个函数一个普通的 <code>CoolBool</code>，而是丢给他一个 <code>undefined</code>。</p>
 <pre class="code">ghci&gt; helloMe undefined  
 "*** Exception: Prelude.undefined  "</pre>
-<p>结果收到了一个 Exception。是什么造成这个 Exception 的呢？用 <code>data</code> 定义的类型可以有好几个值构造子（尽管 <code>CoolBool</code> 只有一个）所以当我们要看看喂给函数的值是否是 <code>(CoolBool _)</code> 的形式，Haskell 会需要做一些基本的计算来看看是哪个值构造子备用到。但当我们计算 <code>undefined</code> 的时候，就算是一点也会丢出 Exception。</p>
+<p>结果收到了一个 Exception。是什么造成这个 Exception 的呢？用 <code>data</code> 定义的类型可以有好几个值构造子（尽管 <code>CoolBool</code> 只有一个）所以当我们要看看喂给函数的值是否是 <code>(CoolBool _)</code> 的形式，Haskell 会需要做一些基本的计算来看看是哪个值构造子被用到。但当我们计算 <code>undefined</code> 的时候，就算是一点也会丢出 Exception。</p>
 
 <p>我们不用 <code>data</code> 来定义 <code>CoolBool</code> 而用 <code>newtype</code>：</p>
 <pre class="code">newtype CoolBool = CoolBool { getCoolBool :: Bool }</pre>
@@ -680,14 +680,14 @@ helloMe (CoolBool _) = "hello"</pre>
 <a name="type_vs_newtype_vs_data"></a><h3>type vs newtype vs data</h3>
 
 
-<p>到目前为止，你也许对于 <code>type</code>,<code>data</code> 跟 <code>newtype</code>` 之间的差异还不是很了解，让我们快速复习一遍。</p>
+<p>到目前为止，你也许对于 <code>type</code>,<code>data</code> 跟 <code>newtype</code> 之间的差异还不是很了解，让我们快速复习一遍。</p>
 
 <p><code>type</code> 关键字是让我们定义 type synonyms。他代表我们只是要给一个现有的类型另一个名字，假设我们这样做：</p>
 <pre class="code">type IntList = [Int]</pre>
 <p>这样做可以允许我们用 <code>IntList</code> 的名称来指称 <code>[Int]</code>。我们可以交换地使用他们。但我们并不会因此有一个 <code>IntList</code> 的值构造子。因为 <code>[Int]</code> 跟 <code>IntList</code> 只是两种指称同一个类型的方式。我们在指称的时候用哪一个并无所谓。</p>
 <pre class="code">ghci&gt; ([1,2,3] :: IntList) ++ ([1,2,3] :: [Int])  
 [1,2,3,1,2,3]</pre>
-<p>当我们想要让 type signature 更清楚一些，给予我们更了解函数的 context 的时候，我们会定义 type synonyms。举例来说，当我们用一个类型为 <code>[(String,String)]</code> 的 association list 来代表一个电话簿的时候，我们可以定义一个 <code>PhoneBook1</code> 的 type synonym，这样 type signature 会比较容易读。</p>
+<p>当我们想要让 type signature 更清楚一些，给予我们更了解函数的 context 的时候，我们会定义 type synonyms。举例来说，当我们用一个类型为 <code>[(String,String)]</code> 的 association list 来代表一个电话簿的时候，我们可以定义一个 <code>PhoneBook</code> 的 type synonym，这样 type signature 会比较容易读。</p>
 
 <p><code>newtype</code> 关键字将现有的类型包成一个新的类型，大部分是为了要让他们可以是特定 typeclass 的 instance 而这样做。当我们使用 <code>newtype</code> 来包裹一个现有的类型时，这个类型跟原有的类型是分开的。如果我们将下面的类型用 <code>newtype</code> 定义：</p>
 <pre class="code">newtype CharList = CharList { getCharList :: [Char] }</pre>
@@ -703,7 +703,7 @@ helloMe (CoolBool _) = "hello"</pre>
 <a name="Monoids"></a><h2>Monoids</h2>
 
 
-<p>Haskell 中 typeclass 是用来表示一个类型之间共有的行为，是一种 interace。我们介绍过 <code>Eq</code>，他定义类型是否可以比较相等性，以及 <code>Ord</code>，他表示可以被排序的类型。还介绍了更有趣的像是 <code>Functor</code> 跟 <code>Applicative</code>。</p>
+<p>Haskell 中 typeclass 是用来表示一个类型之间共有的行为，是一种 interface。我们介绍过 <code>Eq</code>，他定义类型是否可以比较相等性，以及 <code>Ord</code>，他表示可以被排序的类型。还介绍了更有趣的像是 <code>Functor</code> 跟 <code>Applicative</code>。</p>
 
 <p>当我们定义一个类型时，我们会想说他应该要支持的行为。也就是表现的行为是什么，并且要让他属于哪些 typeclass。如果希望他可以比较相等与否，那我们就应该定义他成为 <code>Eq</code> 的一个 instance。如果我们想要看看类型是否是一种 functor，我们可以定义他是 <code>Functor</code> 的一个 instance。以此类推。</p>
 
@@ -729,7 +729,7 @@ ghci&gt; [] ++ [0.5, 2.5]
 </ul>
 
 
-<p>关于这两种操作还有另一个比较难察觉的性质就是，当我们对这个二元函数对三个以上的值操作并化见，函数套用的顺序并不会影响到结果。不论是 <code>(3 * 4) * 5</code> 或是 <code>3 * (4 * 5)</code>？两种方式都会得到 <code>60</code>。而 <code>++</code> 也是相同的。</p>
+<p>关于这两种操作还有另一个比较难察觉的性质就是，当我们对这个二元函数对三个以上的值操作并化简，函数套用的顺序并不会影响到结果。不论是 <code>(3 * 4) * 5</code> 或是 <code>3 * (4 * 5)</code>，两种方式都会得到 <code>60</code>。而 <code>++</code> 也是相同的。</p>
 <pre class="code">ghci&gt; (3 * 2) * (8 * 5)  
 240  
 ghci&gt; 3 * (2 * (8 * 5))  
@@ -740,7 +740,7 @@ ghci&gt; ("la" ++ "di") ++ "da"
 "ladida"</pre>
 <p>我们称呼这样的性质为结合律(associativity)。<code>*</code> 遵守结合律，<code>++</code> 也是。但 <code>-</code> 就不遵守。<code>(5 - 3) - 4</code> 跟 <code>5 - (3 - 4)</code> 得到的结果是不同的。</p>
 
-<p>注意到这些性质并具体地写下来，就可以得到 monoid。一个 monoid 是你有一个遵守结合绿的二元函数还有一个可以相对于那个函数作为 identity 的值。当某个值相对于一个函数是一个 identity，他表示当我们将这个值丢给函数时，结果永远会是另外一边的那个值本身。<code>1</code> 是相对于 <code>*</code> 的 identity，而 <code>[]</code> 是相对于 <code>++</code> 的 identity。在 Haskell 中还有许多其他的 monoid，这也是为什么我们定义了 <code>Monoid</code> 这个 typeclass。他描述了表现成 monoid 的那些类型。我们来看看这个 typeclass 是怎么被定义的：</p>
+<p>注意到这些性质并具体地写下来，就可以得到 monoid。一个 monoid 是你有一个遵守结合律的二元函数还有一个可以相对于那个函数作为 identity 的值。当某个值相对于一个函数是一个 identity，他表示当我们将这个值丢给函数时，结果永远会是另外一边的那个值本身。<code>1</code> 是相对于 <code>*</code> 的 identity，而 <code>[]</code> 是相对于 <code>++</code> 的 identity。在 Haskell 中还有许多其他的 monoid，这也是为什么我们定义了 <code>Monoid</code> 这个 typeclass。他描述了表现成 monoid 的那些类型。我们来看看这个 typeclass 是怎么被定义的：</p>
 <pre class="code">class Monoid m where  
     mempty :: m  
     mappend :: m -&gt; m -&gt; m  
@@ -798,7 +798,7 @@ ghci&gt; mempty :: [a]
 
 <p>由于 <code>mconcat</code> 有一个缺省的实作，我们将某个类型定义成 <code>Monoid</code> 的类型时就可以自动地得到缺省的实作。但对于 list 而言，<code>mconcat</code> 其实就是 <code>concat</code>。他接受一个装有 list 的 list，并把他用 <code>++</code> 来扁平化他。</p>
 
-<p>list 的 instnace 也遵守 monoid law。当我们有好几个 list 并且用 <code>mappend</code> 来把他们串起来，先后顺序并不是很重要，因为他们都是接在最后面。而且空的 list 也表现得如 identity 一样。注意到 monoid 并不要求 <code>a `mappend</code> b<code> 等于 </code>b mappend a。在 list 的情况下，他们明显不相等。</p>
+<p>list 的 instance 也遵守 monoid law。当我们有好几个 list 并且用 <code>mappend</code> 来把他们串起来，先后顺序并不是很重要，因为他们都是接在最后面。而且空的 list 也表现得如 identity 一样。注意到 monoid 并不要求 <code>a `mappend` b</code> 等于 <code>b `mappend` a</code>。在 list 的情况下，他们明显不相等。</p>
 <pre class="code">ghci&gt; "one" `mappend` "two"  
 "onetwo"  
 ghci&gt; "two" `mappend` "one"  
@@ -821,7 +821,7 @@ ghci&gt; 1 + (3 + 5)
 <p><code>Data.Monoid</code> 这个模块导出了两种类型，<code>Product</code> 跟 <code>Sum</code>。<code>Product</code> 定义如下：</p>
 <pre class="code">newtype Product a =  Product { getProduct :: a }  
     deriving (Eq, Ord, Read, Show, Bounded)</pre>
-<p>简单易懂，就是一个单一类型参数的 <code>newtype</code>，并 derive 一些性质。他的 <code>`Monoid</code> 的 instance 长得像这样：</p>
+<p>简单易懂，就是一个单一类型参数的 <code>newtype</code>，并 derive 一些性质。他的 <code>Monoid</code> 的 instance 长得像这样：</p>
 <pre class="code">instance Num a =&gt; Monoid (Product a) where  
     mempty = Product 1  
     Product x `mappend` Product y = Product (x * y)</pre>
@@ -845,7 +845,7 @@ ghci&gt; getSum . mconcat . map Sum $ [1,2,3]
 6</pre><a name="Any_and_ALL"></a><h3>Any and ALL</h3>
 
 
-<p>另一种可以有两种表示成 monoid 方式的类型是 <code>Bool</code>。第一种方式是将 <code>||</code> 当作二元函数，而 <code>False</code> 作为 identity。这样的意思是只要有任何一个参数是 <code>True</code> 他就回传 <code>True</code>，否则回传 <code>Falsse</code>。所以如果我们使用 <code>False</code> 作为 identity，他会在跟 <code>False</code> 做 OR 时回传 <code>False</code>，跟 <code>True</code> 做 OR 时回传 <code>True</code>。<code>Any</code> 这个 newtype 是 <code>Monoid</code> 的一个 instance，并定义如下：</p>
+<p>另一种可以有两种表示成 monoid 方式的类型是 <code>Bool</code>。第一种方式是将 <code>||</code> 当作二元函数，而 <code>False</code> 作为 identity。这样的意思是只要有任何一个参数是 <code>True</code> 他就回传 <code>True</code>，否则回传 <code>False</code>。所以如果我们使用 <code>False</code> 作为 identity，他会在跟 <code>False</code> 做 OR 时回传 <code>False</code>，跟 <code>True</code> 做 OR 时回传 <code>True</code>。<code>Any</code> 这个 newtype 是 <code>Monoid</code> 的一个 instance，并定义如下：</p>
 <pre class="code">newtype Any = Any { getAny :: Bool }  
     deriving (Eq, Ord, Read, Show, Bounded)</pre>
 <p>他的 instance 长得像这样：</p>
@@ -1023,7 +1023,7 @@ True</pre>
                                 F.foldMap f r</pre><img src="../img/accordion.png" alt="" style="float:right" class="floatright" />
 <p>我们是这样思考的：如果我们写一个函数，他接受树中的一个元素并回传一个 monoid，那我们要怎么简化整棵树到只有单一一个 monoid？当我们在对树做 <code>fmap</code> 的时候，我们将那函数套用至节点上，并递归地套用至左子树以及右子树。这边我们不只是 map 一个函数而已，我们还要求要把结果用 <code>mappend</code> 简化成只有单一一个 monoid 值。首先我们考虑树为空的情形，一棵没有值也没有子树的情形。由于没有值我们也没办法将他套用上面转换成 monoid 的函数，所以当树为空的时候，结果应该要是 <code>mempty</code>。</p>
 
-<p>在非空节点的情形下比较有趣，他包含一个值跟两棵子树。在这种情况下，我们递归地做 <code>foldMap</code>，用 <code>f</code> 来套用到左子树跟右子树上。药剂祝我们的 <code>foldMap</code> 只会得到单一的 monoid 值。我们也会套用 <code>f</code> 到节点中的值。这样我们就得到三个 monoid 值，有两个来自简化子树的结果，还有一个是套用 <code>f</code> 到节点中的值的结果。而我们需要将这三个值集成成单一个值。要达成这个目的我们使用 <code>mappend</code>，而且自然地会想到照左子树，节点值以及右子树的顺序来简化。</p>
+<p>在非空节点的情形下比较有趣，他包含一个值跟两棵子树。在这种情况下，我们递归地做 <code>foldMap</code>，用 <code>f</code> 来套用到左子树跟右子树上。要记住我们的 <code>foldMap</code> 只会得到单一的 monoid 值。我们也会套用 <code>f</code> 到节点中的值。这样我们就得到三个 monoid 值，有两个来自简化子树的结果，还有一个是套用 <code>f</code> 到节点中的值的结果。而我们需要将这三个值集成成单一个值。要达成这个目的我们使用 <code>mappend</code>，而且自然地会想到照左子树，节点值以及右子树的顺序来简化。</p>
 
 <p>注意到我们并不一定要提供一个将普通值转成 monoid 的函数。我们只是把他当作是 <code>foldMap</code> 的参数，我们要决定的只是如何套用那个函数，来把得到的 monoid 们简化成单一结果。</p>
 
@@ -1057,7 +1057,7 @@ False</pre>
 
             <ul class="nav">
                 <li class="left">  <img src="../img/prv.png" alt="prev" /><a href="functionally-solving-problems.html">函数式地思考来解决问题</a></li>
-                <li class="center"><a href="chapters.html">Index</a></li>
+                <li class="center"><a href="chapters.html">目录</a></li>
                 <li class="right"> <a href="a-fistful-of-monads.html">来看看几种 Monad</a><img src="../img/nxt.png" alt="next" /></li>
             </ul>
         </div>
