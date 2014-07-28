@@ -1397,7 +1397,7 @@ Frank {frankField = "YES"} :: Frank Char []
 
 由於 ``frankField`` 具有 ``a b`` 的型別。他的值必定有一個類似的型別。他們可能是 ``Just "HAHA"``，也就有 ``Maybe [Char]`` 的型別，或是他們可能是 ``['Y','E','S']``，他的型別是 ``[Char]``。（如果我們是用自己定義的 List 型別的話，那就會是 ``List Char``）。我們看到 ``Frank`` 值的型別對應到 ``Frank`` 的 kind。``[Char]`` 具有 ``*`` 的 kind，而 ``Maybe`` 則是 ``* -> *``。由於結果必須是個值，也就是他必須要是具體型別，因使他必須 fully applied，因此每個 ``Frank blah blaah`` 的值都會是 ``*`` 的 kind。
 
-要把 ``Frank`` 定義成 ``Tofu`` 的 instance 也是很簡單。我們看到 ``tofu`` 接受 ``j a``（例如 ``Maybe Int``）並回傳 ``t a j``。所以我們用 ``j`` 取代 ``Frank``，那結果就是 ``Frank Int Maybe``。
+要把 ``Frank`` 定義成 ``Tofu`` 的 instance 也是很簡單。我們看到 ``tofu`` 接受 ``j a``（例如 ``Maybe Int``）並回傳 ``t a j``。所以我們將 ``Frank`` 代入 ``t``，就得到 ``Frank Int Maybe``。
 
 {{
 instance Tofu Frank where
