@@ -3,26 +3,36 @@
 	/*padding: 0;*/
 }
 
-@media only screen
-and (min-device-width: 810px) {
+@font-face {
+  font-family: 'Noto Sans';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Noto Sans'), url(../fonts/NotoSansHant-Regular.otf) format('otf');
+}
+
+@media only screen and (min-device-width: 810px) {
 
 body {
-    font: normal 14px Optima, Ubuntu, Verdana, "Hiragino Sans GB", "wenquanyi micro hei", Arial,serif,Courier New,黑体;
+    font: normal 14px;
+    font-family: "Noto Sans", Optima, Ubuntu, Verdana, "Hiragino Sans GB", "wenquanyi micro hei", Arial,serif,Courier New,黑体;
 }
 
 h1 {
-    font: normal 60px Optima, Ubuntu, Verdana, "Hiragino Sans GB", "wenquanyi micro hei", georgia,Arial,serif,Courier New;
+    font: normal 60px;
+    font-family: "Noto Sans", Optima, Ubuntu, Verdana, "Hiragino Sans GB", "wenquanyi micro hei", georgia,Arial,serif,Courier New;
     line-height: 80px;
     margin-top: 30px;
 }
 
 h2 {
-    font: Optima, Ubuntu, Verdana, "Hiragino Sans GB", "wenquanyi micro hei", bold 30px Arial,serif;
+    font: bold 30px Arial,serif;
+    font-family: "Noto Sans", Optima, Ubuntu, Verdana, "Hiragino Sans GB", "wenquanyi micro hei";
     margin-top: 40px;
 }
 
 p {
-    font: normal 14px Optima, Ubuntu, Verdana, "Hiragino Sans GB", "wenquanyi micro hei", Arial, serif;
+    font: normal 14px;
+    font-family: "Noto Sans", Optima, Ubuntu, Verdana, "Hiragino Sans GB", "wenquanyi micro hei", Arial, serif;
     line-height: 25px;
     margin: 13px 0 13px 0;
 }
@@ -165,7 +175,7 @@ ul.nav {
     list-style-position: outside;
     height: 120px;
     margin-bottom: 25px;
-    font-family: sans-serif;
+    font-family: 'Noto Sans', sans-serif;
 }
 p + ul.nav {
     margin-top: 25px;
@@ -180,17 +190,17 @@ ul.nav .right  { text-align: right; float: right; right: 10px; }
 
 /**************************************************************/
 h1 {
-    font-family: sans-serif, serif;
+    font-family: 'Noto Sans', sans-serif, serif;
     margin-bottom: 20px;
 }
 
 h2 {
-    font-family: sans-serif, serif;
+    font-family: 'Noto Sans', sans-serif, serif;
     margin-bottom: 20px;
 }
 
 p {
-    font-family: Arial, serif;
+    font-family: 'Noto Sans', Arial, serif;
     line-height: 150%;
     margin: 24px 0 24px 0;
 }
