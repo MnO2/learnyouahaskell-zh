@@ -892,7 +892,7 @@ ghci&gt; :t Frank {frankField = "YES"}
 Frank {frankField = "YES"} :: Frank Char []</pre>
 <p>由于 <code>frankField</code> 具有 <code>a b</code> 的类型。他的值必定有一个类似的类型。他们可能是 <code>Just "HAHA"</code>，也就有 <code>Maybe [Char]</code> 的类型，或是他们可能是 <code>['Y','E','S']</code>，他的类型是 <code>[Char]</code>。（如果我们是用自己定义的 List 类型的话，那就会是 <code>List Char</code>）。我们看到 <code>Frank</code> 值的类型对应到 <code>Frank</code> 的 kind。<code>[Char]</code> 具有 <code>*</code> 的 kind，而 <code>Maybe</code> 则是 <code>* -&gt; *</code>。由于结果必须是个值，也就是他必须要是具体类型，因使他必须 fully applied，因此每个 <code>Frank blah blaah</code> 的值都会是 <code>*</code> 的 kind。</p>
 
-<p>要把 <code>Frank</code> 定义成 <code>Tofu</code> 的 instance 也是很简单。我们看到 <code>tofu</code> 接受 <code>j a</code>（例如 <code>Maybe Int</code>）并回传 <code>t a j</code>。所以我们用 <code>j</code> 取代 <code>Frank</code>，那结果就是 <code>Frank Int Maybe</code>。</p>
+<p>要把 <code>Frank</code> 定义成 <code>Tofu</code> 的 instance 也是很简单。我们看到 <code>tofu</code> 接受 <code>j a</code>（例如 <code>Maybe Int</code>）并回传 <code>t a j</code>。所以我们将 <code>Frank</code> 代入 <code>t</code>，就得到 <code>Frank Int Maybe</code>。</p>
 <pre class="code">instance Tofu Frank where
     tofu x = Frank x</pre><pre class="code">ghci&gt; tofu (Just 'a') :: Frank Char Maybe
 Frank {frankField = Just 'a'}
