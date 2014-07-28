@@ -212,7 +212,7 @@ search needle haystack =
   in foldl (\acc x -&gt; if take nlen x == needle then True else acc) False (tails haystack)</pre>
 <p>首先，对搜索的 List 调用 <code>tails</code>，然后遍历每个 List 来检查它是不是我们想要的.</p>
 
-<p>由此我们便实现了一个类似 <strong>isIndexOf</strong> 的函数，<strong>isInfixOf</strong> 从一个 List 中搜索一个子 List，若该 List 包含子 List，则返回 <code>True</code>.</p>
+<p>由此我们便实现了一个类似 <strong>isInfixOf</strong> 的函数，<strong>isInfixOf</strong> 从一个 List 中搜索一个子 List，若该 List 包含子 List，则返回 <code>True</code>.</p>
 <pre class="code">ghci&gt; "cat" `isInfixOf` "im a cat burglar"  
 True  
 ghci&gt; "Cat" `isInfixOf` "im a cat burglar"  
