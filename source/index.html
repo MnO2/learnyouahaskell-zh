@@ -1,139 +1,118 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="Haskell 趣學指南">
 
         <meta property="og:title" content="Haskell 趣學指南" />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="http://learnyouahaskell-zh-tw.csie.org" />
         <meta property="og:image" content="http://learnyouahaskell-zh-tw.csie.org/img/bird.png" />
 
-        <link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.1.1/css/bootstrap-combined.min.css" rel="stylesheet">
-        <link href="css/docs.css" rel="stylesheet">
+        <link rel="stylesheet" href="http://yui.yahooapis.com/pure/0.5.0/pure-min.css">
+
+        <!--[if lte IE 8]>
+            <link rel="stylesheet" href="http://yui.yahooapis.com/pure/0.5.0/grids-responsive-old-ie-min.css">
+        <![endif]-->
+        <!--[if gt IE 8]><!-->
+            <link rel="stylesheet" href="http://yui.yahooapis.com/pure/0.5.0/grids-responsive-min.css">
+        <!--<![endif]-->
+
+        <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css">
+
+        <!--[if lt IE 9]>
+            <script src="http://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7/html5shiv.js"></script>
+        <![endif]-->
+        
+        <link rel="stylesheet" href="css/home_style.css">
 
         <title>Haskell 趣學指南 (Learn You a Haskell for Great Good! 中文版)</title>
-        <style type="text/css">
-        @media only screen and (min-device-width: 810px) {
-          body > p {
-            margin: 10px 90px;
-          }
-        }
-        </style>
     </head>
-
-    <body>
-        <div id="fb-root"></div>
-        <script defer>(function(d, s, id) {
-          var js, fjs = d.getElementsByTagName(s)[0];
-          if (d.getElementById(id)) return;
-          js = d.createElement(s); js.id = id;
-          js.src = "//connect.facebook.net/en_US/all.js#xfbml=1&appId=463792080338063";
-          fjs.parentNode.insertBefore(js, fjs);
-        }(document, 'script', 'facebook-jssdk'));</script>
-
-        <div class="jumbotron masthead">
-            <div class="container">
-                <h1>Haskell 趣學指南</h1>
-                <p>Learn You a Haskell for Great Good 中文版</p>
-                <p class="langbox">
-                    <a href="zh-tw/chapters.html" class="btn btn-primary btn-large">正體中文</a>
-                    <a href="zh-cn/chapters.html" class="btn btn-primary btn-large">简体中文</a>
-                </p>
-                <ul class="masthead-links">
-                    <li><a href="https://github.com/learnyouahaskell-zh-tw/learnyouahaskell-zh-tw.github.com">GitHub</a></li>
-                    <li><a href="resource.html">Resource</a></li>
-                    <li><a href="faq.html">FAQ</a></li>
-                </ul>
-            </div>
-        </div>
-
-        <div class="bs-docs-social">
-            <div class="container">
-                <ul class="bs-docs-social-buttons">
-                    <li>
-                        <iframe class="github-btn" src="http://ghbtns.com/github-btn.html?user=learnyouahaskell-zh-tw&amp;repo=learnyouahaskell-zh-tw.github.com&amp;type=watch&amp;count=true" allowtransparency="true" frameborder="0" scrolling="no" width="100" height="20"></iframe>
-                    </li>
-                    <li class="tweet-btn">
-                        <g:plusone></g:plusone>
-                    </li>
-                    <li class="tweet-btn">
-                        <a href="https://twitter.com/share" class="twitter-share-button">Tweet</a>
-                    </li>
-                    <li class="tweet-btn">
-                        <div class="fb-like" data-href="http://learnyouahaskell-zh-tw.csie.org" data-send="true" data-layout="button_count" data-width="450" data-show-faces="false" data-font="arial"></div>
-                    </li>
-                    <li class="tweet-btn">
-                        <script type="text/javascript">
-                        (function(){
-                          var _w = 90 , _h = 24;
-                          var param = {
-                            url:location.href,
-                            type:'2',
-                            count:'1', /**是否显示分享数，1显示(可选)*/
-                            appkey:'', /**您申请的应用appkey,显示分享来源(可选)*/
-                            title:'', /**分享的文字内容(可选，默认为所在页面的title)*/
-                            pic:'', /**分享图片的路径(可选)*/
-                            ralateUid:'1926339783', /**关联用户的UID，分享微博会@该用户(可选)*/
-                            language:'zh_tw', /**设置语言，zh_cn|zh_tw(可选)*/
-                            rnd:new Date().valueOf()
-                          }
-                          var temp = [];
-                          for( var p in param ){
-                            temp.push(p + '=' + encodeURIComponent( param[p] || '' ) )
-                          }
-                          document.write('<iframe allowTransparency="true" frameborder="0" scrolling="no" src="http://hits.sinajs.cn/A1/weiboshare.html?' + temp.join('&') + '" width="'+ _w+'" height="'+_h+'"></iframe>')
-                        })()
-                        </script>
-                    </li>
-                </ul>
-            </div>
-        </div>
-
-        <hr class="soften">
-
-        <p class="marketing-byline">
-            這份翻譯是奠基於<a href="http://fleurer-lee.com">Fleurer</a>在 2008 年所翻譯的<a href="http://fleurer-lee.com/lyah/">前八章</a>，將其轉成繁體中文。並繼續翻譯第九章到第十四章，已於 2012 年 10 月完成第一版草稿。可以跟<a href="http://learnyouahaskell.com">原作英文版</a>搭配閱讀
-        </p>
-        <p class="marketing-byline">
-        繁體譯者為 <a href="http://blog-mno2.csie.org">MnO2</a>，電子郵件是 <a href="http://www.google.com/recaptcha/mailhide/d?k=01qGZzwCO24NRGxqCCNDU8ug==&amp;c=b_FCWrgYwvBQ1KAFkIYfRPtXvoKCSAXZr4osw7fRV_g=" onclick="window.open('http://www.google.com/recaptcha/mailhide/d?k\07501qGZzwCO24NRGxqCCNDU8ug\75\75\46c\75b_FCWrgYwvBQ1KAFkIYfRPtXvoKCSAXZr4osw7fRV_g\075', '', 'toolbar=0,scrollbars=0,location=0,statusbar=0,menubar=0,resizable=0,width=500,height=300'); return false;" title="Reveal this e-mail address">mno2...@gmail.com</a> ，或者你可以在 <a href="https://plus.google.com/103925382602424793947">google plus</a> 找到我。如果你對於整份教學想要更正，或者想要複製一份到自己的網站，可以從<a href="https://github.com/learnyouahaskell-zh-tw/learnyouahaskell-zh-tw.github.com/tree/source">這邊</a> <code>git clone</code> 一份，歡迎 patch 給我或直接寫 E-mail 跟我說明哪些地方可以改進。工具程式的部份是直接改寫 <a href="http://code.google.com/p/fdoc/" >Fleurer 所寫的小程式</a>，採用<a href="http://dev.perl.org/licenses/"> GPL/Artistic 雙授權</a>
-        </p>
-        <p class="marketing-byline">
-        如果你對 Haskell 十分有興趣，可以到<a href="https://plus.google.com/communities/103015857789020103513">這邊</a>加入Google Plus Community。或是到 <a href="http://webchat.freenode.net/">freenode</a> 上的頻道 <span>#haskell.tw</span> 加入一群 Haskell 的愛好者。
-        </p>
-        <p>最後更新時間: 2013/05/20</p>
-
-        <footer class="footer">
-        <div class="container">
-            <p class="pull-right"><a href="#">Back to top</a></p>
-            <p>Designed and built with all the love in the world <a href="http://twitter.com/twitter" target="_blank">@twitter</a> by <a href="http://twitter.com/mdo" target="_blank">@mdo</a> and <a href="http://twitter.com/fat" target="_blank">@fat</a>.</p>
-            <p>Icons from <a href="http://glyphicons.com">Glyphicons Free</a>, licensed under <a href="http://creativecommons.org/licenses/by/3.0/">CC BY 3.0</a>.</p>
-            <ul class="footer-links">
-                <li><a href="https://github.com/learnyouahaskell-zh-tw/learnyouahaskell-zh-tw.github.com/issues">Submit issues</a></li>
+<body>
+    <div class="header">
+        <div class="home-menu pure-menu pure-menu-open pure-menu-horizontal pure-menu-fixed">
+            <ul>
+                <li><a href="#">將 Mobi 版本送至 Kindle</a></li>
+                <li><a href="http://www.amazon.cn/%E6%96%B0%E9%94%90%E7%BC%96%E7%A8%8B%E8%AF%AD%E8%A8%80%E9%9B%86%E8%90%83-Haskell%E8%B6%A3%E5%AD%A6%E6%8C%87%E5%8D%97-%E5%88%A9%E6%B3%A2%E7%93%A6%E5%8D%A1/dp/B00HLA8UHC/ref=sr_1_1?ie=UTF8&qid=1407253375&sr=8-1&keywords=haskell">亞馬遜購買</a></li>
             </ul>
         </div>
-        </footer>
+    </div>
 
-        <script src="//netdna.bootstrapcdn.com/twitter-bootstrap/2.1.1/js/bootstrap.min.js"></script>
-        <script defer type="text/javascript">
-            window.___gcfg = {lang: 'zh-TW'};
-            (function() {
-                var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
-                po.src = 'https://apis.google.com/js/plusone.js';
-                var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
-            })();
-        </script>
-        <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");
-        </script>
-        <script defer type="text/javascript">
-            var _gaq = _gaq || [];
-            _gaq.push(['_setAccount', 'UA-32830659-1']);
-            _gaq.push(['_trackPageview']);
+    <div class="splash-container">
+        <div class="splash">
+            <h1 class="splash-head">Haskell 趣學指南</h1>
+            <p class="splash-subhead">Learn You a Haskell for Great Good 中文版</p>
+            <p>
+                <a href="http://purecss.io" class="pure-button pure-button-primary">繁體中文</a>
+                <a href="http://purecss.io" class="pure-button pure-button-primary">簡體中文</a>
+            </p>
+        </div>
+    </div>
 
-            (function() {
-                var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-                ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-                    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-            })();
-        </script>
-    </body>
+    <div class="content-wrapper">
+        <div class="content">
+            <h2 class="content-head is-center">有趣又好玩的程式語言</h2>
+
+            <div class="pure-g">
+                <div class="l-box pure-u-1 pure-u-md-1-2 pure-u-lg-1-4">
+                </div>
+                <div class="l-box pure-u-1 pure-u-md-1-2 pure-u-lg-2-4">
+                    <img src="img/lyah-elephant.jpg">
+                </div>
+                <div class="l-box pure-u-1 pure-u-md-1-2 pure-u-lg-1-4">
+                </div>
+            </div>
+        </div>
+
+        <div class="ribbon l-box-lrg pure-g">
+            <div class="l-box-lrg is-center pure-u-1 pure-u-md-1-2 pure-u-lg-2-5">
+            </div>
+            <div class="pure-u-1 pure-u-md-1-2 pure-u-lg-3-5">
+
+                <h2 class="content-head content-head-ribbon">Haskell 社群與貢獻者們</h2>
+
+                <p>
+                #haskell.tw
+                </p>
+            </div>
+        </div>
+
+        <div class="content">
+            <h2 class="content-head is-center">趕快來學 Haskell</h2>
+
+            <div class="pure-g">
+                <div class="l-box-lrg pure-u-1 pure-u-md-2-5">
+                    <h4>購買書籍</h4>
+                    <a href="http://www.amazon.cn/%E6%96%B0%E9%94%90%E7%BC%96%E7%A8%8B%E8%AF%AD%E8%A8%80%E9%9B%86%E8%90%83-Haskell%E8%B6%A3%E5%AD%A6%E6%8C%87%E5%8D%97-%E5%88%A9%E6%B3%A2%E7%93%A6%E5%8D%A1/dp/B00HLA8UHC/ref=sr_1_1?ie=UTF8&qid=1406737771&sr=8-1&keywords=Haskell">
+                    </a>
+                    
+                    <h4>Mobi 下載</h4>
+                    <a href="#"></a>
+
+                    <h4>將 Mobi 版送至 Kindle</h4>
+                    <a href=""></a>
+                </div>
+
+                <div class="l-box-lrg pure-u-1 pure-u-md-3-5">
+                    <h4>讓更多人知道</h4>
+                    <p>
+                    Google Plus
+                    Facebook
+                    Twitter
+                    </p>
+
+                    <h4>加入社群</h4>
+                    <p>
+                    Functional Thursday
+                    </p>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="footer l-box is-center">
+        </div>
+    </div>
+</body>
 </html>
