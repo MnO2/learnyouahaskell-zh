@@ -7,6 +7,7 @@ deploy_branch  = "master"
 
 public_dir      = "public"    # compiled site directory
 source_dir      = "source"    # source file directory
+ebook_dir       = "ebook"
 deploy_dir      = "_deploy"   # deploy directory (for Github pages deployment)
 server_port     = "5000"      # port for preview server eg. localhost:4000
 
@@ -24,6 +25,7 @@ task :generate do
   cp "#{source_dir}/CNAME", "#{public_dir}/CNAME"
   cp "#{source_dir}/img/favicon.png", "#{public_dir}/favicon.ico"
   cp "#{source_dir}/index.html", "#{public_dir}/index.html"
+  cp "#{ebook_dir}/lyah_zh.mobi", "#{public_dir}/zh-tw/lyah_zh_tw.mobi"
 end
 
 ##############
