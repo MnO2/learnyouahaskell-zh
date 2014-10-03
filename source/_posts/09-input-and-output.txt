@@ -197,7 +197,7 @@ main = do
     putStrLn $ a ++ " " ++ b
 }}
 
-可以看到 ``return`` 與 ``<-`` 作用相反。``return`` 把 value 裝進盒子中，而 ``<-`` 將 value 從盒子拿出來，並綁定一個名稱。不過這麼作是有些多餘，因為你可以用 let bindings 來綁定
+可以看到 ``return`` 與 ``<-`` 作用相反。``return`` 把 value 裝進盒子中，而 ``<-`` 將 value 從盒子拿出來，並綁定一個名稱。不過這麼做是有些多餘，因為你可以用 let bindings 來綁定
 {{
 main = do
     let a = "hell"
