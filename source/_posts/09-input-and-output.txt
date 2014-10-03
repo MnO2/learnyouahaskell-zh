@@ -275,7 +275,7 @@ ghci> print (map (++"!") ["hey", "ho", "woo"])
 ["hey!","ho!","woo!"]
 }}
 
-當我們需要打印出字串，我們會用 ``putStrLn``，因為我們不想要周圍有括號，但對於輸出值來說，``print`` 才是最常用的。
+當我們需要打印出字串，我們會用 ``putStrLn``，因為我們不想要周圍有引號，但對於輸出值來說，``print`` 才是最常用的。
 
 ``getChar`` 是一個從輸入讀進一個字元的 I/O action，因此他的 type signature 是 ``getChar :: IO Char``，代表一個 I/O action 的結果是 ``Char``。注意由於緩衝區的關係，只有當 Enter 被按下的時候才會觸發讀取字元的行為。
 {{
