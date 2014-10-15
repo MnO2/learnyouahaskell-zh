@@ -565,7 +565,7 @@ ghci> filter (not . any isSpace) . groupBy ((==) `on` isSpace) $ "hey guys its m
 
 啊哈.
 
-``Data.Char`` 中也含有與 ``Ordering`` 相似的型別。``Ordering`` 可以有兩個值，``LT``，``GT`` 和 ``EQ``。這就是個枚舉，它表示了兩個元素作比較可能的結果. ``GeneralCategory`` 型別也是個枚舉，它表示了一個字元可能所在的分類。而得到一個字元所在分類的主要方法就是使用  ``generalCategory``  函數.它的型別為: ``generalCategory :: Char -> GeneralCategory``。那 31 個分類就不在此一一列出了，試下這個函數先:
+``Data.Char`` 中也含有與 ``Ordering`` 相似的型別。``Ordering`` 可以有三個值，``LT``，``GT`` 和 ``EQ``。這就是個枚舉，它表示了兩個元素作比較可能的結果. ``GeneralCategory`` 型別也是個枚舉，它表示了一個字元可能所在的分類。而得到一個字元所在分類的主要方法就是使用  ``generalCategory``  函數.它的型別為: ``generalCategory :: Char -> GeneralCategory``。那 31 個分類就不在此一一列出了，試下這個函數先:
 
 {{
 ghci> generalCategory ' '  
