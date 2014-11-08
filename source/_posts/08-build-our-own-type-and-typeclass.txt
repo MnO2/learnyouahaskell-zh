@@ -222,7 +222,7 @@ data Person = Person { firstName :: String
                      } deriving (Show)
 }}
 
-與原先讓那些項一個挨一個的空格隔開不同，這裡用了花括號 ``{}``。先寫出項的名字，如 ``firstName``，後跟兩個冒號(也叫 Paamayim Nekudotayim，哈哈~(譯者不知道什麼意思~囧))，標明其型別，返回的數據型別仍與以前相同。這樣的好處就是，可以用函數從中直接按項取值。通過 Record Syntax，Haskell 就自動生成了這些函數：``firstName``, ``lastName``, ``age``, ``height``, ``phoneNumber`` 和 ``flavor``。
+與原先讓那些項一個挨一個的空格隔開不同，這裡用了花括號 ``{}``。先寫出項的名字，如 ``firstName``，後跟範圍解析運算子(原文為Paamayim Nekudotayim，意為double colon)，標明其型別，返回的數據型別仍與以前相同。這樣的好處就是，可以用函數從中直接按項取值。通過 Record Syntax，Haskell 就自動生成了這些函數：``firstName``, ``lastName``, ``age``, ``height``, ``phoneNumber`` 和 ``flavor``。
 
 {{
 ghci> :t flavor
