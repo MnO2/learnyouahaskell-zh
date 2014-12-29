@@ -238,7 +238,7 @@ False</pre>
 
 <p><strong>Floating</strong> 仅包含浮点类型：<code>Float</code> 和 <code>Double</code>。</p>
 
-<p>有个函数在处理数字时会非常有用，它便是 <strong>fromIntegral</strong>。其类型声明为： <code>fromIntegral :: (Num b, Integral a) =&gt; a -&gt; b</code>。从中可以看出，它取一个整数做参数并回传一个更加通用的数字，这在同时处理整数和浮点时会尤为有用。举例来说，<code>length</code> 函数的类型声明为：<code>length :: [a] -&gt; Int</code>，而非更通用的形式，如 <code>(Num b) =&gt; length :: [a] -&gt; b</code>。这应该是历史原因吧，反正我觉得挺蠢。如果取了一个 List 长度的值再给它加 3.2 就会报错，因为这是将浮点数和整数相加。面对这种情况，我们就用 <code>fromIntegral (length [1,2,3,4]) + 3.2</code> 来解决。</p>
+<p>有个函数在处理数字时会非常有用，它便是 <strong>fromIntegral</strong>。其类型声明为： <code>fromIntegral :: (Num b, Integral a) =&gt; a -&gt; b</code>。从中可以看出，它取一个整数做参数并回传一个更加通用的数字，这在同时处理整数和浮点时会尤为有用。举例来说，<code>length</code> 函数的类型声明为：<code>length :: [a] -&gt; Int</code>，而非更通用的形式，如 <code>length :: (Num b) =&gt; [a] -&gt; b</code>。这应该是历史原因吧，反正我觉得挺蠢。如果取了一个 List 长度的值再给它加 3.2 就会报错，因为这是将浮点数和整数相加。面对这种情况，我们就用 <code>fromIntegral (length [1,2,3,4]) + 3.2</code> 来解决。</p>
 
 <p>注意到，<code>fromIntegral</code> 的类型声明中用到了多个类型约束。如你所见，只要将多个类型约束放到括号里用逗号隔开即可。</p>
 

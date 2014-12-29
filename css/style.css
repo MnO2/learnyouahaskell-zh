@@ -10,7 +10,7 @@
   src: local('Noto Sans'), url(../fonts/NotoSansHant-Regular.otf) format('otf');
 }
 
-@media only screen and (min-device-width: 810px) {
+@media only screen {
 
 body {
     font: normal 14px;

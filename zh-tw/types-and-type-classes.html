@@ -238,7 +238,7 @@ False</pre>
 
 <p><strong>Floating</strong> 僅包含浮點型別：<code>Float</code> 和 <code>Double</code>。</p>
 
-<p>有個函數在處理數字時會非常有用，它便是 <strong>fromIntegral</strong>。其型別聲明為： <code>fromIntegral :: (Num b, Integral a) =&gt; a -&gt; b</code>。從中可以看出，它取一個整數做參數並回傳一個更加通用的數字，這在同時處理整數和浮點時會尤為有用。舉例來說，<code>length</code> 函數的型別聲明為：<code>length :: [a] -&gt; Int</code>，而非更通用的形式，如 <code>(Num b) =&gt; length :: [a] -&gt; b</code>。這應該是歷史原因吧，反正我覺得挺蠢。如果取了一個 List 長度的值再給它加 3.2 就會報錯，因為這是將浮點數和整數相加。面對這種情況，我們就用 <code>fromIntegral (length [1,2,3,4]) + 3.2</code> 來解決。</p>
+<p>有個函數在處理數字時會非常有用，它便是 <strong>fromIntegral</strong>。其型別聲明為： <code>fromIntegral :: (Num b, Integral a) =&gt; a -&gt; b</code>。從中可以看出，它取一個整數做參數並回傳一個更加通用的數字，這在同時處理整數和浮點時會尤為有用。舉例來說，<code>length</code> 函數的型別聲明為：<code>length :: [a] -&gt; Int</code>，而非更通用的形式，如 <code>length :: (Num b) =&gt; [a] -&gt; b</code>。這應該是歷史原因吧，反正我覺得挺蠢。如果取了一個 List 長度的值再給它加 3.2 就會報錯，因為這是將浮點數和整數相加。面對這種情況，我們就用 <code>fromIntegral (length [1,2,3,4]) + 3.2</code> 來解決。</p>
 
 <p>注意到，<code>fromIntegral</code> 的型別聲明中用到了多個型別約束。如你所見，只要將多個型別約束放到括號裡用逗號隔開即可。</p>
 

@@ -409,7 +409,7 @@ ghci&gt;</pre>
 ["hey","guys","its","me"]</pre>
 <p>啊哈.</p>
 
-<p><code>Data.Char</code> 中也含有与 <code>Ordering</code> 相似的类型。<code>Ordering</code> 可以有两个值，<code>LT</code>，<code>GT</code> 和 <code>EQ</code>。这就是个枚举，它表示了两个元素作比较可能的结果. <code>GeneralCategory</code> 类型也是个枚举，它表示了一个字符可能所在的分类。而得到一个字符所在分类的主要方法就是使用  <code>generalCategory</code>  函数.它的类型为: <code>generalCategory :: Char -&gt; GeneralCategory</code>。那 31 个分类就不在此一一列出了，试下这个函数先:</p>
+<p><code>Data.Char</code> 中也含有与 <code>Ordering</code> 相似的类型。<code>Ordering</code> 可以有三个值，<code>LT</code>，<code>GT</code> 和 <code>EQ</code>。这就是个枚举，它表示了两个元素作比较可能的结果. <code>GeneralCategory</code> 类型也是个枚举，它表示了一个字符可能所在的分类。而得到一个字符所在分类的主要方法就是使用  <code>generalCategory</code>  函数.它的类型为: <code>generalCategory :: Char -&gt; GeneralCategory</code>。那 31 个分类就不在此一一列出了，试下这个函数先:</p>
 <pre class="code">ghci&gt; generalCategory ' '  
 Space  
 ghci&gt; generalCategory 'A'  

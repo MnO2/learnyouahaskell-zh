@@ -1,0 +1,296 @@
+<p>=Types and Typeclasses #types-and-type-classes</p>
+
+<p>==Type</p>
+
+<p>[^../img/cow.png]</p>
+
+<p>之前我們有說過 Haskell 是 Static Type，這表示在編譯時期每個表達式的型別都已經確定下來，這提高了程式碼的安全性。若程式碼中有讓布林值與數字相除的動作，就不會通過編譯。這樣的好處就是與其讓程序在運行時崩潰，不如在編譯時就找出可能的錯誤。Haskell 中所有東西都有型別，因此在編譯的時候編譯器可以做到很多事情。</p>
+
+<p>與 Java 和 Pascal 不同，Haskell 支持型別推導。寫下一個數字，你就沒必要另告訴 Haskell 說&quot;它是個數字&quot;，它自己能推導出來。這樣我們就不必在每個函數或表達式上都標明其型別了。在前面我們只簡單涉及一下 Haskell 的型別方面的知識，但是理解這一型別系統對於 Haskell 的學習是至關重要的。</p>
+
+<p>型別是每個表達式都有的某種標籤，它標明了這一表達式所屬的範疇。例如，表達式 <code>True</code> 是 <code>boolean</code> 型，<code>&quot;hello&quot;</code>是個字串，等等。</p>
+
+<p>可以使用 ghci 來檢測表達式的型別。使用 <code>:t</code> 命令後跟任何可用的表達式，即可得到該表達式的型別，先試一下：</p>
+
+<p>{{
+ghci&gt; :t &#39;a&#39;<br>
+&#39;a&#39; :: Char<br>
+ghci&gt; :t True<br>
+True :: Bool<br>
+ghci&gt; :t &quot;HELLO!&quot;<br>
+&quot;HELLO!&quot; :: [Char]<br>
+ghci&gt; :t (True, &#39;a&#39;)<br>
+(True, &#39;a&#39;) :: (Bool, Char)<br>
+ghci&gt; :t 4 == 5<br>
+4 == 5 :: Bool
+}}</p>
+
+<p>[$../img/bomb.png]</p>
+
+<p>可以看出，<code>:t</code> 命令處理一個表達式的輸出結果為表達式後跟 <code>::</code> 及其型別，<code>::</code> 讀作&quot;它的型別為&quot;。凡是明確的型別，其首字母必為大寫。<code>&#39;a&#39;</code>, 如它的樣子，是 <code>Char</code> 型別，易知是個字元 (character)。<code>True</code> 是 <code>Bool</code> 型別，也靠譜。不過這又是啥，檢測 <code>&quot;hello&quot;</code> 得一個  <code>[Char]</code> 這方括號表示一個 List，所以我們可以將其讀作&quot;一組字元的 List&quot;。而與 List 不同，每個 Tuple 都是獨立的型別，於是 <code>(True,&#39;a&#39;)</code> 的型別是 <code>(Bool,Char)</code>，而 <code>(&#39;a&#39;,&#39;b&#39;,&#39;c&#39;)</code> 的型別為 <code>(Char,Char,Char)</code>。<code>4==5</code> 一定回傳 <code>False</code>，所以它的型別為 Bool。</p>
+
+<p>同樣，函數也有型別。編寫函數時，給它一個明確的型別聲明是個好習慣，比較短的函數就不用多此一舉了。還記得前面那個過濾大寫字母的 List Comprehension 嗎？給它加上型別聲明便是這個樣子：</p>
+
+<p>{{
+removeNonUppercase :: [Char] -&gt; [Char]<br>
+removeNonUppercase st = [ c | c &lt;- st, c <code>elem</code> [&#39;A&#39;..&#39;Z&#39;]]<br>
+}}</p>
+
+<p><code>removeNonUppercase</code> 的型別為 <code>[Char]-&gt;[Char]</code>，從它的參數和回傳值的型別上可以看出，它將一個字串映射為另一個字串。<code>[Char]</code> 與 <code>String</code> 是等價的，但使用 <code>String</code> 會更清晰：<code>removeNonUppercase :: String -&gt; String</code>。編譯器會自動檢測出它的型別，我們還是標明了它的型別聲明。要是多個參數的函數該怎樣？如下便是一個將三個整數相加的簡單函數。</p>
+
+<p>{{
+addThree :: Int -&gt; Int -&gt; Int -&gt; Int<br>
+addThree x y z = x + y + z<br>
+}}</p>
+
+<p>參數之間由 <code>-&gt;</code> 分隔，而與回傳值之間並無特殊差異。回傳值是最後一項，參數就是前三項。稍後，我們將講解為何只用 <code>-&gt;</code> 而不是 <code>Int,Int,Int-&gt;Int</code> 之類&quot;更好看&quot;的方式來分隔參數。</p>
+
+<p>如果你打算給你編寫的函數加上個型別聲明卻拿不準它的型別是啥，只要先不寫型別聲明，把函數體寫出來，再使用 <code>:t</code> 命令測一下即可。函數也是表達式，所以 <code>:t</code> 對函數也是同樣可用的。</p>
+
+<p>如下是幾個常見的型別：</p>
+
+<p><strong>Int</strong> 表示整數。7 可以是 Int，但 7.2 不可以。Int 是有界的，也就是說它由上限和下限。對 32 位的機器而言，上限一般是 <code>2147483647</code>，下限是 <code>-2147483648</code>。</p>
+
+<p><strong>Integer</strong> 表示...厄...也是整數，但它是無界的。這就意味着可以用它存放非常非常大的數，我是說非常大。它的效率不如 Int 高。</p>
+
+<p>{{
+factorial :: Integer -&gt; Integer<br>
+factorial n = product [1..n]<br>
+}}</p>
+
+<p>{{
+ghci&gt; factorial 50<br>
+30414093201713378043612608166064768844377641568960512000000000000<br>
+}}</p>
+
+<p><strong>Float</strong> 表示單精度的浮點數。</p>
+
+<p>{{
+circumference :: Float -&gt; Float<br>
+circumference r = 2 * pi * r<br>
+}}</p>
+
+<p>{{
+ghci&gt; circumference 4.0<br>
+25.132742<br>
+}}</p>
+
+<p><strong>Double</strong> 表示雙精度的浮點數。</p>
+
+<p>{{
+circumference&#39; :: Double -&gt; Double<br>
+circumference&#39; r = 2 * pi * r<br>
+}}</p>
+
+<p>{{
+ghci&gt; circumference&#39; 4.0<br>
+25.132741228718345<br>
+}}</p>
+
+<p><strong>Bool</strong> 表示布林值，它只有兩種值：<code>True</code> 和 <code>False</code>。</p>
+
+<p><strong>Char</strong> 表示一個字元。一個字元由單引號括起，一組字元的 List 即為字串。</p>
+
+<p>Tuple 的型別取決於它的長度及其中項的型別。注意，空 Tuple 同樣也是個型別，它只有一種值：<code>()</code>。</p>
+
+<p>==Type variables</p>
+
+<p>你覺得 <code>head</code> 函數的型別是啥？它可以取任意型別的 List 的首項，是怎麼做到的呢？我們查一下！</p>
+
+<p>{{
+ghci&gt; :t head<br>
+head :: [a] -&gt; a<br>
+}}</p>
+
+<p>[^../img/box.png]</p>
+
+<p>嗯! <code>a</code> 是啥？型別嗎？想想我們在前面說過，凡是型別其首字母必大寫，所以它不會是個型別。它是個型別變數，意味着 a 可以是任意的型別。這一點與其他語言中的泛型 (generic) 很相似，但在 Haskell 中要更為強大。它可以讓我們輕而易舉地寫出型別無關的函數。使用到型別變數的函數被稱作&quot;多態函數 &quot;，<code>head</code> 函數的型別聲明裡標明了它可以取任意型別的 List 並回傳其中的第一個元素。</p>
+
+<p>在命名上，型別變數使用多個字元是合法的，不過約定俗成，通常都是使用單個字元，如 <code>a</code>, <code>b</code> ,<code>c</code> ,<code>d</code>...</p>
+
+<p>還記得 <code>fst</code>？我們查一下它的型別：</p>
+
+<p>{{
+ghci&gt; :t fst<br>
+fst :: (a, b) -&gt; a<br>
+}}</p>
+
+<p>可以看到<code>fst</code>取一個包含兩個型別的 Tuple 作參數，並以第一個項的型別作為回傳值。這便是 <code>fst</code> 可以處理一個含有兩種型別項的 pair 的原因。注意，<code>a</code> 和 <code>b</code> 是不同的型別變數，但它們不一定非得是不同的型別，它只是標明了首項的型別與回傳值的型別相同。</p>
+
+<p>==Typeclasses入門</p>
+
+<p>[$../img/classes.png]</p>
+
+<p>型別定義行為的介面，如果一個型別屬於某 Typeclass，那它必實現了該 Typeclass 所描述的行為。很多從 OOP 走過來的人們往往會把 Typeclass 當成物件導向語言中的 <code>class</code> 而感到疑惑，厄，它們不是一回事。易於理解起見，你可以把它看做是 Java 的 interface。</p>
+
+<p><code>==</code> 函數的型別聲明是怎樣的？</p>
+
+<p>{{
+ghci&gt; :t (==)<br>
+(==) :: (Eq a) =&gt; a -&gt; a -&gt; Bool
+}}</p>
+
+<pre><code>*Note*: 判斷相等的==運算子是函數，``+-*/``之類的運算子也是同樣。在預設條件下，它們多為中綴函數。若要檢查它的型別，就必須得用括號括起使之作為另一個函數，或者說以首碼函數的形式呼叫它。
+</code></pre>
+
+<p>有意思。在這裡我們見到個新東西：<code>=&gt;</code> 符號。它左邊的部分叫做型別約束。我們可以這樣閲讀這段型別聲明：&quot;相等函數取兩個相同型別的值作為參數並回傳一個布林值，而這兩個參數的型別同在 Eq 類之中(即型別約束)&quot;</p>
+
+<p><strong>Eq</strong> 這一 Typeclass 提供了判斷相等性的介面，凡是可比較相等性的型別必屬於 <code>Eq</code> class。</p>
+
+<p>{{
+ghci&gt; 5 == 5<br>
+True<br>
+ghci&gt; 5 /= 5<br>
+False<br>
+ghci&gt; &#39;a&#39; == &#39;a&#39;<br>
+True<br>
+ghci&gt; &quot;Ho Ho&quot; == &quot;Ho Ho&quot;<br>
+True<br>
+ghci&gt; 3.432 == 3.432<br>
+True 
+}}</p>
+
+<p><code>elem</code> 函數的型別為: <code>(Eq a)=&gt;a-&gt;[a]-&gt;Bool</code>。這是它在檢測值是否存在於一個 List 時使用到了==的緣故。</p>
+
+<p>幾個基本的 Typeclass：</p>
+
+<p><strong>Eq</strong> 包含可判斷相等性的型別。提供實現的函數是 <code>==</code> 和 <code>/=</code>。所以，只要一個函數有Eq類的型別限制，那麼它就必定在定義中用到了 <code>==</code> 和 <code>/=</code>。剛纔說了，除函數以外的所有型別都屬於 <code>Eq</code>，所以它們都可以判斷相等性。</p>
+
+<p><strong>Ord</strong> 包含可比較大小的型別。除了函數以外，我們目前所談到的所有型別都屬於 <code>Ord</code> 類。<code>Ord</code> 包中包含了<code>&lt;, &gt;, &lt;=, &gt;=</code> 之類用於比較大小的函數。<code>compare</code> 函數取兩個 <code>Ord</code> 類中的相同型別的值作參數，回傳比較的結果。這個結果是如下三種型別之一：<code>GT, LT, EQ</code>。</p>
+
+<p>{{
+ghci&gt; :t (&gt;)<br>
+(&gt;) :: (Ord a) =&gt; a -&gt; a -&gt; Bool<br>
+}}</p>
+
+<p>型別若要成為Ord的成員，必先加入Eq家族。</p>
+
+<p>{{
+ghci&gt; &quot;Abrakadabra&quot; &lt; &quot;Zebra&quot;<br>
+True<br>
+ghci&gt; &quot;Abrakadabra&quot; <code>compare</code> &quot;Zebra&quot;<br>
+LT<br>
+ghci&gt; 5 &gt;= 2<br>
+True<br>
+ghci&gt; 5 <code>compare</code> 3<br>
+GT<br>
+}}</p>
+
+<p><strong>Show</strong> 的成員為可用字串表示的型別。目前為止，除函數以外的所有型別都是 <code>Show</code> 的成員。操作 Show Typeclass，最常用的函數表示 <code>show</code>。它可以取任一Show的成員型別並將其轉為字串。</p>
+
+<p>{{
+ghci&gt; show 3<br>
+&quot;3&quot;<br>
+ghci&gt; show 5.334<br>
+&quot;5.334&quot;<br>
+ghci&gt; show True<br>
+&quot;True&quot;<br>
+}}</p>
+
+<p><strong>Read</strong> 是與 <code>Show</code> 相反的 Typeclass。<code>read</code> 函數可以將一個字串轉為 <code>Read</code> 的某成員型別。</p>
+
+<p>{{
+ghci&gt; read &quot;True&quot; || False<br>
+True<br>
+ghci&gt; read &quot;8.2&quot; + 3.8<br>
+12.0<br>
+ghci&gt; read &quot;5&quot; - 2<br>
+3<br>
+ghci&gt; read &quot;[1,2,3,4]&quot; ++ [3]<br>
+[1,2,3,4,3]<br>
+}}</p>
+
+<p>一切良好，如上的所有型別都屬於這一 Typeclass。嘗試 <code>read &quot;4&quot;</code> 又會怎樣？</p>
+
+<p>{{
+ghci&gt; read &quot;4&quot;<br>
+&lt; interactive &gt;:1:0:<br>
+    Ambiguous type variable <code>a&#39; in the constraint:  
+</code>Read a&#39; arising from a use of `read&#39; at <interactive>:1:0-7<br>
+    Probable fix: add a type signature that fixes these type variable(s)<br>
+}}</p>
+
+<p>ghci 跟我們說它搞不清楚我們想要的是什麼樣的回傳值。注意呼叫 <code>read</code> 後跟的那部分，ghci 通過它來辨認其型別。若要一個 <code>boolean</code> 值，他就知道必須得回傳一個 <code>Bool</code> 型別的值。但在這裡它只知道我們要的型別屬於 Read Typeclass，而不能明確到底是哪個。看一下 <code>read</code> 函數的型別聲明吧：</p>
+
+<p>{{
+ghci&gt; :t read<br>
+read :: (Read a) =&gt; String -&gt; a<br>
+}}</p>
+
+<p>看，它的回傳值屬於 ReadTypeclass，但我們若用不到這個值，它就永遠都不會得知該表達式的型別。所以我們需要在一個表達式後跟<code>::</code> 的<em>型別註釋</em>，以明確其型別。如下：</p>
+
+<p>{{
+ghci&gt; read &quot;5&quot; :: Int<br>
+5<br>
+ghci&gt; read &quot;5&quot; :: Float<br>
+5.0<br>
+ghci&gt; (read &quot;5&quot; :: Float) * 4<br>
+20.0<br>
+ghci&gt; read &quot;[1,2,3,4]&quot; :: [Int]<br>
+[1,2,3,4]<br>
+ghci&gt; read &quot;(3, &#39;a&#39;)&quot; :: (Int, Char)<br>
+(3, &#39;a&#39;)<br>
+}}</p>
+
+<p>編譯器可以辨認出大部分表達式的型別，但遇到 <code>read &quot;5&quot;</code> 的時候它就搞不清楚究竟該是 Int 還是 Float 了。只有經過運算，Haskell 才會明確其型別；同時由於 Haskell 是靜態的，它還必須得在 編譯前搞清楚所有值的型別。所以我們就最好提前給它打聲招呼：&quot;嘿，這個表達式應該是這個型別，省的你認不出來！&quot;</p>
+
+<p><strong>Enum</strong> 的成員都是連續的型別 -- 也就是可枚舉。<code>Enum</code> 類存在的主要好處就在於我們可以在 <code>Range</code> 中用到它的成員型別：每個值都有後繼子 (successer) 和前置子 (predecesor)，分別可以通過 <code>succ</code> 函數和 <code>pred</code> 函數得到。該 Typeclass 包含的型別有：<code>()</code>, <code>Bool</code>, <code>Char</code>, <code>Ordering</code>, <code>Int</code>, <code>Integer</code>, <code>Float</code> 和 <code>Double</code>。</p>
+
+<p>{{
+ghci&gt; [&#39;a&#39;..&#39;e&#39;]<br>
+&quot;abcde&quot;<br>
+ghci&gt; [LT .. GT]<br>
+[LT,EQ,GT]<br>
+ghci&gt; [3 .. 5]<br>
+[3,4,5]<br>
+ghci&gt; succ &#39;B&#39;<br>
+&#39;C&#39;<br>
+}}</p>
+
+<p><strong>Bounded</strong> 的成員都有一個上限和下限。</p>
+
+<p>{{
+ghci&gt; minBound :: Int<br>
+-2147483648<br>
+ghci&gt; maxBound :: Char<br>
+&#39;\1114111&#39;<br>
+ghci&gt; maxBound :: Bool<br>
+True<br>
+ghci&gt; minBound :: Bool<br>
+False<br>
+}}</p>
+
+<p><code>minBound</code> 和 <code>maxBound</code> 函數很有趣，它們的型別都是 <code>(Bounded a) =&gt; a</code>。可以說，它們都是多態常量。</p>
+
+<p>如果其中的項都屬於 <code>Bounded</code> Typeclass，那麼該 Tuple 也屬於 <code>Bounded</code></p>
+
+<p>{{
+ghci&gt; maxBound :: (Bool, Int, Char)<br>
+(True,2147483647,&#39;\1114111&#39;)<br>
+}}</p>
+
+<p><strong>Num</strong> 是表示數字的 Typeclass，它的成員型別都具有數字的特徵。檢查一個數字的型別：</p>
+
+<p>{{
+ghci&gt; :t 20<br>
+20 :: (Num t) =&gt; t<br>
+}}</p>
+
+<p>看樣子所有的數字都是多態常量，它可以作為所有 <code>Num</code> Typeclass中的成員型別。以上便是 <code>Num</code> Typeclass 中包含的所有型別，檢測 <code>*</code> 運算子的型別，可以發現它可以處理一切的數字：</p>
+
+<p>{{
+ghci&gt; :t (<em>)<br>
+(</em>) :: (Num a) =&gt; a -&gt; a -&gt; a<br>
+}}</p>
+
+<p>它只取兩個相同型別的參數。所以 <code>(5 :: Int) * (6 :: Integer)</code> 會引發一個型別錯誤，而 <code>5 * (6 :: Integer)</code> 就不會有問題。</p>
+
+<p>型別只有親近 <code>Show</code> 和 <code>Eq</code>，才可以加入 <code>Num</code>。</p>
+
+<p><strong>Integral</strong> 同樣是表示數字的 Typeclass。<code>Num</code> 包含所有的數字：實數和整數。而 Integral 僅包含整數，其中的成員型別有 <code>Int</code> 和 <code>Integer</code>。</p>
+
+<p><strong>Floating</strong> 僅包含浮點型別：<code>Float</code> 和 <code>Double</code>。</p>
+
+<p>有個函數在處理數字時會非常有用，它便是 <strong>fromIntegral</strong>。其型別聲明為： <code>fromIntegral :: (Num b, Integral a) =&gt; a -&gt; b</code>。從中可以看出，它取一個整數做參數並回傳一個更加通用的數字，這在同時處理整數和浮點時會尤為有用。舉例來說，<code>length</code> 函數的型別聲明為：<code>length :: [a] -&gt; Int</code>，而非更通用的形式，如 <code>(Num b) =&gt; length :: [a] -&gt; b</code>。這應該是歷史原因吧，反正我覺得挺蠢。如果取了一個 List 長度的值再給它加 3.2 就會報錯，因為這是將浮點數和整數相加。面對這種情況，我們就用 <code>fromIntegral (length [1,2,3,4]) + 3.2</code> 來解決。</p>
+
+<p>注意到，<code>fromIntegral</code> 的型別聲明中用到了多個型別約束。如你所見，只要將多個型別約束放到括號裡用逗號隔開即可。</p>

@@ -1,0 +1,613 @@
+<p>=高阶函数 #high-order-function</p>
+
+<p>[$../img/sun.png]</p>
+
+<p>Haskell 中的函数可以作为参数和回传值传来传去，这样的函数就被称作高阶函数。高阶函数可不只是某简单特性而已，它贯穿于 Haskell 的方方面面。要拒绝循环与状态的改变而通过定义问题&quot;是什么&quot;来解决问题，高阶函数必不可少。它们是编码的得力工具。</p>
+
+<p>==Curried functions</p>
+
+<p>本质上，Haskell 的所有函数都只有一个参数，那么我们先前编那么多含有多个参数的函数又是怎么回事? 呵，小伎俩! 所有多个参数的函数都是 Curried functions。 什么意思呢? 取一个例子最好理解，就拿我们的好朋友 <code>max</code> 函数说事吧。它看起来像是取两个参数，回传较大的那个数。 实际上，执行 <code>max 4 5</code> 时，它会首先回传一个取一个参数的函数，其回传值不是 4 就是该参数，取决于谁大。 然后，以 5 为参数调用它，并取得最终结果。 这听着挺绕口的，不过这一概念十分的酷! 如下的两个调用是等价的：</p>
+
+<p>{{
+ghci&gt; max 4 5
+5
+ghci&gt; (max 4) 5
+5
+}}</p>
+
+<p>[$../img/curry.png]</p>
+
+<p>把空格放到两个东西之间，称作<em>函数调用</em>。它有点像个运算符，并拥有最高的优先级。 看看 <code>max</code> 函数的类型: <code>max :: (Ord a) =&gt; a -&gt; a -&gt; a</code>。 也可以写作: <code>max :: (Ord a) =&gt; a -&gt; (a -&gt; a)</code>。 可以读作 <code>max</code> 取一个参数 <code>a</code>，并回传一个函数(就是那个 <code>-&gt;</code>)，这个函数取一个 <code>a</code> 类型的参数，回传一个a。 这便是为何只用箭头来分隔参数和回传值类型。</p>
+
+<p>这样的好处又是如何? 简言之，我们若以不全的参数来调用某函数，就可以得到一个<em>不全调用</em>的函数。 如果你高兴，构造新函数就可以如此便捷，将其传给另一个函数也是同样方便。</p>
+
+<p>看下这个函数，简单至极:</p>
+
+<p>{{
+multThree :: (Num a) =&gt; a -&gt; a -&gt; a -&gt; a
+multThree x y z = x * y * z
+}}</p>
+
+<p>我们若执行 <code>mulThree 3 5 9</code> 或 <code>((mulThree 3) 5) 9</code>，它背后是如何运作呢？ 首先，按照空格分隔，把 <code>3</code> 交给 <code>mulThree</code>。 这回传一个回传函数的函数。 然后把 <code>5</code> 交给它，回传一个取一个参数并使之乘以 <code>15</code> 的函数。 最后把 <code>9</code> 交给这一函数，回传 <code>135</code>。 想想，这个函数的类型也可以写作 <code>multThree :: (Num a) =&gt; a -&gt; (a -&gt; (a -&gt; a))</code>，<code>-&gt;</code> 前面的东西就是函数取的参数，后面的东西就是其回传值。所以说，我们的函数取一个 <code>a</code>，并回传一个类型为 <code>(Num a) =&gt; a -&gt; (a -&gt; a)</code> 的函数，类似，这一函数回传一个取一个 <code>a</code>，回传一个类型为 <code>(Num a) =&gt; a -&gt; a</code> 的函数。 而最后的这个函数就只取一个 <code>a</code> 并回传一个 <code>a</code>，如下:</p>
+
+<p>{{
+ghci&gt; let multTwoWithNine = multThree 9
+ghci&gt; multTwoWithNine 2 3
+54
+ghci&gt; let multWithEighteen = multTwoWithNine 2
+ghci&gt; multWithEighteen 10
+180
+}}</p>
+
+<p>前面提到，以不全的参数调用函数可以方便地创造新的函数。例如，搞个取一数与 100 比较大小的函数该如何? 大可这样:</p>
+
+<p>{{
+compareWithHundred :: (Num a, Ord a) =&gt; a -&gt; Ordering
+compareWithHundred x = compare 100 x
+}}</p>
+
+<p>用 99 调用它，就可以得到一个 <code>GT</code>。 简单。 注意下在等号两边都有 <code>x</code>。 想想 <code>compare 100</code> 会回传什么？一个取一数与 100 比较的函数。 Wow，这不正是我们想要的? 这样重写:</p>
+
+<p>{{
+compareWithHundred :: (Num a, Ord a) =&gt; a -&gt; Ordering
+compareWithHundred = compare 100
+}}</p>
+
+<p>类型声明依然相同，因为 <code>compare 100</code> 回传函数。<code>compare</code> 的类型为 <code>(Ord a) =&gt; a -&gt; (a -&gt; Ordering)</code>，用 100 调用它后回传的函数类型为 <code>(Num a, Ord a) =&gt; a -&gt; Ordering</code>，同时由于 100 还是 <code>Num</code> 类型类的实例，所以还得另留一个类约束。</p>
+
+<p>Yo! 你得保证已经弄明白了 Curried functions 与不全调用的原理，它们很重要！</p>
+
+<p>中缀函数也可以不全调用，用括号把它和一边的参数括在一起就行了。 这回传一个取一参数并将其补到缺少的那一端的函数。 一个简单函数如下:</p>
+
+<p>{{
+divideByTen :: (Floating a) =&gt; a -&gt; a
+divideByTen = (/10)
+}}</p>
+
+<p>调用 <code>divideByTen 200</code> 就是 <code>(/10) 200</code>，和 <code>200 / 10</code> 等价。 </p>
+
+<p>一个检查字符是否为大写的函数:</p>
+
+<p>{{
+isUpperAlphanum :: Char -&gt; Bool
+isUpperAlphanum = (<code>elem</code> [&#39;A&#39;..&#39;Z&#39;])
+}}</p>
+
+<p>唯一的例外就是 <code>-</code> 运算符，按照前面提到的定义，<code>(-4)</code> 理应回传一个并将参数减 4 的函数，而实际上，处于计算上的方便，<code>(-4)</code> 表示负 <code>4</code>。 若你一定要弄个将参数减 4 的函数，就用 <code>subtract</code> 好了，像这样 <code>(subtract 4)</code>.</p>
+
+<p>若不用 <code>let</code> 给它命名或传到另一函数中，在 ghci 中直接执行 <code>multThree 3 4</code> 会怎样?
+{{
+ghci&gt; multThree 3 4
+:1:0:
+No instance for (Show (t -&gt; t))
+arising from a use of `print&#39; at :1:0-12
+Possible fix: add an instance declaration for (Show (t -&gt; t))
+In the expression: print it
+In a &#39;do&#39; expression: print it
+}}</p>
+
+<p>ghci 说，这一表达式回传了一个 <code>a -&gt; a</code> 类型的函数，但它不知道该如何显示它。 函数不是 <code>Show</code> 类型类的实例，所以我们不能得到表示一函数内容的字串。 若在 ghci 中计算 <code>1+1</code>，它会首先计算得 <code>2</code>，然后调用 <code>show 2</code> 得到该数值的字串表示，即 <code>&quot;2&quot;</code>，再输出到屏幕.</p>
+
+<p>== 是时候了，来点高阶函数！</p>
+
+<p>Haskell 中的函数可以取另一个函数做参数，也可以回传函数。 举个例子，我们弄个取一个函数并调用它两次的函数.</p>
+
+<p>{{
+applyTwice :: (a -&gt; a) -&gt; a -&gt; a<br>
+applyTwice f x = f (f x)<br>
+}}</p>
+
+<p>[$../img/bonus.png]</p>
+
+<p>首先注意这类型声明。 在此之前我们很少用到括号，因为 <code>(-&gt;)</code> 是自然的右结合，不过在这里括号是必须的。 它标明了首个参数是个参数与回传值类型都是a的函数，第二个参数与回传值的类型也都是a。 我们可以用 Curried functions 的思路来理解这一函数，不过免得自寻烦恼，我们姑且直接把它看作是取两个参数回传一个值，其首个参数是个类型为 <code>(a-&gt;a)</code> 的函数,第二个参数是个 <code>a</code>。 该函数的类型可以是 <code>(Int-&gt;Int)</code>，也可以是 <code>(String-&gt;String)</code>，但第二个参数必须与之一致。</p>
+
+<pre><code>*Note*: 现在开始我们会直说某函数含有多个参数(除非它真的只有一个参数)。 以简洁之名，我们会说 ``(a-&gt;a-&gt;a)`` 取两个参数，尽管我们知道它在背后做的手脚.
+</code></pre>
+
+<p>这个函数是相当的简单，就拿参数 <code>f</code> 当函数，用 <code>x</code> 调用它得到的结果再去调用它。也就可以这样玩:</p>
+
+<p>{{
+ghci&gt; applyTwice (+3) 10<br>
+16<br>
+ghci&gt; applyTwice (++ &quot; HAHA&quot;) &quot;HEY&quot;<br>
+&quot;HEY HAHA HAHA&quot;<br>
+ghci&gt; applyTwice (&quot;HAHA &quot; ++) &quot;HEY&quot;<br>
+&quot;HAHA HAHA HEY&quot;<br>
+ghci&gt; applyTwice (multThree 2 2) 9<br>
+144<br>
+ghci&gt; applyTwice (3:) [1]<br>
+[3,3,1]<br>
+}}</p>
+
+<p>看，不全调用多神奇! 如果有个函数要我们给它传个一元函数，大可以不全调用一个函数让它剩一个参数，再把它交出去。</p>
+
+<p>接下来我们用高阶函数的编程思想来实现个标准库中的函数，它就是 <code>zipWith</code>。 它取一个函数和两个 List 做参数，并把两个 List 交到一起(使相应的元素去调用该函数)。 如下就是我们的实现:</p>
+
+<p>{{
+zipWith&#39; :: (a -&gt; b -&gt; c) -&gt; [a] -&gt; [b] -&gt; [c]<br>
+zipWith&#39; _ [] _ = []<br>
+zipWith&#39; _ _ [] = []<br>
+zipWith&#39; f (x:xs) (y:ys) = f x y : zipWith&#39; f xs ys<br>
+}}</p>
+
+<p>看下这个类型声明，它的首个参数是个函数，取两个参数处理交叉，其类型不必相同，不过相同也没关系。 第二三个参数都是 List，回传值也是个 List。 第一个 List中元素的类型必须是a，因为这个处理交叉的函数的第一个参数是a。 第二个 List 中元素的类型必为 <code>b</code>，因为这个处理交叉的函数第二个参数的类型是 <code>b</code>。 回传的 List 中元素类型为 <code>c</code>。 如果一个函数说取一个类型为 <code>a-&gt;b-&gt;c</code> 的函数做参数，传给它个 <code>a-&gt;a-&gt;c</code> 类型的也是可以的，但反过来就不行了。 可以记下，若在使用高阶函数的时候不清楚其类型为何，就先忽略掉它的类型声明，再到 ghci 下用 <code>:t</code> 命令来看下 Haskell 的类型推导. </p>
+
+<p>这函数的行为与普通的 <code>zip</code> 很相似，边界条件也是相同，只不过多了个参数，即处理元素交叉的函数。它关不着边界条件什么事儿，所以我们就只留一个 <code>_</code>。后一个模式的函数体与 <code>zip</code> 也很像，只不过这里是 <code>f x y</code> 而非 <code>(x,y)</code>。 只要足够通用，一个简单的高阶函数可以在不同的场合反复使用。 如下便是我们 <code>zipWith&#39;</code> 函数本领的冰山一角:</p>
+
+<p>{{
+ghci&gt; zipWith&#39; (+) [4,2,5,6] [2,6,2,3]<br>
+[6,8,7,9]<br>
+ghci&gt; zipWith&#39; max [6,3,2,1] [7,3,1,5]<br>
+[7,3,2,5]<br>
+ghci&gt; zipWith&#39; (++) [&quot;foo &quot;，&quot;bar &quot;，&quot;baz &quot;] [&quot;fighters&quot;，&quot;hoppers&quot;，&quot;aldrin&quot;]<br>
+[&quot;foo fighters&quot;,&quot;bar hoppers&quot;,&quot;baz aldrin&quot;]<br>
+ghci&gt; zipWith&#39; (<em>) (replicate 5 2) [1..]<br>
+[2,4,6,8,10]<br>
+ghci&gt; zipWith&#39; (zipWith&#39; (</em>)) [[1,2,3],[3,5,6],[2,3,4]] [[3,2,2],[3,4,5],[5,4,3]]<br>
+[[3,4,6],[9,20,30],[10,12,12]]<br>
+}}</p>
+
+<p>如你所见，一个简单的高阶函数就可以玩出很多花样。命令式语言使用 <code>for</code>、<code>while</code>、赋值、状态检测来实现功能，再包起来留个接口，使之像个函数一样调用。而函数式语言使用高阶函数来抽象出常见的模式，像成对遍历并处理两个 List 或从中筛掉自己不需要的结果。</p>
+
+<p>接下来实现标准库中的另一个函数 <code>flip</code>，<code>flip</code>简单地取一个函数作参数并回传一个相似的函数，只是它们的两个参数倒了个。</p>
+
+<p>{{
+flip&#39; :: (a -&gt; b -&gt; c) -&gt; (b -&gt; a -&gt; c)<br>
+flip&#39; f = g<br>
+    where g x y = f y x<br>
+}}</p>
+
+<p>从这类型声明中可以看出，它取一个函数，其参数类型分别为 <code>a</code> 和 <code>b</code>，而它回传的函数的参数类型为 <code>b</code> 和 <code>a</code>。 由于函数缺省都是柯里化的，<code>-&gt;</code> 为右结合，这里的第二对括号其实并无必要，<code>(a -&gt; b -&gt; c) -&gt; (b -&gt; a -&gt; c)</code> 与 <code>(a -&gt; b -&gt; c) -&gt; (b -&gt; (a -&gt; c))</code> 等价,也与 <code>(a -&gt; b -&gt; c) -&gt; b -&gt; a -&gt; c</code> 等价。 前面我们写了 <code>g x y = f y x</code>，既然这样可行，那么 <code>f y x = g x y</code> 不也一样? 这一来我们可以改成更简单的写法:</p>
+
+<p>{{
+flip&#39; :: (a -&gt; b -&gt; c) -&gt; b -&gt; a -&gt; c<br>
+flip&#39; f y x = f x y<br>
+}}</p>
+
+<p>在这里我们就利用了 Curried functions 的优势，只要调用 <code>flip&#39; f</code> 而不带 <code>y</code>和<code>x</code>，它就会回传一个俩参数倒个的函数。  <code>flip</code> 处理的函数往往都是用来传给其他函数调用，于是我们可以发挥 Curried functions 的优势，预先想好发生完全调用的情景并处理好回传值.</p>
+
+<p>{{
+ghci&gt; flip&#39; zip [1,2,3,4,5] &quot;hello&quot;<br>
+[(&#39;h&#39;,1),(&#39;e&#39;,2),(&#39;l&#39;,3),(&#39;l&#39;,4),(&#39;o&#39;,5)]<br>
+ghci&gt; zipWith (flip&#39; div) [2,2..] [10,8,6,4,2]<br>
+[5,4,3,2,1]
+}}</p>
+
+<p>== map 与 filter</p>
+
+<p><strong>map</strong> 取一个函数和 List 做参数，遍历该 List 的每个元素来调用该函数产生一个新的 List。 看下它的类型声明和实现:</p>
+
+<p>{{
+map :: (a -&gt; b) -&gt; [a] -&gt; [b]<br>
+map _ [] = []<br>
+map f (x:xs) = f x : map f xs
+}}</p>
+
+<p>从这类型声明中可以看出，它取一个取 <code>a</code> 回传 <code>b</code> 的函数和一组 <code>a</code> 的 List，并回传一组 <code>b</code>。 这就是 Haskell 的有趣之处：有时只看类型声明就能对函数的行为猜个大致。<code>map</code> 函数多才多艺，有一百万种用法。如下是其中一小部分:</p>
+
+<p>{{
+ghci&gt; map (+3) [1,5,3,1,6]<br>
+[4,8,6,4,9]<br>
+ghci&gt; map (++ &quot;!&quot;) [&quot;BIFF&quot;，&quot;BANG&quot;，&quot;POW&quot;]<br>
+[&quot;BIFF!&quot;,&quot;BANG!&quot;,&quot;POW!&quot;]<br>
+ghci&gt; map (replicate 3) [3..6]<br>
+[[3,3,3],[4,4,4],[5,5,5],[6,6,6]]<br>
+ghci&gt; map (map (^2)) [[1,2],[3,4,5,6],[7,8]]<br>
+[[1,4],[9,16,25,36],[49,64]]<br>
+ghci&gt; map fst [(1,2),(3,5),(6,3),(2,6),(2,5)]<br>
+[1,3,6,2,2]<br>
+}}</p>
+
+<p>你可能会发现，以上的所有代码都可以用 List Comprehension 来替代。<code>map (+3) [1,5,3,1,6]</code> 与 <code>[x+3 | x &lt;- [1,5,3,1,6]</code> 完全等价。</p>
+
+<p><strong>filter</strong> 函数取一个限制条件和一个 List，回传该 List 中所有符合该条件的元素。它的类型声明及实现大致如下:</p>
+
+<p>{{
+filter :: (a -&gt; Bool) -&gt; [a] -&gt; [a]<br>
+filter _ [] = []<br>
+filter p (x:xs)<br>
+    | p x       = x : filter p xs<br>
+    | otherwise = filter p xs<br>
+}}</p>
+
+<p>很简单。只要 <code>p x</code> 所得的结果为真，就将这一元素加入新 List，否则就无视之。几个使用范例:</p>
+
+<p>{{
+ghci&gt; filter (&gt;3) [1,5,3,2,1,6,4,3,2,1]<br>
+[5,6,4]<br>
+ghci&gt; filter (==3) [1,2,3,4,5]<br>
+[3]<br>
+ghci&gt; filter even [1..10]<br>
+[2,4,6,8,10]<br>
+ghci&gt; let notNull x = not (null x) in filter notNull [[1,2,3],[],[3,4,5],[2,2],[],[],[]]<br>
+[[1,2,3],[3,4,5],[2,2]]<br>
+ghci&gt; filter (<code>elem</code> [&#39;a&#39;..&#39;z&#39;]) &quot;u LaUgH aT mE BeCaUsE I aM diFfeRent&quot;<br>
+&quot;uagameasadifeent&quot;<br>
+ghci&gt; filter (<code>elem</code> [&#39;A&#39;..&#39;Z&#39;]) &quot;i lauGh At You BecAuse u r aLL the Same&quot;<br>
+&quot;GAYBALLS&quot;<br>
+}}</p>
+
+<p>同样，以上都可以用 List Comprehension 的限制条件来实现。并没有教条规定你必须在什么情况下用 <code>map</code> 和 <code>filter</code> 还是 List Comprehension，选择权归你，看谁舒服用谁就是。 如果有多个限制条件，只能连着套好几个 <code>filter</code> 或用 <code>&amp;&amp;</code> 等逻辑函数的组合之，这时就不如 List comprehension 来得爽了。</p>
+
+<p>还记得上一章的那个 <code>quicksort</code> 函数么? 我们用到了 List Comprehension 来过滤大于或小于锚的元素。 换做 <code>filter</code> 也可以实现，而且更加易读：</p>
+
+<p>{{
+quicksort :: (Ord a) =&gt; [a] -&gt; [a]<br>
+quicksort [] = []<br>
+quicksort (x:xs) =<br>
+    let smallerSorted = quicksort (filter (&lt;=x) xs)
+        biggerSorted = quicksort (filter (&gt;x) xs)<br>
+    in  smallerSorted ++ [x] ++ biggerSorted<br>
+}}</p>
+
+<p>[^../img/map.png]</p>
+
+<p><code>map</code> 和 <code>filter</code> 是每个函数式进程员的面包黄油(呃，<code>map</code> 和 <code>filter</code> 还是 List Comprehension 并不重要)。 想想前面我们如何解决给定周长寻找合适直角三角形的问题的? 在命令式编程中，我们可以套上三个循环逐个测试当前的组合是否满足条件，若满足，就打印到屏幕或其他类似的输出。 而在函数式编程中，这行就都交给 <code>map</code> 和 <code>filter</code>。 你弄个取一参数的函数，把它交给 <code>map</code> 过一遍 List，再 <code>filter</code> 之找到合适的结果。 感谢 Haskell 的惰性，即便是你多次 <code>map</code> 一个 `<code>List</code> 也只会遍历一遍该 List，要找出小于 100000 的数中最大的 3829 的倍数，只需过滤结果所在的 List 就行了.</p>
+
+<p>要找出<em>小于 100000 的 3829 的所有倍数</em>，我们应当过滤一个已知结果所在的 List.</p>
+
+<p>{{
+largestDivisible :: (Integral a) =&gt; a<br>
+largestDivisible = head (filter p [100000,99999..])<br>
+    where p x = x <code>mod</code> 3829 == 0<br>
+}}</p>
+
+<p>首先，取一个降序的小于 100000 所有数的 List，然后按照限制条件过滤它。 由于这个 List 是降序的，所以结果 List 中的首个元素就是最大的那个数。惰性再次行动! 由于我们只取这结果 List 的首个元素，所以它并不关心这 List 是有限还是无限的，在找到首个合适的结果处运算就停止了。</p>
+
+<p>接下来，我们就要<em>找出所有小于 10000 的奇数的平方和</em>，得先提下 <strong>takeWhile</strong> 函数，它取一个限制条件和 List 作参数，然后从头开始遍历这一 List，并回传符合限制条件的元素。 而一旦遇到不符合条件的元素，它就停止了。 如果我们要取出字串  <code>&quot;elephants know how to party&quot;</code> 中的首个单词，可以 <code>takeWhile (/=&#39; &#39;) &quot;elephants know how to party&quot;</code>，回传 <code>&quot;elephants&quot;</code>。okay，要求所有小于 10000 的奇数的平方的和，首先就用 <code>(^2)</code> 函数 <code>map</code> 掉这个无限的 List <code>[1..]</code> 。然后过滤之，只取奇数就是了。 在大于 10000 处将它断开，最后前面的所有元素加到一起。 这一切连写函数都不用，在 ghci 下直接搞定.</p>
+
+<p>{{
+ghci&gt; sum (takeWhile (&lt;10000) (filter odd (map (^2) [1..])))<br>
+166650<br>
+}}</p>
+
+<p>不错! 先从几个初始数据(表示所有自然数的无限 List)，再 <code>map</code> 它，<code>filter</code> 它，切它，直到它符合我们的要求，再将其加起来。 这用 List comprehension 也是可以的，而哪种方式就全看你的个人口味.</p>
+
+<p>{{
+ghci&gt; sum (takeWhile (&lt;10000) [m | m &lt;- [n^2 | n &lt;- [1..]], odd m])<br>
+166650<br>
+}}</p>
+
+<p>感谢 Haskell 的惰性特质，这一切才得以实现。 我们之所以可以 <code>map</code> 或 <code>filter</code> 一个无限 List，是因为它的操作不会被立即执行，而是拖延一下。只有我们要求 Haskell 交给我们 <code>sum</code> 的结果的时候，<code>sum</code> 函数才会跟 <code>takeWhile</code> 说，它要这些数。<code>takeWhile</code> 就再去要求 <code>filter</code> 和 <code>map</code> 行动起来，并在遇到大于等于 10000 时候停止.
+下个问题与 Collatz 串行有关，取一个自然数，若为偶数就除以 2。 若为奇数就乘以 3 再加 1。 再用相同的方式处理所得的结果，得到一组数字构成的的链。它有个性质，无论任何以任何数字开始，最终的结果都会归 1。所以若拿 13 当作起始数，就可以得到这样一个串行 <code>13，40，20，10，5，16，8，4，2，1</code>。<code>13*3+1</code> 得 40，40 除 2 得 20，如是继续，得到一个 10 个元素的链。</p>
+
+<p>好的，我们想知道的是: 以 1 到 100 之间的所有数作为起始数，会有多少个链的长度大于 15?</p>
+
+<p>{{
+chain :: (Integral a) =&gt; a -&gt; [a]<br>
+chain 1 = [1]<br>
+chain n<br>
+    | even n =  n:chain (n <code>div</code> 2)<br>
+    | odd n  =  n:chain (n*3 + 1)<br>
+}}</p>
+
+<p>该链止于 1，这便是边界条件。标准的递归函数:</p>
+
+<p>{{
+ghci&gt; chain 10<br>
+[10,5,16,8,4,2,1]<br>
+ghci&gt; chain 1<br>
+[1]<br>
+ghci&gt; chain 30<br>
+[30,15,46,23,70,35,106,53,160,80,40,20,10,5,16,8,4,2,1]<br>
+}}</p>
+
+<p>yay! 貌似工作良好。 现在由这个函数来告诉我们结果:</p>
+
+<p>{{
+numLongChains :: Int<br>
+numLongChains = length (filter isLong (map chain [1..100]))<br>
+    where isLong xs = length xs &gt; 15<br>
+}}</p>
+
+<p>我们把 <code>chain</code> 函数 <code>map</code> 到 <code>[1..100]</code>，得到一组链的 List，然后用个限制条件过滤长度大于 15 的链。过滤完毕后就可以得出结果list中的元素个数.</p>
+
+<pre><code>*Note*: 这函数的类型为 ``numLongChains :: Int``。这是由于历史原因，``length`` 回传一个 ``Int`` 而非 ``Num`` 的成员类型，若要得到一个更通用的 ``Num a``，我们可以使用 ``fromIntegral`` 函数来处理所得结果.
+</code></pre>
+
+<p>用 <code>map</code>，我们可以写出类似 <code>map (*) [0..]</code> 之类的代码。 如果只是为了例证 Curried functions 和不全调用的函数是真正的值及其原理，那就是你可以把函数传递或把函数装在 List 中(只是你还不能将它们转换为字串)。 迄今为止，我们还只是 <code>map</code> 单参数的函数到 List，如 <code>map (*2) [0..]</code> 可得一组类型为 <code>(Num a) =&gt; [a]</code> 的 List，而 <code>map (*) [0..]</code> 也是完全没问题的。<code>*</code> 的类型为 <code>(Num a) -&gt; a -&gt; a -&gt; a</code>，用单个参数调用二元函数会回传一个一元函数。如果用 <code>*</code> 来 <code>map</code>  一个 <code>[0..]</code> 的 List，就会得到一组一元函数组成的 List，即 <code>(Num a) =&gt; [a-&gt;a]</code>。<code>map (*) [0..]</code> 所得的结果写起来大约就是 <code>[(0*),(1*),(2*)..]</code>.</p>
+
+<p>{{
+ghci&gt; let listOfFuns = map (*) [0..]<br>
+ghci&gt; (listOfFuns !! 4) 5<br>
+20
+}}</p>
+
+<p>取所得 List 的第四个元素可得一函数，与 <code>(*4)</code> 等价。 然后用 <code>5</code> 调用它，与 <code>(* 4) 5</code> 或 <code>4*5</code> 都是等价的.</p>
+
+<p>==lambda</p>
+
+<p>[^../img/lamb.png]</p>
+
+<p>lambda 就是匿名函数。有些时候我们需要传给高阶函数一个函数，而这函数我们只会用这一次，这就弄个特定功能的 lambda。编写 lambda，就写个 <code>\</code> (因为它看起来像是希腊字母的 lambda -- 如果你斜视的厉害)，后面是用空格分隔的参数，<code>-&gt;</code> 后面就是函数体。通常我们都是用括号将其括起，要不然它就会占据整个右边部分。</p>
+
+<p>向上 5 英吋左右，你会看到我们在 <code>numLongChain</code> 函数中用 <code>where</code> 语句声明了个 <code>isLong</code> 函数传递给了 <code>filter</code>。好的，用 lambda 代替它。</p>
+
+<p>{{
+numLongChains :: Int<br>
+numLongChains = length (filter (\xs -&gt; length xs &gt; 15) (map chain [1..100]))<br>
+}}</p>
+
+<p>[$../img/lambda.png]</p>
+
+<p>lambda 是个表达式，因此我们可以任意传递。表达式 <code>(\xs -&gt; length xs &gt; 15)</code> 回传一个函数，它可以告诉我们一个 List 的长度是否大于 15。</p>
+
+<p>不熟悉 Curried functions 与不全调用的人们往往会写出很多 lambda，而实际上大部分都是没必要的。例如，表达式 <code>map (+3) [1,6,3,2]</code> 与 <code>map (\x -&gt; x+3) [1,6,3,2]</code> 等价，<code>(+3)</code> 和 <code>(\x -&gt; x+3)</code> 都是给一个数加上 3。不用说，在这种情况下不用 lambda 要清爽的多。</p>
+
+<p>和普通函数一样，lambda 也可以取多个参数。</p>
+
+<p>{{
+ghci&gt; zipWith (\a b -&gt; (a * 30 + 3) / b) [5,4,3,2,1] [1,2,3,4,5]<br>
+[153.0,61.5,31.0,15.75,6.6] 
+}}</p>
+
+<p>同普通函数一样，你也可以在 lambda 中使用模式匹配，只是你无法为一个参数设置多个模式，如 <code>[]</code> 和 <code>(x:xs)</code>。lambda 的模式匹配若失败，就会引发一个运行时错误，所以慎用！</p>
+
+<p>{{
+ghci&gt; map ((a,b) -&gt; a + b) [(1,2),(3,5),(6,3),(2,6),(2,5)]<br>
+[3,8,9,8,7]<br>
+}}</p>
+
+<p>一般情况下，lambda 都是括在括号中，除非我们想要后面的整个语句都作为 lambda 的函数体。很有趣，由于有柯里化，如下的两段是等价的：</p>
+
+<p>{{
+addThree :: (Num a) =&gt; a -&gt; a -&gt; a -&gt; a<br>
+addThree x y z = x + y + z<br>
+}}</p>
+
+<p>{{
+addThree :: (Num a) =&gt; a -&gt; a -&gt; a -&gt; a<br>
+addThree = \x -&gt; \y -&gt; \z -&gt; x + y + z 
+}}</p>
+
+<p>这样的函数声明与函数体中都有 <code>-&gt;</code>，这一来类型声明的写法就很明白了。当然第一段代码更易读，不过第二个函数使得柯里化更容易理解。</p>
+
+<p>有些时候用这种语句写还是挺酷的，我觉得这应该是最易读的 <code>flip</code> 函数实现了：</p>
+
+<p>{{
+flip&#39; :: (a -&gt; b -&gt; c) -&gt; b -&gt; a -&gt; c<br>
+flip&#39; f = \x y -&gt; f y x<br>
+}}</p>
+
+<p>尽管这与 <code>flip&#39; f x y = f y x</code> 等价，但它可以更明白地表示出它会产生一个新的函数。<code>flip</code> 常用来处理一个函数，再将回传的新函数传递给 <code>map</code> 或 <code>filter</code>。所以如此使用 lambda 可以更明确地表现出回传值是个函数，可以用来传递给其他函数作参数。</p>
+
+<p>== 关键字 fold</p>
+
+<p>[$../img/origami.png]</p>
+
+<p>回到当初我们学习递归的情景。我们会发现处理 List 的许多函数都有固定的模式，通常我们会将边界条件设置为空 List，再引入 <code>(x:xs)</code> 模式，对单个元素和余下的 List 做些事情。这一模式是如此常见，因此 Haskell 引入了一组函数来使之简化，也就是 <code>fold</code>。它们与map有点像，只是它们回传的是单个值。</p>
+
+<p>一个 <code>fold</code> 取一个二元函数，一个初始值(我喜欢管它叫累加值)和一个需要折叠的 List。这个二元函数有两个参数，即累加值和 List 的首项(或尾项)，回传值是新的累加值。然后，以新的累加值和新的 List 首项调用该函数，如是继续。到 List 遍历完毕时，只剩下一个累加值，也就是最终的结果。</p>
+
+<p>首先看下 <strong>foldl</strong> 函数，也叫做左折叠。它从 List 的左端开始折叠，用初始值和 List 的头部调用这二元函数，得一新的累加值，并用新的累加值与 List 的下一个元素调用二元函数。如是继续。</p>
+
+<p>我们再实现下 <code>sum</code>，这次用 <code>fold</code> 替代那复杂的递归：</p>
+
+<p>{{ 
+sum&#39; :: (Num a) =&gt; [a] -&gt; a<br>
+sum&#39; xs = foldl (\acc x -&gt; acc + x) 0 xs<br>
+}}</p>
+
+<p>测试下，一二三～</p>
+
+<p>{{
+ghci&gt; sum&#39; [3,5,2,1]<br>
+11
+}} </p>
+
+<p>[^../img/foldl.png]</p>
+
+<p>我们深入看下 <code>fold</code> 的执行过程：<code>\acc x-&gt; acc + x</code> 是个二元函数，<code>0</code> 是初始值，<code>xs</code> 是待折叠的 List。一开始，累加值为 <code>0</code>，当前项为 <code>3</code>，调用二元函数 <code>0+3</code> 得 <code>3</code>，作新的累加值。接着来，累加值为 <code>3</code>，当前项为 <code>5</code>，得新累加值 <code>8</code>。再往后，累加值为 <code>8</code>，当前项为 <code>2</code>，得新累加值 <code>10</code>。最后累加值为 <code>10</code>，当前项为 <code>1</code>，得 <code>11</code>。恭喜，你完成了一次折叠 <code>(fold)</code>！</p>
+
+<p>左边的这个图表示了折叠的执行过程，一步又一步(一天又一天!)。浅棕色的数字都是累加值，你可以从中看出 List 是如何从左端一点点加到累加值上的。唔对对对！如果我们考虑到函数的柯里化，可以写出更简单的实现：</p>
+
+<p>{{
+sum&#39; :: (Num a) =&gt; [a] -&gt; a<br>
+sum&#39; = foldl (+) 0<br>
+}}</p>
+
+<p>这个 lambda 函数 <code>(\acc x -&gt; acc + x )</code> 与 <code>(+)</code> 等价。我们可以把 <code>xs</code> 等一应参数省略掉，反正调用 <code>foldl (+) 0</code> 会回传一个取 List 作参数的函数。通常，如果你的函数类似 <code>foo a = bar b a</code>， 大可改为 <code>foo = bar b</code>。有柯里化嘛。</p>
+
+<p>呼呼，进入右折叠前我们再实现个用到左折叠的函数。大家肯定都知道 <code>elem</code> 是检查某元素是否属于某 List 的函数吧，我就不再提了(唔，刚提了)。用左折叠实现它:</p>
+
+<p>{{
+elem&#39; :: (Eq a) =&gt; a -&gt; [a] -&gt; Bool<br>
+elem&#39; y ys = foldl (\acc x -&gt; if x == y then True else acc) False ys<br>
+}}</p>
+
+<p>好好好，这里我们有什么？起始值与累加值都是布尔值。在处理 <code>fold</code> 时，累加值与最终结果的类型总是相同的。如果你不知道怎样对待起始值，那我告诉你，我们先假设它不存在，以 <code>False</code> 开始。我们要是 <code>fold</code> 一个空 List，结果就是 <code>False</code>。然后我们检查当前元素是否为我们寻找的，如果是，就令累加值为 <code>True</code>，如果否，就保留原值不变。若 <code>False</code>，及表明当前元素不是。若 <code>True</code>，就表明已经找到了。</p>
+
+<p>右折叠 <strong>foldr</strong> 的行为与左折叠相似，只是累加值是从 List 的右边开始。同样，左折叠的二元函数取累加值作首个参数，当前值为第二个参数(即 <code>\acc x -&gt; ...</code>)，而右折叠的二元函数参数的顺序正好相反(即 <code>\x acc -&gt; ...</code>)。这倒也正常，毕竟是从右端开始折叠。</p>
+
+<p>累加值可以是任何类型，可以是数值，布尔值，甚至一个新的 List。我们可以用右 <code>fold</code> 实现 <code>map</code> 函数，累加值就是个 List。将 <code>map</code> 处理过的元素一个一个连到一起。很容易想到，起始值就是空 List。</p>
+
+<p>{{
+map&#39; :: (a -&gt; b) -&gt; [a] -&gt; [b]<br>
+map&#39; f xs = foldr (\x acc -&gt; f x : acc) [] xs<br>
+}}</p>
+
+<p>如果我们用 <code>(+3)</code> 来映射 <code>[1,2,3]</code>，它就会先到达 List 的右端，我们取最后那个元素，也就是 <code>3</code> 来调用 <code>(+3)</code>，得 <code>6</code>。追加 <code>(:)</code> 到累加值上，<code>6:[]</code> 得 <code>[6]</code> 并成为新的累加值。用 <code>2</code> 调用 <code>(+3)</code>，得 <code>5</code>，追加到累加值，于是累加值成了 <code>[5,6]</code>。再对 <code>1</code> 调用 <code>(+3)</code>，并将结果 4 追加到累加值，最终得结果 <code>[4,5,6]</code>。</p>
+
+<p>当然，我们也完全可以用左折叠来实现它，<code>map&#39; f xs = foldl (\acc x -&gt; acc ++ [f x]) [] xs</code> 就行了。不过问题是，使用 <code>(++)</code> 往 List 后面追加元素的效率要比使用 <code>(:)</code> 低得多。所以在生成新 List 的时候人们一般都是使用右折叠。</p>
+
+<p>[$../img/washmachine.png]</p>
+
+<p>反转一个 List，既也可以通过右折叠，也可以通过左折叠。有时甚至不需要管它们的分别，如 <code>sum</code> 函数的左右折叠实现都是十分相似。不过有个大的不同，那就是右折叠可以处理无限长度的数据结构，而左折叠不可以。将无限 List 从中断开执行左折叠是可以的，不过若是向右，就永远到不了头了。</p>
+
+<p><em>所有遍历 List 中元素并据此回传一个值的操作都可以交给 <code>fold</code> 实现</em>。无论何时需要遍历 List 并回传某值，都可以尝试下 <code>fold</code>。因此，<code>fold</code>的地位可以说与 <code>map</code>和 <code>filter</code>并驾齐驱，同为函数式编程中最常用的函数之一。</p>
+
+<p><strong>foldl1</strong> 与 <strong>foldr1</strong> 的行为与 <code>foldl</code> 和 <code>foldr</code> 相似，只是你无需明确提供初始值。他们假定 List 的首个(或末尾)元素作为起始值，并从旁边的元素开始折叠。这一来，<code>sum</code> 函数大可这样实现：<code>sum = foldl1 (+)</code>。这里待折叠的 List 中至少要有一个元素，若使用空 List 就会产生一个运行时错误。不过 <code>foldl</code> 和 <code>foldr</code> 与空 List 相处的就很好。所以在使用 <code>fold</code> 前，应该先想下它会不会遇到空 List，如果不会遇到，大可放心使用 <code>foldr1</code> 和 <code>foldl1</code>。</p>
+
+<p>为了体会 <code>fold</code> 的威力，我们就用它实现几个库函数：</p>
+
+<p>{{
+maximum&#39; :: (Ord a) =&gt; [a] -&gt; a<br>
+maximum&#39; = foldr1 (\x acc -&gt; if x &gt; acc then x else acc)  </p>
+
+<p>reverse&#39; :: [a] -&gt; [a]<br>
+reverse&#39; = foldl (\acc x -&gt; x : acc) []  </p>
+
+<p>product&#39; :: (Num a) =&gt; [a] -&gt; a<br>
+product&#39; = foldr1 (*)  </p>
+
+<p>filter&#39; :: (a -&gt; Bool) -&gt; [a] -&gt; [a]<br>
+filter&#39; p = foldr (\x acc -&gt; if p x then x : acc else acc) []  </p>
+
+<p>head&#39; :: [a] -&gt; a<br>
+head&#39; = foldr1 (\x _ -&gt; x)  </p>
+
+<p>last&#39; :: [a] -&gt; a<br>
+last&#39; = foldl1 (_ x -&gt; x)  </p>
+
+<p>}}</p>
+
+<p>仅靠模式匹配就可以实现 <code>head</code> 函数和 <code>last</code> 函数，而且效率也很高。这里只是为了演示，用 <code>fold</code> 的实现方法。我觉得我们这个 <code>reverse&#39;</code> 定义的相当聪明，用一个空 List 做初始值，并向左展开 List，从左追加到累加值，最后得到一个反转的新 List。<code>\acc x -&gt; x : acc</code> 有点像 <code>:</code> 函数，只是参数顺序相反。所以我们可以改成 <code>foldl (flip (:)) []</code>。</p>
+
+<p>有个理解折叠的思路：假设我们有个二元函数 <code>f</code>，起始值 <code>z</code>，如果从右折叠 <code>[3,4,5,6]</code>，实际上执行的就是 <code>f 3 (f 4 (f 5 (f 6 z)))</code>。<code>f</code> 会被 List 的尾项和累加值调用，所得的结果会作为新的累加值传入下一个调用。假设 <code>f</code> 是 <code>(+)</code>，起始值 <code>z</code> 是 <code>0</code>，那么就是 <code>3 + (4 + (5 + (6 + 0)))</code>，或等价的首码形式：<code>(+) 3 ((+) 4 ((+) 5 ((+) 6 0)))</code>。相似，左折叠一个 List，以 <code>g</code> 为二元函数，<code>z</code> 为累加值，它就与 <code>g (g (g (g z 3) 4) 5) 6</code> 等价。如果用 <code>flip (:)</code> 作二元函数，<code>[]</code> 为累加值(看得出，我们是要反转一个 List)，这就与 <code>flip (:) (flip (:) (flip (:) (flip (:) [] 3) 4) 5) 6</code> 等价。显而易见，执行该表达式的结果为 <code>[6,5,4,3]</code>。</p>
+
+<p><strong>scanl</strong> 和 <strong>scanr</strong> 与 <code>foldl</code> 和 <code>foldr</code> 相似，只是它们会记录下累加值的所有状态到一个 List。也有 <strong>scanl1</strong> 和 <strong>scanr1</strong>。</p>
+
+<p>{{
+ghci&gt; scanl (+) 0 [3,5,2,1]<br>
+[0,3,8,10,11]<br>
+ghci&gt; scanr (+) 0 [3,5,2,1]<br>
+[11,8,3,1,0]<br>
+ghci&gt; scanl1 (\acc x -&gt; if x &gt; acc then x else acc) [3,4,5,3,7,9,2,1]<br>
+[3,4,5,5,7,9,9,9]<br>
+ghci&gt; scanl (flip (:)) [] [3,2,1]<br>
+[[],[3],[2,3],[1,2,3]]<br>
+}}</p>
+
+<p>当使用 <code>scanl</code> 时，最终结果就是 List 的最后一个元素。而在 <code>scanr</code> 中则是第一个。</p>
+
+<p>{{
+sqrtSums :: Int<br>
+sqrtSums = length (takeWhile (&lt;1000) (scanl1 (+) (map sqrt [1..]))) + 1<br>
+}}</p>
+
+<p>{{
+ghci&gt; sqrtSums<br>
+131<br>
+ghci&gt; sum (map sqrt [1..131])<br>
+1005.0942035344083<br>
+ghci&gt; sum (map sqrt [1..130])<br>
+993.6486803921487<br>
+}}</p>
+
+<p><code>scan</code> 可以用来跟踪 <code>fold</code> 函数的执行过程。想想这个问题，<em>取所有自然数的平方根的和，寻找在何处超过 1000</em>？ 先<code>map sqrt [1..]</code>，然后用个 <code>fold</code> 来求它们的和。但在这里我们想知道求和的过程，所以使用 <code>scan</code>，<code>scan</code> 完毕时就可以得到小于 1000 的所有和。所得结果 List 的第一个元素为 1，第二个就是 1+根2，第三个就是 1+根2+根3。若有 <code>x</code> 个和小于 1000，那结果就是 <code>x+1</code>。</p>
+
+<p>== 有$的函数调用</p>
+
+<p>好的，接下来看看 <strong>$</strong> 函数。它也叫作<em>函数调用符</em>。先看下它的定义：</p>
+
+<p>{{
+($) :: (a -&gt; b) -&gt; a -&gt; b<br>
+f $ x = f x<br>
+}}</p>
+
+<p>[^../img/dollar.png]</p>
+
+<p>什么鬼东西？这没啥意义的操作符？它只是个函数调用符罢了？好吧，不全是，但差不多。普通的函数调用符有最高的优先级，而 <code>$</code> 的优先级则最低。用空格的函数调用符是左结合的，如 <code>f a b c</code> 与 <code>((f a) b) c</code> 等价，而 <code>$</code> 则是右结合的。</p>
+
+<p>听着不错。但有什么用？它可以减少我们代码中括号的数目。试想有这个表达式： <code>sum (map sqrt [1..130])</code>。由于低优先级的 <code>$</code>，我们可以将其改为 <code>sum $ map sqrt [1..130]</code>，可以省敲不少键！<code>sqrt 3 + 4 + 9</code> 会怎样？这会得到 9，4 和根3 的和。若要取 <code>(3+4+9)</code> 的平方根，就得 <code>sqrt (3+4+9)</code> 或用 <code>$</code>：<code>sqrt $ 3+4+9</code>。因为 <code>$</code> 有最低的优先级，所以你可以把$看作是在右面写一对括号的等价形式。</p>
+
+<p><code>sum (filter (&gt; 10) (map (*2) [2..10]))</code> 该如何？嗯，<code>$</code> 是右结合，<code>f (g (z x))</code> 与 <code>f $ g $ z x</code> 等价。所以我么可以将 <code>sum (filter (&gt; 10) (map (*2) [2..10])</code> 重写为 <code>sum $ filter (&gt; 10) $ map (*2) [2..10]</code>。</p>
+
+<p>除了减少括号外，<code>$</code> 还可以将数据作为函数使用。例如映射一个函数调用符到一组函数组成的 List：</p>
+
+<p>{{
+ghci&gt; map ($ 3) [(4+),(10*),(^2),sqrt]<br>
+[7.0,30.0,9.0,1.7320508075688772]<br>
+}}</p>
+
+<p>== Function composition</p>
+
+<p>在数学中，函数组合是这样定义的： [../img/composition.png]，表示组合两个函数成为一个函数。以 <code>x</code> 调用这一函数，就与用 <code>x</code> 调用 <code>g</code> 再用所得的结果调用 <code>f</code> 等价。</p>
+
+<p>Haskell 中的函数组合与之很像，即 <strong>.</strong> 函数。其定义为：</p>
+
+<p>{{
+(.) :: (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c<br>
+f . g = \x -&gt; f (g x)<br>
+}}</p>
+
+<p>[$../img/notes.png]</p>
+
+<p>注意下这类型声明，<code>f</code> 的参数类型必须与 <code>g</code> 的回传类型相同。所以得到的组合函数的参数类型与 <code>g</code> 相同，回传类型与 <code>f</code> 相同。表达式 <code>negate . (*3)</code> 回传一个求一数字乘以 3 后的负数的函数。</p>
+
+<p>函数组合的用处之一就是生成新函数，并传递给其它函数。当然我们可以用 lambda 实现，但大多数情况下，使用函数组合无疑更清楚。假设我们有一组由数字组成的 List，要将其全部转为负数，很容易就想到应先取其绝对值，再取负数，像这样：</p>
+
+<p>{{
+ghci&gt; map (\x -&gt; negate (abs x)) [5,-3,-6,7,-3,2,-19,24]<br>
+[-5,-3,-6,-7,-3,-2,-19,-24]<br>
+}}</p>
+
+<p>注意下这个 lambda 与那函数组合是多么的相像。用函数组合，我们可以将代码改为：</p>
+
+<p>{{ 
+ghci&gt; map (negate . abs) [5,-3,-6,7,-3,2,-19,24]<br>
+[-5,-3,-6,-7,-3,-2,-19,-24]<br>
+}}</p>
+
+<p>漂亮！函数组合是右结合的，我们同时组合多个函数。表达式 <code>f (g (z x))</code>与 <code>(f . g . z) x</code> 等价。按照这个思路，我们可以将</p>
+
+<p>{{
+ghci&gt; map (\xs -&gt; negate (sum (tail xs))) [[1..5],[3..6],[1..7]]<br>
+[-14,-15,-27]<br>
+}}</p>
+
+<p>改为：</p>
+
+<p>{{ 
+ghci&gt; map (negate . sum . tail) [[1..5],[3..6],[1..7]]<br>
+[-14,-15,-27]<br>
+}}</p>
+
+<p>不过含多个参数的函数该怎么办？好，我们可以使用不全调用使每个函数都只剩下一个参数。<code>sum (replicate 5 (max 6.7 8.9))</code> 可以重写为 <code>(sum . replicate 5 . max 6.7) 8.9</code> 或 <code>sum . replicate 5 . max 6.7 $ 8.9</code>。在这里会产生一个函数，它取与 <code>max 6.7</code> 同样的参数，并使用结果调用 <code>replicate 5</code> 再用 <code>sum</code> 求和。最后用 <code>8.9</code> 调用该函数。不过一般你可以这么读，用 8.9 调用 <code>max 6.7</code>，然后使它 <code>replicate 5</code>，再 <code>sum</code> 之。如果你打算用函数组合来替掉那堆括号，可以先在最靠近参数的函数后面加一个 <code>$</code>，接着就用 <code>.</code> 组合其所有函数调用，而不用管最后那个参数。如果有这样一段代码：<code>replicate 100 (product (map (*3) (zipWith max [1,2,3,4,5] [4,5,6,7,8])))</code>，可以改为：<code>replicate 100 . product . map (*3) . zipWith max [1,2,3,4,5] $ [4,5,6,7,8]</code>。如果表达式以 3 个括号结尾，就表示你可以将其修改为函数组合的形式。</p>
+
+<p>函数组合的另一用途就是定义 point free style (也称作 pointless style) 的函数。就拿我们之前写的函数作例子：</p>
+
+<p>{{
+sum&#39; :: (Num a) =&gt; [a] -&gt; a<br>
+sum&#39; xs = foldl (+) 0 xs<br>
+}}</p>
+
+<p>等号的两端都有个 <code>xs</code>。由于有柯里化 (Currying)，我们可以省掉两端的 <code>xs</code>。<code>foldl (+) 0</code> 回传的就是一个取一 List 作参数的函数，我们把它修改为 <code>sum&#39; = foldl (+) 0</code>，这就是 point free style。下面这个函数又该如何改成 point free style 呢？</p>
+
+<p>{{
+fn x = ceiling (negate (tan (cos (max 50 x))))<br>
+}}</p>
+
+<p>像刚才那样简单去掉两端的 <code>x</code> 是不行的，函数定义中 <code>x</code> 的右边还有括号。<code>cos (max 50)</code> 是有错误的，你不能求一个函数的余弦。我们的解决方法就是，使用函数组合。</p>
+
+<p>{{ 
+fn = ceiling . negate . tan . cos . max 50<br>
+}}</p>
+
+<p>漂亮！point free style 会令你去思考函数的组合方式，而非数据的传递方式，更加简洁明了。你可以将一组简单的函数组合在一起，使之形成一个复杂的函数。不过函数若过于复杂，再使用 point free style 往往会适得其反，因此构造较长的函数组合链是不被鼓励的(虽然我本人热衷于函数组合)。更好的解决方法，就是使用 <code>let</code> 语句给中间的运算结果绑定一个名字，或者说把问题分解成几个小问题再组合到一起。这样一来我们代码的读者就可以轻松些，不必要纠结那巨长的函数组合链了。</p>
+
+<p>在 <code>map</code> 和 <code>filter</code> 那节中，我们求了小于 10000 的所有奇数的平方的和。如下就是将其置于一个函数中的样子：</p>
+
+<p>{{
+oddSquareSum :: Integer<br>
+oddSquareSum = sum (takeWhile (&lt;10000) (filter odd (map (^2) [1..])))<br>
+}}</p>
+
+<p>身为函数组合狂人，我可能会这么写：</p>
+
+<p>{{
+oddSquareSum :: Integer<br>
+oddSquareSum = sum . takeWhile (&lt;10000) . filter odd . map (^2) $ [1..]<br>
+}}</p>
+
+<p>不过若是给别人看，我可能就这么写了：</p>
+
+<p>{{
+oddSquareSum :: Integer<br>
+oddSquareSum =<br>
+    let oddSquares = filter odd $ map (^2) [1..]<br>
+        belowLimit = takeWhile (&lt;10000) oddSquares<br>
+    in  sum belowLimit<br>
+}}</p>
+
+<p>这段代码可赢不了代码花样大赛，不过我们的读者可能会觉得它比函数组合链更好看。</p>

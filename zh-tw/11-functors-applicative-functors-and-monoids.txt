@@ -1,0 +1,1504 @@
+<p>=Functors, Applicative Functors 與 Monoids #functors-applicative-functors-and-monoids</p>
+
+<p>Haskell 的一些特色，像是純粹性，高階函數，algebraic data types，typeclasses，這些讓我們可以從更高的角度來看到 polymorphism 這件事。不像 OOP 當中需要從龐大的型態階層來思考。我們只需要看看手邊的型態的行為，將他們跟適當地 typeclass 對應起來就可以了。像 <code>Int</code> 的行為跟很多東西很像。好比說他可以比較相不相等，可以從大到小排列，也可以將他們一一窮舉出來。</p>
+
+<p>Typeclass 的運用是很隨意的。我們可以定義自己的資料型態，然後描述他可以怎樣被操作，跟 typeclass 關聯起來便定義了他的行為。由於 Haskell 強大的型態系統，這讓我們只要讀函數的型態宣告就可以知道很多資訊。typeclass 可以定義得很抽象很 general。我們之前有看過 typeclass 定義了可以比較兩個東西是否相等，或是定義了可以比較兩個東西的大小。這些是既抽象但又描述簡潔的行為，但我們不會認為他們有什麼特別之處，因為我們時常碰到他們。最近我們看過了 functor，基本上他們是一群可以被 map over 的物件。這是其中一個例子能夠抽象但又漂亮地描述行為。在這一章中，我們會詳加闡述 functors，並會提到比較強一些的版本，也就是 applicative functors。我們也會提到 monoids。</p>
+
+<p>==溫習 Functors</p>
+
+<p>[$../img/frogtor.png]</p>
+
+<p>我們已經在之前的章節提到 functors。如果你還沒讀那個章節，也許你應該先去看看。或是你直接假裝你已經讀過了。</p>
+
+<p>來快速複習一下：Functors 是可以被 map over 的物件，像是 lists，<code>Maybe</code>，trees 等等。在 Haskell 中我們是用 <code>Functor</code> 這個 typeclass 來描述他。這個 typeclass 只有一個 method，叫做 <code>fmap</code>，他的型態是 <code>fmap :: (a -&gt; b) -&gt;  f a -&gt; f b</code>。這型態說明了如果給我一個從 <code>a</code> 映到 <code>b</code> 的函數，以及一個裝了 <code>a</code> 的盒子，我會回給你一個裝了 <code>b</code> 的盒子。就好像用這個函數將每個元素都轉成 <code>b</code> 一樣</p>
+
+<pre><code>*給一點建議*。這盒子的比喻嘗試讓你抓到些 functors 是如何運作的感覺。在之後我們也會用相同的比喻來比喻 applicative functors 跟 monads。在多數情況下這種比喻是恰當的，但不要過度引申，有些 functors 是不適用這個比喻的。一個比較正確的形容是 functors 是一個計算語境（computational context）。這個語境可能是這個 computation 可能帶有值，或是有可能會失敗（像 ``Maybe`` 跟 ``Either a``），或是他可能有多個值（像 lists），等等。
+</code></pre>
+
+<p>如果一個 type constructor 要是 <code>Functor</code> 的 instance，那他的 kind 必須是 <code>* -&gt; *</code>，這代表他必須剛好接受一個 type 當作 type parameter。像是 <code>Maybe</code> 可以是 Functor 的一個 instance，因為他接受一個 type parameter，來做成像是 <code>Maybe Int</code>，或是 <code>Maybe String</code>。如果一個 type constructor 接受兩個參數，像是 <code>Either</code>，我們必須給他兩個 type parameter。所以我們不能這樣寫：<code>instance Functor Either where</code>，但我們可以寫 <code>instance Functor (Either a) where</code>，如果我們把 <code>fmap</code> 限縮成只是 <code>Either a</code> 的，那他的型態就是 <code>fmap :: (b -&gt; c) -&gt; Either a b -&gt; Either a c</code>。就像你看到的，<code>Either a</code> 的是固定的一部分，因為 <code>Either a</code> 只恰好接受一個 type parameter，但 <code>Either</code> 則要接受兩個 type parameters。這樣 fmap 的型態變成 <code>fmap :: (b -&gt; c) -&gt; Either b -&gt; Either c</code>，這不太合理。</p>
+
+<p>我們知道有許多型態都是 <code>Functor</code> 的 instance，像是 <code>[]</code>，<code>Maybe</code>，<code>Either a</code> 以及我們自己寫的 <code>Tree</code>。我們也看到了如何用一個函數 map 他們。在這一章節，我們再多舉兩個例子，也就是 <code>IO</code> 跟 <code>(-&gt;) r</code>。</p>
+
+<p>如果一個值的型態是 <code>IO String</code>，他代表的是一個會被計算成 String 結果的 I/O action。我們可以用 do syntax 來把結果綁定到某個名稱。我們之前把 I/O action 比喻做長了腳的盒子，會到真實世界幫我們取一些值回來。我們可以檢視他們取了什麼值，但一旦看過，我們必須要把值放回盒子中。用這個比喻，<code>IO</code> 的行為就像是一個 functor。</p>
+
+<p>我們來看看 <code>IO</code> 是怎麼樣的一個 <code>Functor</code> instance。當我們 <code>fmap</code> 用一個 function 來 map over I/O action 時，我們會想要拿回一個裝著已經用 function 映射過值的 I/O action。</p>
+
+<p>{{
+instance Functor IO where
+    fmap f action = do
+        result &lt;- action
+        return (f result)
+}}</p>
+
+<p>對一個 I/O action 做 map over 動作的結果仍會是一個 I/O action，所以我們才用 do syntax 來把兩個 I/O action 黏成一個。在 <code>fmap</code> 的實作中，我們先執行了原本傳進的 I/O action，並把結果綁定成 <code>result</code>。然後我們寫了 <code>return (f result)</code>。<code>return</code> 就如你所知道的，是一個只會回傳包了你傳給他東西的 I/O action。還有一個 do block 的回傳值一定是他最後一個 I/O action 的回傳值。這也是為什麼我們需要 return。其實他只是回傳包了 <code>f result</code> 的 I/O action。</p>
+
+<p>我們可以再多實驗一下來找到些感覺。來看看這段 code：</p>
+
+<p>{{
+main = do line &lt;- getLine<br>
+        let line&#39; = reverse line<br>
+        putStrLn $ &quot;You said &quot; ++ line&#39; ++ &quot; backwards!&quot;<br>
+        putStrLn $ &quot;Yes, you really said&quot; ++ line&#39; ++ &quot; backwards!&quot;<br>
+}}</p>
+
+<p>這程式要求使用者輸入一行文字，然後印出一行反過來的。
+我們可以用 <code>fmap</code> 來改寫：</p>
+
+<p>{{
+main = do line &lt;- fmap reverse getLine<br>
+            putStrLn $ &quot;You said &quot; ++ line ++ &quot; backwards!&quot;<br>
+            putStrLn $ &quot;Yes, you really said&quot; ++ line ++ &quot; backwards!&quot;<br>
+}}</p>
+
+<p>[^../img/alien.png]</p>
+
+<p>就像我們用 <code>fmap</code> <code>reverse</code> 來 map over <code>Just &quot;blah&quot;</code> 會得到 <code>Just &quot;halb&quot;</code>，我們也可以 <code>fmap</code> <code>reverse</code> 來 map over <code>getLine</code>。<code>getLine</code> 是一個 I/O action，他的 type 是 <code>IO String</code>，而用 <code>reverse</code> 來 map over 他會回傳一個取回一個字串並 <code>reverse</code> 他的 I/O action。就像我們 apply 一個 function 到一個 <code>Maybe</code> 一樣，我們也可以 apply 一個 function 到一個 <code>IO</code>，只是這個 <code>IO</code> 會跑去外面拿回某些值。然後我們把結果用 <code>&lt;-</code> 綁定到某個名稱，而這個名稱綁定的值是已經 <code>reverse</code> 過了。</p>
+
+<p>而 <code>fmap (++&quot;!&quot;) getLine</code> 這個 I/O action 表現得就像 <code>getLine</code>，只是他的結果多了一個 <code>&quot;!&quot;</code> 在最後。</p>
+
+<p>如果我們限縮 <code>fmap</code> 到 <code>IO</code> 型態上，那 fmap 的型態是 <code>fmap :: (a -&gt; b) -&gt; IO a -&gt; IO b</code>。<code>fmap</code> 接受一個函數跟一個 I/O action，並回傳一個 I/O action 包含了已經 apply 過 function 的結果。</p>
+
+<p>如果你曾經注意到你想要將一個 I/O action 綁定到一個名稱上，只是為了要 apply 一個 function。你可以考慮使用 <code>fmap</code>，那會更漂亮地表達這件事。或者你想要對 functor 中的資料做 transformation，你可以先將你要用的 function 寫在 top level，或是把他作成一個 lambda function，甚至用 function composition。</p>
+
+<p>{{
+import Data.Char<br>
+import Data.List  </p>
+
+<p>main = do line &lt;- fmap (intersperse &#39;-&#39; . reverse . map toUpper) getLine<br>
+          putStrLn line<br>
+}}</p>
+
+<p>{{
+$ runhaskell fmapping_io.hs<br>
+hello there<br>
+E-R-E-H-T- -O-L-L-E-H<br>
+}}</p>
+
+<p>正如你想的，<code>intersperse &#39;-&#39; . reverse . map toUpper</code> 合成了一個 function，他接受一個字串，將他轉成大寫，然後反過來，再用 <code>intersperse &#39;-&#39;</code> 安插&#39;-&#39;。他是比較漂亮版本的 <code>(\xs -&gt; intersperse &#39;-&#39; (reverse (map toUpper xs)))</code>。</p>
+
+<p>另一個 <code>Functor</code> 的案例是 <code>(-&gt;) r</code>，只是我們先前沒有注意到。你可能會困惑到底 <code>(-&gt;) r</code> 究竟代表什麼？一個 <code>r -&gt; a</code> 的型態可以寫成 <code>(-&gt;) r a</code>，就像是 <code>2 + 3</code> 可以寫成 <code>(+) 2 3</code> 一樣。我們可以從一個不同的角度來看待 <code>(-&gt;) r a</code>，他其實只是一個接受兩個參數的 type constructor，好比 <code>Either</code>。但記住我們說過 <code>Functor</code> 只能接受一個 type constructor。這也是為什麼 <code>(-&gt;)</code> 不是 <code>Functor</code> 的一個 instance，但 <code>(-&gt;) r</code> 則是。如果程式的語法允許的話，你也可以將 <code>(-&gt;) r</code> 寫成 <code>(r -&gt;)</code>。就如 <code>(2+)</code> 代表的其實是 <code>(+) 2</code>。至於細節是如何呢？我們可以看看 <code>Control.Monad.Instances</code>。</p>
+
+<pre><code>我們通常說一個接受任何東西以及回傳隨便一個東西的函數型態是 ``a -&gt; b``。``r -&gt; a`` 是同樣意思，只是把符號代換了一下。
+</code></pre>
+
+<p>{{
+instance Functor ((-&gt;) r) where<br>
+    fmap f g = (\x -&gt; f (g x))<br>
+}}</p>
+
+<p>如果語法允許的話，他可以被寫成</p>
+
+<p>{{
+instance Functor (r -&gt;) where<br>
+    fmap f g = (\x -&gt; f (g x))<br>
+}}</p>
+
+<p>但其實是不允許的，所以我們必須寫成第一種的樣子。</p>
+
+<p>首先我們來看看 <code>fmap</code> 的型態。他的型態是 <code>fmap :: (a -&gt; b) -&gt; f a -&gt; f b</code>。我們把所有的 <code>f</code> 在心裡代換成 <code>(-&gt;) r</code>。則 <code>fmap</code> 的型態就變成 <code>fmap :: (a -&gt; b) -&gt; ((-&gt;) r a) -&gt; ((-&gt;) r b)</code>。接著我們把 <code>(-&gt;) r a</code> 跟 <code>(-&gt;) r b</code> 換成 <code>r -&gt; a</code> 跟 <code>r -&gt; b</code>。則我們得到 <code>fmap :: (a -&gt; b) -&gt; (r -&gt; a) -&gt; (r -&gt; b)</code>。</p>
+
+<p>從上面的結果看到將一個 function map over 一個 function 會得到另一個 function，就如 map over 一個 function 到 <code>Maybe</code> 會得到一個 <code>Maybe</code>，而 map over 一個 function 到一個 list 會得到一個 list。而 <code>fmap :: (a -&gt; b) -&gt; (r -&gt; a) -&gt; (r -&gt; b)</code> 告訴我們什麼？他接受一個從 <code>a</code> 到 <code>b</code> 的 function，跟一個從 <code>r</code> 到 <code>a</code> 的 function，並回傳一個從 <code>r</code> 到 <code>b</code> 的 function。這根本就是 function composition。把 <code>r -&gt; a</code> 的輸出接到 <code>a -&gt; b</code> 的輸入，的確是 function composition 在做的事。如果你再仔細看看 instance 的定義，會發現真的就是一個 function composition。</p>
+
+<p>{{
+instance Functor ((-&gt;) r) where<br>
+    fmap = (.)<br>
+}}</p>
+
+<p>這很明顯就是把 <code>fmap</code> 當 composition 在用。可以用 <code>:m + Control.Monad.Instances</code> 把模組裝載進來，並做一些嘗試。</p>
+
+<p>{{
+ghci&gt; :t fmap (<em>3) (+100)<br>
+fmap (</em>3) (+100) :: (Num a) =&gt; a -&gt; a<br>
+ghci&gt; fmap (<em>3) (+100) 1<br>
+303<br>
+ghci&gt; (</em>3) <code>fmap</code> (+100) $ 1<br>
+303<br>
+ghci&gt; (<em>3) . (+100) $ 1<br>
+303<br>
+ghci&gt; fmap (show . (</em>3)) (*100) 1<br>
+&quot;300&quot;<br>
+}}</p>
+
+<p>我們呼叫 <code>fmap</code> 的方式是 infix 的方式，這跟 <code>.</code> 很像。在第二行，我們把 <code>(*3)</code> map over 到 <code>(+100)</code> 上，這會回傳一個先把輸入值 <code>(+100)</code> 再 <code>(*3)</code> 的 function，我們再用 <code>1</code> 去呼叫他。</p>
+
+<p>到這邊為止盒子的比喻還適用嗎？如果你硬是要解釋的話還是解釋得通。當我們將 <code>fmap (+3)</code> map over <code>Just 3</code> 的時候，對於 <code>Maybe</code> 我們很容易把他想成是裝了值的盒子，我們只是對盒子裡面的值 <code>(+3)</code>。但對於 <code>fmap (*3) (+100)</code> 呢？你可以把 <code>(+100)</code> 想成是一個裝了值的盒子。有點像把 I/O action 想成長了腳的盒子一樣。對 <code>(+100)</code> 使用 <code>fmap (*3)</code> 會產生另一個表現得像 <code>(+100)</code> 的 function。只是在算出值之前，會再多計算 <code>(*3)</code>。這樣我們可以看出來 <code>fmap</code> 表現得就像 <code>.</code> 一樣。</p>
+
+<p><code>fmap</code> 等同於 function composition 這件事對我們來說並不是很實用，但至少是一個有趣的觀點。這也讓我們打開視野，看到盒子的比喻不是那麼恰當，functors 其實比較像 computation。function 被 map over 到一個 computation 會產生經由那個 function 映射過後的 computation。</p>
+
+<p>[$../img/lifter.png]</p>
+
+<p>在我們繼續看 <code>fmap</code> 該遵守的規則之前，我們再看一次 <code>fmap</code> 的型態，他是 <code>fmap :: (a -&gt; b) -&gt; f a -&gt; f b</code>。很明顯我們是在討論 Functor，所以為了簡潔，我們就不寫 <code>(Functor f) =&gt;</code> 的部份。當我們在學 curry 的時候，我們說過 Haskell 的 function 實際上只接受一個參數。一個型態是 <code>a -&gt; b -&gt; c</code> 的函數實際上是接受 <code>a</code> 然後回傳 <code>b -&gt; c</code>，而 <code>b -&gt; c</code> 實際上接受一個 <code>b</code> 然後回傳一個 <code>c</code>。如果我們用比較少的參數呼叫一個函數，他就會回傳一個函數需要接受剩下的參數。所以 <code>a -&gt; b -&gt; c</code> 可以寫成 <code>a -&gt; (b -&gt; c)</code>。這樣 curry 可以明顯一些。</p>
+
+<p>同樣的，我們可以不要把 <code>fmap</code> 想成是一個接受 function 跟 functor 並回傳一個 function 的 function。而是想成一個接受 function 並回傳一個新的 function 的 function，回傳的 function 接受一個 functor 並回傳一個 functor。他接受 <code>a -&gt; b</code> 並回傳 <code>f a -&gt; f b</code>。這動作叫做 lifting。我們用 GHCI 的 <code>:t</code> 來做的實驗。</p>
+
+<p>{{
+ghci&gt; :t fmap (<em>2)<br>
+fmap (</em>2) :: (Num a, Functor f) =&gt; f a -&gt; f a<br>
+ghci&gt; :t fmap (replicate 3)<br>
+fmap (replicate 3) :: (Functor f) =&gt; f a -&gt; f [a]<br>
+}}</p>
+
+<p><code>fmap (*2)</code> 接受一個 functor <code>f</code>，並回傳一個基於數字的 functor。那個 functor 可以是 list，可以是 <code>Maybe</code>，可以是 <code>Either String</code>。<code>fmap (replicate 3)</code> 可以接受一個基於任何型態的 functor，並回傳一個基於 list 的 functor。</p>
+
+<pre><code>當我們提到 functor over numbers 的時候，你可以想像他是一個 functor 包含有許多數字在裡面。前面一種說法其實比較正確，但後面一種說法比較容易讓人理解。
+</code></pre>
+
+<p>這樣的觀察在我們只有綁定一個部份套用的函數，像是 <code>fmap (++&quot;!&quot;)</code>，的時候會顯得更清楚，</p>
+
+<p>你可以把 <code>fmap</code> 想做是一個函數，他接受另一個函數跟一個 functor，然後把函數對 functor 每一個元素做映射，或你可以想做他是一個函數，他接受一個函數並把他 lift 到可以在 functors 上面操作。兩種想法都是正確的，而且在 Haskell 中是等價。</p>
+
+<p><code>fmap (replicate 3) :: (Functor f) =&gt; f a -&gt; f [a]</code> 這樣的型態代表這個函數可以運作在任何 functor 上。至於確切的行為則要看究竟我們操作的是什麼樣的 functor。如果我們是用 <code>fmap (replicate 3)</code> 對一個 list 操作，那我們會選擇 <code>fmap</code> 針對 list 的實作，也就是只是一個 <code>map</code>。如果我們是碰到 <code>Maybe a</code>。那他在碰到 <code>Just</code> 型態的時候，會對裡面的值套用 <code>replicate 3</code>。而碰到 <code>Nothing</code> 的時候就回傳 <code>Nothing</code>。</p>
+
+<p>{{
+ghci&gt; fmap (replicate 3) [1,2,3,4]<br>
+[[1,1,1],[2,2,2],[3,3,3],[4,4,4]]<br>
+ghci&gt; fmap (replicate 3) (Just 4)<br>
+Just [4,4,4]<br>
+ghci&gt; fmap (replicate 3) (Right &quot;blah&quot;)<br>
+Right [&quot;blah&quot;,&quot;blah&quot;,&quot;blah&quot;]<br>
+ghci&gt; fmap (replicate 3) Nothing<br>
+Nothing<br>
+ghci&gt; fmap (replicate 3) (Left &quot;foo&quot;)<br>
+Left &quot;foo&quot;<br>
+}}</p>
+
+<p>接下來我們來看看 functor laws。一個東西要成為 functor，必須要遵守某些定律。不管任何一個 functor 都被要求具有某些性質。他們必須是能被 map over 的。對他們呼叫 <code>fmap</code> 應該是要用一個函數 map 每一個元素，不多做任何事情。這些行為都被 functor laws 所描述。對於 <code>Functor</code> 的 instance 來說，總共兩條定律應該被遵守。不過他們不會在 Haskell 中自動被檢查，所以你必須自己確認這些條件。</p>
+
+<p>functor law 的第一條說明，如果我們對 functor 做 map <code>id</code>，那得到的新的 functor 應該要跟原來的一樣。如果寫得正式一點，他代表 <code>fmap id = id</code>。基本上他就是說對 functor 呼叫 <code>fmap id</code>，應該等同於對 functor 呼叫 <code>id</code> 一樣。畢竟 <code>id</code> 只是 identity function，他只會把參數照原樣丟出。他也可以被寫成 <code>\x -&gt; x</code>。如果我們對 functor 的概念就是可以被 map over 的物件，那 <code>fmap id = id</code> 的性就顯而易見。</p>
+
+<p>我們來看看這個定律的幾個案例：</p>
+
+<p>{{
+ghci&gt; fmap id (Just 3)<br>
+Just 3<br>
+ghci&gt; id (Just 3)<br>
+Just 3<br>
+ghci&gt; fmap id [1..5]<br>
+[1,2,3,4,5]<br>
+ghci&gt; id [1..5]<br>
+[1,2,3,4,5]<br>
+ghci&gt; fmap id []<br>
+[]<br>
+ghci&gt; fmap id Nothing<br>
+Nothing<br>
+}}</p>
+
+<p>如果我們看看 <code>Maybe</code> 的 <code>fmap</code> 的實作，我們不難發現第一定律為何被遵守。</p>
+
+<p>{{
+instance Functor Maybe where<br>
+    fmap f (Just x) = Just (f x)<br>
+    fmap f Nothing = Nothing<br>
+}}</p>
+
+<p>我們可以想像在 <code>f</code> 的位置擺上 <code>id</code>。我們看到 <code>fmap id</code> 拿到 <code>Just x</code> 的時候，結果只不過是 <code>Just (id x)</code>，而 <code>id</code> 有只回傳他拿到的東西，所以可以知道 <code>Just (id x)</code> 等價於 <code>Just x</code>。所以說我們可以知道對 <code>Maybe</code> 中的 <code>Just</code> 用 <code>id</code> 去做 map over 的動作，會拿回一樣的值。</p>
+
+<p>而將 <code>id</code> map over <code>Nothing</code> 會拿回 <code>Nothing</code> 並不稀奇。所以從這兩個 <code>fmap</code> 的實作，我們可以看到的確 <code>fmap id = id</code> 有被遵守。</p>
+
+<p>[^../img/justice.png]</p>
+
+<p><em>第二定律描述說先將兩個函數合成並將結果 map over 一個 functor 的結果，應該跟先將第一個函數 map over 一個 functor，再將第二個函數 map over 那個 functor 的結果是一樣的。</em>正式地寫下來的話就是 <code>fmap (f . g) = fmap f . fmap g</code>。或是用另外一種寫法，對於任何一個 functor F，下面這個式子應該要被遵守：<code>fmap (f . g) F = fmap f (fmap g F)</code>。</p>
+
+<p>如果我們能夠證明某個型別遵守兩個定律，那我們就可以保證他跟其他 functor 對於映射方面都擁有相同的性質。我們知道如果對他用 <code>fmap</code>，我們知道不會有除了 mapping 以外的事會發生，而他就僅僅會表現成某個可以被 map over 的東西。也就是一個 functor。你可以再仔細檢視 <code>fmap</code> 對於某些型別的實作來了解第二定律。正如我們先前對 <code>Maybe</code> 檢視第一定律一般。</p>
+
+<p>如果你需要的話，我們能在這邊演練一下 <code>Maybe</code> 是如何遵守第二定律的。首先 <code>fmap (f . g)</code> 來 map over <code>Nothing</code> 的話，我們會得到 <code>Nothing</code>。因為用任何函數來 <code>fmap</code> <code>Nothing</code> 的話都會回傳 <code>Nothing</code>。如果我們 <code>fmap f (fmap g Nothing)</code>，我們會得到 <code>Nothing</code>。可以看到當面對 <code>Nothing</code> 的時候，<code>Maybe</code> 很顯然是遵守第二定律的。
+那對於 <code>Just something</code> 呢？如果我們使用 <code>fmap (f . g) (Just x)</code> 的話，從實作的程式碼中我可以看到 <code>Just ((f . g ) x)</code>，也就是 <code>Just (f (g x))</code>。如果我們使用 <code>fmap f (fmap g (Just x))</code> 的話我們可以從實作知道 <code>fmap g (Just x)</code> 會是 <code>Just (g x)</code>。<code>fmap f (fmap g (Just x))</code> 跟 <code>fmap f (Just (g x))</code> 相等。而從實作上這又會相等於 <code>Just (f (g x))</code>。</p>
+
+<p>如果你不太理解這邊的說明，別擔心。只要確定你了解什麼是函數合成就好。在多數的情況下你可以直覺地對應到這些型別表現得就像 containers 或函數一樣。或是也可以換種方法，只要多嘗試對型別中不同的值做操作你就可以看看型別是否有遵守定律。</p>
+
+<p>我們來看一些經典的例子。這些型別建構子雖然是 <code>Functor</code> 的 instance，但實際上他們並不是 functor，因為他們並不遵守這些定律。我們來看看其中一個型別。</p>
+
+<p>{{
+data CMaybe a = CNothing | CJust Int a deriving (Show)<br>
+}}</p>
+
+<p>C 這邊代表的是計數器。他是一種看起來像是 <code>Maybe a</code> 的型別，只差在 <code>Just</code> 包含了兩個 field 而不是一個。在 <code>CJust</code> 中的第一個 field 是 <code>Int</code>，他是扮演計數器用的。而第二個 field 則為型別 <code>a</code>，他是從型別參數來的，而他確切的型別當然會依據我們選定的 <code>CMaybe a</code> 而定。我們來對他作些操作來獲得些操作上的直覺吧。</p>
+
+<p>{{
+ghci&gt; CNothing<br>
+CNothing<br>
+ghci&gt; CJust 0 &quot;haha&quot;<br>
+CJust 0 &quot;haha&quot;<br>
+ghci&gt; :t CNothing<br>
+CNothing :: CMaybe a<br>
+ghci&gt; :t CJust 0 &quot;haha&quot;<br>
+CJust 0 &quot;haha&quot; :: CMaybe [Char]<br>
+ghci&gt; CJust 100 [1,2,3]<br>
+CJust 100 [1,2,3]<br>
+}}</p>
+
+<p>如果我們使用 <code>CNothing</code>，就代表不含有 field。如果我們用的是 <code>CJust</code>，那第一個 field 是整數，而第二個 field 可以為任何型別。我們來定義一個 <code>Functor</code> 的 instance，這樣每次我們使用 <code>fmap</code> 的時候，函數會被套用在第二個 field，而第一個 field 會被加一。</p>
+
+<p>{{
+instance Functor CMaybe where<br>
+    fmap f CNothing = CNothing<br>
+    fmap f (CJust counter x) = CJust (counter+1) (f x)<br>
+}}</p>
+
+<p>這種定義方式有點像是 <code>Maybe</code> 的定義方式，只差在當我們使用 <code>fmap</code> 的時候，如果碰到的不是空值，那我們不只會套用函數，還會把計數器加一。我們可以來看一些範例操作。</p>
+
+<p>{{
+ghci&gt; fmap (++&quot;ha&quot;) (CJust 0 &quot;ho&quot;)<br>
+CJust 1 &quot;hoha&quot;<br>
+ghci&gt; fmap (++&quot;he&quot;) (fmap (++&quot;ha&quot;) (CJust 0 &quot;ho&quot;))<br>
+CJust 2 &quot;hohahe&quot;<br>
+ghci&gt; fmap (++&quot;blah&quot;) CNothing<br>
+CNothing<br>
+}}</p>
+
+<p>這些會遵守 functor laws 嗎？要知道有不遵守的情形，只要找到一個反例就好了。</p>
+
+<p>{{
+ghci&gt; fmap id (CJust 0 &quot;haha&quot;)<br>
+CJust 1 &quot;haha&quot;<br>
+ghci&gt; id (CJust 0 &quot;haha&quot;)<br>
+CJust 0 &quot;haha&quot;<br>
+}}</p>
+
+<p>我們知道 functor law 的第一定律描述當我們用 <code>id</code> 來 map over 一個 functor 的時候，他的結果應該跟只對 functor 呼叫 <code>id</code> 的結果一樣。但我們可以看到這個例子中，這對於 <code>CMaybe</code> 並不遵守。儘管他的確是 <code>Functor</code> typeclass 的一個 instace。但他並不遵守 functor law 因此不是一個 functor。如果有人使用我們的 <code>CMaybe</code> 型別，把他當作 functor 用，那他就會期待 functor laws 會被遵守。但 <code>CMaybe</code> 並沒辦法滿足，便會造成錯誤的程式。當我們使用一個 functor 的時候，函數合成跟 map over 的先後順序不應該有影響。但對於 <code>CMaybe</code> 他是有影響的，因為他紀錄了被 map over 的次數。如果我們希望 <code>CMaybe</code> 遵守 functor law，我們必須要讓 <code>Int</code> 欄位在做 <code>fmap</code> 的時候維持不變。</p>
+
+<p>乍看之下 functor laws 看起來不是很必要，也容易讓人搞不懂，但我們知道如果一個型別遵守 functor laws，那我們就能對他作些基本的假設。如果遵守了 functor laws，我們知道對他做 <code>fmap</code> 不會做多餘的事情，只是用一個函數做映射而已。這讓寫出來的程式碼足夠抽象也容易擴展。因為我們可以用定律來推論型別的行為。</p>
+
+<p>所有在標準函式庫中的 <code>Functor</code> 的 instance 都遵守這些定律，但你可以自己檢查一遍。下一次你定義一個型別為 <code>Functor</code> 的 instance 的時候，花點時間確認他確實遵守 functor laws。一旦你操作過足夠多的 functors 時，你就會獲得直覺，知道他們會有什麼樣的性質跟行為。而且 functor laws 也會覺得顯而易見。但就算沒有這些直覺，你仍然可以一行一行地來找看看有沒有反例讓這些定律失效。</p>
+
+<p>我們可以把 functor 看作輸出具有 context 的值。例如說 <code>Just 3</code> 就是輸出 <code>3</code>，但他又帶有一個可能沒有值的 context。<code>[1,2,3]</code> 輸出三個值，<code>1</code>,<code>2</code> 跟 <code>3</code>，同時也帶有可能有多個值或沒有值的 context。<code>(+3)</code> 則會帶有一個依賴於參數的 context。</p>
+
+<p>如果你把 functor 想做是輸出值這件事，那你可以把 map over 一個 functor 這件事想成在 functor 輸出的後面再多加一層轉換。當我們做 <code>fmap (+3) [1,2,3]</code> 的時候，我們是把 <code>(+3)</code> 接到 <code>[1,2,3]</code> 後面，所以當我們檢視任何一個 list 的輸出的時候，<code>(+3)</code> 也會被套用在上面。另一個例子是對函數做 map over。當我們做 <code>fmap (+3) (*3)</code>，我們是把 <code>(+3)</code> 這個轉換套用在 <code>(*3)</code> 後面。這樣想的話會很自然就會把 <code>fmap</code> 跟函數合成關聯起來（<code>fmap (+3) (*3)</code> 等價於 <code>(+3) . (*3)</code>，也等價於 <code>\x -&gt; ((x*3)+3)</code>），畢竟我們是接受一個函數 <code>(*3)</code> 然後套用 <code>(+3)</code> 轉換。最後的結果仍然是一個函數，只是當我們餵給他一個數字的時候，他會先乘上三然後做轉換加上三。這基本上就是函數合成在做的事。</p>
+
+<p>==Applicative functors</p>
+
+<p>[$../img/present.png]</p>
+
+<p>在這個章節中，我們會學到 applicative functors，也就是加強版的 functors，在 Haskell 中是用在 <code>Control.Applicative</code> 中的 <code>Applicative</code> 這個 typeclass 來定義的。</p>
+
+<p>你還記得 Haskell 中函數預設就是 Curried 的，那代表接受多個參數的函數實際上是接受一個參數然後回傳一個接受剩餘參數的函數，以此類推。如果一個函數的型別是 <code>a -&gt; b -&gt; c</code>，我們通常會說這個函數接受兩個參數並回傳 <code>c</code>，但他實際上是接受 <code>a</code> 並回傳一個 <code>b -&gt; c</code> 的函數。這也是為什麼我們可以用 <code>(f x) y</code> 的方式呼叫 <code>f x y</code>。這個機制讓我們可以 partially apply 一個函數，可以用比較少的參數呼叫他們。可以做成一個函數再餵給其他函數。</p>
+
+<p>到目前為止，當我們要對 functor map over 一個函數的時候，我們用的函數都是只接受一個參數的。但如果我們要 map 一個接受兩個參數的函數呢？我們來看幾個具體的例子。如果我們有 <code>Just 3</code> 然後我們做 <code>fmap (*) (Just 3)</code>，那我們會獲得什麼樣的結果？從 <code>Maybe</code> 對 <code>Functor</code> 的 instance 實作來看，我們知道如果他是 <code>Just something</code>，他會對在 <code>Just</code> 中的 <code>something</code> 做映射。因此當 <code>fmap (*) (Just 3)</code> 會得到 <code>Just ((*) 3)</code>，也可以寫做 <code>Just (* 3)</code>。我們得到了一個包在 <code>Just</code> 中的函數。</p>
+
+<p>{{
+ghci&gt; :t fmap (++) (Just &quot;hey&quot;)<br>
+fmap (++) (Just &quot;hey&quot;) :: Maybe ([Char] -&gt; [Char])<br>
+ghci&gt; :t fmap compare (Just &#39;a&#39;)<br>
+fmap compare (Just &#39;a&#39;) :: Maybe (Char -&gt; Ordering)<br>
+ghci&gt; :t fmap compare &quot;A LIST OF CHARS&quot;<br>
+fmap compare &quot;A LIST OF CHARS&quot; :: [Char -&gt; Ordering]<br>
+ghci&gt; :t fmap (\x y z -&gt; x + y / z) [3,4,5,6]<br>
+fmap (\x y z -&gt; x + y / z) [3,4,5,6] :: (Fractional a) =&gt; [a -&gt; a -&gt; a]<br>
+}}</p>
+
+<p>如果我們 map <code>compare</code> 到一個包含許多字元的 list 呢？他的型別是 <code>(Ord a) =&gt; a -&gt; a -&gt; Ordering</code>，我們會得到包含許多 <code>Char -&gt; Ordering</code> 型別函數的 list，因為 <code>compare</code> 被 partially apply 到 list 中的字元。他不是包含許多 <code>(Ord a) =&gt; a -&gt; Ordering</code> 的函數，因為第一個 <code>a</code> 碰到的型別是 <code>Char</code>，所以第二個 <code>a</code> 也必須是 <code>Char</code>。</p>
+
+<p>我們看到如何用一個多參數的函數來 map functor，我們會得到一個包含了函數的 functor。那現在我們能對這個包含了函數的 functor 做什麼呢？我們能用一個吃這些函數的函數來 map over 這個 functor，這些在 functor 中的函數都會被當作參數丟給我們的函數。</p>
+
+<p>{{
+ghci&gt; let a = fmap (*) [1,2,3,4]<br>
+ghci&gt; :t a<br>
+a :: [Integer -&gt; Integer]<br>
+ghci&gt; fmap (\f -&gt; f 9) a<br>
+[9,18,27,36]<br>
+}}</p>
+
+<p>但如果我們的有一個 functor 裡面是 <code>Just (3 *)</code> 還有另一個 functor 裡面是 <code>Just 5</code>，但我們想要把第一個 <code>Just (3 *)</code> map over <code>Just 5</code> 呢？如果是普通的 functor，那就沒救了。因為他們只允許 map 一個普通的函數。即使我們用 <code>\f -&gt; f 9</code> 來 map 一個裝了很多函數的 functor，我們也是使用了普通的函數。我們是無法單純用 <code>fmap</code> 來把包在一個 functor 的函數 map 另一個包在 functor 中的值。我們能用模式匹配 <code>Just</code> 來把函數從裡面抽出來，然後再 map <code>Just 5</code>，但我們是希望有一個一般化的作法，對任何 functor 都有效。</p>
+
+<p>我們來看看 <code>Applicative</code> 這個 typeclass。他位在 <code>Control.Applicative</code> 中，在其中定義了兩個函數 <code>pure</code> 跟 <code>&lt;*&gt;</code>。他並沒有提供預設的實作，如果我們想使用他必須要為他們 applicative functor 的實作。typeclass 定義如下：</p>
+
+<p>{{
+class (Functor f) =&gt; Applicative f where<br>
+    pure :: a -&gt; f a<br>
+    (&lt;*&gt;) :: f (a -&gt; b) -&gt; f a -&gt; f b<br>
+}}</p>
+
+<p>這簡簡單單的三行可以讓我們學到不少。首先來看第一行。他開啟了 <code>Applicative</code> 的定義，並加上 class contraint。描述了一個型別構造子要是 <code>Applicative</code>，他必須也是 <code>Functor</code>。這就是為什麼我們說一個型別構造子屬於 <code>Applicative</code> 的話，他也會是 <code>Functor</code>，因此我們能對他使用 <code>fmap</code>。</p>
+
+<p>第一個定義的是 <code>pure</code>。他的型別宣告是 <code>pure :: a -&gt; f a</code>。<code>f</code> 代表 applicative functor 的 instance。由於 Haskell 有一個優秀的型別系統，其中函數又是將一些參數映射成結果，我們可以從型別宣告中讀出許多訊息。<code>pure</code> 應該要接受一個值，然後回傳一個包含那個值的 applicative functor。我們這邊是用盒子來作比喻，即使有一些比喻不完全符合現實的情況。儘管這樣，<code>a -&gt; f a</code> 仍有許多豐富的資訊，他確實告訴我們他會接受一個值並回傳一個 applicative functor，裡面裝有結果。</p>
+
+<p>對於 <code>pure</code> 比較好的說法是把一個普通值放到一個預設的 context 下，一個最小的 context 但仍然包含這個值。</p>
+
+<p><code>&lt;*&gt;</code> 也非常有趣。他的型別是 <code>f (a -&gt; b) -&gt; f a -&gt; f b</code>。這有讓你聯想到什麼嗎？沒錯！就是 <code>fmap :: (a -&gt; b) -&gt; f a -&gt; f b</code>。他有點像加強版的 <code>fmap</code>。然而 <code>fmap</code> 接受一個函數跟一個 functor，然後套用 functor 之中的函數。<code>&lt;*&gt;</code> 則是接受一個裝有函數的 functor 跟另一個 functor，然後取出第一個 functor 中的函數將他對第二個 functor 中的值做 map。</p>
+
+<p>我們來看看 <code>Maybe</code> 的 <code>Applicative</code> 實作：</p>
+
+<p>{{
+instance Applicative Maybe where<br>
+    pure = Just<br>
+    Nothing &lt;<em>&gt; _ = Nothing<br>
+    (Just f) &lt;</em>&gt; something = fmap f something<br>
+}}</p>
+
+<p>從 class 的定義我們可以看到 <code>f</code> 作為 applicative functor 會接受一個具體型別當作參數，所以我們是寫成 <code>instance Applicative Maybe where</code> 而不是寫成 <code>instance Applicative (Maybe a) where</code>。</p>
+
+<p>首先看到 <code>pure</code>。他只不過是接受一個東西然後包成 applicative functor。我們寫成 <code>pure = Just</code> 是因為 <code>Just</code> 不過就是一個普通函數。我們其實也可以寫成 <code>pure x = Just x</code>。</p>
+
+<p>接著我們定義了 <code>&lt;*&gt;</code>。我們無法從 <code>Nothing</code> 中抽出一個函數，因為 <code>Nothing</code> 並不包含一個函數。所以我們說如果我們要嘗試從 <code>Nothing</code> 中取出一個函數，結果必定是 <code>Nothing</code>。如果你看看 <code>Applicative</code> 的定義，你會看到他有 <code>Functor</code> 的限制，他代表 <code>&lt;*&gt;</code> 的兩個參數都會是 functors。如果第一個參數不是 <code>Nothing</code>，而是一個裝了函數的 <code>Just</code>，而且我們希望將這個函數對第二個參數做 map。這個也考慮到第二個參數是 <code>Nothing</code> 的情況，因為 <code>fmap</code> 任何一個函數至 <code>Nothing</code> 會回傳 <code>Nothing</code>。</p>
+
+<p>對於 <code>Maybe</code> 而言，如果左邊是 <code>Just</code>，那 <code>&lt;*&gt;</code> 會從其中抽出了一個函數來 map 右邊的值。如果有任何一個參數是 <code>Nothing</code>。那結果便是 <code>Nothing</code>。</p>
+
+<p>來試試看吧！</p>
+
+<p>{{
+ghci&gt; Just (+3) &lt;<em>&gt; Just 9<br>
+Just 12<br>
+ghci&gt; pure (+3) &lt;</em>&gt; Just 10<br>
+Just 13<br>
+ghci&gt; pure (+3) &lt;<em>&gt; Just 9<br>
+Just 12<br>
+ghci&gt; Just (++&quot;hahah&quot;) &lt;</em>&gt; Nothing<br>
+Nothing<br>
+ghci&gt; Nothing &lt;*&gt; Just &quot;woot&quot;<br>
+Nothing<br>
+}}</p>
+
+<p>我們看到 <code>pure (+3)</code> 跟 <code>Just (+3)</code> 在這個 case 下是一樣的。如果你是在 applicative context 底下跟 <code>Maybe</code> 打交道的話請用 <code>pure</code>，要不然就用 <code>Just</code>。前四個輸入展示了函數是如何被取出並做 map 的動作，但在這個 case 底下，他們同樣也可以用 unwrap 函數來 map over functors。最後一行比較有趣，因為我們試著從 <code>Nothing</code> 取出函數並將他 map 到某個值。結果當然是 <code>Nothing</code>。</p>
+
+<p>對於普通的 functors，你可以用一個函數 map over 一個 functors，但你可能沒辦法拿到結果。而 applicative functors 則讓你可以用單一一個函數操作好幾個 functors。看看下面一段程式碼：</p>
+
+<p>{{
+ghci&gt; pure (+) &lt;<em>&gt; Just 3 &lt;</em>&gt; Just 5<br>
+Just 8<br>
+ghci&gt; pure (+) &lt;<em>&gt; Just 3 &lt;</em>&gt; Nothing<br>
+Nothing<br>
+ghci&gt; pure (+) &lt;<em>&gt; Nothing &lt;</em>&gt; Just 5<br>
+Nothing<br>
+}}</p>
+
+<p>[$../img/whale.png]</p>
+
+<p>究竟我們寫了些什麽？我們來一步步看一下。<code>&lt;*&gt;</code> 是 left-associative，也就是說 <code>pure (+) &lt;*&gt; Just 3 &lt;*&gt; Just 5</code> 可以寫成 <code>(pure (+) &lt;*&gt; Just 3) &lt;*&gt; Just 5</code>。首先 <code>+</code> 是擺在一個 functor 中，在這邊剛好他是一個 <code>Maybe</code>。所以首先，我們有 <code>pure (+)</code>，他等價於 <code>Just (+)</code>。接下來由於 partial application 的關係，<code>Just (+) &lt;*&gt; Just 3</code> 等價於 <code>Just (3+)</code>。把一個 <code>3</code> 餵給 <code>+</code> 形成另一個只接受一個參數的函數，他的效果等於加上 3。最後 <code>Just (3+) &lt;*&gt; Just 5</code> 被運算，其結果是 <code>Just 8</code>。</p>
+
+<p>這樣很棒吧！用 applicative style 的方式來使用 applicative functors。像是 <code>pure f &lt;*&gt; x &lt;*&gt; y &lt;*&gt; ...</code> 就讓我們可以拿一個接受多個參數的函數，而且這些參數不一定是被包在 functor 中。就這樣來套用在多個在 functor context 的值。這個函數可以吃任意多的參數，畢竟 <code>&lt;*&gt;</code> 只是做 partial application 而已。</p>
+
+<p>如果我們考慮到 <code>pure f &lt;*&gt; x</code> 等於 <code>fmap f x</code> 的話，這樣的用法就更方便了。這是 applicative laws 的其中一條。我們稍後會更仔細地檢視這條定律。現在我們先依直覺來使用他。就像我們先前所說的，<code>pure</code> 把一個值放進一個預設的 context 中。如果我們要把一個函數放在一個預設的 context，然後把他取出並套用在放在另一個 applicative functor 的值。我們會做的事就是把函數 map over 那個 applicative functor。但我們不會寫成 <code>pure f &lt;*&gt; x &lt;*&gt; y &lt;*&gt; ...</code>，而是寫成 <code>fmap f x &lt;*&gt; y &lt;*&gt; ...</code>。這也是為什麽 <code>Control.Applicative</code> 會 export 一個函數 <code>&lt;$&gt;</code>，他基本上就是中綴版的 <code>fmap</code>。他是這麼被定義的：</p>
+
+<p>{{
+(&lt;$&gt;) :: (Functor f) =&gt; (a -&gt; b) -&gt; f a -&gt; f b<br>
+f &lt;$&gt; x = fmap f x<br>
+}}</p>
+
+<pre><code>要記住型別變數跟參數的名字還有值綁定的名稱不衝突。``f`` 在函數的型別宣告中是型別變數，說明 ``f`` 應該要滿足 ``Functor`` typeclass 的條件。而在函數本體中的 ``f`` 則表示一個函數，我們將他 map over x。我們同樣用 ``f`` 來表示他們並代表他們是相同的東西。
+</code></pre>
+
+<p><code>&lt;$&gt;</code> 的使用顯示了 applicative style 的好處。如果我們想要將 <code>f</code> 套用三個 applicative functor。我們可以寫成 <code>f &lt;$&gt; x &lt;*&gt; y &lt;*&gt; z</code>。如果參數不是 applicative functor 而是普通值的話。我們則寫成 <code>f x y z</code>。</p>
+
+<p>我們再仔細看看他是如何運作的。我們有一個 <code>Just &quot;johntra&quot;</code> 跟 <code>Just &quot;volta&quot;</code> 這樣的值，我們希望將他們結合成一個 <code>String</code>，並且包含在 <code>Maybe</code> 中。我們會這樣做：</p>
+
+<p>{{
+ghci&gt; (++) &lt;$&gt; Just &quot;johntra&quot; &lt;*&gt; Just &quot;volta&quot;<br>
+Just &quot;johntravolta&quot;<br>
+}}</p>
+
+<p>可以將上面的跟下面這行比較一下：</p>
+
+<p>{{
+ghci&gt; (++) &quot;johntra&quot; &quot;volta&quot;<br>
+&quot;johntravolta&quot;<br>
+}}</p>
+
+<p>可以將一個普通的函數套用在 applicative functor 上真不錯。只要稍微寫一些 <code>&lt;$&gt;</code> 跟 <code>&lt;*&gt;</code> 就可以把函數變成 applicative style，可以操作 applicatives 並回傳 applicatives。</p>
+
+<p>總之當我們在做 <code>(++) &lt;$&gt; Just &quot;johntra&quot; &lt;*&gt; Just &quot;volta&quot;</code> 時，首先我們將 <code>(++)</code> map over 到 <code>Just &quot;johntra&quot;</code>，然後產生 <code>Just (&quot;johntra&quot;++)</code>，其中 <code>(++)</code> 的型別為 <code>(++) :: [a] -&gt; [a] -&gt; [a]</code>，<code>Just (&quot;johntra&quot;++)</code> 的型別為 <code>Maybe ([Char] -&gt; [Char])</code>。注意到 <code>(++)</code> 是如何吃掉第一個參數，以及我們是怎麼決定 <code>a</code> 是 <code>Char</code> 的。當我們做 <code>Just (&quot;johntra&quot;++) &lt;*&gt; Just &quot;volta&quot;</code>，他接受一個包在 <code>Just</code> 中的函數，然後 map over <code>Just &quot;volta&quot;</code>，產生了 <code>Just &quot;johntravolta&quot;</code>。如果兩個值中有任意一個為 <code>Nothing</code>，那整個結果就會是 <code>Nothing</code>。</p>
+
+<p>到目前為止我們只有用 <code>Maybe</code> 當作我們的案例，你可能也會想說 applicative functor 差不多就等於 <code>Maybe</code>。不過其實有許多其他 <code>Applicative</code> 的 instance。我們來看看有哪些。</p>
+
+<p>List 也是 applicative functor。很驚訝嗎？來看看我們是怎麼定義 <code>[]</code> 為 <code>Applicative</code> 的 instance 的。</p>
+
+<p>{{
+instance Applicative [] where<br>
+    pure x = [x]<br>
+    fs &lt;*&gt; xs = [f x | f &lt;- fs, x &lt;- xs]<br>
+}}</p>
+
+<p>早先我們說過 <code>pure</code> 是把一個值放進預設的 context 中。換種說法就是一個會產生那個值的最小 context。而對 list 而言最小 context 就是 <code>[]</code>，但由於空的 list 並不包含一個值，所以我們沒辦法把他當作 <code>pure</code>。這也是為什麼 <code>pure</code> 其實是接受一個值然後回傳一個包含單元素的 list。同樣的，<code>Maybe</code> 的最小 context 是 <code>Nothing</code>，但他其實表示的是沒有值。所以 <code>pure</code> 其實是被實作成 <code>Just</code> 的。</p>
+
+<p>{{
+ghci&gt; pure &quot;Hey&quot; :: [String]<br>
+[&quot;Hey&quot;]<br>
+ghci&gt; pure &quot;Hey&quot; :: Maybe String<br>
+Just &quot;Hey&quot;<br>
+}}</p>
+
+<p>至於 <code>&lt;*&gt;</code> 呢？如果我們假定 <code>&lt;*&gt;</code> 的型別是限制在 list 上的話，我們會得到 <code>(&lt;*&gt;) :: [a -&gt; b] -&gt; [a] -&gt; [b]</code>。他是用 list comprehension 來實作的。<code>&lt;*&gt;</code> 必須要從左邊的參數取出函數，將他 map over 右邊的參數。但左邊的 list 有可能不包含任何函數，也可能包含一個函數，甚至是多個函數。而右邊的 list 有可能包含多個值。這也是為什麼我們用 list comprehension 的方式來從兩個 list 取值。我們要對左右任意的組合都做套用的動作。而得到的結果就會是左右兩者任意組合的結果。</p>
+
+<p>{{
+ghci&gt; [(<em>0),(+100),(^2)] &lt;</em>&gt; [1,2,3]<br>
+[0,0,0,101,102,103,1,4,9]<br>
+}}</p>
+
+<p>左邊的 list 包含三個函數，而右邊的 list 有三個值。所以結果會是有九個元素的 list。在左邊 list 中的每一個函數都被套用到右邊的值。如果我們今天在 list 中的函數是接收兩個參數的，我們也可以套用到兩個 list 上。</p>
+
+<p>{{
+ghci&gt; [(+),(<em>)] &lt;</em>&gt; [1,2] &lt;*&gt; [3,4]<br>
+[4,5,5,6,3,4,6,8]<br>
+}}</p>
+
+<p>由於 <code>&lt;*&gt;</code> 是 left-associative，也就是說 <code>[(+),(*)] &lt;*&gt; [1,2]</code> 會先運作，產生 <code>[(1+),(2+),(1*),(2*)]</code>。由於左邊的每一個函數都套用至右邊的每一個值。也就產生 <code>[(1+),(2+),(1*),(2*)] &lt;*&gt; [3,4]</code>，其便是最終結果。</p>
+
+<p>list 的 applicative style 是相當有趣的：</p>
+
+<p>{{
+ghci&gt; (++) &lt;$&gt; [&quot;ha&quot;,&quot;heh&quot;,&quot;hmm&quot;] &lt;*&gt; [&quot;?&quot;,&quot;!&quot;,&quot;.&quot;]<br>
+[&quot;ha?&quot;,&quot;ha!&quot;,&quot;ha.&quot;,&quot;heh?&quot;,&quot;heh!&quot;,&quot;heh.&quot;,&quot;hmm?&quot;,&quot;hmm!&quot;,&quot;hmm.&quot;] 
+}}</p>
+
+<p>看看我們是如何將一個接受兩個字串參數的函數套用到兩個 applicative functor 上的，只要用適當的 applicative 運算子就可以達成。</p>
+
+<p>你可以將 list 看作是一個 non-deterministic 的計算。而對於像 <code>100</code> 或是 <code>&quot;what&quot;</code> 這樣的值則是 deterministic 的計算，只會有一個結果。而 <code>[1,2,3]</code> 則可以看作是沒有確定究竟是哪一種結果。所以他代表的是所有可能的結果。當你在做 <code>(+) &lt;$&gt; [1,2,3] &lt;*&gt; [4,5,6]</code>，你可以想做是把兩個 non-deterministic 的計算做 <code>+</code>，只是他會產生另一個 non-deterministic 的計算，而且結果更加不確定。</p>
+
+<p>Applicative style 對於 list 而言是一個取代 list comprehension 的好方式。在第二章中，我們想要看到 <code>[2,5,10]</code> 跟 <code>[8,10,11]</code> 相乘的結果，所以我們這樣做：</p>
+
+<p>{{
+ghci&gt; [ x*y | x &lt;- [2,5,10], y &lt;- [8,10,11]]<br>
+[16,20,22,40,50,55,80,100,110]<br>
+}}</p>
+
+<p>我們只是從兩個 list 中取出元素，並將一個函數套用在任何元素的組合上。這也可以用 applicative style 的方式來寫：</p>
+
+<p>{{
+ghci&gt; (<em>) &lt;$&gt; [2,5,10] &lt;</em>&gt; [8,10,11]<br>
+[16,20,22,40,50,55,80,100,110]<br>
+}}</p>
+
+<p>這寫法對我來說比較清楚。可以清楚表達我們是要對兩個 non-deterministic 的計算做 <code>*</code>。如果我們想要所有相乘大於 50 可能的計算結果，我們會這樣寫：</p>
+
+<p>{{
+ghci&gt; filter (&gt;50) $ (<em>) &lt;$&gt; [2,5,10] &lt;</em>&gt; [8,10,11]<br>
+[55,80,100,110]<br>
+}}</p>
+
+<p>很容易看到 <code>pure f &lt;*&gt; xs</code> 等價於 <code>fmap f xs</code>。而 <code>pure f</code> 就是 <code>[f]</code>，而且 <code>[f] &lt;*&gt; xs</code> 可將左邊的每個函數套用至右邊的每個值。但左邊其實只有一個函數，所以他做起來就像是 mapping。</p>
+
+<p>另一個我們已經看過的 <code>Applicative</code> 的 instance 是 <code>IO</code>，來看看他是怎麼實作的：</p>
+
+<p>{{
+instance Applicative IO where<br>
+    pure = return<br>
+    a &lt;*&gt; b = do<br>
+        f &lt;- a<br>
+        x &lt;- b<br>
+        return (f x)<br>
+}}</p>
+
+<p>[^../img/knight.png]</p>
+
+<p>由於 <code>pure</code> 是把一個值放進最小的 context 中，所以將 <code>return</code> 定義成 <code>pure</code> 是很合理的。因為 <code>return</code> 也是做同樣的事情。他做了一個不做任何事情的 I/O action，他可以產生某些值來作為結果，但他實際上並沒有做任何 I/O 的動作，例如說印出結果到終端或是檔案。</p>
+
+<p>如果 <code>&lt;*&gt;</code> 被限定在 <code>IO</code> 上操作的話，他的型別會是 <code>(&lt;*&gt;) :: IO (a -&gt; b) -&gt; IO a -&gt; IO b</code>。他接受一個產生函數的 I/O action，還有另一個 I/O action，並從以上兩者創造一個新的 I/O action，也就是把第二個參數餵給第一個參數。而得到回傳的結果，然後放到新的 I/O action 中。我們用 do 的語法來實作他。你還記得的話 do 就是把好幾個 I/O action 黏在一起，變成一個大的 I/O action。</p>
+
+<p>而對於 <code>Maybe</code> 跟 <code>[]</code> 而言，我們可以把 <code>&lt;*&gt;</code> 想做是從左邊的參數取出一個函數，然後套用到右邊的參數上。至於 <code>IO</code>，這種取出的類比方式仍然適用，但我們必須多加一個 sequencing 的概念，因為我們是從兩個 I/O action 中取值，也是在 sequencing，把他們黏成一個。我們從第一個 I/O action 中取值，但要取出 I/O action 的結果，他必須要先被執行過。</p>
+
+<p>考慮下面這個範例：</p>
+
+<p>{{
+myAction :: IO String<br>
+myAction = do<br>
+    a &lt;- getLine<br>
+    b &lt;- getLine<br>
+    return $ a ++ b<br>
+}}</p>
+
+<p>這是一個提示使用者輸入兩行並產生將兩行輸入串接在一起結果的一個 I/O action。我們先把兩個 <code>getLine</code> 黏在一起，然後用一個 <code>return</code>，這是因為我們想要這個黏成的 I/O action 包含 <code>a ++ b</code> 的結果。我們也可以用 applicative style 的方式來描述：</p>
+
+<p>{{
+myAction :: IO String<br>
+myAction = (++) &lt;$&gt; getLine &lt;*&gt; getLine<br>
+}}</p>
+
+<p>我們先前的作法是將兩個 I/O action 的結果餵給函數。還記得 <code>getLine</code> 的型別是 <code>getLine :: IO String</code>。當我們對 applicative functor 使用 <code>&lt;*&gt;</code> 的時候，結果也會是 applicative functor。</p>
+
+<p>如果我們再使用盒子的類比，我們可以把 <code>getLine</code> 想做是一個去真實世界中拿取字串的盒子。而 <code>(++) &lt;$&gt; getLine &lt;*&gt; getLine</code> 會創造一個比較大的盒子，這個大盒子會派兩個盒子去終端拿取字串，並把結果串接起來放進自己的盒子中。</p>
+
+<p><code>(++) &lt;$&gt; getLine &lt;*&gt; getLine</code> 的型別是 <code>IO String</code>，他代表這個表達式式一個再普通不過的 I/O action，他裡面也裝著某種值。這也是為什麼我們可以這樣寫：</p>
+
+<p>{{
+main = do<br>
+    a &lt;- (++) &lt;$&gt; getLine &lt;*&gt; getLine<br>
+    putStrLn $ &quot;The two lines concatenated turn out to be: &quot; ++ a<br>
+}}</p>
+
+<p>如果你發現你是在做 binding I/O action 的動作，而且在 binding 之後還呼叫一些函數，最後用 <code>return</code> 來將結果包起來。
+那你可以考慮使用 applicative style，這樣可以更簡潔。</p>
+
+<p>另一個 <code>Applicative</code> 的 instance 是 <code>(-&gt;) r</code>。雖然他們通常是用在 code golf 的情況，但他們還是十分有趣的例子。所以我們還是來看一下他們是怎麼被實作的。</p>
+
+<pre><code>如果你忘記 ``(-&gt;) r`` 的意思，回去翻翻前一章節我們介紹 ``(-&gt;) r`` 作為一個 functor 的範例。
+</code></pre>
+
+<p>{{
+instance Applicative ((-&gt;) r) where<br>
+    pure x = (_ -&gt; x)<br>
+    f &lt;*&gt; g = \x -&gt; f x (g x)<br>
+}}</p>
+
+<p>當我們用 <code>pure</code> 將一個值包成 applicative functor 的時候，他產生的結果永遠都會是那個值。也就是最小的 context。那也是為什麼對於 function 的 <code>pure</code> 實作來講，他就是接受一個值，然後造一個函數永遠回傳那個值，不管他被餵了什麼參數。如果你限定 <code>pure</code> 的型別至 <code>(-&gt;) r</code> 上，他就會是 <code>pure :: a -&gt; (r -&gt; a)</code>。</p>
+
+<p>{{
+ghci&gt; (pure 3) &quot;blah&quot;<br>
+3<br>
+}}</p>
+
+<p>由於 currying 的關係，函數套用是 left-associative，所以我們忽略掉括弧。</p>
+
+<p>{{
+ghci&gt; pure 3 &quot;blah&quot;<br>
+3<br>
+}}</p>
+
+<p>而 <code>&lt;*&gt;</code> 的實作是比較不容易瞭解的，我們最好看一下怎麼用 applicative style 的方式來使用作為 applicative functor 的 function。</p>
+
+<p>{{
+ghci&gt; :t (+) &lt;$&gt; (+3) &lt;<em>&gt; (</em>100)<br>
+(+) &lt;$&gt; (+3) &lt;<em>&gt; (</em>100) :: (Num a) =&gt; a -&gt; a<br>
+ghci&gt; (+) &lt;$&gt; (+3) &lt;<em>&gt; (</em>100) $ 5<br>
+508 
+}}</p>
+
+<p>將兩個 applicative functor 餵給 <code>&lt;*&gt;</code> 可以產生一個新的 applicative functor，所以如果我們丟給他兩個函數，我們能得到一個新的函數。所以是怎麼一回事呢？當我們做 <code>(+) &lt;$&gt; (+3) &lt;*&gt; (*100)</code>，我們是在實作一個函數，他會將 <code>(+3)</code> 跟 <code>(*100)</code> 的結果再套用 <code>+</code>。要看一個實際的範例的話，可以看一下 <code>(+) &lt;$&gt; (+3) &lt;*&gt; (*100) $ 5</code> 首先 <code>5</code> 被丟給 <code>(+3)</code> 跟 <code>(*100)</code>，產生 <code>8</code> 跟 <code>500</code>。然後 <code>+</code> 被套用到 <code>8</code> 跟 <code>500</code>，得到 <code>508</code>。</p>
+
+<p>{{
+ghci&gt; (\x y z -&gt; [x,y,z]) &lt;$&gt; (+3) &lt;<em>&gt; (</em>2) &lt;*&gt; (/2) $ 5<br>
+[8.0,10.0,2.5]<br>
+}}</p>
+
+<p>[$../img/jazzb.png]</p>
+
+<p>這邊也一樣。我們創建了一個函數，他會呼叫 <code>\x y z -&gt; [x,y,z]</code>，而丟的參數是 <code>(+3)</code>, <code>(*2)</code> 跟 <code>(/2)</code>。<code>5</code> 被丟給以上三個函數，然後他們結果又接到 <code>\x y z -&gt; [x, y, z]</code>。</p>
+
+<p>你可以將函數想做是裝著最終結果的盒子，所以 <code>k &lt;$&gt; f &lt;*&gt; g</code> 會製造一個函數，他會將 <code>f</code> 跟 <code>g</code> 的結果丟給 <code>k</code>。當我們做 <code>(+) &lt;$&gt; Just 3 &lt;*&gt; Just 5</code>，我們是用 <code>+</code> 套用在一些可能有或可能沒有的值上，所以結果也會是可能有或沒有。當我們做 <code>(+) &lt;$&gt; (+10) &lt;*&gt; (+5)</code>，我們是將 <code>+</code> 套用在 <code>(+10)</code> 跟 <code>(+5)</code> 的結果上，而結果也會是一個函數，當被餵給一個參數的時候會產生結果。</p>
+
+<p>我們通常不會將函數當作 applicative 用，不過仍然值得當作練習。對於 <code>(-&gt;) r</code> 怎麼定義成 <code>Applicative</code> 的並不是真的那麼重要，所以如果你不是很懂的話也沒關係。這只是讓你獲得一些操作上的直覺罷了。</p>
+
+<p>一個我們之前還沒碰過的 <code>Applicative</code> 的 instance 是 <code>ZipList</code>，他是包含在 <code>Control.Applicative</code> 中。</p>
+
+<p>對於 list 要作為一個 applicative functor 可以有多種方式。我們已經介紹過其中一種。如果套用 <code>&lt;*&gt;</code>，左邊是許多函數，而右邊是許多值，那結果會是函數套用到值的所有組合。如果我們做 <code>[(+3),(*2)] &lt;*&gt; [1,2]</code>。那 <code>(+3)</code> 會先套用至 <code>1</code> 跟 <code>2</code>。接著 <code>(*2)</code> 套用至 <code>1</code> 跟 <code>2</code>。而得到 <code>[4,5,2,4]</code>。</p>
+
+<p>然而 <code>[(+3),(*2)] &lt;*&gt; [1,2]</code> 也可以這樣運作:把左邊第一個函數套用至右邊第一個值，接著左邊第二個函數套用右邊第二個值，以此類推。這樣得到的會是 <code>[4,4]</code>。或是 <code>[1 + 3, 2 * 2]</code>。</p>
+
+<p>由於一個型別不能對同一個 typeclass 定義兩個 instance，所以才會定義了 <code>ZipList a</code>，他只有一個構造子 <code>ZipList</code>，他只包含一個欄位，他的型別是 list。</p>
+
+<p>{{
+instance Applicative ZipList where<br>
+        pure x = ZipList (repeat x)<br>
+        ZipList fs &lt;*&gt; ZipList xs = ZipList (zipWith (\f x -&gt; f x) fs xs)<br>
+}}</p>
+
+<p><code>&lt;*&gt;</code> 做的就是我們之前說的。他將第一個函數套用至第一個值，第二個函數套用第二個值。這也是 <code>zipWith (\f x -&gt; f x) fs xs</code> 做的事。由於 <code>zipWith</code> 的特性，所以結果會跟 list 中比較短的那個一樣長。</p>
+
+<p><code>pure</code> 也值得我們討論一下。他接受一個值，把他重複地放進一個 list 中。<code>pure &quot;haha&quot;</code> 就會是 <code>ZipList ([&quot;haha&quot;,&quot;haha&quot;,&quot;haha&quot;...</code>。這可能會造成些混淆，畢竟我們說過 <code>pure</code> 是把一個值放進一個最小的 context 中。而你會想說無限長的 list 不可能會是一個最小的 context。但對於 zip list 來說這是很合理的，因為他必須在 list 的每個位置都有值。這也遵守了 <code>pure f &lt;*&gt; xs</code> 必須要等價於 <code>fmap f xs</code> 的特性。如果 <code>pure 3</code> 只是回傳 <code>ZipList [3]</code>，那 <code>pure (*2) &lt;*&gt; ZipList [1,5,10]</code> 就只會算出 <code>ZipList [2]</code>，因為兩個 zip list 算出結果的長度會是比較短的那個的長度。如果我們 zip 一個有限長的 list 以及一個無限長的 list，那結果的長會是有限長的 list 的長度。</p>
+
+<p>那 zip list 是怎麼用 applicative style 操作的呢？我們來看看，<code>ZipList a</code> 型別並沒有定義成 <code>Show</code> 的 instance，所以我們必須用 <code>getZipList</code> 函數來從 zip list 取出一個普通的 list。</p>
+
+<p>{{
+ghci&gt; getZipList $ (+) &lt;$&gt; ZipList [1,2,3] &lt;<em>&gt; ZipList [100,100,100]<br>
+[101,102,103]<br>
+ghci&gt; getZipList $ (+) &lt;$&gt; ZipList [1,2,3] &lt;</em>&gt; ZipList [100,100..]<br>
+[101,102,103]<br>
+ghci&gt; getZipList $ max &lt;$&gt; ZipList [1,2,3,4,5,3] &lt;<em>&gt; ZipList [5,3,1,2]<br>
+[5,3,3,4]<br>
+ghci&gt; getZipList $ (,,) &lt;$&gt; ZipList &quot;dog&quot; &lt;</em>&gt; ZipList &quot;cat&quot; &lt;*&gt; ZipList &quot;rat&quot;<br>
+[(&#39;d&#39;,&#39;c&#39;,&#39;r&#39;),(&#39;o&#39;,&#39;a&#39;,&#39;a&#39;),(&#39;g&#39;,&#39;t&#39;,&#39;t&#39;)]<br>
+}}</p>
+
+<pre><code>``(,,)`` 函數跟 ``\x y z -&gt; (x,y,z)`` 是等價的，而 ``(,)`` 跟 ``\x y -&gt; (x,y)`` 是等價的。
+</code></pre>
+
+<p>除了 <code>zipWith</code>，標準函式庫中也有 <code>zipWith3</code>, <code>zipWith4</code> 之類的函數，最多支援到 7。<code>zipWith</code> 接受一個接受兩個參數的函數，並把兩個 list zip 起來。<code>zipWith3</code> 則接受一個接受三個參數的函數，然後把三個 list zip 起來。以此類推。用 applicative style 的方式來操作 zip list 的話，我們就不需要對每個數量的 list 都定義一個獨立的 zip 函數來 zip 他們。我們只需要用 applicative style 的方式來把任意數量的 list zip 起來就可以了。</p>
+
+<p><code>Control.Applicative</code> 定義了一個函數叫做 <code>liftA2</code>，他的型別是 <code>liftA2 :: (Applicative f) =&gt; (a -&gt; b -&gt; c) -&gt; f a -&gt; f b -&gt; f c</code>。他定義如下：</p>
+
+<p>{{
+liftA2 :: (Applicative f) =&gt; (a -&gt; b -&gt; c) -&gt; f a -&gt; f b -&gt; f c<br>
+liftA2 f a b = f &lt;$&gt; a &lt;*&gt; b<br>
+}}</p>
+
+<p>並沒有太難理解的東西，他不過就是對兩個 applicatives 套用函數而已，而不用我們剛剛熟悉的 applicative style。我們提及他的理由只是要展示為什麼 applicative functors 比起一般的普通 functor 要強。如果只是普通的 functor 的話，我們只能將一個函數 map over 這個 functor。但有了 applicative functor，我們可以對好多個 functor 套用一個函數。看看這個函數的型別，他會是 <code>(a -&gt; b -&gt; c) -&gt; (f a -&gt; f b -&gt; f c)</code>。當我們從這樣的角度來看他的話，我們可以說 <code>liftA2</code> 接受一個普通的二元函數，並將他升級成一個函數可以運作在兩個 functor 之上。</p>
+
+<p>另外一個有趣的概念是，我們可以接受兩個 applicative functor 並把他們結合成一個 applicative functor，這個新的將這兩個 applicative functor 裝在 list 中。舉例來說，我們現在有 <code>Just 3</code> 跟 <code>Just 4</code>。我們假設後者是一個只包含單元素的 list。</p>
+
+<p>{{
+ghci&gt; fmap (\x -&gt; [x]) (Just 4)<br>
+Just [4]<br>
+}}</p>
+
+<p>所以假設我們有 <code>Just 3</code> 跟 <code>Just [4]</code>。我們有怎麼得到 <code>Just [3,4]</code> 呢？很簡單。</p>
+
+<p>{{
+ghci&gt; liftA2 (:) (Just 3) (Just [4])<br>
+Just [3,4]<br>
+ghci&gt; (:) &lt;$&gt; Just 3 &lt;*&gt; Just [4]<br>
+Just [3,4]<br>
+}}</p>
+
+<p>還記得 <code>:</code> 是一個函數，他接受一個元素跟一個 list，並回傳一個新的 list，其中那個元素已經接在前面。現在我們有了 <code>Just [3,4]</code>，我們能夠將他跟 <code>Just 2</code> 綁在一起變成 <code>Just [2,3,4]</code> 嗎？當然可以。我們可以將任意數量的 applicative 綁在一起變成一個 applicative，裡面包含一個裝有結果的 list。我們試著實作一個函數，他接受一串裝有 applicative 的 list，然後回傳一個 applicative 裡面有一個裝有結果的 list。我們稱呼他為 <code>sequenceA</code>。</p>
+
+<p>{{
+sequenceA :: (Applicative f) =&gt; [f a] -&gt; f [a]<br>
+sequenceA [] = pure []<br>
+sequenceA (x:xs) = (:) &lt;$&gt; x &lt;*&gt; sequenceA xs<br>
+}}</p>
+
+<p>居然用到了遞迴！首先我們來看一下他的型別。他將一串 applicative 的 list 轉換成一個 applicative 裝有一個 list。從這個資訊我們可以推測出邊界條件。如果我們要將一個空的 list 變成一個裝有 list 的 applicative。我們只要把這個空的 list 放進一個預設的 context。現在來看一下我們怎麼用遞迴的。如果們有一個可以分成頭跟尾的 list（<code>x</code> 是一個 applicative 而 <code>xs</code> 是一串 applicatve），我們可以對尾巴呼叫 <code>sequenceA</code>，便會得到一個裝有 list 的 applicative。然後我們只要將在 <code>x</code> 中的值把他接到裝有 list 的 applicative 前面就可以了。</p>
+
+<p>所以如果我們做 <code>sequenceA [Just 1, Just 2]</code>，也就是 <code>(:) &lt;$&gt; Just 1 &lt;*&gt; sequenceA [Just 2]</code>。那會等價於 <code>(:) &lt;$&gt; Just 1 &lt;*&gt; ((:) &lt;$&gt; Just 2 &lt;*&gt; sequenceA [])</code>。我們知道 <code>sequenceA []</code> 算出來會是 <code>Just []</code>，所以運算式就變成 <code>(:) &lt;$&gt; Just 1 &lt;*&gt; ((:) &lt;$&gt; Just 2 &lt;*&gt; Just [])</code>，也就是 <code>(:) &lt;$&gt; Just 1 &lt;*&gt; Just [2]</code>，算出來就是 <code>Just [1,2]</code>。</p>
+
+<p>另一種實作 <code>sequenceA</code> 的方式是用 fold。要記得幾乎任何需要走遍整個 list 並 accumulate 成一個結果的都可以用 fold 來實作。</p>
+
+<p>{{
+sequenceA :: (Applicative f) =&gt; [f a] -&gt; f [a]<br>
+sequenceA = foldr (liftA2 (:)) (pure [])<br>
+}}</p>
+
+<p>我們從右往左走，並且起始的 accumulator 是用 <code>pure []</code>。我們是用 <code>liftA2 (:)</code> 來結合 accumulator 跟 list 中最後的元素，而得到一個 applicative，裡面裝有一個單一元素的一個 list。然後我們再用 <code>liftA2 (:)</code> 來結合 accumulator 跟最後一個元素，直到我們只剩下 accumulator 為止，而得到一個 applicative，裡面裝有所有結果。</p>
+
+<p>我們來試試看套用在不同 applicative 上。</p>
+
+<p>{{
+ghci&gt; sequenceA [Just 3, Just 2, Just 1]<br>
+Just [3,2,1]<br>
+ghci&gt; sequenceA [Just 3, Nothing, Just 1]<br>
+Nothing<br>
+ghci&gt; sequenceA [(+3),(+2),(+1)] 3<br>
+[6,5,4]<br>
+ghci&gt; sequenceA [[1,2,3],[4,5,6]]<br>
+[[1,4],[1,5],[1,6],[2,4],[2,5],[2,6],[3,4],[3,5],[3,6]]<br>
+ghci&gt; sequenceA [[1,2,3],[4,5,6],[3,4,4],[]]<br>
+[]<br>
+}}</p>
+
+<p>很酷吧。當我們套用在 <code>Maybe</code> 上時，<code>sequenceA</code> 創造一個新的 <code>Maybe</code>，他包含了一個 list 裝有所有結果。如果其中一個值是 <code>Nothing</code>，那整個結果就會是 <code>Nothing</code>。如果你有一串 <code>Maybe</code> 型別的值，但你只在乎當結果不包含任何 <code>Nothing</code> 的情況，這樣的特性就很方便。</p>
+
+<p>當套用在函數時，<code>sequenceA</code> 接受裝有一堆函數的 list，並回傳一個回傳 list 的函數。在我們的範例中，我們寫了一個函數，他只接受一個數值作為參數，他會把他套用至 list 中的每一個函數，並回傳一個包含結果的 list。<code>sequenceA [(+3),(+2),(+1)] 3</code> 會將 <code>3</code> 餵給 <code>(+3)</code>, <code>(+2)</code> 跟 <code>(+1)</code>，然後將所有結果裝在一個 list 中。</p>
+
+<p>而 <code>(+) &lt;$&gt; (+3) &lt;*&gt; (*2)</code> 會創見一個接受單一參數的一函數，將他同時餵給 <code>(+3)</code> 跟 <code>(*2)</code>，然後呼叫 <code>+</code> 來將兩者加起來。同樣的道理，<code>sequenceA [(+3),(*2)]</code> 是製造一個接受單一參數的函數，他會將他餵給所有包含在 list 中的函數。但他最後不是呼叫 <code>+</code>，而是呼叫 <code>:</code> 跟 <code>pure []</code> 來把結果接成一個 list，得到最後的結果。</p>
+
+<p>當我們有一串函數，我們想要將相同的輸入都餵給他們並檢視結果的時候，<code>sequenceA</code> 非常好用。例如說，我們手上有一個數值，但不知道他是否滿足一串 predicate。一種實作的方式是像這樣：</p>
+
+<p>{{
+ghci&gt; map (\f -&gt; f 7) [(&gt;4),(<10),odd]  
+[True,True,True]  
+ghci> and $ map (\f -&gt; f 7) [(&gt;4),(&lt;10),odd]<br>
+True<br>
+}}</p>
+
+<p>記住 <code>and</code> 接受一串布林值，並只有在全部都是 <code>True</code> 的時候才回傳 <code>True</code>。
+另一種實作方式是用 <code>sequenceA</code>：</p>
+
+<p>{{
+ghci&gt; sequenceA [(&gt;4),(<10),odd] 7  
+[True,True,True]  
+ghci> and $ sequenceA [(&gt;4),(&lt;10),odd] 7<br>
+True<br>
+}}</p>
+
+<p><code>sequenceA [(&gt;4),(&lt;10),odd]</code> 接受一個函數，他接受一個數值並將他餵給所有的 predicate，包含 <code>[(&gt;4),(&lt;10),odd]</code>。然後回傳一串布林值。他將一個型別為 <code>(Num a) =&gt; [a -&gt; Bool]</code> 的 list 變成一個型別為 <code>(Num a) =&gt; a -&gt; [Bool]</code> 的函數，很酷吧。</p>
+
+<p>由於 list 要求裡面元素的型別要一致，所以包含在 list 中的所有函數都是同樣型別。你不能創造一個像是 <code>[ord, (+3)]</code> 這樣的 list，因為 <code>ord</code> 接受一個字元並回傳一個數值，然而 <code>(+3)</code> 接受一個數值並回傳一個數值。</p>
+
+<p>當跟 <code>[]</code> 一起使用的時候，<code>sequenceA</code> 接受一串 list，並回傳另一串 list。他實際上是創建一個包含所有可能組合的 list。為了方便說明，我們比較一下使用 <code>sequenceA</code> 跟 list comprehension 的差異：</p>
+
+<p>{{
+ghci&gt; sequenceA [[1,2,3],[4,5,6]]<br>
+[[1,4],[1,5],[1,6],[2,4],[2,5],[2,6],[3,4],[3,5],[3,6]]<br>
+ghci&gt; [[x,y] | x &lt;- [1,2,3], y &lt;- [4,5,6]]<br>
+[[1,4],[1,5],[1,6],[2,4],[2,5],[2,6],[3,4],[3,5],[3,6]]<br>
+ghci&gt; sequenceA [[1,2],[3,4]]<br>
+[[1,3],[1,4],[2,3],[2,4]]<br>
+ghci&gt; [[x,y] | x &lt;- [1,2], y &lt;- [3,4]]<br>
+[[1,3],[1,4],[2,3],[2,4]]<br>
+ghci&gt; sequenceA [[1,2],[3,4],[5,6]]<br>
+[[1,3,5],[1,3,6],[1,4,5],[1,4,6],[2,3,5],[2,3,6],[2,4,5],[2,4,6]]<br>
+ghci&gt; [[x,y,z] | x &lt;- [1,2], y &lt;- [3,4], z &lt;- [5,6]]<br>
+[[1,3,5],[1,3,6],[1,4,5],[1,4,6],[2,3,5],[2,3,6],[2,4,5],[2,4,6]]<br>
+}}</p>
+
+<p>這可能有點難以理解，但如果你多做點嘗試，你會比較能看出來些眉目。假設我們在做 <code>sequenceA [[1,2],[3,4]]</code>。要知道這是怎麼回事，我們首先用 <code>sequenceA</code> 的定義 <code>sequenceA (x:xs) = (:) &lt;$&gt; x &lt;*&gt; sequenceA xs</code> 還有邊界條件 <code>sequenceA [] = pure []</code> 來看看。你不需要實際計算，但他可以幫助你理解 <code>sequenceA</code> 是怎麼運作在一串 list 上，畢竟這有點複雜。</p>
+
+<pre><code># 我們從 ``sequenceA [[1,2],[3,4]]`` 開始
+# 那可以被計算成 ``(:) &lt;$&gt; [1,2] &lt;*&gt; sequenceA [[3,4]]``
+# 計算內層的 ``sequenceA``，會得到 ``(:) &lt;$&gt; [1,2] &lt;*&gt; ((:) &lt;$&gt; [3,4] &lt;*&gt; sequenceA [])``
+# 我們碰到了邊界條件，所以會是 ``(:) &lt;$&gt; [1,2] &lt;*&gt; ((:) &lt;$&gt; [3,4] &lt;*&gt; [[]])``
+# 現在我們計算 ``(:) &lt;$&gt; [3,4] &lt;*&gt; [[]] `` 的部份，我們會對左邊 list 中的每一個值 (也就是 ``3`` 跟 ``4``) 跟右邊的每一個值 (只有 ``[]``)套用 ``:``，而得到 ``[3:[], 4:[]]``，也就是 ``[[3],[4]]``。所以我們有 ``(:) &lt;$&gt; [1,2] &lt;*&gt; [[3],[4]]``
+# 而對於左邊的每一個值(``1`` 跟 ``2``)以及右邊可能的值（``[3]`` 跟 ``[4]``）我們套用 ``:`` 而得到 ``[1:[3], 1:[4], 2:[3], 2:[4]]``，他等於 ``[[1,3],[1,4],[2,3],[2,4]]``
+</code></pre>
+
+<p>計算 <code>(+) &lt;$&gt; [1,2] &lt;*&gt; [4,5,6]</code> 會得到一個 non-deterministic 的結果 <code>x + y</code>，其中 <code>x</code> 代表 <code>[1,2]</code> 中的每一個值，而 <code>y</code> 代表 <code>[4,5,6]</code> 中的每一個值。我們用 list 來表示每一種可能的情形。同樣的，當我們在做 <code>sequence [[1,2],[3,4],[5,6],[7,8]]</code>，他的結果會是 non-deterministic 的 <code>[x,y,z,w]</code>，其中 <code>x</code> 代表 <code>[1,2]</code> 中的每一個值，而 <code>y</code> 代表 <code>[3,4]</code> 中的每一個值。以此類推。我們用 list 代表 non-deterministic 的計算，每一個元素都是一個可能的情形。這也是為什麽會用到 list of list。</p>
+
+<p>當使用在 I/O action 上的時候，<code>sequenceA</code> 跟 <code>sequence</code> 是等價的。他接受一串 I/O action 並回傳一個 I/O action，這個 I/O action 會計算 list 中的每一個 I/O action，並把結果放在一個 list 中。要將型別為 <code>[IO a]</code> 的值轉換成 <code>IO [a]</code> 的值，也就是會產生一串 list 的一個 I/O action，那這些 I/O action 必須要一個一個地被計算，畢竟對於這些 I/O action 你沒辦法不計算就得到結果。</p>
+
+<p>{{
+ghci&gt; sequenceA [getLine, getLine, getLine]<br>
+heyh<br>
+ho<br>
+woo<br>
+[&quot;heyh&quot;,&quot;ho&quot;,&quot;woo&quot;]<br>
+}}</p>
+
+<p>就像普通的函數一樣，applicative functors 也遵循一些定律。其中最重要的一個是我們之前提過的 <code>pure f &lt;*&gt; x = fmap f x</code>。你可以證明一些我們之前介紹過的 applicative functor 遵守這個定律當作練習。其他的 functors law 有：</p>
+
+<pre><code># ``pure id &lt;*&gt; v = v``
+# ``pure (.) &lt;*&gt; u &lt;*&gt; v &lt;*&gt; w = u &lt;*&gt; (v &lt;*&gt; w)``
+# ``pure f &lt;*&gt; pure x = pure (f x)``
+# ``u &lt;*&gt; pure y = pure ($ y) &lt;*&gt; u``
+</code></pre>
+
+<p>我們不會一項一項地細看，那樣會花費很大的篇幅而且對讀者來說很無聊，但如果你有興趣，你可以針對某些 instance 看看他們會不會遵守。</p>
+
+<p>結論就是 applicative functor 不只是有趣而且實用， 他允許我們結合不同種類的計算，像是 I/O 計算，non-deterministic 的計算，有可能失敗的計算等等。而使用 <code>&lt;$&gt;</code> 跟 <code>&lt;*&gt;</code> 我們可以將普通的函數來運作在任意數量的 applicative functors 上。</p>
+
+<p>==關鍵字&quot;newtype&quot;</p>
+
+<p>[^../img/maoi.png]</p>
+
+<p>到目前為止，我們已經看過了如何用 <code>data</code> 關鍵字定義自己的 algebraic data type。我們也學習到了如何用 <code>type</code> 來定義 type synonyms。在這個章節中，我們會看一下如何使用 <code>newtype</code> 來從一個現有的型別中定義出新的型別，並說明我們為什麽會想要那麼做。</p>
+
+<p>在之前的章節中，我們瞭解到其實 list 有很多種方式可以被視為一種 applicative functor。一中方式是定義 <code>&lt;*&gt;</code> 將左邊的每一個值跟右邊的每一個值組合，而得到各種組合的結果。</p>
+
+<p>{{
+ghci&gt; [(+1),(<em>100),(</em>5)] &lt;*&gt; [1,2,3]<br>
+[2,3,4,100,200,300,5,10,15]<br>
+}}</p>
+
+<p>第二種方式是將 <code>&lt;*&gt;</code> 定義成將左邊的第一個函數套用至右邊的第一個值，然後將左邊第二個函數套用至右邊第二個值。以此類推。最終，這表現得有點像將兩個 list 用一個拉鍊拉起來一樣。但由於 list 已經被定義成 <code>Applicaitive</code> 的 instance 了，所以我們要怎麼要讓 list 可以被定義成第二種方式呢？如果你還記得我們說過我們是有很好的理由定義了 <code>ZipList a</code>，其中他裡面只包含一個值構造子跟只包含一個欄位。其實他的理由就是要讓 <code>ZipList</code> 定義成用拉鍊的方式來表現 applicative 行為。我們只不過用 <code>ZipList</code> 這個構造子將他包起來，然後用 <code>getZipList</code> 來解開來。</p>
+
+<p>{{
+ghci&gt; getZipList $ ZipList [(+1),(<em>100),(</em>5)] &lt;*&gt; ZipList [1,2,3]<br>
+[2,200,15]<br>
+}}</p>
+
+<p>所以這跟 newtype 這個關鍵字有什麽關係呢？想想看我們是怎麼宣告我們的 <code>ZipList a</code> 的，一種方式是像這樣：</p>
+
+<p>{{
+data ZipList a = ZipList [a]<br>
+}}</p>
+
+<p>也就是一個只有一個值構造子的型別而且那個構造子裡面只有一個欄位。我們也可以用 record syntax 來定義一個解開的函數：</p>
+
+<p>{{
+data ZipList a = ZipList { getZipList :: [a] }<br>
+}}</p>
+
+<p>這樣聽起來不錯。這樣我們就有兩種方式來讓一個型別來表現一個 typeclass，我們可以用 <code>data</code> 關鍵字來把一個型別包在另一個裡面，然後再將他定義成第二種表現方式。</p>
+
+<p>而在 Haskell 中 <code>newtype</code> 正是為了這種情形，我們想將一個型別包在另一個型別中。在實際的函式庫中 <code>ZipList a</code> 是這樣定義了：</p>
+
+<p>{{
+newtype ZipList a = ZipList { getZipList :: [a] }<br>
+}}</p>
+
+<p>這邊我們不用 <code>data</code> 關鍵字反而是用 <code>newtype</code> 關鍵字。這是為什麽呢？第一個理由是 <code>newtype</code> 比較快速。如果你用 <code>data</code> 關鍵字來包一個型別的話，在你執行的時候會有一些包起來跟解開來的成本。但如果你用 <code>newtype</code> 的話，Haskell 會知道你只是要將一個現有的型別包成一個新的型別，你想要內部運作完全一樣但只是要一個全新的型別而已。有了這個概念，Haskell 可以將包裹跟解開來的成本都去除掉。</p>
+
+<p>那為什麽我們不是一直使用 <code>newtype</code> 呢？當你用 <code>newtype</code> 來製作一個新的型別時，你只能定義單一一個值構造子，而且那個構造子只能有一個欄位。但使用 <code>data</code> 的話，你可以讓那個型別有好幾個值構造子，並且每個構造子可以有零個或多個欄位。</p>
+
+<p>{{
+data Profession = Fighter | Archer | Accountant  </p>
+
+<p>data Race = Human | Elf | Orc | Goblin  </p>
+
+<p>data PlayerCharacter = PlayerCharacter Race Profession<br>
+}}</p>
+
+<p>當使用 ``newtype 的時候，你是被限制只能用一個值構造子跟單一欄位。</p>
+
+<p>對於 <code>newtype</code> 我們也能使用 <code>deriving</code> 關鍵字。我們可以 derive 像是 <code>Eq</code>, <code>Ord</code>, <code>Enum</code>, <code>Bounded</code>, <code>Show</code> 跟 <code>Read</code> 的 instance。如果我們想要對新的型別做 derive，那原本的型別必須已經在那個 typeclass 中。這樣很合理，畢竟 <code>newtype</code> 就是要將現有的型別包起來。如果我們按照下面的方式定義的話，我們就能對我們的型別做印出以及比較相等性的操作：</p>
+
+<p>{{
+newtype CharList = CharList { getCharList :: [Char] } deriving (Eq, Show)<br>
+}}</p>
+
+<p>我們來跑跑看：</p>
+
+<p>{{
+ghci&gt; CharList &quot;this will be shown!&quot;<br>
+CharList {getCharList = &quot;this will be shown!&quot;}<br>
+ghci&gt; CharList &quot;benny&quot; == CharList &quot;benny&quot;<br>
+True<br>
+ghci&gt; CharList &quot;benny&quot; == CharList &quot;oisters&quot;<br>
+False<br>
+}}</p>
+
+<p>對於這個 <code>newtype</code>，他的值構造子有下列型別：</p>
+
+<p>{{
+CharList :: [Char] -&gt; CharList<br>
+}}</p>
+
+<p>他接受一個 <code>[Char]</code> 的值，例如 <code>&quot;my sharona&quot;</code> 並回傳一個 <code>CharList</code> 的值。從上面我們使用 <code>CharList</code> 的值構造子的範例中，我們可以看到的確是這樣。相反地，<code>getCharList</code> 具有下列的型別。</p>
+
+<p>{{
+getCharList :: CharList -&gt; [Char]<br>
+}}</p>
+
+<p>他接受一個 <code>CharList</code> 的值並將他轉成 <code>[Char]</code>。你可以將這個想成包裝跟解開的動作，但你也可以將他想成從一個型別轉成另一個型別。</p>
+
+<p>===Using newtype to make type class instances</p>
+
+<p>有好幾次我們想要讓我們的型別屬於某個 typeclass，但型別變數並沒有符合我們想要的。要把 <code>Maybe</code> 定義成 <code>Functor</code> 的 instance 很容易，因為 <code>Functor</code> 這個 typeclass 被定義如下：</p>
+
+<p>{{
+class Functor f where<br>
+    fmap :: (a -&gt; b) -&gt; f a -&gt; f b<br>
+}}</p>
+
+<p>我們先定義如下：</p>
+
+<p>{{
+instance Functor Maybe where<br>
+}}</p>
+
+<p>然後我們實作 <code>fmap</code>。當所有的型別變數被填上時，由於 <code>Maybe</code> 取代了 <code>Functor</code> 中 <code>f</code> 的位置，所以如果我們看看 <code>fmap</code> 運作在 <code>Maybe</code> 上時是什麽樣，他會像這樣：</p>
+
+<p>{{
+fmap :: (a -&gt; b) -&gt; Maybe a -&gt; Maybe b<br>
+}}</p>
+
+<p>[$../img/shamrock.png]</p>
+
+<p>看起來不錯吧？現在我們想要 tuple 成為 <code>Functor</code> 的一個 instance，所以當我們用 <code>fmap</code> 來 map over 一個 tuple 時，他會先套用到 tuple 中的第一個元素。這樣當我們做 <code>fmap (+3) (1,1)</code> 會得到 <code>(4,1)</code>。不過要定義出這樣的 instance 有些困難。對於 <code>Maybe</code>，我們只要寫 <code>instance Functor Maybe where</code>，這是因為對於只吃一個參數的型別構造子我們很容易定義成 <code>Functor</code> 的 instance。但對於 <code>(a,b)</code> 這樣的就沒辦法。要繞過這樣的困境，我們可以用 <code>newtype</code> 來重新定義我們的 tuple，這樣第二個型別參數就代表了 tuple 中的第一個元素部份。</p>
+
+<p>{{
+newtype Pair b a = Pair { getPair :: (a,b) }<br>
+}}</p>
+
+<p>現在我們可以將他定義成 <code>Functor</code> 的 instance，所以函數被 map over tuple 中的第一個部份。</p>
+
+<p>{{
+instance Functor (Pair c) where<br>
+    fmap f (Pair (x,y)) = Pair (f x, y)<br>
+}}</p>
+
+<p>正如你看到的，我們可以對 newtype 定義的型別做模式匹配。我們用模式匹配來拿到底層的 tuple，然後我們將 <code>f</code> 來套用至 tuple 的第一個部份，然後我們用 <code>Pair</code> 這個值構造子來將 tuple 轉換成 <code>Pair b a</code>。如果我們問 <code>fmap</code> 的型別究竟是什麽，他會是：</p>
+
+<p>{{
+fmap :: (a -&gt; b) -&gt; Pair c a -&gt; Pair c b<br>
+}}</p>
+
+<p>我們說過 <code>instance Functor (Pair c) where</code> 跟 <code>Pair c</code> 取代了 <code>Functor</code> 中 <code>f</code> 的位置：</p>
+
+<p>{{
+class Functor f where<br>
+    fmap :: (a -&gt; b) -&gt; f a -&gt; f b<br>
+}}</p>
+
+<p>如果我們將一個 tuple 轉換成 <code>Pair b a</code>，我們可以用 <code>fmap</code> 來 map over 第一個部份。</p>
+
+<p>{{
+ghci&gt; getPair $ fmap (*100) (Pair (2,3))<br>
+(200,3)<br>
+ghci&gt; getPair $ fmap reverse (Pair (&quot;london calling&quot;, 3))<br>
+(&quot;gnillac nodnol&quot;,3)<br>
+}}</p>
+
+<p>===On newtype laziness</p>
+
+<p>我們提到 <code>newtype</code> 一般來講比 <code>data</code> 來得有效率。<code>newtype</code> 能做的唯一一件事就是將現有的型別包成新的型別。這樣 Haskell 在內部就能將新的型別的值用舊的方式來操作。只是要記住他們還是不同的型別。這代表 <code>newtype</code> 並不只是有效率，他也具備 lazy 的特性。我們來說明一下這是什麽意思。</p>
+
+<p>就像我們之前說得，Haskell 預設是具備 lazy 的特性，這代表只有當我們要將函數的結果印出來的時候計算才會發生。或者說，只有當我們真的需要結果的時候計算才會發生。在 Haskell 中 <code>undefined</code> 代表會造成錯誤的計算。如果我們試著計算他，也就是將他印到終端中，Haskell 會丟出錯誤。</p>
+
+<p>{{
+ghci&gt; undefined<br>
+*** Exception: Prelude.undefined<br>
+}}</p>
+
+<p>然而，如果我們做一個 list，其中包含一些 <code>undefined</code> 的值，但卻要求一個不是 <code>undefined</code> 的 head，那一切都會順利地被計算，因為 Haskell 並不需要 list 中其他元素來得到結果。我們僅僅需要看到第一個元素而已。</p>
+
+<p>{{
+ghci&gt; head [3,4,5,undefined,2,undefined]<br>
+3<br>
+}}</p>
+
+<p>現在們考慮下面的型別：</p>
+
+<p>{{
+data CoolBool = CoolBool { getCoolBool :: Bool }<br>
+}}</p>
+
+<p>這是一個用 <code>data</code> 關鍵字定義的 algebraic data type。他有一個值建構子並只有一個型別為 <code>Bool</code> 的欄位。我們寫一個函數來對 <code>CoolBool</code> 做模式匹配，並回傳一個 <code>&quot;hello&quot;</code> 的值。他並不會管 <code>CoolBool</code> 中裝的究竟是 <code>True</code> 或 <code>False</code>。</p>
+
+<p>{{
+helloMe :: CoolBool -&gt; String<br>
+helloMe (CoolBool _) = &quot;hello&quot;<br>
+}}</p>
+
+<p>這次我們不餵給這個函數一個普通的 <code>CoolBool</code>，而是丟給他一個 <code>undefined</code>。</p>
+
+<p>{{ 
+ghci&gt; helloMe undefined<br>
+&quot;*** Exception: Prelude.undefined  &quot;
+}}</p>
+
+<p>結果收到了一個 Exception。是什麽造成這個 Exception 的呢？用 <code>data</code> 定義的型別可以有好幾個值構造子（儘管 <code>CoolBool</code> 只有一個）所以當我們要看看餵給函數的值是否是 <code>(CoolBool _)</code> 的形式，Haskell 會需要做一些基本的計算來看看是哪個值構造子被用到。但當我們計算 <code>undefined</code> 的時候，就算是一點也會丟出 Exception。</p>
+
+<p>我們不用 <code>data</code> 來定義 <code>CoolBool</code> 而用 <code>newtype</code>：</p>
+
+<p>{{
+newtype CoolBool = CoolBool { getCoolBool :: Bool }<br>
+}}</p>
+
+<p>我們不用修改 <code>helloMe</code> 函數，因為對於模式匹配使用 <code>newtype</code> 或 <code>data</code> 都是一樣。我們再來將 <code>undefined</code> 餵給 <code>helloMe</code>。</p>
+
+<p>{{
+ghci&gt; helloMe undefined<br>
+&quot;hello&quot; 
+}}</p>
+
+<p>居然正常運作！為什麽呢？正如我們說過得，當我們使用 <code>newtype</code> 的時候，Haskell 內部可以將新的型別用舊的型別來表示。他不必加入另一層 box 來包住舊有的型別。他只要注意他是不同的型別就好了。而且 Haskell 會知道 <code>newtype</code> 定義的型別一定只會有一個構造子，他不必計算餵給函數的值就能確定他是 <code>(CoolBool _)</code> 的形式，因為 <code>newtype</code> 只有一個可能的值跟單一欄位！</p>
+
+<p>這樣行為的差異可能沒什麼關係，但實際上他非常重要。因為他讓我們認知到儘管從撰寫程式的觀點來看沒什麽差異，但他們的確是兩種不同的機制。儘管 <code>data</code> 可以讓你從無到有定義型別，<code>newtype</code> 是從一個現有的型別做出來的。對 <code>newtype</code> 做模式匹配並不是像從盒子中取出東西，他比較像是將一個型別轉換成另一個型別。</p>
+
+<p>===type vs newtype vs data</p>
+
+<p>到目前為止，你也許對於 <code>type</code>,<code>data</code> 跟 <code>newtype</code> 之間的差異還不是很瞭解，讓我們快速複習一遍。</p>
+
+<p><code>type</code> 關鍵字是讓我們定義 type synonyms。他代表我們只是要給一個現有的型別另一個名字，假設我們這樣做：</p>
+
+<p>{{
+type IntList = [Int]<br>
+}}</p>
+
+<p>這樣做可以允許我們用 <code>IntList</code> 的名稱來指稱 <code>[Int]</code>。我們可以交換地使用他們。但我們並不會因此有一個 <code>IntList</code> 的值構造子。因為 <code>[Int]</code> 跟 <code>IntList</code> 只是兩種指稱同一個型別的方式。我們在指稱的時候用哪一個並無所謂。</p>
+
+<p>{{
+ghci&gt; ([1,2,3] :: IntList) ++ ([1,2,3] :: [Int])<br>
+[1,2,3,1,2,3]<br>
+}}</p>
+
+<p>當我們想要讓 type signature 更清楚一些，給予我們更瞭解函數的 context 的時候，我們會定義 type synonyms。舉例來說，當我們用一個型別為 <code>[(String,String)]</code> 的 association list 來代表一個電話簿的時候，我們可以定義一個 <code>PhoneBook</code> 的 type synonym，這樣 type signature 會比較容易讀。</p>
+
+<p><code>newtype</code> 關鍵字將現有的型別包成一個新的型別，大部分是為了要讓他們可以是特定 typeclass 的 instance 而這樣做。當我們使用 <code>newtype</code> 來包裹一個現有的型別時，這個型別跟原有的型別是分開的。如果我們將下面的型別用 <code>newtype</code> 定義：</p>
+
+<p>{{
+newtype CharList = CharList { getCharList :: [Char] }<br>
+}}</p>
+
+<p>我們不能用 <code>++</code> 來將 <code>CharList</code> 跟 <code>[Char]</code> 接在一起。我們也不能用 <code>++</code> 來將兩個 <code>CharList</code> 接在一起，因為 <code>++</code> 只能套用在 list 上，而 <code>CharList</code> 並不是 list，儘管你會說他包含一個 list。但我們可以將兩個 <code>CharList</code> 轉成 list，將他們 <code>++</code> 然後再轉回 <code>CharList</code>。</p>
+
+<p>當我們在 <code>newtype</code> 宣告中使用 record syntax 的時候，我們會得到將新的型別轉成舊的型別的函數，也就是我們 <code>newtype</code> 的值構造子，以及一個函數將他的欄位取出。新的型別並不會被自動定義成原有型別所屬的 typeclass 的一個 instance，所以我們必須自己來 derive 他們。</p>
+
+<p>實際上你可以將 <code>newtype</code> 想成是只能定義一個構造子跟一個欄位的 <code>data</code> 宣告。如果你碰到這種情形，可以考慮使用 <code>newtype</code>。</p>
+
+<p>使用 <code>data</code> 關鍵字是為了定義自己的型別。他們可以在 algebraic data type 中放任意數量的構造子跟欄位。可以定義的東西從 list, <code>Maybe</code> 到 tree。</p>
+
+<p>如果你只是希望你的 type signature 看起來比較乾淨，你可以只需要 type synonym。如果你想要將現有的型別包起來並定義成一個 type class 的 instance，你可以嘗試使用 newtype。如果你想要定義完全新的型別，那你應該使用 <code>data</code> 關鍵字。</p>
+
+<p>==Monoids</p>
+
+<p>Haskell 中 typeclass 是用來表示一個型別之間共有的行為，是一種 interface。我們介紹過 <code>Eq</code>，他定義型別是否可以比較相等性，以及 <code>Ord</code>，他表示可以被排序的型別。還介紹了更有趣的像是 <code>Functor</code> 跟 <code>Applicative</code>。</p>
+
+<p>當我們定義一個型別時，我們會想說他應該要支援的行為。也就是表現的行為是什麽，並且要讓他屬於哪些 typeclass。如果希望他可以比較相等與否，那我們就應該定義他成為 <code>Eq</code> 的一個 instance。如果我們想要看看型別是否是一種 functor，我們可以定義他是 <code>Functor</code> 的一個 instance。以此類推。</p>
+
+<p>考慮 <code>*</code> 是一個將兩個數值相乘的一個函數。如果我們將一個數值乘上 <code>1</code>，那就會得到自身的數值。我們實際上是做 <code>1 * x</code> 或 <code>x * 1</code> 並沒有差別。結果永遠會是 <code>x</code>。同樣的，<code>++</code> 是一個接受兩個參數並回傳新的值的一個函數。只是他不是相乘而是將兩個 list 接在一起。而類似 <code>*</code>，他也有一個特定的值，當他跟其他值使用 <code>++</code> 時會得到同樣的值。那個值就是空的 list <code>[]</code>。</p>
+
+<p>{{
+ghci&gt; 4 * 1<br>
+4<br>
+ghci&gt; 1 * 9<br>
+9<br>
+ghci&gt; [1,2,3] ++ []<br>
+[1,2,3]<br>
+ghci&gt; [] ++ [0.5, 2.5]<br>
+[0.5,2.5]<br>
+}}</p>
+
+<p>看起來 <code>*</code> 之於 <code>1</code> 跟 <code>++</code> 之於 <code>[]</code> 有類似的性質：</p>
+
+<pre><code># 函數同樣接受兩個參數
+# 參數跟回傳值是同樣的型別
+# 同樣存在某些值當套用二元函數時並不會改變其他值
+</code></pre>
+
+<p>關於這兩種操作還有另一個比較難察覺的性質就是，當我們對這個二元函數對三個以上的值操作並化簡，函數套用的順序並不會影響到結果。不論是 <code>(3 * 4) * 5</code> 或是 <code>3 * (4 * 5)</code>，兩種方式都會得到 <code>60</code>。而 <code>++</code> 也是相同的。</p>
+
+<p>{{
+ghci&gt; (3 * 2) * (8 * 5)<br>
+240<br>
+ghci&gt; 3 * (2 * (8 * 5))<br>
+240<br>
+ghci&gt; &quot;la&quot; ++ (&quot;di&quot; ++ &quot;da&quot;)<br>
+&quot;ladida&quot;<br>
+ghci&gt; (&quot;la&quot; ++ &quot;di&quot;) ++ &quot;da&quot;<br>
+&quot;ladida&quot;<br>
+}}</p>
+
+<p>我們稱呼這樣的性質為結合律(associativity)。<code>*</code> 遵守結合律，<code>++</code> 也是。但 <code>-</code> 就不遵守。<code>(5 - 3) - 4</code> 跟 <code>5 - (3 - 4)</code> 得到的結果是不同的。</p>
+
+<p>注意到這些性質並具體地寫下來，就可以得到 monoid。一個 monoid 是你有一個遵守結合律的二元函數還有一個可以相對於那個函數作為 identity 的值。當某個值相對於一個函數是一個 identity，他表示當我們將這個值丟給函數時，結果永遠會是另外一邊的那個值本身。<code>1</code> 是相對於 <code>*</code> 的 identity，而 <code>[]</code> 是相對於 <code>++</code> 的 identity。在 Haskell 中還有許多其他的 monoid，這也是為什麽我們定義了 <code>Monoid</code> 這個 typeclass。他描述了表現成 monoid 的那些型別。我們來看看這個 typeclass 是怎麼被定義的：</p>
+
+<p>{{
+class Monoid m where<br>
+    mempty :: m<br>
+    mappend :: m -&gt; m -&gt; m<br>
+    mconcat :: [m] -&gt; m<br>
+    mconcat = foldr mappend mempty<br>
+}}</p>
+
+<p>[$../img/balloondog.png]</p>
+
+<p><code>Monoid</code> typeclass 被定義在 <code>import Data.Monoid</code> 中。我們來花些時間好好瞭解他。</p>
+
+<p>首先我們看到只有具體型別才能定義成 <code>Monoid</code> 的 instance。由於在 typeclass 定義中的 <code>m</code> 並不接受任何型別參數。這跟 <code>Functor</code> 以及 <code>Applicative</code> 不同，他們要求他們的 instance 必須是一個接受單一型別參數的型別構造子。</p>
+
+<p>第一個函數是 <code>mempty</code>，由於他不接受任何參數，所以他並不是一個函數，而是一個 polymorphic 的常數。有點像是 <code>Bounded</code> 中的 <code>minBound</code> 一樣。<code>mempty</code> 表示一個特定 monoid 的 identity。</p>
+
+<p>再來我們看到 <code>mappend</code>，你可能已經猜到，他是一個接受兩個相同型別的值的二元函數，並回傳同樣的型別。不過要注意的是他的名字不太符合他真正的意思，他的名字隱含了我們要將兩個東西接在一起。儘管在 list 的情況下 <code>++</code> 的確將兩個 list 接起來，但 <code>*</code> 則否。他只不過將兩個數值做相乘。當我們再看到其他 <code>Monoid</code> 的 instance 時，我們會看到他們大部分都沒有接起來的做，所以不要用接起來的概念來想像 <code>mappend</code>，只要想像他們是接受兩個 monoid 的值並回傳另外一個就好了。</p>
+
+<p>在 typeclass 定義中的最後一個函數是 <code>mconcat</code>。他接受一串 monoid 值，並將他們用 <code>mappend</code> 簡化成單一的值。他有一個預設的實作，就是從 <code>mempty</code> 作為起始值，然後用 <code>mappend</code> 來 fold。由於對於大部分的 instance 預設的實作就沒什麼問題，我們不會想要實作自己的 <code>mconcat</code>。當我們定義一個型別屬於 <code>Monoid</code> 的時候，多半實作 <code>mempty</code> 跟 <code>mappend</code> 就可以了。而 <code>mconcat</code> 就是因為對於一些 instance，有可能有比較有效率的方式來實作 <code>mconcat</code>。不過大多數情況都不需要。</p>
+
+<p>在我們繼續接下去看幾個 <code>Monoid</code> 的例子前，我們來看一下 monoid law。我們提過必須有一個值作為 identity 以及一個遵守結合律的二元函數當作前提。我們是可以定義一個 <code>Monoid</code> 的 instance 卻不遵守這些定律的，但這樣寫出來的 instance 就沒有用了，因為我們在使用 <code>Monoid</code> 的時候都是依靠這些定律才可以稱作實質上的 monoid。所以我們必須確保他們遵守：</p>
+
+<pre><code># ``mempty `mappend` x = x``
+# ``x `mappend` mempty = x``
+# ``(x `mappend` y) `mappend` z = x `mappend` (y `mappend` z)``
+</code></pre>
+
+<p>前兩個描述了 <code>mempty</code> 相對於 <code>mappend</code> 必須要表現成 identity。而第三個定律說了 <code>mappend</code> 必須要遵守結合律。也就是說我們做 <code>mappend</code> 順序並不重要。Haskell 不會自己檢查這些定律是否有被遵守。所以你必須自己小心地檢查他們。</p>
+
+<p>===Lists are monoids</p>
+
+<p>沒錯，list 是一種 monoid。正如我們先前看到的，<code>++</code> 跟空的 list <code>[]</code> 共同形成了一個 monoid。他的 instance 很簡單：</p>
+
+<p>{{
+instance Monoid [a] where<br>
+    mempty = []<br>
+    mappend = (++)<br>
+}}</p>
+
+<p>list 是 <code>Monoid</code> typeclass 的一個 instance，這跟他們裝的元素的型別無關。注意到我們寫 <code>instance Monoid [a]</code> 而非 <code>instance Monoid []</code>，這是因為 <code>Monoid</code> 要求 instance 必須是具體型別。</p>
+
+<p>我們試著跑跑看，得到我們預期中的結果：</p>
+
+<p>{{
+ghci&gt; [1,2,3] <code>mappend</code> [4,5,6]<br>
+[1,2,3,4,5,6]<br>
+ghci&gt; (&quot;one&quot; <code>mappend</code> &quot;two&quot;) <code>mappend</code> &quot;tree&quot;<br>
+&quot;onetwotree&quot;<br>
+ghci&gt; &quot;one&quot; <code>mappend</code> (&quot;two&quot; <code>mappend</code> &quot;tree&quot;)<br>
+&quot;onetwotree&quot;<br>
+ghci&gt; &quot;one&quot; <code>mappend</code> &quot;two&quot; <code>mappend</code> &quot;tree&quot;<br>
+&quot;onetwotree&quot;<br>
+ghci&gt; &quot;pang&quot; <code>mappend</code> mempty<br>
+&quot;pang&quot;<br>
+ghci&gt; mconcat [[1,2],[3,6],[9]]<br>
+[1,2,3,6,9]<br>
+ghci&gt; mempty :: [a]<br>
+[]<br>
+}}</p>
+
+<p>[^../img/smug.png]</p>
+
+<p>注意到最後一行我們明白地標記出型別。這是因為如果只些 <code>mempty</code> 的話，GHCi 不會知道他是哪一個 instance 的 <code>mempty</code>，所以我們必須清楚說出他是 list instance 的 mempty。我們可以使用一般化的型別 <code>[a]</code>，因為空的 list 可以看作是屬於任何型別。</p>
+
+<p>由於 <code>mconcat</code> 有一個預設的實作，我們將某個型別定義成 <code>Monoid</code> 的型別時就可以自動地得到預設的實作。但對於 list 而言，<code>mconcat</code> 其實就是 <code>concat</code>。他接受一個裝有 list 的 list，並把他用 <code>++</code> 來扁平化他。</p>
+
+<p>list 的 instance 也遵守 monoid law。當我們有好幾個 list 並且用 <code>mappend</code> 來把他們串起來，先後順序並不是很重要，因為他們都是接在最後面。而且空的 list 也表現得如 identity 一樣。注意到 monoid 並不要求 <code>a `mappend` b</code> 等於 <code>b `mappend` a</code>。在 list 的情況下，他們明顯不相等。</p>
+
+<p>{{
+ghci&gt; &quot;one&quot; <code>mappend</code> &quot;two&quot;<br>
+&quot;onetwo&quot;<br>
+ghci&gt; &quot;two&quot; <code>mappend</code> &quot;one&quot;<br>
+&quot;twoone&quot;<br>
+}}</p>
+
+<p>這樣並沒有關系。<code>3 * 5</code> 跟 <code>5 * 3</code> 會相等只不過是乘法的性質而已，但沒有保證所有 monoid 都要遵守。</p>
+
+<p>===Product and Sum</p>
+
+<p>我們已經描述過將數值表現成一種 monoid 的方式。只要將 <code>*</code> 當作二元函數而 <code>1</code> 當作 identity 就好了。而且這不是唯一一種方式，另一種方式是將 <code>+</code> 作為二元函數而 <code>0</code> 作為 identity。</p>
+
+<p>{{
+ghci&gt; 0 + 4<br>
+4<br>
+ghci&gt; 5 + 0<br>
+5<br>
+ghci&gt; (1 + 3) + 5<br>
+9<br>
+ghci&gt; 1 + (3 + 5)<br>
+9<br>
+}}</p>
+
+<p>他也遵守 monoid law，因為將 0 加上其他數值，都會是另外一者。而且加法也遵守結合律。所以現在我們有兩種方式來將數值表現成 monoid，那要選哪一個呢？其實我們不必要強迫定下來，還記得當同一種型別有好幾種表現成某個 typeclass 的方式時，我們可以用 <code>newtype</code> 來包裹現有的型別，然後再定義新的 instance。這樣就行了。</p>
+
+<p><code>Data.Monoid</code> 這個模組匯出了兩種型別，<code>Product</code> 跟 <code>Sum</code>。<code>Product</code> 定義如下：</p>
+
+<p>{{
+newtype Product a =  Product { getProduct :: a }<br>
+    deriving (Eq, Ord, Read, Show, Bounded)<br>
+}}</p>
+
+<p>簡單易懂，就是一個單一型別參數的 <code>newtype</code>，並 derive 一些性質。他的 <code>Monoid</code> 的 instance 長得像這樣：</p>
+
+<p>{{
+instance Num a =&gt; Monoid (Product a) where<br>
+    mempty = Product 1<br>
+    Product x <code>mappend</code> Product y = Product (x * y)<br>
+}}</p>
+
+<p><code>mempty</code> 只不過是將 <code>1</code> 包在 <code>Product</code> 中。<code>mappend</code> 則對 <code>Product</code> 的構造子做模式匹配，將兩個取出的數值相乘後再將結果放回去。就如你看到的，typeclass 定義前面有 <code>Num a</code> 的條件限制。所以他代表 <code>Product a</code> 對於所有屬於 <code>Num</code> 的 <code>a</code> 是一個 <code>Monoid</code>。要將 <code>Product a</code> 作為一個 monoid 使用，我們需要用 newtype 來做包裹跟解開的動作。</p>
+
+<p>{{
+ghci&gt; getProduct $ Product 3 <code>mappend</code> Product 9<br>
+27<br>
+ghci&gt; getProduct $ Product 3 <code>mappend</code> mempty<br>
+3<br>
+ghci&gt; getProduct $ Product 3 <code>mappend</code> Product 4 <code>mappend</code> Product 2<br>
+24<br>
+ghci&gt; getProduct . mconcat . map Product $ [3,4,2]<br>
+24<br>
+}}</p>
+
+<p>這當作 <code>Monoid</code> 的一個演練還不錯，但並不會有人覺得這會比 <code>3 * 9</code> 跟 <code>3 * 1</code> 這種方式來做乘法要好。但我們稍後會說明儘管像這種顯而易見的定義還是有他方便的地方。</p>
+
+<p><code>Sum</code> 跟 <code>Product</code> 定義的方式類似，我們也可以用類似的方式操作：</p>
+
+<p>{{
+ghci&gt; getSum $ Sum 2 <code>mappend</code> Sum 9<br>
+11<br>
+ghci&gt; getSum $ mempty <code>mappend</code> Sum 3<br>
+3<br>
+ghci&gt; getSum . mconcat . map Sum $ [1,2,3]<br>
+6<br>
+}}</p>
+
+<p>===Any and ALL</p>
+
+<p>另一種可以有兩種表示成 monoid 方式的型別是 <code>Bool</code>。第一種方式是將 <code>||</code> 當作二元函數，而 <code>False</code> 作為 identity。這樣的意思是只要有任何一個參數是 <code>True</code> 他就回傳 <code>True</code>，否則回傳 <code>False</code>。所以如果我們使用 <code>False</code> 作為 identity，他會在跟 <code>False</code> 做 OR 時回傳 <code>False</code>，跟 <code>True</code> 做 OR 時回傳 <code>True</code>。<code>Any</code> 這個 newtype 是 <code>Monoid</code> 的一個 instance，並定義如下：</p>
+
+<p>{{
+newtype Any = Any { getAny :: Bool }<br>
+    deriving (Eq, Ord, Read, Show, Bounded)<br>
+}}</p>
+
+<p>他的 instance 長得像這樣：</p>
+
+<p>{{
+instance Monoid Any where<br>
+    mempty = Any False<br>
+    Any x <code>mappend</code> Any y = Any (x || y)<br>
+}}</p>
+
+<p>他叫做 <code>Any</code> 的理由是 <code>x `mappend` y</code> 當有任何一個是 <code>True</code> 時就會是 <code>True</code>。就算是更多個用 <code>mappend</code> 串起來的 <code>Any</code>，他也會在任何一個是 <code>True</code> 回傳 <code>True</code>。</p>
+
+<p>{{
+ghci&gt; getAny $ Any True <code>mappend</code> Any False<br>
+True<br>
+ghci&gt; getAny $ mempty <code>mappend</code> Any True<br>
+True<br>
+ghci&gt; getAny . mconcat . map Any $ [False, False, False, True]<br>
+True<br>
+ghci&gt; getAny $ mempty <code>mappend</code> mempty<br>
+False<br>
+}}</p>
+
+<p>另一種 <code>Bool</code> 表現成 <code>Monoid</code> 的方式是用 <code>&amp;&amp;</code> 作為二元函數，而 <code>True</code> 作為 identity。只有當所有都是 <code>True</code> 的時候才會回傳 <code>True</code>。下面是他的 newtype 定義：</p>
+
+<p>{{
+newtype All = All { getAll :: Bool }<br>
+        deriving (Eq, Ord, Read, Show, Bounded)<br>
+}}</p>
+
+<p>而這是他的 instance：</p>
+
+<p>{{
+instance Monoid All where<br>
+        mempty = All True<br>
+        All x <code>mappend</code> All y = All (x &amp;&amp; y)<br>
+}}</p>
+
+<p>當我們用 <code>mappend</code> 來串起 <code>All</code> 型別的值時，結果只有當所有 <code>mappend</code> 的值是 <code>True</code> 時才會是 <code>True</code>：</p>
+
+<p>{{
+ghci&gt; getAll $ mempty <code>mappend</code> All True<br>
+True<br>
+ghci&gt; getAll $ mempty <code>mappend</code> All False<br>
+False<br>
+ghci&gt; getAll . mconcat . map All $ [True, True, True]<br>
+True<br>
+ghci&gt; getAll . mconcat . map All $ [True, True, False]<br>
+False<br>
+}}</p>
+
+<p>就如乘法跟加法一樣，我們通常寧願用二元函數來操作他們也不會用 newtype 來將他們包起來。不會將他們包成 <code>Any</code> 或 <code>All</code> 然後用 <code>mappend</code>，<code>mempty</code> 或 <code>mconcat</code> 來操作。通常使用 <code>or</code> 跟 <code>and</code>，他們接受一串 <code>Bool</code>，並只有當任意一個或是所有都是 <code>True</code> 的時候才回傳 <code>True</code>。</p>
+
+<p>=== The Ordering monoid</p>
+
+<p>還記得 <code>Ordering</code> 型別嗎?他是比較運算之後得到的結果，包含三個值：<code>LT</code>，<code>EQ</code> 跟 <code>GT</code>，分別代表小於，等於跟大於：</p>
+
+<p>{{
+ghci&gt; 1 <code>compare</code> 2<br>
+LT<br>
+ghci&gt; 2 <code>compare</code> 2<br>
+EQ<br>
+ghci&gt; 3 <code>compare</code> 2<br>
+GT<br>
+}}</p>
+
+<p>針對 list，數值跟布林值而言，要找出 monoid 的行為只要去檢視已經定義的函數，然後看看有沒有展現出 monoid 的特性就可以了，但對於 <code>Ordering</code>，我們就必須要更仔細一點才能看出來是否是一個 monoid，但其實他的 <code>Monoid</code> instance 還蠻直覺的：</p>
+
+<p>{{
+instance Monoid Ordering where<br>
+    mempty = EQ<br>
+    LT <code>mappend</code> _ = LT<br>
+    EQ <code>mappend</code> y = y<br>
+    GT <code>mappend</code> _ = GT<br>
+}}</p>
+
+<p>[$../img/bear.png]</p>
+
+<p>這個 instance 定義如下：當我們用 <code>mappend</code> 兩個 <code>Ordering</code> 型別的值時，左邊的會被保留下來。除非左邊的值是 <code>EQ</code>，那我們就會保留右邊的當作結果。而 identity 就是 <code>EQ</code>。乍看之下有點隨便，但實際上他是我們比較兩個英文字時所用的方法。我們先比較兩個字母是否相等，如果他們不一樣，那我們就知道那一個字在字典中會在前面。而如果兩個字母相等，那我們就繼續比較下一個字母，以此類推。</p>
+
+<p>舉例來說，如果我們字典順序地比較 <code>&quot;ox&quot;</code> 跟 <code>&quot;on&quot;</code> 的話。我們會先比較兩個字的首個字母，看看他們是否相等，然後繼續比較第二個字母。我們看到 <code>&#39;x&#39;</code> 是比 <code>&#39;n&#39;</code> 要來得大，所以我們就知道如何比較兩個字了。而要瞭解為何 <code>EQ</code> 是 identity，我們可以注意到如果我們在兩個字中間的同樣位置塞入同樣的字母，那他們之間的字典順序並不會改變。<code>&quot;oix&quot;</code> 仍然比 <code>&quot;oin&quot;</code> 要大。</p>
+
+<p>很重要的一件事是在 <code>Ordering</code> 的 <code>Monoid</code> 定義裡 <code>x `mappend` y</code> 並不等於 <code>y `mappend` x</code>。因為除非第一個參數是 <code>EQ</code>，不然結果就會是第一個參數。所以 <code>LT `mappend` GT</code> 等於 <code>LT</code>，然而 <code>GT `mappend` LT</code> 等於 <code>GT</code>。</p>
+
+<p>{{
+ghci&gt; LT <code>mappend</code> GT<br>
+LT<br>
+ghci&gt; GT <code>mappend</code> LT<br>
+GT<br>
+ghci&gt; mempty <code>mappend</code> LT<br>
+LT<br>
+ghci&gt; mempty <code>mappend</code> GT<br>
+GT<br>
+}}</p>
+
+<p>所以這個 monoid 在什麽情況下會有用呢？假設你要寫一個比較兩個字串長度的函數，並回傳 <code>Ordering</code>。而且當字串一樣長的時候，我們不直接回傳 <code>EQ</code>，反而繼續用字典順序比較他們。一種實作的方式如下：</p>
+
+<p>{{
+lengthCompare :: String -&gt; String -&gt; Ordering<br>
+lengthCompare x y = let a = length x <code>compare</code> length y<br>
+                        b = x <code>compare</code> y<br>
+                    in  if a == EQ then b else a<br>
+}}</p>
+
+<p>我們稱呼比較長度的結果為 <code>a</code>，而比較字典順序的結果為 <code>b</code>，而當長度一樣時，我們就回傳字典順序。</p>
+
+<p>如果善用我們 <code>Ordering</code> 是一種 monoid 這項知識，我們可以把我們的函數寫得更簡單些：</p>
+
+<p>{{
+import Data.Monoid</p>
+
+<p>lengthCompare :: String -&gt; String -&gt; Ordering<br>
+lengthCompare x y = (length x <code>compare</code> length y) <code>mappend</code><br>
+                    (x <code>compare</code> y)<br>
+}}</p>
+
+<p>我們可以試著跑跑看：</p>
+
+<p>{{
+ghci&gt; lengthCompare &quot;zen&quot; &quot;ants&quot;<br>
+LT<br>
+ghci&gt; lengthCompare &quot;zen&quot; &quot;ant&quot;<br>
+GT<br>
+}}</p>
+
+<p>要記住當我們使用 <code>mappend</code>。他在左邊不等於 <code>EQ</code> 的情況下都會回傳左邊的值。相反地則回傳右邊的值。這也是為什麽我們將我們認為比較重要的順序放在左邊的參數。如果我們要繼續延展這個函數，要讓他們比較母音的順序，並把這順序列為第二重要，那我們可以這樣修改他：</p>
+
+<p>{{
+import Data.Monoid  </p>
+
+<p>lengthCompare :: String -&gt; String -&gt; Ordering<br>
+lengthCompare x y = (length x <code>compare</code> length y) <code>mappend</code><br>
+                    (vowels x <code>compare</code> vowels y) <code>mappend</code><br>
+                    (x <code>compare</code> y)<br>
+    where vowels = length . filter (<code>elem</code> &quot;aeiou&quot;)<br>
+}}</p>
+
+<p>我們寫了一個輔助函數，他接受一個字串並回傳他有多少母音。他是先用 filter 來把字母濾到剩下 <code>&quot;aeiou&quot;</code>，然後再用 <code>length</code> 計算長度。</p>
+
+<p>{{
+ghci&gt; lengthCompare &quot;zen&quot; &quot;anna&quot;<br>
+LT<br>
+ghci&gt; lengthCompare &quot;zen&quot; &quot;ana&quot;<br>
+LT<br>
+ghci&gt; lengthCompare &quot;zen&quot; &quot;ann&quot;<br>
+GT<br>
+}}</p>
+
+<p>在第一個例子中我們看到長度不同所以回傳 <code>LT</code>，明顯地 <code>&quot;zen&quot;</code> 要短於 <code>&quot;anna&quot;</code>。在第二個例子中，長度是一樣的，但第二個字串有比較多的母音，所以結果仍然是 <code>LT</code>。在第三個範例中，兩個長度都相等，他們也有相同個數的母音，經由字典順序比較後得到 <code>&quot;zen&quot;</code> 比較大。</p>
+
+<p><code>Ordering</code> 的 monoid 允許我們用不同方式比較事物，並將這些順序也定義了依重要度不同的一個順序。</p>
+
+<p>===Maybe the monoid</p>
+
+<p>我們來看一下 <code>Maybe a</code> 是怎樣有多種方式來表現成 <code>Monoid</code> 的，並且說明哪些是比較有用的。一種將 <code>Maybe a</code> 當作 monoid 的方式就是他的 <code>a</code> 也是一個 monoid，而我們將 <code>mappend</code> 實作成使用包在 <code>Just</code> 裡面的值對應的 <code>mappend</code>。並且用 <code>Nothing</code> 當作 identity。所以如果我 <code>mappend</code> 兩個參數中有一個是 <code>Nothing</code>。那結果就會是另一邊的值。他的 instance 定義如下： </p>
+
+<p>{{
+instance Monoid a =&gt; Monoid (Maybe a) where<br>
+    mempty = Nothing<br>
+    Nothing <code>mappend</code> m = m<br>
+    m <code>mappend</code> Nothing = m<br>
+    Just m1 <code>mappend</code> Just m2 = Just (m1 <code>mappend</code> m2)<br>
+}}</p>
+
+<p>留意到 class constraint。他說明 <code>Maybe a</code> 只有在 <code>a</code> 是 <code>Monoid</code> 的情況下才會是一個 <code>Monoid</code>。如果我們 <code>mappend</code> 某個東西跟 <code>Nothing</code>。那結果就會是某個東西。如果我們 <code>mappend</code> 兩個 <code>Just</code>，那 <code>Just</code> 包住的結果就會 <code>mappended</code> 在一起並放回 <code>Just</code>。我們能這麼做是因為 class constraint 保證了在 <code>Just</code> 中的值是 <code>Monoid</code>。</p>
+
+<p>{{
+ghci&gt; Nothing <code>mappend</code> Just &quot;andy&quot;<br>
+Just &quot;andy&quot;<br>
+ghci&gt; Just LT <code>mappend</code> Nothing<br>
+Just LT<br>
+ghci&gt; Just (Sum 3) <code>mappend</code> Just (Sum 4)<br>
+Just (Sum {getSum = 7})<br>
+}}</p>
+
+<p>這當你在處理有可能失敗的 monoid 的時候比較有用。有了這個 instance，我們就不必一一去檢查他們是否失敗，是否是 <code>Nothing</code> 或是 <code>Just</code>，我們可以直接將他們當作普通的 monoid。</p>
+
+<p>但如果在 <code>Maybe</code> 中的型別不是 <code>Monoid</code> 呢？注意到在先前的 instance 定義中，唯一有依賴於 monoid 限制的情況就是在 <code>mappend</code> 兩個 <code>Just</code> 的時候。但如果我們不知道包在 <code>Just</code> 裡面的值究竟是不是 monoid，我們根本無法用 <code>mappend</code> 操作他們，所以該怎麼辦呢？一種方式就是直接丟掉第二個值而留下第一個值。這就是 <code>First a</code> 存在的目的，而這是他的定義：</p>
+
+<p>{{
+newtype First a = First { getFirst :: Maybe a }<br>
+    deriving (Eq, Ord, Read, Show) 
+}}</p>
+
+<p>我們接受一個 <code>Maybe a</code> 並把他包成 newtype，<code>Monoid</code> 的定義如下：</p>
+
+<p>{{
+instance Monoid (First a) where<br>
+    mempty = First Nothing<br>
+    First (Just x) <code>mappend</code> _ = First (Just x)<br>
+    First Nothing <code>mappend</code> x = x<br>
+}}</p>
+
+<p>正如我們說過得，<code>mempty</code> 就是包在 <code>First</code> 中的 <code>Nothing</code>。如果 <code>mappend</code> 的第一個參數是 <code>Just</code>，我們就直接忽略第二個參數。如果第一個參數是 <code>Nothing</code>，那我們就將第二個參數當作結果。並不管他究竟是 <code>Just</code> 或是 <code>Nothing</code>：  </p>
+
+<p>{{
+ghci&gt; getFirst $ First (Just &#39;a&#39;) <code>mappend</code> First (Just &#39;b&#39;)<br>
+Just &#39;a&#39;<br>
+ghci&gt; getFirst $ First Nothing <code>mappend</code> First (Just &#39;b&#39;)<br>
+Just &#39;b&#39;<br>
+ghci&gt; getFirst $ First (Just &#39;a&#39;) <code>mappend</code> First Nothing<br>
+Just &#39;a&#39;<br>
+}}</p>
+
+<p><code>First</code> 在我們有一大串 <code>Maybe</code> 而且想知道他們之中就竟有沒有 <code>Just</code> 的時候很有用。可以利用 <code>mconcat</code>：</p>
+
+<p>{{
+ghci&gt; getFirst . mconcat . map First $ [Nothing, Just 9, Just 10]<br>
+Just 9<br>
+}}</p>
+
+<p>如果我們希望定義一個 <code>Maybe a</code> 的 monoid，讓他當 <code>mappend</code> 的兩個參數都是 <code>Just</code> 的時候將第二個參數當作結果。<code>Data.Monoid</code> 中有一個現成的 <code>Last a</code>，他很像是 <code>First a</code>，只差在 <code>mappend</code> 跟 <code>mconcat</code> 會保留最後一個非 <code>Nothing</code> 的值。</p>
+
+<p>{{
+ghci&gt; getLast . mconcat . map Last $ [Nothing, Just 9, Just 10]<br>
+Just 10<br>
+ghci&gt; getLast $ Last (Just &quot;one&quot;) <code>mappend</code> Last (Just &quot;two&quot;)<br>
+Just &quot;two&quot; 
+}}</p>
+
+<p>===Using monoids to fold data structures</p>
+
+<p>另一種有趣的 monoid 使用方式就是讓他來幫助我們 fold 一些資料結構。到目前為止我們只有 fold list。但 list 並不是唯一一種可以 fold 的資料結構。我們幾乎可以 fold 任何一種資料結構。像是 tree 也是一種常見的可以 fold 的資料結構。</p>
+
+<p>由於有太多種資料結構可以 fold 了，所以我們定義了 <code>Foldable</code> 這個 typeclass。就像 <code>Functor</code> 是定義可以 map over 的結構。<code>Foldable</code> 是定義可以 fold 的結構。在 <code>Data.Foldable</code> 中有定義了一些有用的函數，但他們名稱跟 <code>Prelude</code> 中的名稱衝突。所以最好是用 qualified 的方式 import 他們：</p>
+
+<p>{{
+import qualified Foldable as F<br>
+}}</p>
+
+<p>為了少打一些字，我們將他們 import qualified 成 <code>F</code>。所以這個 typeclass 中定義了哪些函數呢？有 <code>foldr</code>，<code>foldl</code>，<code>foldr1</code> 跟 <code>foldl1</code>。你會說我們已經知道這些函數了，他們有什麽不一樣的地方嗎？我們來比較一下 <code>Foldable</code> 中的 <code>foldr</code> 跟 <code>Prelude</code> 中的 <code>foldr</code> 的型別異同：</p>
+
+<p>{{
+ghci&gt; :t foldr<br>
+foldr :: (a -&gt; b -&gt; b) -&gt; b -&gt; [a] -&gt; b<br>
+ghci&gt; :t F.foldr<br>
+F.foldr :: (F.Foldable t) =&gt; (a -&gt; b -&gt; b) -&gt; b -&gt; t a -&gt; b<br>
+}}</p>
+
+<p>儘管 <code>foldr</code> 接受一個 list 並將他 fold 起來，<code>Data.Foldable</code> 中的 <code>foldr</code> 接受任何可以 fold 的型別。並不只是 list。
+而兩個 <code>foldr</code> 對於 list 的結果是相同的：</p>
+
+<p>{{
+ghci&gt; foldr (<em>) 1 [1,2,3]<br>
+6<br>
+ghci&gt; F.foldr (</em>) 1 [1,2,3]<br>
+6<br>
+}}</p>
+
+<p>那有哪些資料結構支援 fold 呢？首先我們有 <code>Maybe</code>：</p>
+
+<p>{{
+ghci&gt; F.foldl (+) 2 (Just 9)<br>
+11<br>
+ghci&gt; F.foldr (||) False (Just True)<br>
+True 
+}}</p>
+
+<p>但 fold 一個 <code>Maybe</code> 並沒什麽新意。畢竟當他是 <code>Just</code> 的時候表現得像是只有單一元素的 list，而當他是 <code>Nothing</code> 的時候就像是空的 list 一樣。所以我們來看一些比較複雜的資料結構。</p>
+
+<p>還記得 Making Our Own Types and Typeclass 章節中的樹狀的資料結構嗎？我們是這樣定義的：</p>
+
+<p>{{
+data Tree a = Empty | Node a (Tree a) (Tree a) deriving (Show, Read, Eq)<br>
+}}</p>
+
+<p>我們說一棵樹要不就是一棵空的樹要不然就是一個包含值的節點，並且還指向另外兩棵樹。定義他之後，我們將他定義成 <code>Functor</code> 的 instance，因此可以 <code>fmap</code> 他。現在我們要將他定義成 <code>Foldable</code> 的 instance，這樣我們就可以 fold 他。要定義成 <code>Foldable</code> 的一種方式就是實作 <code>foldr</code>。但另一種比較簡單的方式就是實作 <code>foldMap</code>，他也屬於 <code>Foldable</code> typeclass。<code>foldMap</code> 的型別如下：</p>
+
+<p>{{
+foldMap :: (Monoid m, Foldable t) =&gt; (a -&gt; m) -&gt; t a -&gt; m<br>
+}}</p>
+
+<p>第一個參數是一個函數，這個函數接受 foldable 資料結構中包含的元素的型別，並回傳一個 monoid。他第二個參數是一個 foldable 的結構，並包含型別 <code>a</code> 的元素。他將第一個函數來 map over 這個 foldable 的結構，因此得到一個包含 monoid 的 foldable 結構。然後用 <code>mappend</code> 來簡化這些 monoid，最後得到單一的一個 monoid。這個函數聽起來不太容易理解，但我們下面會看到他其實很容易實作。而且好消息是只要實作了這個函數就可以讓我們的函數成為 <code>Foldable</code>。所以我們只要實作某個型別的 <code>foldMap</code>，我們就可以得到那個型別的 <code>foldr</code> 跟 <code>foldl</code>。</p>
+
+<p>這就是我們如何定義 <code>Tree</code> 成為 <code>Foldable</code> 的：</p>
+
+<p>{{
+instance F.Foldable Tree where<br>
+    foldMap f Empty = mempty<br>
+    foldMap f (Node x l r) = F.foldMap f l <code>mappend</code><br>
+                                f x           <code>mappend</code><br>
+                                F.foldMap f r<br>
+}}</p>
+
+<p>[$../img/accordion.png]</p>
+
+<p>我們是這樣思考的：如果我們寫一個函數，他接受樹中的一個元素並回傳一個 monoid，那我們要怎麼簡化整棵樹到只有單一一個 monoid？當我們在對樹做 <code>fmap</code> 的時候，我們將那函數套用至節點上，並遞迴地套用至左子樹以及右子樹。這邊我們不只是 map 一個函數而已，我們還要求要把結果用 <code>mappend</code> 簡化成只有單一一個 monoid 值。首先我們考慮樹為空的情形，一棵沒有值也沒有子樹的情形。由於沒有值我們也沒辦法將他套用上面轉換成 monoid 的函數，所以當樹為空的時候，結果應該要是 <code>mempty</code>。</p>
+
+<p>在非空節點的情形下比較有趣，他包含一個值跟兩棵子樹。在這種情況下，我們遞迴地做 <code>foldMap</code>，用 <code>f</code> 來套用到左子樹跟右子樹上。要記住我們的 <code>foldMap</code> 只會得到單一的 monoid 值。我們也會套用 <code>f</code> 到節點中的值。這樣我們就得到三個 monoid 值，有兩個來自簡化子樹的結果，還有一個是套用 <code>f</code> 到節點中的值的結果。而我們需要將這三個值整合成單一個值。要達成這個目的我們使用 <code>mappend</code>，而且自然地會想到照左子樹，節點值以及右子樹的順序來簡化。</p>
+
+<p>注意到我們並不一定要提供一個將普通值轉成 monoid 的函數。我們只是把他當作是 <code>foldMap</code> 的參數，我們要決定的只是如何套用那個函數，來把得到的 monoid 們簡化成單一結果。</p>
+
+<p>現在我們有樹的 <code>Foldable</code> instance，而 <code>foldr</code> 跟 <code>foldl</code> 也有預設的實作了。考慮下面這棵樹：</p>
+
+<p>{{
+testTree = Node 5<br>
+            (Node 3<br>
+             (Node 1 Empty Empty)<br>
+             (Node 6 Empty Empty)<br>
+            )<br>
+            (Node 9<br>
+             (Node 8 Empty Empty)<br>
+             (Node 10 Empty Empty)<br>
+            )<br>
+}}</p>
+
+<p>他的 root 是 <code>5</code>，而他左邊下來分別是 <code>3</code>，再來是 <code>1</code> 跟 <code>6</code>。而右邊下來是 <code>9</code>，再來是 <code>8</code> 跟 <code>10</code>。有了 <code>Foldable</code> 的定義，我們就能像對 list 做 fold 一樣對樹做 fold：</p>
+
+<p>{{
+ghci&gt; F.foldl (+) 0 testTree<br>
+42<br>
+ghci&gt; F.foldl (*) 1 testTree<br>
+64800<br>
+}}</p>
+
+<p><code>foldMap</code> 不只是定義 <code>Foldable</code> 新的 instance 有用。他也對簡化我們的結構至單一 monoid 值有用。舉例來說，如果我們想要知道我們的樹中有沒有 <code>3</code>，我們可以這樣做：</p>
+
+<p>{{
+ghci&gt; getAny $ F.foldMap (\x -&gt; Any $ x == 3) testTree<br>
+True 
+}}</p>
+
+<p>這邊 <code>\x -&gt; Any $ x == 3</code> 是一個接受一個數值並回傳一個 monoid 的函數，也就是一個包在 <code>Any</code> 中的 <code>Bool</code>。<code>foldMap</code> 將這個函數套用至樹的每一個節點，並把結果用 <code>mappend</code> 簡化成單一 monoid。如果我們這樣做：</p>
+
+<p>{{
+ghci&gt; getAny $ F.foldMap (\x -&gt; Any $ x &gt; 15) testTree<br>
+False 
+}}</p>
+
+<p>經過套用 lambda 之後我們所有的節點都會是 <code>Any False</code>。但 <code>mappend</code> 必須要至少吃到一個 <code>True</code> 才能讓最後的結果變成 <code>True</code>。這也是為什麽結果會是 <code>False</code>，因為我們樹中所有的值都大於 <code>15</code>。</p>
+
+<p>我們也能將 <code>foldMap</code> 配合 <code>\x -&gt; [x]</code> 使用來將我們的樹轉成 list。經過套用那個函數後，所有節點都變成包含單一元素的 list。最後用 <code>mappend</code> 將這些單一元素的 list 轉成一個裝有全部元素的 list：</p>
+
+<p>{{
+ghci&gt; F.foldMap (\x -&gt; [x]) testTree<br>
+[1,3,6,5,8,9,10] 
+}}</p>
+
+<p>這個小技巧並不限於樹而已，他可以被套用在任何 <code>Foldable</code> 上。</p>
