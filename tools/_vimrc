@@ -1,4 +1,0 @@
-noremap co o{{<esc>O}}<esc><<
-
-noremap tw i``<esc>wwi``<esc>
-noremap hw i**<esc>wwi**<esc>
