@@ -12,3 +12,5 @@
 * [A Fistful of Monad](ch12/a-fistful-of-monads.md)
 * [For a Few Monad More](ch13/for-a-few-monads-more.md)
 * [Zippers](ch14/zippers.md)
+* [FAQ](faq/faq.md)
+* [Resource](resource/resource.md)
