@@ -4,3 +4,4 @@
 * [Syntax in Function](ch04/syntax-in-function.md)
 * [Recursion](ch05/recursion.md)
 * [High Order Function](ch06/high-order-function.md)
+* [Module](ch07/module.md)
