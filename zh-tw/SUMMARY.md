@@ -9,3 +9,4 @@
 * [Input and Output](ch09/input-and-output.md)
 * [Functionally Solving Problems](ch10/functionally-solving-problems.md)
 * [Functors, Applicative Functors 與 Monoids](ch11/functors-applicative-functors-and-monoids.md)
+* [A Fistful of Monad](ch12/a-fistful-of-monads.md)
