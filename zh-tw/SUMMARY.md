@@ -6,3 +6,4 @@
 * [High Order Function](ch06/high-order-function.md)
 * [Module](ch07/module.md)
 * [Build Our Own Type and Typeclass](ch08/build-our-own-type-and-typeclass.md)
+* [Input and Output](ch09/input-and-output.md)
