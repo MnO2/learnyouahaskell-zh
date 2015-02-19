@@ -10,3 +10,4 @@
 * [Functionally Solving Problems](ch10/functionally-solving-problems.md)
 * [Functors, Applicative Functors 與 Monoids](ch11/functors-applicative-functors-and-monoids.md)
 * [A Fistful of Monad](ch12/a-fistful-of-monads.md)
+* [For a Few Monad More](ch13/for-a-few-monads-more.md)
