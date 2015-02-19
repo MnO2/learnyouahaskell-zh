@@ -3,3 +3,4 @@
 * [Type And Typeclass](ch03/type-and-typeclass.md)
 * [Syntax in Function](ch04/syntax-in-function.md)
 * [Recursion](ch05/recursion.md)
+* [High Order Function](ch06/high-order-function.md)
