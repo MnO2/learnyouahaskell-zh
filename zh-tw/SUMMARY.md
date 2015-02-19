@@ -5,3 +5,4 @@
 * [Recursion](ch05/recursion.md)
 * [High Order Function](ch06/high-order-function.md)
 * [Module](ch07/module.md)
+* [Build Our Own Type and Typeclass](ch08/build-our-own-type-and-typeclass.md)
