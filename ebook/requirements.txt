@@ -1,2 +1,0 @@
-kindlestrip==1.35.0
-wsgiref==0.1.2
