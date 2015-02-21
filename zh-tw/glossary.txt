@@ -1,5 +1,0 @@
-<p>boolean algebra     布林代數
-function            函數               函式
-monad               單子
-operator            運算子
-type                型別</p>
