@@ -1,6 +1,6 @@
 # 再來看看更多 Monad
 
-[$../img/clint.png]
+![](clint.png)
 
 我們已經看過 Monad 是如何接受具有 context 的值，並如何用函數操作他們 還有如何用 ``>>=`` 跟 ``do`` 來減輕我們對 context 的關注，集中精神在 value 本身。
 
@@ -39,7 +39,7 @@ ghci> isBigGang 30
 (True,"Compared gang size to 9.")  
 ```
 
-[^../img/tuco.png]
+![](tuco.png)
 
 到目前為止都還不錯，``isBigGang`` 回傳一個值跟他的 context。對於正常的數值來說這樣的寫法都能運作良好。但如果我們想要把一個已經具有 context 的值，像是 ``(3, "Smallish gang.")``，餵給 ``isBigGang`` 呢？我們又面對了同樣的問題：如果我們有一個能接受正常數值並回傳一個具有 context 值的 function，那我們要如何餵給他一個具有 context 的值？
 
@@ -166,7 +166,7 @@ instance (Monoid w) => Monad (Writer w) where
     (Writer (x,v)) >>= f = let (Writer (y, v')) = f x in Writer (y, v `mappend` v')  
 ```
 
-[$../img/angeleyes.png]
+![](angeleyes.png)
 
 首先，我們來看看 ``>>=``。他的實作基本上就是 ``applyLog``，只是我們的 tuple 現在是包在一個 ``Writer`` 的 ``newtype`` 中，我們可以用 pattern matching 的方式把他給 unwrap。我們將 ``x`` 餵給 ``f``。這會回給我們 ``Writer w a``。接著可以用 ``let`` expression 來做 pattern matching。把結果綁定到 ``y`` 這個名字上，然後用 ``mappend`` 來結合舊的 monoid 值跟新的 monoid 值。最後把結果跟 monoid 值用 ``Writer`` constructor 包起來，形成我們最後的 ``Writer`` value。
 
@@ -345,7 +345,7 @@ Finished with 1
 
 ### Difference lists
 
-[^../img/cactus.png]
+![](cactus.png)
 
 由於 list 在重複 append 的時候顯得低效，我們最好能使用一種支援高效 appending 的資料結構。其中一種就是 difference list。difference list 很類似 list，只是他是一個函數。他接受一個 list 並 prepend 另一串 list 到他前面。一個等價於 ``[1,2,3]`` 的 difference list 是這樣一個函數 ``\xs -> [1,2,3] ++ xs``。一個等價於 ``[]`` 的 difference list 則是 ``\xs -> [] ++ xs``。
 
@@ -473,7 +473,7 @@ ghci> mapM_ putStrLn . snd . runWriter $ finalCountDown 500000
 
 ## Reader Monad
 
-[^../img/revolver.png]
+![](revolver.png)
 
 在講 Applicative 的章節中，我們說過了 ``(->) r`` 的型態只是 ``Functor`` 的一個 instance。要將一個函數 ``f`` map over 一個函數 ``g``，基本上等價於一個函數，他可以接受原本 ``g`` 接受的參數，先套用 ``g`` 然後再把其結果丟給 ``f``。
 
@@ -540,7 +540,7 @@ addStuff x = let
 
 ## State Monad
 
-[^../img/texas.png]
+![](texas.png)
 
 Haskell 是一個純粹的語言，正因為如此，我們的程式是有一堆沒辦法改變全域狀態或變數的函數所組成，他們只會作些處理並回傳結果。這樣的性質讓我們很容易思考我們的程式在幹嘛，因為我們不需要擔心變數在某一個時間點的值是什麼。然而，有一些領域的問題根本上就是依賴於隨著時間而改變的狀態。雖然我們也可以用 Haskell 寫出這樣的程式，但有時候寫起來蠻痛苦的。這也是為什麼 Haskell 要加進 State Monad 這個特性。這讓我們在 Haskell 中可以容易地處理狀態性的問題，並讓其他部份的程式還是保持純粹性。
 
@@ -649,7 +649,7 @@ instance Monad (State s) where
 
 我們先來看看 ``return`` 那一行。我們 ``return`` 要作的事是接受一個值，並做出一個改變狀態的操作，讓他永遠回傳那個值。所以我們才做了一個 lambda 函數，``\s -> (x,s)``。我們把 ``x`` 當成是結果，並且狀態仍然是 ``s``。這就是 ``return`` 要完成的 minimal context。
 
-[$../img/badge.png]
+![](badge.png)
 
 那 ``>>=`` 的實作呢？很明顯的把改變狀態的操作餵進 ``>>=`` 也必須要丟出另一個改變狀態的操作。所以我們用 ``State`` 這個 ``newtype`` wrapper 來把一個 lambda 函數包住。這個 lambda 會是新的一個改變狀態的操作。但裡面的內容是什麼？首先我們應該要從接受的操作取出結果。由於 lambda 是在一個大的操作中，所以我們可以餵給 ``h`` 我們現在的狀態，也就是 ``s``。那會產生 ``(a, newState)``。到目前為止每次我們在實作 ``>>=`` 的時候，我們都會先從 monadic value 中取出結果，然後餵給 ``f`` 來得到新的 monadic value。在寫 ``Writer`` 的時候，我們除了這樣作還要確保 context 是用 ``mappend`` 把舊的 monoid value 跟新的接起來。在這邊我們則是用 ``f a`` 得到一個新的操作 ``g``。現在我們有了新的操作跟新的狀態（叫做 ``newState``），我們就把 ``newState`` 餵給 ``g``。結果便是一個 tuple，裡面包含了最後的結果跟最終的狀態。
 
@@ -892,7 +892,7 @@ Right 103
 
 ### liftM 
 
-[$../img/wolf.png]
+![](wolf.png)
 
 當我們開始學習 Monad 的時候，我們是先學習 functors，他代表可以被 map over 的事物。接著我們學了 functors 的加強版，也就是 applicative functors，他可以對 applicative values 做函數的套用，也可以把一個一般值放到一個預設的 context 中。最後，我們介紹在 applicative functors 上更進一步的 monad，他讓這些具有 context 的值可以被餵進一般函數中。 
 
@@ -1081,7 +1081,7 @@ joinedMaybes = do
     m  
 ```
 
-[$../img/tipi.png]
+![](tipi.png)
 
 最有趣的是對於一個 monadic value 而言，用 ``>>=`` 把他餵進一個函數其實等價於對 monad 做 mapping over 的動作，然後用 ``join`` 來把值從 nested 的狀態變成扁平的狀態。也就是說 ``m >>= f`` 其實就是 ``join (fmap f m)``。如果你仔細想想的話其實很明顯。``>>=`` 的使用方式是，把一個 monadic value 餵進一個接受普通值的函數，但他卻會回傳 monadic value。如果我們 map over 一個 monadic value，我們會做成一個 monadic value 包了另外一個 monadic value。例如說，我們現在手上有 ``Just 9`` 跟 ``\x -> Just (x+1)``。如果我們把這個函數 map over ``Just 9``，我們會得到 ``Just (Just 10)``
 
@@ -1229,7 +1229,7 @@ Nothing
 
 ### Making a safe RPN calculator
 
-[^../img/miner.png]
+![](miner.png)
 
 之前的章節我們實作了一個 RPN 計算機，但我們沒有做錯誤的處理。他只有在輸入是合法的時候才會運算正確。假如有東西出錯了，整個程式便會當掉。我們在這章看到了要怎樣把程式碼轉換成 monadic 的版本，我們先嘗適用 ``Maybe`` monad 來幫我們的 RPN 計算機加上些錯誤處理。
 
@@ -1391,7 +1391,7 @@ canReachIn x start end = end `elem` inMany x start
 
 ## 定義自己的 Monad
 
-[../img/spearhead.png]
+![](spearhead.png)
 
 在這一章節，我們會帶你看看究竟一個型態是怎麼被辨認，確認是一個 monad 而且正確定義出 ``Monad`` 的 instance。我們通常不會為了定義 monad 而定義。比較常發生的是，我們想要針對一個問題建立模型，卻稍後發現我們定義的型態其實是一個 Monad，所以就定義一個 ``Monad`` 的 instance。
 
@@ -1456,7 +1456,7 @@ Prob {getProb = [(-3,1 % 2),(-5,1 % 4),(-9,1 % 4)]}
 至於 ``>>=`` 呢？看起來有點複雜，所以我們換種方式來思考，我們知道 ``m >>= f`` 會等價於 ``join (fmap f m)``，所以我們來想要怎麼把一串包含 probability list 的 list 弄平。舉個例子，考慮一個 list，``'a'`` 跟 ``'b'`` 恰出現其中一個的機率為 25%，兩個出現的機率相等。而 ``'c'`` 跟 ``'d'`` 恰出現其中一個的機率為 75%，兩個出現的機率也是相等。這邊有一個圖將情形畫出來。
 
 
-[^../img/prob.png]
+![](prob.png)
 
 每個字母發生的機率有多高呢？如果我們用四個盒子來代表每個字母，那每個盒子的機率為何？每個盒子的機率是他們所裝有的機率值相乘的結果。``'a'`` 的機率是八分之一，``'b'`` 同樣也是八分之一。八分之一是因為我們把二分之一跟四分之一相乘得到的結果。而 ``'c'`` 發生的機率是八分之三，是因為二分之一乘上四分之三。``'d'`` 同樣也是八分之三。如果把所有的機率加起來，就會得到一，符合機率的規則。
 
@@ -1489,7 +1489,7 @@ instance Monad Prob where
     fail _ = Prob []  
 ```
 
-[$../img/ride.png]
+![](ride.png)
 
 由於我們已經把所有苦工的做完了，定義這個 instance 顯得格外輕鬆。我們也定義了 ``fail``，我們定義他的方式跟定義 list 一樣。如果在 ``do`` 中發生了失敗的 pattern match，那就會呼叫 ``fail``。
 
