@@ -1,27 +1,28 @@
 # FAQ
 [$img/turtle.png]
 
-## 我能把這份教學放在我的網站嗎？我可以更改裡面的內容嗎？
-當然。它受[http://creativecommons.org/licenses/by-nc-sa/3.0/ creative commons attribution noncommercial blah blah blah...]許可證的保護，因此你可以分享或修改它。只要你是發自內心想要這麼作，並且只將教學用於非商業目的。
+## 我能把这份教学放在我的网站吗？我可以更改里面的内容吗？
+当然。它受[http://creativecommons.org/licenses/by-nc-sa/3.0/ creative commons attribution noncommercial blah blah blah...]许可证的保护，因此你可以分享或修改它。只要你是发自内心想要这么作，并且只将教学用于非商业目的。
 
-## 推薦其它幾個 Haskell 讀物？
-有很多出色的教學，但我得告訴你[http://book.realworldhaskell.org/read/ Real World Haskell]出類拔萃。它太棒了。我覺得它可以和這個教程搭配着一起讀。這個教程提供幾個簡單例子好讓初學者對那點概念有個簡單認識，而 Real World Haskell 真正教給你如何充分地使用它們。
+## 推荐其它几个 Haskell 读物？
+有很多出色的教学，但我得告诉你[http://book.realworldhaskell.org/read/ Real World Haskell]出类拔萃。它太棒了。我觉得它可以和这个教程搭配着一起读。这个教程提供几个简单例子好让初学者对那点概念有个简单认识，而 Real World Haskell 真正教给你如何充分地使用它们。
 
-## 我怎麼聯絡到你？
-最好的方式是用寄封 email 給我，email 是 bonus at learnyouahaskell dot com。不過有點耐心，我沒有 24 小時在電腦旁，所以如果我沒有即時地回覆你的 email 的話，請多包含。
+## 我怎么联络到你？
+最好的方式是用寄封 email 给我，email 是 bonus at learnyouahaskell dot com。不过有点耐心，我没有 24 小时在电脑旁，所以如果我没有即时地回复你的 email 的话，请多包含。
 
-## 我想要一些習題！
-很快就會有了！很多人不斷來問我能不能加些習題，我正在趕工呢。
+## 我想要一些习题！
+很快就会有了！很多人不断来问我能不能加些习题，我正在赶工呢。
 
-## 關於作者
-我的名字是 Miran Lipovača，住在斯洛文尼亞的 Ljubljana。
-大部分時間我都閒閒沒事，不過當我認真的時候我不是在寫程式，繪畫，練格鬥技，或彈 bass。
-我甚至弄了一個討論 bass 的網站。
-我甚至蒐集一堆貓頭鷹玩偶，有時候我會對他們自言自語。
+## 关于作者
+我的名字是 Miran Lipovača，住在斯洛文尼亚的 Ljubljana。
+大部分时间我都闲闲没事，不过当我认真的时候我不是在写程式，绘画，练格斗技，或弹 bass。
+我甚至弄了一个讨论 bass 的网站。
+我甚至搜集一堆猫头鹰玩偶，有时候我会对他们自言自语。
 
-## 關於簡體譯者
-我的名字是[http://fleurer-lee.com Fleurer]，在淄博的山東理工大學讀書。電子郵件是 me.ssword at gmail dot com
+## 关于简体译者
+我的名字是[http://fleurer-lee.com Fleurer]，在淄博的山东理工大学读书。电子邮件是 me.ssword at gmail dot com
 
-## 關於繁體譯者
-我是[http://blog-mno2.csie.org MnO2]，Haskell 愛好者，
+## 关于繁体译者
+我是[http://blog-mno2.csie.org MnO2]，Haskell 爱好者，
 你可以在[https://plus.google.com/103925382602424793947 google+]找到我。
+

@@ -1,30 +1,30 @@
-# 來看看幾種 Monad
+# 来看看几种 Monad
 
-當我們第一次談到 Functor 的時候，我們了解到他是一個抽象概念，代表是一種可以被 map over 的值。然後我們再將其概念提升到 Applicative Functor，他代表一種帶有 context 的型態，我們可以用函數操作他而且同時還保有他的 context。
+当我们第一次谈到 Functor 的时候，我们了解到他是一个抽象概念，代表是一种可以被 map over 的值。然后我们再将其概念提升到 Applicative Functor，他代表一种带有 context 的型态，我们可以用函数操作他而且同时还保有他的 context。
 
-在這一章，我們會學到 Monad，基本上他是一種加強版的 Applicative Functor，正如 Applicative Functor 是 Functor 的加強版一樣。
+在这一章，我们会学到 Monad，基本上他是一种加强版的 Applicative Functor，正如 Applicative Functor 是 Functor 的加强版一样。
 
-[$../img/smugpig.png]
+![](smugpig.png)
 
-我們介紹到 Functor 是因為我們觀察到有許多型態都可以被 function 給 map over，了解到這個目的，便抽象化了 ``Functor`` 這個 typeclass 出來。但這讓我們想問：如果給定一個 ``a -> b`` 的函數以及 ``f a`` 的型態，我們要如何將函數 map over 這個型態而得到 ``f b``？我們知道要如何 map over ``Maybe a``，``[a]`` 以及 ``IO a``。我們甚至還知道如何用 ``a -> b`` map over ``r -> a``，並且會得到 ``r -> b``。要回答這個問題，我們只需要看 ``fmap`` 的型態就好了：
+我们介绍到 Functor 是因为我们观察到有许多型态都可以被 function 给 map over，了解到这个目的，便抽象化了 ``Functor`` 这个 typeclass 出来。但这让我们想问：如果给定一个 ``a -> b`` 的函数以及 ``f a`` 的型态，我们要如何将函数 map over 这个型态而得到 ``f b``？我们知道要如何 map over ``Maybe a``，``[a]`` 以及 ``IO a``。我们甚至还知道如何用 ``a -> b`` map over ``r -> a``，并且会得到 ``r -> b``。要回答这个问题，我们只需要看 ``fmap`` 的型态就好了：
 
 ```
 fmap :: (Functor f) => (a -> b) -> f a -> f b      
 ```
 
-然後只要針對 ``Functor`` instance 撰寫對應的實作。
+然后只要针对 ``Functor`` instance 撰写对应的实作。
 
-之後我們又看到一些可以針對 Functor 改進的地方，例如 ``a -> b`` 也被包在一個 Functor value 裡面呢？像是 ``Just (*3)``，我們要如何 apply ``Just 5`` 給他？如果我們不要 apply ``Just 5`` 而是 ``Nothing`` 呢？甚至給定 ``[(*2),(+4)]``，我們要如何 apply 他們到 ``[1,2,3]`` 呢？對於此，我們抽象出 ``Applicative`` typeclass，這就是我們想要問的問題：
+之后我们又看到一些可以针对 Functor 改进的地方，例如 ``a -> b`` 也被包在一个 Functor value 里面呢？像是 ``Just (*3)``，我们要如何 apply ``Just 5`` 给他？如果我们不要 apply ``Just 5`` 而是 ``Nothing`` 呢？甚至给定 ``[(*2),(+4)]``，我们要如何 apply 他们到 ``[1,2,3]`` 呢？对于此，我们抽象出 ``Applicative`` typeclass，这就是我们想要问的问题：
 
 ```
 (<*>) :: (Applicative f) => f (a -> b) -> f a -> f b     
 ```
 
-我們也看到我們可以將一個正常的值包在一個資料型態中。例如說我們可以拿一個 ``1`` 然後把他包成 ``Just 1``。或是把他包成 ``[1]``。也可以是一個 I/O action 會產生一個 ``1``。這樣包裝的 function 我們叫他做 ``pure``。
+我们也看到我们可以将一个正常的值包在一个资料型态中。例如说我们可以拿一个 ``1`` 然后把他包成 ``Just 1``。或是把他包成 ``[1]``。也可以是一个 I/O action 会产生一个 ``1``。这样包装的 function 我们叫他做 ``pure``。
 
-如我們說得，一個 applicative value 可以被看作一個有附加 context 的值。例如說，``'a'`` 只是一個普通的字元，但 ``Just 'a'`` 是一個附加了 context 的字元。他不是 ``Char`` 而是 ``Maybe Char``，這型態告訴我們這個值可能是一個字元，也可能什麼都沒有。
+如我们说得，一个 applicative value 可以被看作一个有附加 context 的值。例如说，``'a'`` 只是一个普通的字元，但 ``Just 'a'`` 是一个附加了 context 的字元。他不是 ``Char`` 而是 ``Maybe Char``，这型态告诉我们这个值可能是一个字元，也可能什么都没有。
 
-來看看 ``Applicative`` typeclass 怎樣讓我們用普通的 function 操作他們，同時還保有 context：
+来看看 ``Applicative`` typeclass 怎样让我们用普通的 function 操作他们，同时还保有 context：
 ```
 ghci> (*) <$> Just 2 <*> Just 8  
 Just 16  
@@ -34,34 +34,34 @@ ghci> (-) <$> [3,4] <*> [1,2,3]
 [2,1,0,3,2,1]  
 ```
 
-所以我們可以視他們為 applicative values，``Maybe a`` 代表可能會失敗的 computation，``[a]`` 代表同時有好多結果的 computation (non-deterministic computation)，而 ``IO a`` 代表會有 side-effects 的 computation。
+所以我们可以视他们为 applicative values，``Maybe a`` 代表可能会失败的 computation，``[a]`` 代表同时有好多结果的 computation (non-deterministic computation)，而 ``IO a`` 代表会有 side-effects 的 computation。
 
-Monad 是一個從 Applicative functors 很自然的一個演進結果。對於他們我們主要考量的點是：如果你有一個具有 context 的值 ``m a``，你能如何把他丟進一個只接受普通值 ``a`` 的函數中，並回傳一個具有 context 的值？也就是說，你如何套用一個型態為 ``a -> m b`` 的函數至 ``m a``？基本上，我們要求的函數是：
+Monad 是一个从 Applicative functors 很自然的一个演进结果。对于他们我们主要考量的点是：如果你有一个具有 context 的值 ``m a``，你能如何把他丢进一个只接受普通值 ``a`` 的函数中，并回传一个具有 context 的值？也就是说，你如何套用一个型态为 ``a -> m b`` 的函数至 ``m a``？基本上，我们要求的函数是：
 
 ```
 (>>=) :: (Monad m) => m a -> (a -> m b) -> m b
 ```
 
-如果我們有一個漂亮的值跟一個函數接受普通的值但回傳漂亮的值，那我們要如何要把漂亮的值丟進函數中？這就是我們使用 Monad 時所要考量的事情。我們不寫成 ``f a`` 而寫成 ``m a`` 是因為 ``m`` 代表的是 ``Monad``，但 monad 不過就是支援 ``>>=`` 操作的 applicative functors。``>>=`` 我們稱呼他為 bind。
+如果我们有一个漂亮的值跟一个函数接受普通的值但回传漂亮的值，那我们要如何要把漂亮的值丢进函数中？这就是我们使用 Monad 时所要考量的事情。我们不写成 ``f a`` 而写成 ``m a`` 是因为 ``m`` 代表的是 ``Monad``，但 monad 不过就是支援 ``>>=`` 操作的 applicative functors。``>>=`` 我们称呼他为 bind。
 
-當我們有一個普通值 ``a`` 跟一個普通函數 ``a -> b``，要套用函數是一件很簡單的事。但當你在處理具有 context 的值時，就需要多考慮些東西，要如何把漂亮的值餵進函數中，並如何考慮他們的行為，但你將會了解到他們其實不難。
+当我们有一个普通值 ``a`` 跟一个普通函数 ``a -> b``，要套用函数是一件很简单的事。但当你在处理具有 context 的值时，就需要多考虑些东西，要如何把漂亮的值喂进函数中，并如何考虑他们的行为，但你将会了解到他们其实不难。
 
-## 動手做做看: Maybe Monad
+## 动手做做看: Maybe Monad
 
-[^../img/buddha.png]
+![](buddha.png)
 
-現在對於什麼是 Monad 已經有了些模糊的概念，
-我們來看看要如何讓這概念更具體一些。
+现在对于什么是 Monad 已经有了些模糊的概念，
+我们来看看要如何让这概念更具体一些。
 
-不意外地，``Maybe`` 是一個 Monad，
-所以讓我們對於他多探討些，看看是否能跟我們所知的 Monad 概念結合起來。
+不意外地，``Maybe`` 是一个 Monad，
+所以让我们对于他多探讨些，看看是否能跟我们所知的 Monad 概念结合起来。
 
-    到這邊要確定你了解什麼是 Applicatives。如果你知道好幾種 ``Applicative`` 的 instance 還有他們代表的意含就更好了，因為 monad 不過就是對 applicative 的概念進行一次升級。
+    到这边要确定你了解什么是 Applicatives。如果你知道好几种 ``Applicative`` 的 instance 还有他们代表的意含就更好了，因为 monad 不过就是对 applicative 的概念进行一次升级。
 
 
-一個 ``Maybe a`` 型態的值代表型態為 ``a`` 的值而且具備一個可能造成錯誤的 context。而 ``Just "dharma"`` 的值代表他不是一個 ``"dharma"`` 的字串就是字串不見時的 ``Nothing``。如果你把字串當作計算的結果，``Nothing`` 就代表計算失敗了。
+一个 ``Maybe a`` 型态的值代表型态为 ``a`` 的值而且具备一个可能造成错误的 context。而 ``Just "dharma"`` 的值代表他不是一个 ``"dharma"`` 的字串就是字串不见时的 ``Nothing``。如果你把字串当作计算的结果，``Nothing`` 就代表计算失败了。
 
-當我們把 ``Maybe`` 視作 functor，我們其實要的是一個 ``fmap`` 來把一個函數針對其中的元素做套用。他會對 ``Just`` 中的元素進行套用，要不然就是保留 ``Nothing`` 的狀態，其代表裡面根本沒有元素。
+当我们把 ``Maybe`` 视作 functor，我们其实要的是一个 ``fmap`` 来把一个函数针对其中的元素做套用。他会对 ``Just`` 中的元素进行套用，要不然就是保留 ``Nothing`` 的状态，其代表里面根本没有元素。
 
 ```
 ghci> fmap (++"!") (Just "wisdom")  
@@ -70,7 +70,7 @@ ghci> fmap (++"!") Nothing
 Nothing  
 ```
 
-或者視為一個 applicative functor，他也有類似的作用。只是 applicative 也把函數包了起來。``Maybe`` 作為一個 applicative functor，我們能用 ``<*>`` 來套用一個存在 ``Maybe`` 中的函數至包在另外一個 ``Maybe`` 中的值。他們都必須是包在 ``Just`` 來代表值存在，要不然其實就是 ``Nothing``。當你在想套用函數到值上面的時候，缺少了函數或是值都會造成錯誤，所以這樣做是很合理的。
+或者视为一个 applicative functor，他也有类似的作用。只是 applicative 也把函数包了起来。``Maybe`` 作为一个 applicative functor，我们能用 ``<*>`` 来套用一个存在 ``Maybe`` 中的函数至包在另外一个 ``Maybe`` 中的值。他们都必须是包在 ``Just`` 来代表值存在，要不然其实就是 ``Nothing``。当你在想套用函数到值上面的时候，缺少了函数或是值都会造成错误，所以这样做是很合理的。
 
 ```
 ghci> Just (+3) <*> Just 3  
@@ -81,7 +81,7 @@ ghci> Just ord <*> Nothing
 Nothing  
 ```
 
-當我們用 applicative 的方式套用函數至 ``Maybe`` 型態的值時，就跟上面描述的差不多。過程中所有值都必須是 ``Just``，要不然結果一定會是 ``Nothing``。
+当我们用 applicative 的方式套用函数至 ``Maybe`` 型态的值时，就跟上面描述的差不多。过程中所有值都必须是 ``Just``，要不然结果一定会是 ``Nothing``。
 
 ```
 ghci> max <$> Just 3 <*> Just 6  
@@ -90,9 +90,9 @@ ghci> max <$> Just 3 <*> Nothing
 Nothing  
 ```
 
-我們來思考一下要怎麼為 ``Maybe`` 實作 ``>>=``。正如我們之前提到的，``>>=`` 接受一個 monadic value，以及一個接受普通值的函數，這函數會回傳一個 monadic value。``>>=`` 會幫我們套用這個函數到這個 monadic value。在函數只接受普通值的情況俠，函數是如何作到這件事的呢？要作到這件事，他必須要考慮到 monadic value 的 context。
+我们来思考一下要怎么为 ``Maybe`` 实作 ``>>=``。正如我们之前提到的，``>>=`` 接受一个 monadic value，以及一个接受普通值的函数，这函数会回传一个 monadic value。``>>=`` 会帮我们套用这个函数到这个 monadic value。在函数只接受普通值的情况侠，函数是如何作到这件事的呢？要作到这件事，他必须要考虑到 monadic value 的 context。
 
-在這個案例中，``>>=`` 會接受一個 ``Maybe a`` 以及一個型態為 ``a -> Maybe b`` 的函數。他會套用函數到 ``Maybe a``。要釐清他怎麼作到的，首先我們注意到 ``Maybe`` 的 applicative functor 特性。假設我們有一個函數 ``\x -> Just (x+1)``。他接受一個數字，把他加 ``1`` 後再包回 ``Just``。
+在这个案例中，``>>=`` 会接受一个 ``Maybe a`` 以及一个型态为 ``a -> Maybe b`` 的函数。他会套用函数到 ``Maybe a``。要厘清他怎么作到的，首先我们注意到 ``Maybe`` 的 applicative functor 特性。假设我们有一个函数 ``\x -> Just (x+1)``。他接受一个数字，把他加 ``1`` 后再包回 ``Just``。
 
 ```
 ghci> (\x -> Just (x+1)) 1  
@@ -101,9 +101,9 @@ ghci> (\x -> Just (x+1)) 100
 Just 101 
 ```
 
-如果我們餵給函數 ``1``，他會計算成 ``Just 2``。如果我們餵給函數 ``100``，那結果便是 ``Just 101``。但假如我們餵一個 ``Maybe`` 的值給函數呢？如果我們把 ``Maybe`` 想成一個 applicative functor，那答案便很清楚。如果我們拿到一個 ``Just``，就把包在 ``Just`` 裡面的值餵給函數。如果我們拿到一個 ``Nothing``，我們就說結果是 ``Nothing``。
+如果我们喂给函数 ``1``，他会计算成 ``Just 2``。如果我们喂给函数 ``100``，那结果便是 ``Just 101``。但假如我们喂一个 ``Maybe`` 的值给函数呢？如果我们把 ``Maybe`` 想成一个 applicative functor，那答案便很清楚。如果我们拿到一个 ``Just``，就把包在 ``Just`` 里面的值喂给函数。如果我们拿到一个 ``Nothing``，我们就说结果是 ``Nothing``。
 
-我們呼叫 ``applyMaybe`` 而不呼叫 ``>>=``。他接受 ``Maybe a`` 跟一個回傳 ``Maybe b`` 的函數，並套用函數至 ``Maybe a``。
+我们呼叫 ``applyMaybe`` 而不呼叫 ``>>=``。他接受 ``Maybe a`` 跟一个回传 ``Maybe b`` 的函数，并套用函数至 ``Maybe a``。
 
 ```
 applyMaybe :: Maybe a -> (a -> Maybe b) -> Maybe b  
@@ -111,7 +111,7 @@ applyMaybe Nothing f  = Nothing
 applyMaybe (Just x) f = f x  
 ```
 
-我們套用一個 infix 函數，這樣 ``Maybe`` 的值可以寫在左邊且函數是在右邊：
+我们套用一个 infix 函数，这样 ``Maybe`` 的值可以写在左边且函数是在右边：
 
 ```
 ghci> Just 3 `applyMaybe` \x -> Just (x+1)  
@@ -124,7 +124,7 @@ ghci> Nothing `applyMaybe` \x -> Just (x ++ " :")")
 Nothing 
 ```
 
-在上述的範例中，我們看到在套用 ``applyMaybe`` 的時候，函數是套用在 ``Just`` 裡面的值。當我們試圖套用到 ``Nothing``，那整個結果便是 ``Nothing``。假如函數回傳 ``Nothing`` 呢？
+在上述的范例中，我们看到在套用 ``applyMaybe`` 的时候，函数是套用在 ``Just`` 里面的值。当我们试图套用到 ``Nothing``，那整个结果便是 ``Nothing``。假如函数回传 ``Nothing`` 呢？
 
 ```
 ghci> Just 3 `applyMaybe` \x -> if x > 2 then Just x else Nothing  
@@ -133,18 +133,18 @@ ghci> Just 1 `applyMaybe` \x -> if x > 2 then Just x else Nothing
 Nothing  
 ```
 
-這正是我們期待的結果。如果左邊的 monadic value 是 ``Nothing``，那整個結果就是 ``Nothing``。如果右邊的函數是 ``Nothing``，那結果也會是 ``Nothing``。這跟我們之前把 ``Maybe`` 當作 applicative 時，過程中有任何一個 ``Nothing`` 整個結果就會是 ``Nothing`` 一樣。
+这正是我们期待的结果。如果左边的 monadic value 是 ``Nothing``，那整个结果就是 ``Nothing``。如果右边的函数是 ``Nothing``，那结果也会是 ``Nothing``。这跟我们之前把 ``Maybe`` 当作 applicative 时，过程中有任何一个 ``Nothing`` 整个结果就会是 ``Nothing`` 一样。
 
-對於 ``Maybe`` 而言，我們已經找到一個方法處理漂亮值的方式。我們作到這件事的同時，也保留了 ``Maybe`` 代表可能造成錯誤的計算的意義。
+对于 ``Maybe`` 而言，我们已经找到一个方法处理漂亮值的方式。我们作到这件事的同时，也保留了 ``Maybe`` 代表可能造成错误的计算的意义。
 
-你可能會問，這樣的結果有用嗎？由於 applicative functors 讓我們可以拿一個接受普通值的函數，並讓他可以操作具有 context 的值，這樣看起來 applicative functors 好像比 monad 強。但我們會看到 monad 也能作到，因為他只是 applicative functors 的升級版。他們同時也能作到 applicative functors 不能作到的事情。
+你可能会问，这样的结果有用吗？由于 applicative functors 让我们可以拿一个接受普通值的函数，并让他可以操作具有 context 的值，这样看起来 applicative functors 好像比 monad 强。但我们会看到 monad 也能作到，因为他只是 applicative functors 的升级版。他们同时也能作到 applicative functors 不能作到的事情。
 
-稍候我們會再繼續探討 ``Maybe``，但我們先來看看 monad 的 type class。
+稍候我们会再继续探讨 ``Maybe``，但我们先来看看 monad 的 type class。
 
 
 ## Monad type class
 
-正如 functors 有 ``Functor`` 這個 type class，而 applicative functors 有一個 ``Applicative`` 這個 type class，monad 也有他自己的 type class：``Monad`` 他看起來像這樣：
+正如 functors 有 ``Functor`` 这个 type class，而 applicative functors 有一个 ``Applicative`` 这个 type class，monad 也有他自己的 type class：``Monad`` 他看起来像这样：
 
 ```
 class Monad m where  
@@ -159,25 +159,26 @@ class Monad m where
     fail msg = error msg  
 ```
 
-[$../img/kid.png]
+![](kid.png)
 
-我們從第一行開始看。他說 ``class Monad m where``。但我們之前不是提到 monad 是 applicative functors 的加強版嗎？不是應該有一個限制說一個型態必須先是一個 applicative functor 才可能是一個 monad 嗎？像是 ``class (Applicative m) = > Monad m where``。他的確應該要有，但當 Haskell 被創造的早期，人們沒有想到 applicative functor 適合被放進語言中，所以最後沒有這個限制。但的確每個 monad 都是 applicative functor，即使 ``Monad`` 並沒有這麼宣告。
+我们从第一行开始看。他说 ``class Monad m where``。但我们之前不是提到 monad 是 applicative functors 的加强版吗？不是应该有一个限制说一个型态必须先是一个 applicative functor 才可能是一个 monad 吗？像是 ``class (Applicative m) = > Monad m where``。他的确应该要有，但当 Haskell 被创造的早期，人们没有想到 applicative functor 适合被放进语言中，所以最后没有这个限制。但的确每个 monad 都是 applicative functor，即使 ``Monad`` 并没有这么宣告。
 
-在 ``Monad`` typeclass 中定義的第一個函數是 ``return``。他其實等價於 ``pure``，只是名字不同罷了。他的型態是 ``(Monad m) => a -> m a``。他接受一個普通值並把他放進一個最小的 context 中。也就是說他把普通值包進一個 monad 裡面。他跟 ``Applicative`` 裡面 ``pure`` 函數做的事情一樣，所以說其實我們已經認識了 ``return``。我們已經用過 ``return`` 來處理一些 I/O。我們用他來做一些假的 I/O，印出一些值。對於 ``Maybe`` 來說他就是接受一個普通值然後包進 ``Just``。
-
-
-    提醒一下：``return`` 跟其他語言中的 ``return`` 是完全不一樣的。他並不是結束一個函數的執行，他只不過是把一個普通值包進一個 context 裡面。
-
-[^../img/tur2.png]
-
-接下來定義的函數是 bind: ``>>=``。他就像是函數套用一樣，只差在他不接受普通值，他是接受一個 monadic value（也就是具有 context 的值）並且把他餵給一個接受普通值的函數，並回傳一個 monadic value。
+在 ``Monad`` typeclass 中定义的第一个函数是 ``return``。他其实等价于 ``pure``，只是名字不同罢了。他的型态是 ``(Monad m) => a -> m a``。他接受一个普通值并把他放进一个最小的 context 中。也就是说他把普通值包进一个 monad 里面。他跟 ``Applicative`` 里面 ``pure`` 函数做的事情一样，所以说其实我们已经认识了 ``return``。我们已经用过 ``return`` 来处理一些 I/O。我们用他来做一些假的 I/O，印出一些值。对于 ``Maybe`` 来说他就是接受一个普通值然后包进 ``Just``。
 
 
-接下來，我們定義了 ``>>``。我們不會介紹他，因為他有一個事先定義好的實作，基本上我們在實作 ``Monad`` typeclass 的時候都不會去理他。
+    提醒一下：``return`` 跟其他语言中的 ``return`` 是完全不一样的。他并不是结束一个函数的执行，他只不过是把一个普通值包进一个 context 里面。
 
-最後一個函數是 ``fail``。我們通常在我們程式中不會具體寫出來。他是被 Haskell 用在處理語法錯誤的情況。我們目前不需要太在意 ``fail``。
 
-我們知道了 ``Monad`` typeclass 長什麼樣子，我們來看一下 ``Maybe`` 的 ``Monad`` instance。
+![](tur2.png)
+
+接下来定义的函数是 bind: ``>>=``。他就像是函数套用一样，只差在他不接受普通值，他是接受一个 monadic value（也就是具有 context 的值）并且把他喂给一个接受普通值的函数，并回传一个 monadic value。
+
+
+接下来，我们定义了 ``>>``。我们不会介绍他，因为他有一个事先定义好的实作，基本上我们在实作 ``Monad`` typeclass 的时候都不会去理他。
+
+最后一个函数是 ``fail``。我们通常在我们程式中不会具体写出来。他是被 Haskell 用在处理语法错误的情况。我们目前不需要太在意 ``fail``。
+
+我们知道了 ``Monad`` typeclass 长什么样子，我们来看一下 ``Maybe`` 的 ``Monad`` instance。
 
 ```
 instance Monad Maybe where  
@@ -187,12 +188,12 @@ instance Monad Maybe where
     fail _ = Nothing  
 ```
 
-``return``跟``pure``是等價的。這沒什麼困難的。我們跟我們在定義``Applicative``的時候做一樣的事，只是把他用``Just``包起來。
+``return``跟``pure``是等价的。这没什么困难的。我们跟我们在定义``Applicative``的时候做一样的事，只是把他用``Just``包起来。
 
-``>>=``跟我們的``applyMaybe``是一樣的。當我們將``Maybe a``塞給我們的函數，我們保留住context，並且在輸入是``Nothing``的時候回傳``Nothing``。畢竟當沒有值的時候套用我們的函數是沒有意義的。當輸入是``Just``的時候則套用``f``並將他包在``Just``裡面。
+``>>=``跟我们的``applyMaybe``是一样的。当我们将``Maybe a``塞给我们的函数，我们保留住context，并且在输入是``Nothing``的时候回传``Nothing``。毕竟当没有值的时候套用我们的函数是没有意义的。当输入是``Just``的时候则套用``f``并将他包在``Just``里面。
 
 
-我們可以試著感覺一下``Maybe``是怎樣表現成Monad的。
+我们可以试着感觉一下``Maybe``是怎样表现成Monad的。
 
 ```
 ghci> return "WHAT" :: Maybe String  
@@ -203,33 +204,33 @@ ghci> Nothing >>= \x -> return (x*10)
 Nothing 
 ```
 
-第一行沒什麼了不起，我們已經知道 ``return`` 就是 ``pure`` 而我們又對 ``Maybe`` 操作過 ``pure`` 了。至於下兩行就比較有趣點。
+第一行没什么了不起，我们已经知道 ``return`` 就是 ``pure`` 而我们又对 ``Maybe`` 操作过 ``pure`` 了。至于下两行就比较有趣点。
 
-留意我們是如何把 ``Just 9`` 餵給 ``\x -> return (x*10)``。在函數中 ``x`` 綁定到 ``9``。他看起好像我們能不用 pattern matching 的方式就從 ``Maybe`` 中抽取出值。但我們並沒有喪失掉 ``Maybe`` 的 context，當他是 ``Nothing`` 的時候，``>>=`` 的結果也會是 ``Nothing``。
+留意我们是如何把 ``Just 9`` 喂给 ``\x -> return (x*10)``。在函数中 ``x`` 绑定到 ``9``。他看起好像我们能不用 pattern matching 的方式就从 ``Maybe`` 中抽取出值。但我们并没有丧失掉 ``Maybe`` 的 context，当他是 ``Nothing`` 的时候，``>>=`` 的结果也会是 ``Nothing``。
 
 
-## 走鋼索
+## 走钢索
 
-[^../img/pierre.png]
+![](pierre.png)
 
-我們已經知道要如何把 ``Maybe a`` 餵進 ``a -> Maybe b`` 這樣的函數。我們可以看看我們如何重複使用 ``>>=`` 來處理多個 ``Maybe a`` 的值。
+我们已经知道要如何把 ``Maybe a`` 喂进 ``a -> Maybe b`` 这样的函数。我们可以看看我们如何重复使用 ``>>=`` 来处理多个 ``Maybe a`` 的值。
 
-首先來說個小故事。皮爾斯決定要辭掉他的工作改行試著走鋼索。他對走鋼索蠻在行的，不過仍有個小問題。就是鳥會停在他拿的平衡竿上。他們會飛過來停一小會兒，然後再飛走。這樣的情況在兩邊的鳥的數量一樣時並不是個太大的問題。但有時候，所有的鳥都會想要停在同一邊，皮爾斯就失去了平衡，就會讓他從鋼索上掉下去。
+首先来说个小故事。皮尔斯决定要辞掉他的工作改行试着走钢索。他对走钢索蛮在行的，不过仍有个小问题。就是鸟会停在他拿的平衡竿上。他们会飞过来停一小会儿，然后再飞走。这样的情况在两边的鸟的数量一样时并不是个太大的问题。但有时候，所有的鸟都会想要停在同一边，皮尔斯就失去了平衡，就会让他从钢索上掉下去。
 
-我們這邊假設兩邊的鳥差異在三個之內的時候，皮爾斯仍能保持平衡。所以如果是右邊有一隻，左邊有四隻的話，那還撐得住。但如果左邊有五隻，那就會失去平衡。
+我们这边假设两边的鸟差异在三个之内的时候，皮尔斯仍能保持平衡。所以如果是右边有一只，左边有四只的话，那还撑得住。但如果左边有五只，那就会失去平衡。
 
-我們要寫個程式來模擬整個情況。我們想看看皮爾斯究竟在好幾隻鳥來來去去後是否還能撐住。例如說，我們想看看先來了一隻鳥停在左邊，然後來了四隻停在右邊，然後左邊那隻飛走了。之後會是什麼情形。
+我们要写个程式来模拟整个情况。我们想看看皮尔斯究竟在好几只鸟来来去去后是否还能撑住。例如说，我们想看看先来了一只鸟停在左边，然后来了四只停在右边，然后左边那只飞走了。之后会是什么情形。
 
-我們用一對整數來代表我們的平衡竿狀態。頭一個位置代表左邊的鳥的數量，第二個位置代表右邊的鳥的數量。
+我们用一对整数来代表我们的平衡竿状态。头一个位置代表左边的鸟的数量，第二个位置代表右边的鸟的数量。
 
 ```
 type Birds = Int  
 type Pole = (Birds,Birds)  
 ```
 
-由於我們用整數來代表有多少隻鳥，我們便先來定義 ``Int`` 的同義型態，叫做 ``Birds``。然後我們把 ``(Birds, Birds)`` 定義成 ``Pole``。
+由于我们用整数来代表有多少只鸟，我们便先来定义 ``Int`` 的同义型态，叫做 ``Birds``。然后我们把 ``(Birds, Birds)`` 定义成 ``Pole``。
 
-接下來，我們定義一個函數他接受一個數字，然後把他放在竿子的左邊，還有另外一個函數放在右邊。
+接下来，我们定义一个函数他接受一个数字，然后把他放在竿子的左边，还有另外一个函数放在右边。
 
 ```
 landLeft :: Birds -> Pole -> Pole  
@@ -239,7 +240,7 @@ landRight :: Birds -> Pole -> Pole
 landRight n (left,right) = (left,right + n)  
 ```
 
-我們來試著執行看看：
+我们来试着执行看看：
 
 ```
 ghci> landLeft 2 (0,0)  
@@ -250,20 +251,20 @@ ghci> landRight (-1) (1,2)
 (1,1)  
 ```
 
-要模擬鳥飛走的話我們只要給定一個負數就好了。 由於這些操作是接受 ``Pole`` 並回傳 ``Pole``， 所以我們可以把函數串在一起。
+要模拟鸟飞走的话我们只要给定一个负数就好了。 由于这些操作是接受 ``Pole`` 并回传 ``Pole``， 所以我们可以把函数串在一起。
 
 ```
 ghci> landLeft 2 (landRight 1 (landLeft 1 (0,0)))  
 (3,1)
 ```
 
-當我們餵 ``(0,0)`` 給 ``landLeft 1`` 時，我們會得到 ``(1,0)``。接著我們模擬右邊又停了一隻鳥，狀態就變成 ``(1,1)``。最後又有兩隻鳥停在左邊，狀態變成 ``(3,1)``。我們這邊的寫法是先寫函數名稱，然後再套用參數。但如果先寫 pole 再寫函數名稱會比較清楚，所以我們會想定義一個函數
+当我们喂 ``(0,0)`` 给 ``landLeft 1`` 时，我们会得到 ``(1,0)``。接着我们模拟右边又停了一只鸟，状态就变成 ``(1,1)``。最后又有两只鸟停在左边，状态变成 ``(3,1)``。我们这边的写法是先写函数名称，然后再套用参数。但如果先写 pole 再写函数名称会比较清楚，所以我们会想定义一个函数
 
 ```
 x -: f = f x
 ```
 
-我們能先套用參數然後再寫函數名稱：
+我们能先套用参数然后再写函数名称：
 
 ```
 ghci> 100 -: (*3)  
@@ -274,30 +275,30 @@ ghci> (0,0) -: landLeft 2
 (2,0)  
 ```
 
-有了這個函數，我們便能寫得比較好讀一些：
+有了这个函数，我们便能写得比较好读一些：
 
 ```
 ghci> (0,0) -: landLeft 1 -: landRight 1 -: landLeft 2  
 (3,1)  
 ```
 
-這個範例跟先前的範例是等價的，只不過好讀許多。很清楚的看出我們是從 ``(0,0)`` 開始，然後停了一隻在左邊，接著右邊又有一隻，最後左邊多了兩隻。
+这个范例跟先前的范例是等价的，只不过好读许多。很清楚的看出我们是从 ``(0,0)`` 开始，然后停了一只在左边，接着右边又有一只，最后左边多了两只。
 
-到目前為止沒什麼問題，但如果我們要停 10 隻在左邊呢？
+到目前为止没什么问题，但如果我们要停 10 只在左边呢？
 
 ``` 
 ghci> landLeft 10 (0,3)  
 (10,3)  
 ```
 
-你說左邊有 10 隻右邊卻只有 3 隻？那不是早就應該掉下去了？這個例子太明顯了，如果換個比較不明顯的例子。
+你说左边有 10 只右边却只有 3 只？那不是早就应该掉下去了？这个例子太明显了，如果换个比较不明显的例子。
 
 ```
 ghci> (0,0) -: landLeft 1 -: landRight 4 -: landLeft (-1) -: landRight (-2)  
 (0,2)  
 ```
 
-表面看起來沒什麼問題，但如果你仔細看的話，有一瞬間是右邊有四隻，但左邊沒有鳥。要修正這個錯誤，我們要重新檢視 ``landLeft`` 跟 ``landRight``。我們其實是希望這些函數產生失敗的情況。那就是在維持平衡的時候回傳新的 pole，但失敗的時候告訴我們失敗了。這時候 ``Maybe`` 就剛剛好是我們要的 context 了。我們用 ``Maybe`` 重新寫一次：
+表面看起来没什么问题，但如果你仔细看的话，有一瞬间是右边有四只，但左边没有鸟。要修正这个错误，我们要重新检视 ``landLeft`` 跟 ``landRight``。我们其实是希望这些函数产生失败的情况。那就是在维持平衡的时候回传新的 pole，但失败的时候告诉我们失败了。这时候 ``Maybe`` 就刚刚好是我们要的 context 了。我们用 ``Maybe`` 重新写一次：
 
 ```
 landLeft :: Birds -> Pole -> Maybe Pole  
@@ -311,9 +312,9 @@ landRight n (left,right)
     | otherwise                    = Nothing  
 ```
 
-現在這些函數不回傳 ``Pole`` 而回傳 ``Maybe Pole`` 了。他們仍接受鳥的數量跟舊的的 pole，但他們現在會檢查是否有太多鳥會造成皮爾斯失去平衡。我們用 guards 來檢查是否有差異超過三的情況。如果沒有，那就包一個在 ``Just`` 中的新的 pole，如果是，那就回傳 ``Nothing``。
+现在这些函数不回传 ``Pole`` 而回传 ``Maybe Pole`` 了。他们仍接受鸟的数量跟旧的的 pole，但他们现在会检查是否有太多鸟会造成皮尔斯失去平衡。我们用 guards 来检查是否有差异超过三的情况。如果没有，那就包一个在 ``Just`` 中的新的 pole，如果是，那就回传 ``Nothing``。
 
-再來執行看看：
+再来执行看看：
 
 ```
 ghci> landLeft 2 (0,0)  
@@ -322,77 +323,77 @@ ghci> landLeft 10 (0,3)
 Nothing  
 ```
 
-一如預期，當皮爾斯不會掉下去的時候，我們就得到一個包在 ``Just`` 中的新 pole。當太多鳥停在同一邊的時候，我們就會拿到 ``Nothing``。這樣很棒，但我們卻不知道怎麼把東西串在一起了。我們不能做 ``landLeft 1 (landRight 1 (0,0))``，因為當我們對 ``(0,0)`` 使用 ``landRight 1`` 時，我們不是拿到 ``Pole`` 而是拿到 ``Maybe Pole``。``landLeft 1`` 會拿到 ``Pole`` 而不是拿到 ``Maybe Pole``。
+一如预期，当皮尔斯不会掉下去的时候，我们就得到一个包在 ``Just`` 中的新 pole。当太多鸟停在同一边的时候，我们就会拿到 ``Nothing``。这样很棒，但我们却不知道怎么把东西串在一起了。我们不能做 ``landLeft 1 (landRight 1 (0,0))``，因为当我们对 ``(0,0)`` 使用 ``landRight 1`` 时，我们不是拿到 ``Pole`` 而是拿到 ``Maybe Pole``。``landLeft 1`` 会拿到 ``Pole`` 而不是拿到 ``Maybe Pole``。
 
-我們需要一種方法可以把拿到的 ``Maybe Pole`` 塞到拿 ``Pole`` 的函數中，然後回傳 ``Maybe Pole``。而我們有 ``>>=``，他對 ``Maybe`` 做的事就是我們要的
+我们需要一种方法可以把拿到的 ``Maybe Pole`` 塞到拿 ``Pole`` 的函数中，然后回传 ``Maybe Pole``。而我们有 ``>>=``，他对 ``Maybe`` 做的事就是我们要的
 
 ```
 ghci> landRight 1 (0,0) >>= landLeft 2  
 Just (2,1)  
 ```
 
-``landLeft 2`` 的型態是 ``Pole -> Maybe Pole``。我們不能餵給他 ``Maybe Pole`` 的東西。而 ``landRight 1 (0,0)`` 的結果就是 ``Maybe Pole``，所以我們用 ``>>=`` 來接受一個有 context 的值然後拿給 ``landLeft 2``。``>>=`` 的確讓我們把 ``Maybe`` 當作有 context 的值，因為當我們丟 ``Nothing`` 給 ``landLeft 2`` 的時候，結果會是 ``Nothing``。
+``landLeft 2`` 的型态是 ``Pole -> Maybe Pole``。我们不能喂给他 ``Maybe Pole`` 的东西。而 ``landRight 1 (0,0)`` 的结果就是 ``Maybe Pole``，所以我们用 ``>>=`` 来接受一个有 context 的值然后拿给 ``landLeft 2``。``>>=`` 的确让我们把 ``Maybe`` 当作有 context 的值，因为当我们丢 ``Nothing`` 给 ``landLeft 2`` 的时候，结果会是 ``Nothing``。
 
 ``` 
 ghci> Nothing >>= landLeft 2  
 Nothing  
 ```
 
-這樣我們可以把這些新寫的用 ``>>=`` 串在一起。讓 monadic value 可以餵進只吃普通值的函數。
+这样我们可以把这些新写的用 ``>>=`` 串在一起。让 monadic value 可以喂进只吃普通值的函数。
 
-來看看些例子：
+来看看些例子：
 
 ```
 ghci> return (0,0) >>= landRight 2 >>= landLeft 2 >>= landRight 2  
 Just (2,4)  
 ```
 
-我們最開始用 ``return`` 回傳一個 pole 並把他包在 ``Just`` 裡面。我們可以像往常套用 ``landRight 2``，不過我們不那麼做，我們改用 ``>>=``。``Just (0,0)`` 被餵到 ``landRight 2``，得到 ``Just (0,2)``。接著被餵到 ``landLeft 2``，得到 ``Just (2,2)``。
+我们最开始用 ``return`` 回传一个 pole 并把他包在 ``Just`` 里面。我们可以像往常套用 ``landRight 2``，不过我们不那么做，我们改用 ``>>=``。``Just (0,0)`` 被喂到 ``landRight 2``，得到 ``Just (0,2)``。接着被喂到 ``landLeft 2``，得到 ``Just (2,2)``。
 
-還記得我們之前引入失敗情況的例子嗎？
+还记得我们之前引入失败情况的例子吗？
 
 ```
 ghci> (0,0) -: landLeft 1 -: landRight 4 -: landLeft (-1) -: landRight (-2)  
 (0,2)  
 ```
 
-之前的例子並不會反應失敗的情況。但如果我們用 ``>>=`` 的話就可以得到失敗的結果。
+之前的例子并不会反应失败的情况。但如果我们用 ``>>=`` 的话就可以得到失败的结果。
 
 ```
 ghci> return (0,0) >>= landLeft 1 >>= landRight 4 >>= landLeft (-1) >>= landRight (-2)  
 Nothing  
 ```
 
-[$../img/banana.png]
+![](banana.png)
 
-正如預期的，最後的情形代表了失敗的情況。我們再進一步看看這是怎麼產生的。首先 ``return`` 把 ``(0,0)`` 放到一個最小的 context 中，得到 ``Just (0,0)``。然後是 ``Just (0.0) >>= landLeft 1``。由於 ``Just (0,0)`` 是一個 ``Just`` 的值。``landLeft 1`` 被套用至 ``(0,0)`` 而得到 ``Just (1,0)``。這反應了我們仍保持在平衡的狀態。接著是 ``Just (1,0) >>= landright 4`` 而得到了 ``Just (1,4)``。距離不平衡只有一步之遙了。他又被餵給 ``landLeft (-1)``，這組合成了 ``landLeft (-1) (1,4)``。由於失去了平衡，我們變得到了 ``Nothing``。而我們把 ``Nothing`` 餵給 ``landRight (-2)``，由於他是 ``Nothing``，也就自動得到了 ``Nothing``。
+正如预期的，最后的情形代表了失败的情况。我们再进一步看看这是怎么产生的。首先 ``return`` 把 ``(0,0)`` 放到一个最小的 context 中，得到 ``Just (0,0)``。然后是 ``Just (0.0) >>= landLeft 1``。由于 ``Just (0,0)`` 是一个 ``Just`` 的值。``landLeft 1`` 被套用至 ``(0,0)`` 而得到 ``Just (1,0)``。这反应了我们仍保持在平衡的状态。接着是 ``Just (1,0) >>= landright 4`` 而得到了 ``Just (1,4)``。距离不平衡只有一步之遥了。他又被喂给 ``landLeft (-1)``，这组合成了 ``landLeft (-1) (1,4)``。由于失去了平衡，我们变得到了 ``Nothing``。而我们把 ``Nothing`` 喂给 ``landRight (-2)``，由于他是 ``Nothing``，也就自动得到了 ``Nothing``。
 
-如果只把 ``Maybe`` 當作 applicative 用的話是沒有辦法達到我們要的效果的。你試著做一遍就會卡住。因為 applicative functor 並不允許 applicative value 之間有彈性的互動。他們最多就是讓我們可以用 applicative style 來傳遞參數給函數。applicative operators 能拿到他們的結果並把他用 applicative 的方式餵給另一個函數，並把最終的 applicative 值放在一起。但在每一步之間並沒有太多允許我們作手腳的機會。而我們的範例需要每一步都倚賴前一步的結果。當每一隻鳥降落的時候，我們都會把前一步的結果拿出來看看。好知道結果到底應該成功或失敗。
+如果只把 ``Maybe`` 当作 applicative 用的话是没有办法达到我们要的效果的。你试着做一遍就会卡住。因为 applicative functor 并不允许 applicative value 之间有弹性的互动。他们最多就是让我们可以用 applicative style 来传递参数给函数。applicative operators 能拿到他们的结果并把他用 applicative 的方式喂给另一个函数，并把最终的 applicative 值放在一起。但在每一步之间并没有太多允许我们作手脚的机会。而我们的范例需要每一步都倚赖前一步的结果。当每一只鸟降落的时候，我们都会把前一步的结果拿出来看看。好知道结果到底应该成功或失败。
 
-我們也能寫出一個函數，完全不管現在究竟有幾隻鳥停在竿子上，只是要害皮爾斯滑倒。我們可以稱呼這個函數叫做 ``banana``：
+我们也能写出一个函数，完全不管现在究竟有几只鸟停在竿子上，只是要害皮尔斯滑倒。我们可以称呼这个函数叫做 ``banana``：
 
 ```
 banana :: Pole -> Maybe Pole  
 banana _ = Nothing  
 ```
 
-現在我們能把香蕉皮串到我們的過程中。他絕對會讓遇到的人滑倒。他完全不管前面的狀態是什麼都會產生失敗。
+现在我们能把香蕉皮串到我们的过程中。他绝对会让遇到的人滑倒。他完全不管前面的状态是什么都会产生失败。
 
 ```
 ghci> return (0,0) >>= landLeft 1 >>= banana >>= landRight 1  
 Nothing  
 ```
 
-``Just (1,0)`` 被餵給 ``banana``，而產生了 ``Nothing``，之後所有的結果便都是 ``Nothing`` 了。
+``Just (1,0)`` 被喂给 ``banana``，而产生了 ``Nothing``，之后所有的结果便都是 ``Nothing`` 了。
 
-要同樣表示這種忽略前面的結果，只注重眼前的 monadic value 的情況，其實我們可以用 ``>>`` 來表達。
+要同样表示这种忽略前面的结果，只注重眼前的 monadic value 的情况，其实我们可以用 ``>>`` 来表达。
 
 ```
 (>>) :: (Monad m) => m a -> m b -> m b  
 m >> n = m >>= \_ -> n  
 ```
 
-一般來講，碰到一個完全忽略前面狀態的函數，他就應該只會回傳他想回傳的值而已。但碰到 Monad，他們的 context 還是必須要被考慮到。來看一下 ``>>`` 串接 ``Maybe`` 的情況。
+一般来讲，碰到一个完全忽略前面状态的函数，他就应该只会回传他想回传的值而已。但碰到 Monad，他们的 context 还是必须要被考虑到。来看一下 ``>>`` 串接 ``Maybe`` 的情况。
 
 ```
 ghci> Nothing >> Just 3  
@@ -403,19 +404,19 @@ ghci> Just 3 >> Nothing
 Nothing  
 ```
 
-如果你把 ``>>`` 換成 ``>>= \_ ->``，那就很容易看出他的意思。
+如果你把 ``>>`` 换成 ``>>= \_ ->``，那就很容易看出他的意思。
 
-我們也可以把 ``banana`` 改用 ``>>`` 跟 ``Nothing`` 來表達：
+我们也可以把 ``banana`` 改用 ``>>`` 跟 ``Nothing`` 来表达：
 
 ```
 ghci> return (0,0) >>= landLeft 1 >> Nothing >>= landRight 1  
 Nothing 
 ```
 
-我們得到了保證的失敗。
+我们得到了保证的失败。
 
 
-我們也可以看看假如我們故意不用把 ``Maybe`` 視為有 context 的值的寫法。他會長得像這樣：
+我们也可以看看假如我们故意不用把 ``Maybe`` 视为有 context 的值的写法。他会长得像这样：
 
 ```
 routine :: Maybe Pole  
@@ -428,40 +429,40 @@ routine = case landLeft 1 (0,0) of
                     Just pole3 -> landLeft 1 pole3  
 ```
 
-[$../img/centaur.png]
+![](centaur.png)
 
-左邊先停了一隻鳥，然後我們停下來檢查有沒有失敗。當失敗的時候我們回傳 ``Nothing``。當成功的時候，我們在右邊停一隻鳥，然後再重複前面做的事情。把這些瑣事轉換成 ``>>=`` 證明了 ``Maybe`` Monad 的力量，可以省去我們不少的時間。
+左边先停了一只鸟，然后我们停下来检查有没有失败。当失败的时候我们回传 ``Nothing``。当成功的时候，我们在右边停一只鸟，然后再重复前面做的事情。把这些琐事转换成 ``>>=`` 证明了 ``Maybe`` Monad 的力量，可以省去我们不少的时间。
 
-注意到 ``Maybe`` 對 ``>>=`` 的實作，他其實就是在做碰到 ``Nothing`` 就會傳 ``Nothing``，碰到正確值就繼續用 ``Just`` 傳遞值。
+注意到 ``Maybe`` 对 ``>>=`` 的实作，他其实就是在做碰到 ``Nothing`` 就会传 ``Nothing``，碰到正确值就继续用 ``Just`` 传递值。
 
-在這個章節中，我們看過了好幾個函數，也見識了用 ``Maybe`` monad 來表示失敗的 context 的力量。把普通的函數套用換成了 ``>>=``，讓我們可以輕鬆地應付可能會失敗的情況，並幫我們傳遞 context。這邊的 context 就代表失敗的可能性，當我們套用函數到 context 的時候，就代表考慮進了失敗的情況。
+在这个章节中，我们看过了好几个函数，也见识了用 ``Maybe`` monad 来表示失败的 context 的力量。把普通的函数套用换成了 ``>>=``，让我们可以轻松地应付可能会失败的情况，并帮我们传递 context。这边的 context 就代表失败的可能性，当我们套用函数到 context 的时候，就代表考虑进了失败的情况。
 
 ## do 表示法
 
-Monad 在 Haskell 中是十分重要的，所以我們還特別為了操作他設置了特別的語法：``do`` 表示法。我們在介紹 I/O 的時候已經用過 ``do`` 來把小的 I/O action 串在一起了。其實 ``do`` 並不只是可以用在 ``IO``，他可以用在任何 monad 上。他的原則是簡單明瞭，把 monadic value 串成一串。我們這邊來細看 ``do`` 是如何使用，以及為什麼我們十分倚賴他。
+Monad 在 Haskell 中是十分重要的，所以我们还特别为了操作他设置了特别的语法：``do`` 表示法。我们在介绍 I/O 的时候已经用过 ``do`` 来把小的 I/O action 串在一起了。其实 ``do`` 并不只是可以用在 ``IO``，他可以用在任何 monad 上。他的原则是简单明了，把 monadic value 串成一串。我们这边来细看 ``do`` 是如何使用，以及为什么我们十分倚赖他。
 
-來看一下熟悉的例子：
+来看一下熟悉的例子：
 
 ```
 ghci> Just 3 >>= (\x -> Just (show x ++ "!"))  
 Just "3!"  
 ```
 
-你說這沒什麼了不起，不過就是把 monadic value 餵給一個函數罷了。其中 ``x`` 就指定成 ``3``。也從 monadic value 變成了普通值。那如果我們要在 lambda 中使用 ``>>=`` 呢？
+你说这没什么了不起，不过就是把 monadic value 喂给一个函数罢了。其中 ``x`` 就指定成 ``3``。也从 monadic value 变成了普通值。那如果我们要在 lambda 中使用 ``>>=`` 呢？
 
 ```
 ghci> Just 3 >>= (\x -> Just "!" >>= (\y -> Just (show x ++ y)))  
 Just "3!"  
 ```
 
-我們嵌一個 ``>>=`` 在另外一個 ``>>=`` 中。在外層的 lambda，我們把 ``Just "!"`` 餵給 ``\y -> Just (show x ++ y)``。在內層的 lambda，``y`` 被指定成 ``"!"``。``x`` 仍被指定成 ``3``，是因為我們是從外層的 lambda 取值的。這些行為讓我們回想到下列式子：
+我们嵌一个 ``>>=`` 在另外一个 ``>>=`` 中。在外层的 lambda，我们把 ``Just "!"`` 喂给 ``\y -> Just (show x ++ y)``。在内层的 lambda，``y`` 被指定成 ``"!"``。``x`` 仍被指定成 ``3``，是因为我们是从外层的 lambda 取值的。这些行为让我们回想到下列式子：
 
 ```
 ghci> let x = 3; y = "!" in show x ++ y  
 "3!"  
 ```
 
-差別在於前述的值是 monadic，具有失敗可能性的 context。我們可以把其中任何一步代換成失敗的狀態：
+差别在于前述的值是 monadic，具有失败可能性的 context。我们可以把其中任何一步代换成失败的状态：
 
 ```
 ghci> Nothing >>= (\x -> Just "!" >>= (\y -> Just (show x ++ y)))  
@@ -472,10 +473,10 @@ ghci> Just 3 >>= (\x -> Just "!" >>= (\y -> Nothing))
 Nothing  
 ```
 
-第一行中，把 ``Nothing`` 餵給一個函數，很自然地會回傳 ``Nothing``。第二行裡，我們把 ``Just 3`` 餵給一個函數，所以 ``x`` 就成了 ``3``。但我們把 ``Nothing`` 餵給內層的 lambda 所有的結果就成了 ``Nothing``，這也進一步使得外層的 lambda 成了 ``Nothing``。這就好比我們在 ``let`` expression 中來把值指定給變數一般。只差在我們這邊的值是 monadic value。
+第一行中，把 ``Nothing`` 喂给一个函数，很自然地会回传 ``Nothing``。第二行里，我们把 ``Just 3`` 喂给一个函数，所以 ``x`` 就成了 ``3``。但我们把 ``Nothing`` 喂给内层的 lambda 所有的结果就成了 ``Nothing``，这也进一步使得外层的 lambda 成了 ``Nothing``。这就好比我们在 ``let`` expression 中来把值指定给变数一般。只差在我们这边的值是 monadic value。
 
 
-要再說得更清楚點，我們來把 script 改寫成每行都處理一個 ``Maybe``：
+要再说得更清楚点，我们来把 script 改写成每行都处理一个 ``Maybe``：
 
 ```
 foo :: Maybe String  
@@ -484,7 +485,7 @@ foo = Just 3   >>= (\x ->
       Just (show x ++ y)))  
 ```
 
-為了擺脫這些煩人的 lambda，Haskell 允許我們使用 ``do`` 表示法。他讓我們可以把先前的程式寫成這樣：
+为了摆脱这些烦人的 lambda，Haskell 允许我们使用 ``do`` 表示法。他让我们可以把先前的程式写成这样：
 
 ```
 foo :: Maybe String  
@@ -494,22 +495,22 @@ foo = do
     Just (show x ++ y)  
 ```
 
-[$../img/owld.png]
+![](owld.png)
 
-這看起來好像讓我們不用在每一步都去檢查 ``Maybe`` 的值究竟是 ``Just`` 或 ``Nothing``。這蠻方便的，如果在任何一個步驟我們取出了 ``Nothing``。那整個 ``do`` 的結果就會是 ``Nothing``。我們把整個責任都交給 ``>>=``，他會幫我們處理所有 context 的問題。這邊的 ``do`` 表示法不過是另外一種語法的形式來串連所有的 monadic value 罷了。
-
-
-在 ``do`` expression 中，每一行都是一個 monadic value。要檢查處理的結果的話，就要使用 ``<-``。如果我們拿到一個 ``Maybe String``，並用 ``<-`` 來綁定給一個變數，那個變數就會是一個 ``String``，就像是使用 ``>>=`` 來將 monadic value 帶給 lambda 一樣。至於 ``do`` expression 中的最後一個值，好比說 ``Just (show x ++ y)``，就不能用 ``<-`` 來綁定結果，因為那樣的寫法當轉換成 ``>>=`` 的結果時並不合理。他必須要是所有 monadic value 黏起來後的總結果，要考慮到前面所有可能失敗的情形。
+这看起来好像让我们不用在每一步都去检查 ``Maybe`` 的值究竟是 ``Just`` 或 ``Nothing``。这蛮方便的，如果在任何一个步骤我们取出了 ``Nothing``。那整个 ``do`` 的结果就会是 ``Nothing``。我们把整个责任都交给 ``>>=``，他会帮我们处理所有 context 的问题。这边的 ``do`` 表示法不过是另外一种语法的形式来串连所有的 monadic value 罢了。
 
 
-舉例來說，來看看下面這行：
+在 ``do`` expression 中，每一行都是一个 monadic value。要检查处理的结果的话，就要使用 ``<-``。如果我们拿到一个 ``Maybe String``，并用 ``<-`` 来绑定给一个变数，那个变数就会是一个 ``String``，就像是使用 ``>>=`` 来将 monadic value 带给 lambda 一样。至于 ``do`` expression 中的最后一个值，好比说 ``Just (show x ++ y)``，就不能用 ``<-`` 来绑定结果，因为那样的写法当转换成 ``>>=`` 的结果时并不合理。他必须要是所有 monadic value 黏起来后的总结果，要考虑到前面所有可能失败的情形。
+
+
+举例来说，来看看下面这行：
 
 ```
 ghci> Just 9 >>= (\x -> Just (x > 8))  
 Just True  
 ```
 
-由於 ``>>=`` 左邊的參數是一個 ``Just`` 型態的值，當 lambda 被套用至 ``9`` 就會得到 ``Just True``。如果我們重寫整個式子，改用 ``do`` 表示法：我們會得到：
+由于 ``>>=`` 左边的参数是一个 ``Just`` 型态的值，当 lambda 被套用至 ``9`` 就会得到 ``Just True``。如果我们重写整个式子，改用 ``do`` 表示法：我们会得到：
 
 ```
 marySue :: Maybe Bool  
@@ -518,10 +519,10 @@ marySue = do
     Just (x > 8)  
 ```
 
-如果我們比較這兩種寫法，就很容易看出為什麼整個 monadic value 的結果會是在 ``do`` 表示法中最後一個 monadic value 的值。他串連了全面所有的結果。
+如果我们比较这两种写法，就很容易看出为什么整个 monadic value 的结果会是在 ``do`` 表示法中最后一个 monadic value 的值。他串连了全面所有的结果。
 
 
-我們走鋼索的模擬程式也可以改用 ``do`` 表示法重寫。``landLeft`` 跟 ``landRight`` 接受一個鳥的數字跟一個竿子來產生一個包在 ``Just`` 中新的竿子。而在失敗的情況會產生 ``Nothing``。我們使用 ``>>=`` 來串連所有的步驟，每一步都倚賴前一步的結果，而且都帶有可能失敗的 context。這邊有一個範例，先是有兩隻鳥停在左邊，接著有兩隻鳥停在右邊，然後是一隻鳥停在左邊：
+我们走钢索的模拟程式也可以改用 ``do`` 表示法重写。``landLeft`` 跟 ``landRight`` 接受一个鸟的数字跟一个竿子来产生一个包在 ``Just`` 中新的竿子。而在失败的情况会产生 ``Nothing``。我们使用 ``>>=`` 来串连所有的步骤，每一步都倚赖前一步的结果，而且都带有可能失败的 context。这边有一个范例，先是有两只鸟停在左边，接着有两只鸟停在右边，然后是一只鸟停在左边：
 
 ```
 routine :: Maybe Pole  
@@ -532,18 +533,18 @@ routine = do
     landLeft 1 second  
 ```
 
-我們來看看成功的結果：
+我们来看看成功的结果：
 
 ```
 ghci> routine  
 Just (3,2) 
 ```
 
-當我們要把這些 routine 用具體寫出的 ``>>=``，我們會這樣寫：``return (0,0) >>= landLeft 2``，而有了 ``do`` 表示法，每一行都必須是一個 monadic value。所以我們清楚地把前一個 ``Pole`` 傳給 ``landLeft`` 跟 ``landRight``。如果我們檢視我們綁定 ``Maybe`` 的變數，``start`` 就是 ``(0,0)``，而 ``first`` 就會是 ``(2,0)``。
+当我们要把这些 routine 用具体写出的 ``>>=``，我们会这样写：``return (0,0) >>= landLeft 2``，而有了 ``do`` 表示法，每一行都必须是一个 monadic value。所以我们清楚地把前一个 ``Pole`` 传给 ``landLeft`` 跟 ``landRight``。如果我们检视我们绑定 ``Maybe`` 的变数，``start`` 就是 ``(0,0)``，而 ``first`` 就会是 ``(2,0)``。
 
-由於 ``do`` 表示法是一行一行寫，他們會看起來很像是命令式的寫法。但實際上他們只是代表序列而已，每一步的值都倚賴前一步的結果，並帶著他們的 context 繼續下去。
+由于 ``do`` 表示法是一行一行写，他们会看起来很像是命令式的写法。但实际上他们只是代表序列而已，每一步的值都倚赖前一步的结果，并带着他们的 context 继续下去。
 
-我們再重新來看看如果我們沒有善用 ``Maybe`` 的 monad 性質的程式：
+我们再重新来看看如果我们没有善用 ``Maybe`` 的 monad 性质的程式：
 
 ```
 routine :: Maybe Pole  
@@ -557,10 +558,10 @@ routine :: Maybe Pole
                     Just second -> landLeft 1 second  
 ```
 
-在成功的情形下，``Just (0,0)`` 變成了 ``start``，
-而 ``landLeft 2 start`` 的結果成了 ``first``。
+在成功的情形下，``Just (0,0)`` 变成了 ``start``，
+而 ``landLeft 2 start`` 的结果成了 ``first``。
 
-如果我們想在 ``do`` 表示法裡面對皮爾斯丟出香蕉皮，我們可以這樣做：
+如果我们想在 ``do`` 表示法里面对皮尔斯丢出香蕉皮，我们可以这样做：
 
 ```
 routine :: Maybe Pole  
@@ -572,11 +573,11 @@ routine = do
     landLeft 1 second  
 ```
 
-當我們在 ``do`` 表示法寫了一行運算，但沒有用到 ``<-`` 來綁定值的話，其實實際上就是用了 ``>>``，他會忽略掉計算的結果。我們只是要讓他們有序，而不是要他們的結果，而且他比寫成 ``_ <- Nothing`` 要來得漂亮的多。
+当我们在 ``do`` 表示法写了一行运算，但没有用到 ``<-`` 来绑定值的话，其实实际上就是用了 ``>>``，他会忽略掉计算的结果。我们只是要让他们有序，而不是要他们的结果，而且他比写成 ``_ <- Nothing`` 要来得漂亮的多。
 
-你會問究竟我們何時要使用 ``do`` 表示法或是 ``>>=``，這完全取決於你的習慣。在這個例子由於有每一步都倚賴於前一步結果的特性，所以我們使用 ``>>=``。如果用 ``do`` 表示法，我們就必須清楚寫出鳥究竟是停在哪根竿子上，但其實每一次都是前一次的結果。不過他還是讓我們了解到怎麼使用 ``do``。
+你会问究竟我们何时要使用 ``do`` 表示法或是 ``>>=``，这完全取决于你的习惯。在这个例子由于有每一步都倚赖于前一步结果的特性，所以我们使用 ``>>=``。如果用 ``do`` 表示法，我们就必须清楚写出鸟究竟是停在哪根竿子上，但其实每一次都是前一次的结果。不过他还是让我们了解到怎么使用 ``do``。
 
-在 ``do`` 表示法中，我們其實可以用模式匹配來綁定 monadic value，就好像我們在 ``let`` 表達式，跟函數參數中使用模式匹配一樣。這邊來看一個在 ``do`` 表示法中使用模式匹配的範例： 
+在 ``do`` 表示法中，我们其实可以用模式匹配来绑定 monadic value，就好像我们在 ``let`` 表达式，跟函数参数中使用模式匹配一样。这边来看一个在 ``do`` 表示法中使用模式匹配的范例： 
 
 ```
 justH :: Maybe Char  
@@ -585,22 +586,22 @@ justH = do
     return x 
 ```
 
-我們用模式匹配來取得 ``"hello"`` 的第一個字元，然後回傳結果。所以 ``justH`` 計算會得到 ``Just 'h'``。
+我们用模式匹配来取得 ``"hello"`` 的第一个字元，然后回传结果。所以 ``justH`` 计算会得到 ``Just 'h'``。
 
-如果模式匹配失敗怎麼辦？當定義一個函數的時候，一個模式不匹配就會跳到下一個模式。如果所有都不匹配，那就會造成錯誤，整個程式就當掉。另一方面，如果在 ``let`` 中進行模式匹配失敗會直接造成錯誤。畢竟在 ``let`` 表達式的情況下並沒有失敗就跳下一個的設計。至於在 ``do`` 表示法中模式匹配失敗的話，那就會呼叫 ``fail`` 函數。他定義在 ``Monad`` 的 type class 定義豬。他允許在現在的 monad context 底下，失敗只會造成失敗而不會讓整個程式當掉。他預設的實作如下：
+如果模式匹配失败怎么办？当定义一个函数的时候，一个模式不匹配就会跳到下一个模式。如果所有都不匹配，那就会造成错误，整个程式就当掉。另一方面，如果在 ``let`` 中进行模式匹配失败会直接造成错误。毕竟在 ``let`` 表达式的情况下并没有失败就跳下一个的设计。至于在 ``do`` 表示法中模式匹配失败的话，那就会呼叫 ``fail`` 函数。他定义在 ``Monad`` 的 type class 定义猪。他允许在现在的 monad context 底下，失败只会造成失败而不会让整个程式当掉。他预设的实作如下：
 
 ```
 fail :: (Monad m) => String -> m a  
 fail msg = error msg  
 ```
 
-可見預設的實作的確是讓程式掛掉，但在某些考慮到失敗的可能性的 Monad（像是 ``Maybe``）常常會有他們自己的實作。對於 ``Maybe``，他的實作像是這樣：
+可见预设的实作的确是让程式挂掉，但在某些考虑到失败的可能性的 Monad（像是 ``Maybe``）常常会有他们自己的实作。对于 ``Maybe``，他的实作像是这样：
 
 ```
 fail _ = Nothing
 ```
 
-他忽略錯誤訊息，並直接回傳 ``Nothing``。所以當在 ``do`` 表示法中的 ``Maybe`` 模式匹配失敗的時候，整個結果就會是 ``Nothing``。這種方式比起讓程式掛掉要好多了。這邊來看一下 ``Maybe`` 模式匹配失敗的範例：
+他忽略错误讯息，并直接回传 ``Nothing``。所以当在 ``do`` 表示法中的 ``Maybe`` 模式匹配失败的时候，整个结果就会是 ``Nothing``。这种方式比起让程式挂掉要好多了。这边来看一下 ``Maybe`` 模式匹配失败的范例：
 
 ```
 wopwop :: Maybe Char  
@@ -609,32 +610,32 @@ wopwop = do
     return x  
 ```
 
-模式匹配的失敗，所以那一行的效果相當於一個 ``Nothing``。我們來看看執行結果：
+模式匹配的失败，所以那一行的效果相当于一个 ``Nothing``。我们来看看执行结果：
 
 ```
 ghci> wopwop  
 Nothing  
 ```
 
-這樣模式匹配的失敗只會限制在我們 monad 的 context 中，而不是整個程式的失敗。這種處理方式要好多了。
+这样模式匹配的失败只会限制在我们 monad 的 context 中，而不是整个程式的失败。这种处理方式要好多了。
 
 
 ## List Monad
 
-[^../img/deadcat.png]
+![](deadcat.png)
 
-我們已經了解了 ``Maybe`` 可以被看作具有失敗可能性 context 的值，也見識到如何用 ``>>=`` 來把這些具有失敗考量的值傳給函數。在這一個章節中，我們要看一下如何利用 list 的 monadic 的性質來寫 non-deterministic 的程式。
+我们已经了解了 ``Maybe`` 可以被看作具有失败可能性 context 的值，也见识到如何用 ``>>=`` 来把这些具有失败考量的值传给函数。在这一个章节中，我们要看一下如何利用 list 的 monadic 的性质来写 non-deterministic 的程式。
 
-我們已經討論過在把 list 當作 applicatives 的時候他們具有 non-deterministic 的性質。像 ``5`` 這樣一個值是 deterministic 的。他只有一種結果，而且我們清楚的知道他是什麼結果。另一方面，像 ``[3,8,9]`` 這樣的值包含好幾種結果，所以我們能把他看作是同時具有好幾種結果的值。把 list 當作 applicative functors 展示了這種特性：
+我们已经讨论过在把 list 当作 applicatives 的时候他们具有 non-deterministic 的性质。像 ``5`` 这样一个值是 deterministic 的。他只有一种结果，而且我们清楚的知道他是什么结果。另一方面，像 ``[3,8,9]`` 这样的值包含好几种结果，所以我们能把他看作是同时具有好几种结果的值。把 list 当作 applicative functors 展示了这种特性：
 
 ```
 ghci> (*) <$> [1,2,3] <*> [10,100,1000]  
 [10,100,1000,20,200,2000,30,300,3000]  
 ```
 
-將左邊 list 中的元素乘上右邊 list 中的元素這樣所有的組合全都被放進結果的 list 中。當處理 non-determinism 的時候，這代表我們有好幾種選擇可以選，我們也會每種選擇都試試看，因此最終的結果也會是一個 non-deterministic 的值。只是包含更多不同可能罷了。
+将左边 list 中的元素乘上右边 list 中的元素这样所有的组合全都被放进结果的 list 中。当处理 non-determinism 的时候，这代表我们有好几种选择可以选，我们也会每种选择都试试看，因此最终的结果也会是一个 non-deterministic 的值。只是包含更多不同可能罢了。
 
-non-determinism 這樣的 context 可以被漂亮地用 monad 來考慮。所以我們這就來看看 list 的 ``Monad`` instance 的定義：
+non-determinism 这样的 context 可以被漂亮地用 monad 来考虑。所以我们这就来看看 list 的 ``Monad`` instance 的定义：
 
 ```
 instance Monad [] where  
@@ -644,26 +645,26 @@ instance Monad [] where
 ```
 
 
-``return`` 跟 ``pure`` 是做同樣的事，所以我們應該算已經理解了 ``return`` 的部份。他接受一個值，並把他放進一個最小的一個 context 中。換種說法，就是他做了一個只包含一個元素的 list。這樣對於我們想要操作普通值的時候很有用，可以直接把他包起來變成 non-deterministic value。
+``return`` 跟 ``pure`` 是做同样的事，所以我们应该算已经理解了 ``return`` 的部份。他接受一个值，并把他放进一个最小的一个 context 中。换种说法，就是他做了一个只包含一个元素的 list。这样对于我们想要操作普通值的时候很有用，可以直接把他包起来变成 non-deterministic value。
 
-要理解 ``>>=`` 在 list monad 的情形下是怎麼運作的，讓我們先來回歸基本。``>>=`` 基本上就是接受一個有 context 的值，把他餵進一個只接受普通值的函數，並回傳一個具有 context 的值。如果操作的函數只會回傳普通值而不是具有 context 的值，那 ``>>=`` 在操作一次後就會失效，因為 context 不見了。讓我們來試著把一個 non-deterministic value 塞到一個函數中：
+要理解 ``>>=`` 在 list monad 的情形下是怎么运作的，让我们先来回归基本。``>>=`` 基本上就是接受一个有 context 的值，把他喂进一个只接受普通值的函数，并回传一个具有 context 的值。如果操作的函数只会回传普通值而不是具有 context 的值，那 ``>>=`` 在操作一次后就会失效，因为 context 不见了。让我们来试着把一个 non-deterministic value 塞到一个函数中：
 
 ```
 ghci> [3,4,5] >>= \x -> [x,-x]  
 [3,-3,4,-4,5,-5]  
 ```
 
-當我們對 ``Maybe`` 使用 ``>>=``，是有考慮到可能失敗的 context。在這邊 ``>>=`` 則是有考慮到 non-determinism。``[3,4,5]`` 是一個 non-deterministic value，我們把他餵給一個回傳 non-deterministic value 的函數。那結果也會是 non-deterministic。而且他包含了所有從 ``[3,4,5]`` 取值，套用 ``\x -> [x,-x]`` 後的結果。這個函數他接受一個數值並產生兩個數值，一個原來的數值與取過負號的數值。當我們用 ``>>=`` 來把一個 list 餵給這個函數，所有在 list 中的數值都保留了原有的跟取負號過的版本。``x`` 會針對 list 中的每個元素走過一遍。
+当我们对 ``Maybe`` 使用 ``>>=``，是有考虑到可能失败的 context。在这边 ``>>=`` 则是有考虑到 non-determinism。``[3,4,5]`` 是一个 non-deterministic value，我们把他喂给一个回传 non-deterministic value 的函数。那结果也会是 non-deterministic。而且他包含了所有从 ``[3,4,5]`` 取值，套用 ``\x -> [x,-x]`` 后的结果。这个函数他接受一个数值并产生两个数值，一个原来的数值与取过负号的数值。当我们用 ``>>=`` 来把一个 list 喂给这个函数，所有在 list 中的数值都保留了原有的跟取负号过的版本。``x`` 会针对 list 中的每个元素走过一遍。
 
-要看看結果是如何算出來的，只要看看實作就好了。首先我們從 ``[3,4,5]`` 開始。然後我們用 lambda 映射過所有元素得到：
+要看看结果是如何算出来的，只要看看实作就好了。首先我们从 ``[3,4,5]`` 开始。然后我们用 lambda 映射过所有元素得到：
 
 ```
 [[3,-3],[4,-4],[5,-5]]      
 ```
 
-lambda 會掃過每個元素，所以我們有一串包含一堆 list 的 list，最後我們在把這些 list 壓扁，得到一層的 list。這就是我們得到 non-deterministic value 的過程。
+lambda 会扫过每个元素，所以我们有一串包含一堆 list 的 list，最后我们在把这些 list 压扁，得到一层的 list。这就是我们得到 non-deterministic value 的过程。
 
-non-determinism 也有考慮到失敗的可能性。``[]`` 其實等價於 ``Nothing``，因為他什麼結果也沒有。所以失敗等同於回傳一個空的 list。所有的錯誤訊息都不用。讓我們來看看範例：
+non-determinism 也有考虑到失败的可能性。``[]`` 其实等价于 ``Nothing``，因为他什么结果也没有。所以失败等同于回传一个空的 list。所有的错误讯息都不用。让我们来看看范例：
 
 ```
 ghci> [] >>= \x -> ["bad","mad","rad"]  
@@ -672,24 +673,24 @@ ghci> [1,2,3] >>= \x -> []
 [] 
 ```
 
-第一行裡面，一個空的 list 被丟給 lambda。因為 list 沒有任何元素，所以函數收不到任何東西而產生空的 list。這跟把 ``Nothing`` 餵給函數一樣。第二行中，每一個元素都被餵給函數，但所有元素都被丟掉，而只回傳一個空的 list。因為所有的元素都造成了失敗，所以整個結果也代表失敗。
+第一行里面，一个空的 list 被丢给 lambda。因为 list 没有任何元素，所以函数收不到任何东西而产生空的 list。这跟把 ``Nothing`` 喂给函数一样。第二行中，每一个元素都被喂给函数，但所有元素都被丢掉，而只回传一个空的 list。因为所有的元素都造成了失败，所以整个结果也代表失败。
 
-就像 ``Maybe`` 一樣，我們可以用 ``>>=`` 把他們串起來：
+就像 ``Maybe`` 一样，我们可以用 ``>>=`` 把他们串起来：
 
 ```
 ghci> [1,2] >>= \n -> ['a','b'] >>= \ch -> return (n,ch)  
 [(1,'a'),(1,'b'),(2,'a'),(2,'b')]  
 ```
 
-[^../img/concatmap.png]
+![](concatmap.png)
 
-``[1,2]`` 被綁定到 ``n`` 而 ``['a','b']`` 被綁定到 ``ch``。最後我們用 ``return (n,ch)`` 來把他放到一個最小的 context 中。在這個案例中，就是把 ``(n,ch)`` 放到 list 中，這代表最低程度的 non-determinism。整套結構要表達的意思就是對於 ``[1,2]`` 的每個元素，以及 ``['a','b']`` 的每個元素，我們產生一個 tuple，每項分別取自不同的 list。
+``[1,2]`` 被绑定到 ``n`` 而 ``['a','b']`` 被绑定到 ``ch``。最后我们用 ``return (n,ch)`` 来把他放到一个最小的 context 中。在这个案例中，就是把 ``(n,ch)`` 放到 list 中，这代表最低程度的 non-determinism。整套结构要表达的意思就是对于 ``[1,2]`` 的每个元素，以及 ``['a','b']`` 的每个元素，我们产生一个 tuple，每项分别取自不同的 list。
 
-一般來說，由於 ``return`` 接受一個值並放到最小的 context 中，他不會多做什麼額外的東西僅僅是展示出結果而已。
+一般来说，由于 ``return`` 接受一个值并放到最小的 context 中，他不会多做什么额外的东西仅仅是展示出结果而已。
 
-    當你要處理 non-deterministic value 的時候，你可以把 list 中的每個元素想做計算路線的一個 branch。
+    当你要处理 non-deterministic value 的时候，你可以把 list 中的每个元素想做计算路线的一个 branch。
 
-這邊把先前的表達式用 ``do`` 重寫：
+这边把先前的表达式用 ``do`` 重写：
 
 ```
 listOfTuples :: [(Int,Char)]  
@@ -699,27 +700,27 @@ listOfTuples = do
     return (n,ch)  
 ```
 
-這樣寫可以更清楚看到 ``n`` 走過 ``[1,2]`` 中的每一個值，而 ``ch`` 則取過 ``['a','b']`` 中的每個值。正如 ``Maybe`` 一般，我們從 monadic value 中取出普通值然後餵給函數。``>>=`` 會幫我們處理好一切 context 相關的問題，只差在這邊的 context 指的是 non-determinism。
+这样写可以更清楚看到 ``n`` 走过 ``[1,2]`` 中的每一个值，而 ``ch`` 则取过 ``['a','b']`` 中的每个值。正如 ``Maybe`` 一般，我们从 monadic value 中取出普通值然后喂给函数。``>>=`` 会帮我们处理好一切 context 相关的问题，只差在这边的 context 指的是 non-determinism。
 
-使用 ``do`` 來對 list 操作讓我們回想起之前看過的一些東西。來看看下列的片段：
+使用 ``do`` 来对 list 操作让我们回想起之前看过的一些东西。来看看下列的片段：
 
 ```
 ghci> [ (n,ch) | n <- [1,2], ch <- ['a','b'] ]  
 [(1,'a'),(1,'b'),(2,'a'),(2,'b')]  
 ```
 
-沒錯，就是 list comprehension。在先前的範例中，``n`` 會走過 ``[1,2]`` 的每個元素，而 ``ch`` 會走過 ``['a','b']`` 的每個元素。同時我們又把 ``(n,ch)`` 放進一個 context 中。這跟 list comprehension 的目的一樣，只是我們在 list comprehension 裡面不用在最後寫一個 ``return`` 來得到 ``(n,ch)`` 的結果。
+没错，就是 list comprehension。在先前的范例中，``n`` 会走过 ``[1,2]`` 的每个元素，而 ``ch`` 会走过 ``['a','b']`` 的每个元素。同时我们又把 ``(n,ch)`` 放进一个 context 中。这跟 list comprehension 的目的一样，只是我们在 list comprehension 里面不用在最后写一个 ``return`` 来得到 ``(n,ch)`` 的结果。
 
-實際上，list comprehension 不過是一個語法糖。不論是 list comprehension 或是用 ``do`` 表示法來表示，他都會轉換成用 ``>>=`` 來做計算。
+实际上，list comprehension 不过是一个语法糖。不论是 list comprehension 或是用 ``do`` 表示法来表示，他都会转换成用 ``>>=`` 来做计算。
 
-List comprehension 允許我們 filter 我們的結果。舉例來說，我們可以只要包含 ``7`` 在表示位數裡面的數值。
+List comprehension 允许我们 filter 我们的结果。举例来说，我们可以只要包含 ``7`` 在表示位数里面的数值。
 
 ```
 ghci> [ x | x <- [1..50], '7' `elem` show x ]  
 [7,17,27,37,47]  
 ```
 
-我們用 ``show`` 跟 ``x`` 來把數值轉成字串，然後檢查 ``'7'`` 是否包含在字串裡面。要看看 filtering 要如何轉換成用 list monad 來表達，我們可以考慮使用 ``guard`` 函數，還有 ``MonadPlus`` 這個 type class。``MonadPlus`` 這個 type class 是用來針對可以同時表現成 monoid 的 monad。下面是他的定義：
+我们用 ``show`` 跟 ``x`` 来把数值转成字串，然后检查 ``'7'`` 是否包含在字串里面。要看看 filtering 要如何转换成用 list monad 来表达，我们可以考虑使用 ``guard`` 函数，还有 ``MonadPlus`` 这个 type class。``MonadPlus`` 这个 type class 是用来针对可以同时表现成 monoid 的 monad。下面是他的定义：
 
 ```
 class Monad m => MonadPlus m where  
@@ -727,7 +728,7 @@ class Monad m => MonadPlus m where
     mplus :: m a -> m a -> m a  
 ```
 
-``mzero`` 是其實是 ``Monoid`` 中 ``mempty`` 的同義詞，而 ``mplus`` 則對應到 ``mappend``。因為 list 同時是 monoid 跟 monad，他們可以是 ``MonadPlus`` 的 instance。
+``mzero`` 是其实是 ``Monoid`` 中 ``mempty`` 的同义词，而 ``mplus`` 则对应到 ``mappend``。因为 list 同时是 monoid 跟 monad，他们可以是 ``MonadPlus`` 的 instance。
 
 ```
 instance MonadPlus [] where  
@@ -735,7 +736,7 @@ instance MonadPlus [] where
     mplus = (++) 
 ```
 
-對於 list 而言，``mzero`` 代表的是不產生任何結果的 non-deterministic value，也就是失敗的結果。而 ``mplus`` 則把兩個 non-deterministic value 結合成一個。``guard`` 這個函數被定義成下列形式：
+对于 list 而言，``mzero`` 代表的是不产生任何结果的 non-deterministic value，也就是失败的结果。而 ``mplus`` 则把两个 non-deterministic value 结合成一个。``guard`` 这个函数被定义成下列形式：
 
 ```
 guard :: (MonadPlus m) => Bool -> m ()  
@@ -743,7 +744,7 @@ guard True = return ()
 guard False = mzero  
 ```
 
-這函數接受一個布林值，如果他是 ``True`` 就回傳一個包在預設 context 中的 ``()``。如果他失敗就產生 mzero。
+这函数接受一个布林值，如果他是 ``True`` 就回传一个包在预设 context 中的 ``()``。如果他失败就产生 mzero。
 
 ```
 ghci> guard (5 > 2) :: Maybe ()  
@@ -756,14 +757,14 @@ ghci> guard (1 > 2) :: [()]
 []  
 ```
 
-看起來蠻有趣的，但用起來如何呢？我們可以用他來過濾 non-deterministic 的計算。
+看起来蛮有趣的，但用起来如何呢？我们可以用他来过滤 non-deterministic 的计算。
 
 ```
 ghci> [1..50] >>= (\x -> guard ('7' `elem` show x) >> return x)  
 [7,17,27,37,47]  
 ```
 
-這邊的結果跟我們之前 list comprehension 的結果一致。究竟 ``guard`` 是如何辦到的？我們先看看 ``guard`` 跟 ``>>`` 是如何互動：
+这边的结果跟我们之前 list comprehension 的结果一致。究竟 ``guard`` 是如何办到的？我们先看看 ``guard`` 跟 ``>>`` 是如何互动：
 
 ```
 ghci> guard (5 > 2) >> return "cool" :: [String]  
@@ -772,10 +773,10 @@ ghci> guard (1 > 2) >> return "cool" :: [String]
 []  
 ```
 
-如果 ``guard`` 成功的話，結果就會是一個空的 tuple。接著我們用 ``>>`` 來忽略掉空的 tuple，而呈現不同的結果。另一方面，如果 ``guard`` 失敗的話，後面的 ``return`` 也會失敗。這是因為用 ``>>=`` 把空的 list 餵給函數總是會回傳空的 list。基本上 ``guard`` 的意思就是：如果一個布林值是 ``False`` 那就產生一個失敗狀態，不然的話就回傳一個基本的 ``()``。這樣計算就可以繼續進行。
+如果 ``guard`` 成功的话，结果就会是一个空的 tuple。接着我们用 ``>>`` 来忽略掉空的 tuple，而呈现不同的结果。另一方面，如果 ``guard`` 失败的话，后面的 ``return`` 也会失败。这是因为用 ``>>=`` 把空的 list 喂给函数总是会回传空的 list。基本上 ``guard`` 的意思就是：如果一个布林值是 ``False`` 那就产生一个失败状态，不然的话就回传一个基本的 ``()``。这样计算就可以继续进行。
 
 
-這邊我們把先前的範例用 ``do`` 改寫：
+这边我们把先前的范例用 ``do`` 改写：
 
 ```
 sevensOnly :: [Int]  
@@ -785,9 +786,9 @@ sevensOnly = do
     return x  
 ```
 
-如果我們不寫最後一行 ``return x``，那整個 list 就會是包含一堆空 tuple 的 list。
+如果我们不写最后一行 ``return x``，那整个 list 就会是包含一堆空 tuple 的 list。
 
-把上述範例寫成 list comprehension 的話就會像這樣：
+把上述范例写成 list comprehension 的话就会像这样：
 
 ```
 ghci> [ x | x <- [1..50], '7' `elem` show x ]  
@@ -798,17 +799,17 @@ ghci> [ x | x <- [1..50], '7' `elem` show x ]
 
 ### A knight's quest
 
-這邊來看一個可以用 non-determinism 解決的問題。假設你有一個西洋棋盤跟一隻西洋棋中的騎士擺在上面。我們希望知道是否這隻騎士可以在三步之內移到我們想要的位置。我們只要用一對數值來表示騎士在棋盤上的位置。第一個數值代表棋盤的行，而第二個數值代表棋盤的列。
+这边来看一个可以用 non-determinism 解决的问题。假设你有一个西洋棋盘跟一只西洋棋中的骑士摆在上面。我们希望知道是否这只骑士可以在三步之内移到我们想要的位置。我们只要用一对数值来表示骑士在棋盘上的位置。第一个数值代表棋盘的行，而第二个数值代表棋盘的列。
 
-[../img/chess.png]
+![](chess.png)
 
-我們先幫騎士的位置定義一個 type synonym。
+我们先帮骑士的位置定义一个 type synonym。
 
 ```
 type KnightPos = (Int,Int)      
 ```
 
-假設騎士現在是在 ``(6,2)``。究竟他能不能夠在三步內移動到 ``(6,1)`` 呢？你可能會先考慮究竟哪一步是最佳的一步。但不如全部一起考慮吧！要好好利用所謂的 non-determinism。所以我們不是只選擇一步，而是選擇全部。我們先寫一個函數回傳所有可能的下一步：
+假设骑士现在是在 ``(6,2)``。究竟他能不能够在三步内移动到 ``(6,1)`` 呢？你可能会先考虑究竟哪一步是最佳的一步。但不如全部一起考虑吧！要好好利用所谓的 non-determinism。所以我们不是只选择一步，而是选择全部。我们先写一个函数回传所有可能的下一步：
 
 ```
 moveKnight :: KnightPos -> [KnightPos]  
@@ -820,10 +821,10 @@ moveKnight (c,r) = do
     return (c',r')  
 ```
 
-騎士有可能水平或垂直移動一步或二步，但問題是他們必須要同時水平跟垂直移動。``(c',r')`` 走過 list 中的每一個元素，而 ``guard`` 會保證產生的結果會停留在棋盤上。如果沒有，那就會產生一個空的 list，表示失敗的結果，``return (c',r')`` 也就不會被執行。
+骑士有可能水平或垂直移动一步或二步，但问题是他们必须要同时水平跟垂直移动。``(c',r')`` 走过 list 中的每一个元素，而 ``guard`` 会保证产生的结果会停留在棋盘上。如果没有，那就会产生一个空的 list，表示失败的结果，``return (c',r')`` 也就不会被执行。
 
 
-這個函數也可以不用 list monad 來寫，但我們這邊只是寫好玩的。下面是一個用 ``filter`` 實現的版本：
+这个函数也可以不用 list monad 来写，但我们这边只是写好玩的。下面是一个用 ``filter`` 实现的版本：
 
 ```
 moveKnight :: KnightPos -> [KnightPos]  
@@ -834,7 +835,7 @@ moveKnight (c,r) = filter onBoard
     where onBoard (c,r) = c `elem` [1..8] && r `elem` [1..8]
 ```
 
-兩個函數做的都是相同的事，所以選個你喜歡的吧。
+两个函数做的都是相同的事，所以选个你喜欢的吧。
 
 ```
 ghci> moveKnight (6,2)  
@@ -843,7 +844,7 @@ ghci> moveKnight (8,1)
 [(6,2),(7,3)] 
 ```
 
-我們接受一個位置然後產生所有可能的移動方式。所以我們有一個 non-deterministic 的下一個位置。我們用 ``>>=`` 來餵給 ``moveKnight``。接下來我們就可以寫一個三步內可以達到的所有位置：
+我们接受一个位置然后产生所有可能的移动方式。所以我们有一个 non-deterministic 的下一个位置。我们用 ``>>=`` 来喂给 ``moveKnight``。接下来我们就可以写一个三步内可以达到的所有位置：
 
 ```
 in3 :: KnightPos -> [KnightPos]  
@@ -853,16 +854,16 @@ in3 start = do
     moveKnight second  
 ```
 
-如果你傳 ``(6,2)``，得到的 list 會很大，因為會有不同種方式來走到同樣的一個位置。我們也可以不用 ``do`` 來寫：
+如果你传 ``(6,2)``，得到的 list 会很大，因为会有不同种方式来走到同样的一个位置。我们也可以不用 ``do`` 来写：
 
 ```
 in3 start = return start >>= moveKnight >>= moveKnight >>= moveKnight      
 ```
 
-第一次 ``>>=`` 給我們移動一步的所有結果，第二次 ``>>=`` 給我們移動兩步的所有結果，第三次則給我們移動三步的所有結果。
+第一次 ``>>=`` 给我们移动一步的所有结果，第二次 ``>>=`` 给我们移动两步的所有结果，第三次则给我们移动三步的所有结果。
 
-用 ``return`` 來把一個值放進預設的 context 然後用 ``>>=`` 餵給一個函數其實跟函數呼叫是同樣的，只是用不同的寫法而已。
-接著我們寫一個函數接受兩個位置，然後可以測試是否可以在三步內從一個位置移到另一個位置：
+用 ``return`` 来把一个值放进预设的 context 然后用 ``>>=`` 喂给一个函数其实跟函数呼叫是同样的，只是用不同的写法而已。
+接着我们写一个函数接受两个位置，然后可以测试是否可以在三步内从一个位置移到另一个位置：
 
 ```
 canReachIn3 :: KnightPos -> KnightPos -> Bool  
@@ -870,40 +871,40 @@ canReachIn3 start end = end `elem` in3 start
 ```
 
 
-我們產生所有三步的可能位置，然後看看其中一個位置是否在裡面。所以我們可以看看是否可以在三步內從 ``(6,2)`` 走到 ``(6,1)``：
+我们产生所有三步的可能位置，然后看看其中一个位置是否在里面。所以我们可以看看是否可以在三步内从 ``(6,2)`` 走到 ``(6,1)``：
 
 ```
 ghci> (6,2) `canReachIn3` (6,1)  
 True 
 ```
 
-那從 ``(6,2)`` 到 ``(7,3)`` 呢？
+那从 ``(6,2)`` 到 ``(7,3)`` 呢？
 
 ```
 ghci> (6,2) `canReachIn3` (7,3)  
 False  
 ```
 
-答案是不行。你可以修改函數改成當可以走到的時候，他還會告訴你實際的步驟。之後你也可以改成不只限定成三步，可以任意步。
+答案是不行。你可以修改函数改成当可以走到的时候，他还会告诉你实际的步骤。之后你也可以改成不只限定成三步，可以任意步。
 
 
-## Monad laws (單子律)
+## Monad laws (单子律)
 
-[$../img/judgedog.png]
+![](judgedog.png)
 
-正如 applicative functors 以及 functors，Monad 也有一些要遵守的定律。我們定義一個 ``Monad`` 的 instance 並不代表他是一個 monad，只代表他被定義成那個 type class 的 instance。一個型態要是 monad，則必須遵守單子律。這些定律讓我們可以對這個型態的行為做一些合理的假設。
+正如 applicative functors 以及 functors，Monad 也有一些要遵守的定律。我们定义一个 ``Monad`` 的 instance 并不代表他是一个 monad，只代表他被定义成那个 type class 的 instance。一个型态要是 monad，则必须遵守单子律。这些定律让我们可以对这个型态的行为做一些合理的假设。
 
-Haskell 允許任何型態是任何 type class 的 instance。但他不會檢查單子律是否有被遵守，所以如果我們要寫一個 ``Monad`` 的 instance，那最好我們確定他有遵守單子律。我們可以不用擔心標準函式庫中的型態是否有遵守單子律。但之後我們定義自己的型態時，我們必須自己檢查是否有遵守單子律。不用擔心，他們不會很複雜。
+Haskell 允许任何型态是任何 type class 的 instance。但他不会检查单子律是否有被遵守，所以如果我们要写一个 ``Monad`` 的 instance，那最好我们确定他有遵守单子律。我们可以不用担心标准函式库中的型态是否有遵守单子律。但之后我们定义自己的型态时，我们必须自己检查是否有遵守单子律。不用担心，他们不会很复杂。
 
 ### Left identity
 
-單子律的第一項說當我們接受一個值，將他用 ``return`` 放進一個預設的 context 並把他用 ``>>=`` 餵進一個函數的結果，應該要跟我們直接做函數呼叫的結果一樣。
+单子律的第一项说当我们接受一个值，将他用 ``return`` 放进一个预设的 context 并把他用 ``>>=`` 喂进一个函数的结果，应该要跟我们直接做函数呼叫的结果一样。
 
-  * ``retrun x >>= f`` 應該等於 ``f x``
+  * ``retrun x >>= f`` 应该等于 ``f x``
 
-如果你是把 monadic value 視為把一個值放進最小的 context 中，僅僅是把同樣的值放進結果中的話， 那這個定律應該很直覺。因為把這個值放進 context 中然後丟給函數，應該要跟直接把這個值丟給函數做呼叫應該沒有差別。
+如果你是把 monadic value 视为把一个值放进最小的 context 中，仅仅是把同样的值放进结果中的话， 那这个定律应该很直觉。因为把这个值放进 context 中然后丢给函数，应该要跟直接把这个值丢给函数做呼叫应该没有差别。
 
-對於 ``Maybe`` monad，``return`` 被定義成 ``Just``。``Maybe`` monad 講的是失敗的可能性，如果我們有普通值要把他放進 context 中，那把這個動作當作是計算成功應該是很合理的，畢竟我們都知道那個值是很具體的。這邊有些範例：
+对于 ``Maybe`` monad，``return`` 被定义成 ``Just``。``Maybe`` monad 讲的是失败的可能性，如果我们有普通值要把他放进 context 中，那把这个动作当作是计算成功应该是很合理的，毕竟我们都知道那个值是很具体的。这边有些范例：
 
 ```
 ghci> return 3 >>= (\x -> Just (x+100000))  
@@ -912,7 +913,7 @@ ghci> (\x -> Just (x+100000)) 3
 Just 100003  
 ```
 
-對於 list monad 而言，``return`` 是把值放進一個 list 中，變成只有一個元素的 list。``>>=`` 則會走過 list 中的每個元素，並把他們丟給函數做運算，但因為在單一元素的 list 中只有一個值，所以跟直接對那元素做運算是等價的：
+对于 list monad 而言，``return`` 是把值放进一个 list 中，变成只有一个元素的 list。``>>=`` 则会走过 list 中的每个元素，并把他们丢给函数做运算，但因为在单一元素的 list 中只有一个值，所以跟直接对那元素做运算是等价的：
 
 ```
 ghci> return "WoM" >>= (\x -> [x,x,x])  
@@ -921,15 +922,15 @@ ghci> (\x -> [x,x,x]) "WoM"
 ["WoM","WoM","WoM"]  
 ```
 
-至於 ``IO``，我們已經知道 ``return`` 並不會造成副作用，只不過是在結果中呈現原有值。所以這個定律對於 ``IO`` 也是有效的。
+至于 ``IO``，我们已经知道 ``return`` 并不会造成副作用，只不过是在结果中呈现原有值。所以这个定律对于 ``IO`` 也是有效的。
 
 ### Right identity
 
-單子律的第二個規則是如果我們有一個 monadic value，而且我們把他用 ``>>=`` 餵給 ``return``，那結果就會是原有的 monadic value。
+单子律的第二个规则是如果我们有一个 monadic value，而且我们把他用 ``>>=`` 喂给 ``return``，那结果就会是原有的 monadic value。
 
-  * ``m >>= return`` 會等於 ``m``
+  * ``m >>= return`` 会等于 ``m``
 
-這一個可能不像第一定律那麼明顯，但我們還是來看看為什麼會遵守這條。當我們把一個 monadic value 用 ``>>=`` 餵給函數，那些函數是接受普通值並回傳具有 context 的值。``return`` 也是在他們其中。如果你仔細看他的型態，``return`` 是把一個普通值放進一個最小 context 中。這就表示，對於 ``Maybe`` 他並沒有造成任何失敗的狀態，而對於 list 他也沒有多加 non-determinism。
+这一个可能不像第一定律那么明显，但我们还是来看看为什么会遵守这条。当我们把一个 monadic value 用 ``>>=`` 喂给函数，那些函数是接受普通值并回传具有 context 的值。``return`` 也是在他们其中。如果你仔细看他的型态，``return`` 是把一个普通值放进一个最小 context 中。这就表示，对于 ``Maybe`` 他并没有造成任何失败的状态，而对于 list 他也没有多加 non-determinism。
 
 ```
 ghci> Just "move on up" >>= (\x -> return x)  
@@ -940,39 +941,39 @@ ghci> putStrLn "Wah!" >>= (\x -> return x)
 Wah!  
 ```
 
-如果我們仔細檢視 list monad 的範例，會發現 ``>>=`` 的實作是：
+如果我们仔细检视 list monad 的范例，会发现 ``>>=`` 的实作是：
 
 ```
 xs >>= f = concat (map f xs)      
 ```
 
-所以當我們將 ``[1,2,3,4]`` 丟給 ``return``，第一個 ``return`` 會把 ``[1,2,3,4]`` 映射成 ``[[1],[2],[3],[4]]``，然後再把這些小 list 串接成我們原有的 list。
+所以当我们将 ``[1,2,3,4]`` 丢给 ``return``，第一个 ``return`` 会把 ``[1,2,3,4]`` 映射成 ``[[1],[2],[3],[4]]``，然后再把这些小 list 串接成我们原有的 list。
 
-Left identity 跟 right identity 是描述 ``return`` 的行為。他重要的原因是因為他把普通值轉換成具有 context 的值，如果他出錯的話會很頭大。
+Left identity 跟 right identity 是描述 ``return`` 的行为。他重要的原因是因为他把普通值转换成具有 context 的值，如果他出错的话会很头大。
 
 ### Associativity
 
-單子律最後一條是說當我們用 ``>>=`` 把一串 monadic function 串在一起，他們的先後順序不應該影響結果：
+单子律最后一条是说当我们用 ``>>=`` 把一串 monadic function 串在一起，他们的先后顺序不应该影响结果：
 
   * ``(m >>= f) >>= g`` 跟 ``m >>= (\x -> f x >>= g)`` 是相等的
 
-究竟這邊說的是什麼呢？我們有一個 monadic value ``m``，以及兩個 monadic function ``f`` 跟 ``g``。當我們寫下 ``(m >>= f) >>= g``，代表的是我們把 ``m`` 餵給 ``f``，他的結果是一個 monadic value。然後我們把這個結果餵給 ``g``。而在 ``m >>= (\x -> f x >>= g)`` 中，我們接受一個 monadic value 然後餵給一個函數，這個函數會把 ``f x`` 的結果丟給 ``g``。我們不太容易直接看出兩者相同，所以先來看個範例比較好理解。
+究竟这边说的是什么呢？我们有一个 monadic value ``m``，以及两个 monadic function ``f`` 跟 ``g``。当我们写下 ``(m >>= f) >>= g``，代表的是我们把 ``m`` 喂给 ``f``，他的结果是一个 monadic value。然后我们把这个结果喂给 ``g``。而在 ``m >>= (\x -> f x >>= g)`` 中，我们接受一个 monadic value 然后喂给一个函数，这个函数会把 ``f x`` 的结果丢给 ``g``。我们不太容易直接看出两者相同，所以先来看个范例比较好理解。
 
-還記得之前皮爾斯的範例嗎？要模擬鳥停在他的平衡竿上，我們把好幾個函數串在一起
+还记得之前皮尔斯的范例吗？要模拟鸟停在他的平衡竿上，我们把好几个函数串在一起
 
 ```
 ghci> return (0,0) >>= landRight 2 >>= landLeft 2 >>= landRight 2  
 Just (2,4) 
 ```
 
-從 ``Just (0,0)`` 出發，然後把值傳給 ``landRight 2``。他的結果又被綁到下一個 monadic function，以此類推。如果我們用括號清楚標出優先順序的話會是這樣：
+从 ``Just (0,0)`` 出发，然后把值传给 ``landRight 2``。他的结果又被绑到下一个 monadic function，以此类推。如果我们用括号清楚标出优先顺序的话会是这样：
 
 ```
 ghci> ((return (0,0) >>= landRight 2) >>= landLeft 2) >>= landRight 2  
 Just (2,4)  
 ```
 
-我們也可以改寫成這樣：
+我们也可以改写成这样：
 
 ```
 return (0,0) >>= (\x -> 
@@ -981,23 +982,23 @@ landLeft 2 y >>= (\z ->
 landRight 2 z)))     
 ```
 
-``return (0,0)`` 等價於 ``Just (0,0)``，當我們把他餵給 lambda，裡面的 ``x`` 就等於 ``(0,0)``。``landRight`` 接受一個數值跟 pole，算出來的結果是 ``Just (0,2)`` 然後把他餵給另一個 lambda，裡面的 ``y`` 就變成了 ``(0,2)``。這樣的操作持續下去，直到最後一隻鳥降落，而得到 ``Just (2,4)`` 的結果，這也是整個操作的總結果。
+``return (0,0)`` 等价于 ``Just (0,0)``，当我们把他喂给 lambda，里面的 ``x`` 就等于 ``(0,0)``。``landRight`` 接受一个数值跟 pole，算出来的结果是 ``Just (0,2)`` 然后把他喂给另一个 lambda，里面的 ``y`` 就变成了 ``(0,2)``。这样的操作持续下去，直到最后一只鸟降落，而得到 ``Just (2,4)`` 的结果，这也是整个操作的总结果。
 
-這些 monadic function 的優先順序並不重要，重點是他們的意義。從另一個角度來看這個定律：考慮兩個函數 ``f`` 跟 ``g``，將兩個函數組合起來的定義像是這樣：
+这些 monadic function 的优先顺序并不重要，重点是他们的意义。从另一个角度来看这个定律：考虑两个函数 ``f`` 跟 ``g``，将两个函数组合起来的定义像是这样：
 
 ```
 (.) :: (b -> c) -> (a -> b) -> (a -> c)  
 f . g = (\x -> f (g x))  
 ```
 
-如果 ``g`` 的型態是 ``a -> b`` 且 ``f`` 的型態是 ``b -> c``，我們可以把他們合成一個型態是 ``a -> c`` 的新函數。所以中間的參數都有自動帶過。現在假設這兩個函數是 monadic function，也就是說如果他們的回傳值是 monadic function？如果我們有一個函數他的型態是 ``a -> m b``，我們並不能直接把結果丟給另一個型態為 ``b -> m c`` 的函數，因為後者只接受型態為 ``b`` 的普通值。然而，我們可以用 ``>>=`` 來做到我們想要的事。有了 ``>>=``，我們可以合成兩個 monadic function：
+如果 ``g`` 的型态是 ``a -> b`` 且 ``f`` 的型态是 ``b -> c``，我们可以把他们合成一个型态是 ``a -> c`` 的新函数。所以中间的参数都有自动带过。现在假设这两个函数是 monadic function，也就是说如果他们的回传值是 monadic function？如果我们有一个函数他的型态是 ``a -> m b``，我们并不能直接把结果丢给另一个型态为 ``b -> m c`` 的函数，因为后者只接受型态为 ``b`` 的普通值。然而，我们可以用 ``>>=`` 来做到我们想要的事。有了 ``>>=``，我们可以合成两个 monadic function：
 
 ```
 (<=<) :: (Monad m) => (b -> m c) -> (a -> m b) -> (a -> m c)  
 f <=< g = (\x -> g x >>= f)  
 ```
 
-所以現在我們可以合成兩個 monadic functions：
+所以现在我们可以合成两个 monadic functions：
 
 ```
 ghci> let f x = [x,-x]  
@@ -1007,10 +1008,11 @@ ghci> h 3
 [9,-9,6,-6]  
 ```
 
-至於這跟結合律有什麼關係呢？當我們把這定律看作是合成的定律，他就只是說了 ``f <=< (g <=< h)`` 跟 ``(f <=< g) <=< h`` 應該等價。只是他是針對 monad 而已。
+至于这跟结合律有什么关系呢？当我们把这定律看作是合成的定律，他就只是说了 ``f <=< (g <=< h)`` 跟 ``(f <=< g) <=< h`` 应该等价。只是他是针对 monad 而已。
 
-如果我們把頭兩個單子律用 ``<=<`` 改寫，那 left identity 不過就是說對於每個 monadic function ``f``，``f <=< return`` 跟 ``f`` 是等價，而 right identity 說 ``return <=< f`` 跟 ``f`` 是等價。
+如果我们把头两个单子律用 ``<=<`` 改写，那 left identity 不过就是说对于每个 monadic function ``f``，``f <=< return`` 跟 ``f`` 是等价，而 right identity 说 ``return <=< f`` 跟 ``f`` 是等价。
 
-如果看看普通函數的情形，就會發現很像，``(f . g) . h`` 等價於 ``f . (g . h)``，``f . id`` 跟 ``f`` 等價，且 ``id . f`` 等價於 ``f``。
+如果看看普通函数的情形，就会发现很像，``(f . g) . h`` 等价于 ``f . (g . h)``，``f . id`` 跟 ``f`` 等价，且 ``id . f`` 等价于 ``f``。
 
-在這一章中，我們檢視了 monad 的基本性質，而且也了解了 ``Maybe`` monad 跟 list monad 的運作方式。在下一章，我們會看看其他一些有特色的 monad，我們也會學到如何定義自己的 monad。
+在这一章中，我们检视了 monad 的基本性质，而且也了解了 ``Maybe`` monad 跟 list monad 的运作方式。在下一章，我们会看看其他一些有特色的 monad，我们也会学到如何定义自己的 monad。
+
