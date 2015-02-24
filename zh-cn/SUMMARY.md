@@ -8,9 +8,10 @@
 * [Build Our Own Type and Typeclass](ch08/build-our-own-type-and-typeclass.md)
 * [Input and Output](ch09/input-and-output.md)
 * [Functionally Solving Problems](ch10/functionally-solving-problems.md)
-* [Functors, Applicative Functors 與 Monoids](ch11/functors-applicative-functors-and-monoids.md)
+* [Functors, Applicative Functors 与 Monoids](ch11/functors-applicative-functors-and-monoids.md)
 * [A Fistful of Monad](ch12/a-fistful-of-monads.md)
 * [For a Few Monad More](ch13/for-a-few-monads-more.md)
 * [Zippers](ch14/zippers.md)
 * [FAQ](faq/faq.md)
 * [Resource](resource/resource.md)
+

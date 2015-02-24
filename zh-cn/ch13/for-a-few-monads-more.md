@@ -1,36 +1,36 @@
-# 再來看看更多 Monad
+# 再来看看更多 Monad
 
-[$../img/clint.png]
+![](clint.png)
 
-我們已經看過 Monad 是如何接受具有 context 的值，並如何用函數操作他們 還有如何用 ``>>=`` 跟 ``do`` 來減輕我們對 context 的關注，集中精神在 value 本身。
+我们已经看过 Monad 是如何接受具有 context 的值，并如何用函数操作他们 还有如何用 ``>>=`` 跟 ``do`` 来减轻我们对 context 的关注，集中精神在 value 本身。
 
-我們也看過了 ``Maybe`` 是如何把值加上一個可能會失敗的 context。我們學習到 List Monad 是如何加進多重結果的 context。我們也了解 ``IO`` Monad 如何運作，而且我們在知道什麼是 Monad 之前就已經知道他了。
+我们也看过了 ``Maybe`` 是如何把值加上一个可能会失败的 context。我们学习到 List Monad 是如何加进多重结果的 context。我们也了解 ``IO`` Monad 如何运作，而且我们在知道什么是 Monad 之前就已经知道他了。
 
-在這個章節，我們會介紹一些其他的 Monad。他們可以把值變成 monadic value，因此可以讓我們的程式更簡潔清晰。多見識幾個 Monad 也可以敏銳我們對 Monad 的直覺。
+在这个章节，我们会介绍一些其他的 Monad。他们可以把值变成 monadic value，因此可以让我们的程式更简洁清晰。多见识几个 Monad 也可以敏锐我们对 Monad 的直觉。
 
-我們即將要介紹的 Monad 都包含在 ``mtl`` 這個套建中。一個 Haskell package 包含了一堆模組。而 ``mtl`` 已經包含在 Haskell Platform 中，所以你可能不用另外安裝。要檢查你有沒有這套件，你可以下 ``ghc-pkg list``。這會列出你已經安裝的套件，其中應該包含 ``mtl`` 後面接著對應的版號。
+我们即将要介绍的 Monad 都包含在 ``mtl`` 这个套建中。一个 Haskell package 包含了一堆模组。而 ``mtl`` 已经包含在 Haskell Platform 中，所以你可能不用另外安装。要检查你有没有这套件，你可以下 ``ghc-pkg list``。这会列出你已经安装的套件，其中应该包含 ``mtl`` 后面接着对应的版号。
 
 
 ## 你所不知道的 Writer Monad
-我們已經看過 ``Maybe``, list 以及 ``IO`` Monad。現在我們要來看看 ``Writer`` Monad。
+我们已经看过 ``Maybe``, list 以及 ``IO`` Monad。现在我们要来看看 ``Writer`` Monad。
 
-相對於 ``Maybe`` 是加入可能失敗的 context，list 是加入 non-deterministic 的 context，``Writer`` 則是加進一個附加值的 context，好比 log 一般。``Writer`` 可以讓我們在計算的同時蒐集所有 log 紀錄，並匯集成一個 log 並附加在結果上。
+相对于 ``Maybe`` 是加入可能失败的 context，list 是加入 non-deterministic 的 context，``Writer`` 则是加进一个附加值的 context，好比 log 一般。``Writer`` 可以让我们在计算的同时搜集所有 log 纪录，并汇集成一个 log 并附加在结果上。
 
-例如我們想要附加一個 String 好說明我們的值在幹麼（有可能是為了除錯）。想像有一個函數接受一個代表幫派人數的數字，然後會回傳值告訴我們這是否算是一個龐大的幫派：
+例如我们想要附加一个 String 好说明我们的值在干么（有可能是为了除错）。想像有一个函数接受一个代表帮派人数的数字，然后会回传值告诉我们这是否算是一个庞大的帮派：
 
 ```
 isBigGang :: Int -> Bool  
 isBigGang x = x > 9  
 ```
 
-現在我們希望他不只是回傳 ``True`` 或 ``False``，我們還希望他能夠多回傳一個字串代表 log。這很容易，只要多加一個 ``String`` 在 ``Bool`` 旁邊就好了。
+现在我们希望他不只是回传 ``True`` 或 ``False``，我们还希望他能够多回传一个字串代表 log。这很容易，只要多加一个 ``String`` 在 ``Bool`` 旁边就好了。
 
 ```
 isBigGang :: Int -> (Bool, String)  
 isBigGang x = (x > 9, "Compared gang size to 9.")  
 ```
 
-我們現在回傳了一個 Tuple，第一個元素是原來的布林值，第二個元素是一個 String。現在我們的值有了一個 context。
+我们现在回传了一个 Tuple，第一个元素是原来的布林值，第二个元素是一个 String。现在我们的值有了一个 context。
 
 ```
 ghci> isBigGang 3  
@@ -39,22 +39,22 @@ ghci> isBigGang 30
 (True,"Compared gang size to 9.")  
 ```
 
-[^../img/tuco.png]
+![](tuco.png)
 
-到目前為止都還不錯，``isBigGang`` 回傳一個值跟他的 context。對於正常的數值來說這樣的寫法都能運作良好。但如果我們想要把一個已經具有 context 的值，像是 ``(3, "Smallish gang.")``，餵給 ``isBigGang`` 呢？我們又面對了同樣的問題：如果我們有一個能接受正常數值並回傳一個具有 context 值的 function，那我們要如何餵給他一個具有 context 的值？
+到目前为止都还不错，``isBigGang`` 回传一个值跟他的 context。对于正常的数值来说这样的写法都能运作良好。但如果我们想要把一个已经具有 context 的值，像是 ``(3, "Smallish gang.")``，喂给 ``isBigGang`` 呢？我们又面对了同样的问题：如果我们有一个能接受正常数值并回传一个具有 context 值的 function，那我们要如何喂给他一个具有 context 的值？
 
-當我們在研究 ``Maybe`` monad 的時候，我們寫了一個 ``applyMaybe``。他接受一個 ``Maybe a`` 值跟一個 ``a -> Maybe b`` 型態的函數，他會把 ``Maybe a`` 餵給這個 function，即便這個 function 其實是接受 ``a`` 而非 ``Maybe a``。``applyMaybe`` 有針對這樣的 context 做處理，也就是會留意有可能發生的失敗情況。但在 ``a -> Maybe b`` 裡面，我們可以只專心處理正常數值即可。因為 ``applyMaybe`` (之後變成了 ``>>=``)會幫我們處理需要檢查 ``Nothing`` 或 ``Just`` 的情況。
+当我们在研究 ``Maybe`` monad 的时候，我们写了一个 ``applyMaybe``。他接受一个 ``Maybe a`` 值跟一个 ``a -> Maybe b`` 型态的函数，他会把 ``Maybe a`` 喂给这个 function，即便这个 function 其实是接受 ``a`` 而非 ``Maybe a``。``applyMaybe`` 有针对这样的 context 做处理，也就是会留意有可能发生的失败情况。但在 ``a -> Maybe b`` 里面，我们可以只专心处理正常数值即可。因为 ``applyMaybe`` (之后变成了 ``>>=``)会帮我们处理需要检查 ``Nothing`` 或 ``Just`` 的情况。
 
-我們再來寫一個接受附加 log 值的函數，也就是 ``(a, String)`` 型態的值跟 ``a -> (b, String)`` 型態的函數。我們稱呼這個函數為 ``applyLog``。這個函數有的 context 是附加 log 值，而不是一個可能會失敗的 context，因此 ``applyLog`` 會確保原有的 log 被保留，並附上從函數產生出的新的 log。這邊我們來看一下實作：
+我们再来写一个接受附加 log 值的函数，也就是 ``(a, String)`` 型态的值跟 ``a -> (b, String)`` 型态的函数。我们称呼这个函数为 ``applyLog``。这个函数有的 context 是附加 log 值，而不是一个可能会失败的 context，因此 ``applyLog`` 会确保原有的 log 被保留，并附上从函数产生出的新的 log。这边我们来看一下实作：
 
 ```
 applyLog :: (a,String) -> (a -> (b,String)) -> (b,String)  
 applyLog (x,log) f = let (y,newLog) = f x in (y,log ++ newLog)  
 ```
 
-當我們想把一個具有 context 的值餵給一個函數的時候，我們會嘗試把值跟他的 context 分開，然後把值餵給函數再重新接回 context。在 ``Maybe`` monad 的情況，我們檢查值是否為 ``Just x``，如果是，便將 ``x`` 餵給函數。而在 log 的情況，我們知道 pair 的其中一個 component 是 log 而另一個是值。所以我們先取出值 ``x``，將 ``f`` apply 到 ``x``，便獲取 ``(y,newLog)``，其中 ``y`` 是新的值而 ``newLog`` 則是新的 log。但如果我們回傳 ``newLog``，舊的 log 便不會包含進去，所以我們要回傳的是 ``(y, log ++ newLog)``。我們用 ``++`` 來把新的 log 接到舊的上面。
+当我们想把一个具有 context 的值喂给一个函数的时候，我们会尝试把值跟他的 context 分开，然后把值喂给函数再重新接回 context。在 ``Maybe`` monad 的情况，我们检查值是否为 ``Just x``，如果是，便将 ``x`` 喂给函数。而在 log 的情况，我们知道 pair 的其中一个 component 是 log 而另一个是值。所以我们先取出值 ``x``，将 ``f`` apply 到 ``x``，便获取 ``(y,newLog)``，其中 ``y`` 是新的值而 ``newLog`` 则是新的 log。但如果我们回传 ``newLog``，旧的 log 便不会包含进去，所以我们要回传的是 ``(y, log ++ newLog)``。我们用 ``++`` 来把新的 log 接到旧的上面。
 
-來看看 ``applyLog`` 運作的情形：
+来看看 ``applyLog`` 运作的情形：
 
 ```
 ghci> (3, "Smallish gang.") `applyLog` isBigGang  
@@ -63,7 +63,7 @@ ghci> (30, "A freaking platoon.") `applyLog` isBigGang
 (True,"A freaking platoon.Compared gang size to 9")  
 ```
 
-跟之前的結果很像，只差在我們多了伴隨產生的 log。再來多看幾個例子：
+跟之前的结果很像，只差在我们多了伴随产生的 log。再来多看几个例子：
 
 ```
 ghci> ("Tobin","Got outlaw name.") `applyLog` (\x -> (length x, "Applied length."))  
@@ -72,21 +72,21 @@ ghci> ("Bathcat","Got outlaw name.") `applyLog` (\x -> (length x, "Applied lengt
 (7,"Got outlaw name.Applied length")  
 ```
 
-可以看到在 lambda 裡面 ``x`` 只是個正常的字串而不是 tuple，且 ``applyLog`` 幫我們處理掉附加 log 的動作。
+可以看到在 lambda 里面 ``x`` 只是个正常的字串而不是 tuple，且 ``applyLog`` 帮我们处理掉附加 log 的动作。
 
-### Monoids 的好處
+### Monoids 的好处
 
-    請確定你了解什麼是 Monoids。
+    请确定你了解什么是 Monoids。
 
-到目前為止 ``applyLog`` 接受 ``(a,String)`` 型態的值，但為什麼 log 一定要是 ``String`` 呢？我們使用 ``++`` 來附加新的 log，難道 ``++`` 並不能運作在任何形式的 list，而一定要限制我們在 ``String`` 上呢？我們當然可以擺脫 ``String``，我們可以如下改變他的型態：
+到目前为止 ``applyLog`` 接受 ``(a,String)`` 型态的值，但为什么 log 一定要是 ``String`` 呢？我们使用 ``++`` 来附加新的 log，难道 ``++`` 并不能运作在任何形式的 list，而一定要限制我们在 ``String`` 上呢？我们当然可以摆脱 ``String``，我们可以如下改变他的型态：
 
 ```
 applyLog :: (a,[c]) -> (a -> (b,[c])) -> (b,[c])      
 ```
 
-我們用一個 List 來代表 Log。包含在 List 中的元素型態必須跟原有的 List 跟回傳的 List 型態相同，否則我們沒辦法用 ``++`` 來把他們接起來。
+我们用一个 List 来代表 Log。包含在 List 中的元素型态必须跟原有的 List 跟回传的 List 型态相同，否则我们没办法用 ``++`` 来把他们接起来。
 
-這能夠運作在 bytestring 上嗎？絕對沒問題。只是我們現在的型態只對 List 有效。我們必須要另外做一個 bytestring 版本的 ``applyLog``。但我們注意到 List 跟 bytestring 都是 monoids。因此他們都是 ``Monoid`` type class 的 instance，那代表他們都有實作 ``mappend``。對 List 以及 bytestring 而言，``mappend`` 都是拿來串接的。
+这能够运作在 bytestring 上吗？绝对没问题。只是我们现在的型态只对 List 有效。我们必须要另外做一个 bytestring 版本的 ``applyLog``。但我们注意到 List 跟 bytestring 都是 monoids。因此他们都是 ``Monoid`` type class 的 instance，那代表他们都有实作 ``mappend``。对 List 以及 bytestring 而言，``mappend`` 都是拿来串接的。
 
 ```
 ghci> [1,2,3] `mappend` [4,5,6]  
@@ -95,14 +95,14 @@ ghci> B.pack [99,104,105] `mappend` B.pack [104,117,97,104,117,97]
 Chunk "chi" (Chunk "huahua" Empty)  
 ```
 
-修改後我們的 ``applyLog`` 可以運作在任何 monoid 上。我們必須要修改型態宣告來表示這件事，同時也要在實作中把 ``++`` 改成 ``mappend``：
+修改后我们的 ``applyLog`` 可以运作在任何 monoid 上。我们必须要修改型态宣告来表示这件事，同时也要在实作中把 ``++`` 改成 ``mappend``：
 
 ```
 applyLog :: (Monoid m) => (a,m) -> (a -> (b,m)) -> (b,m)  
 applyLog (x,log) f = let (y,newLog) = f x in (y,log `mappend` newLog)  
 ```
 
-由於現在包含的值可以是任何 monoid，我們不再需要把 tuple 想成包含一個值跟對應的 log，我們可以想成他包含一個值跟一個對應的 monoid。舉例來說，可以說我們有一個 tuple 包含一個產品名稱跟一個符合 monoid 特性的產品價格。我們可以定義一個 ``Sum`` 的 newtype 來保證我們在操作產品的時候也會把價錢跟著加起來。
+由于现在包含的值可以是任何 monoid，我们不再需要把 tuple 想成包含一个值跟对应的 log，我们可以想成他包含一个值跟一个对应的 monoid。举例来说，可以说我们有一个 tuple 包含一个产品名称跟一个符合 monoid 特性的产品价格。我们可以定义一个 ``Sum`` 的 newtype 来保证我们在操作产品的时候也会把价钱跟着加起来。
 
 ```
 import Data.Monoid  
@@ -116,14 +116,14 @@ addDrink "jerky" = ("whiskey", Sum 99)
 addDrink _ = ("beer", Sum 30)  
 ```
 
-我們用 string 來代表食物，用 ``newtype`` 重新定義 ``nInt`` 為 ``Sum``，來追蹤總共需要花多少錢。可以注意到我們用 ``mappend`` 來操作 ``Sum`` 的時候，價錢會被一起加起來。
+我们用 string 来代表食物，用 ``newtype`` 重新定义 ``nInt`` 为 ``Sum``，来追踪总共需要花多少钱。可以注意到我们用 ``mappend`` 来操作 ``Sum`` 的时候，价钱会被一起加起来。
 
 ```
 ghci> Sum 3 `mappend` Sum 9  
 Sum {getSum = 12}  
 ```
 
-``addDrink`` 的實作很簡單，如果我們想吃豆子，他會回傳 ``"milk"`` 以及伴隨的 ``Sum 25``，同樣的如果我們要吃 "jerky"，他就會回傳 "whiskey"，要吃其他東西的話，就會回傳 "beer"。乍看之下這個函數沒什麼特別，但如果用 ``applyLog`` 的話就會有趣些。
+``addDrink`` 的实作很简单，如果我们想吃豆子，他会回传 ``"milk"`` 以及伴随的 ``Sum 25``，同样的如果我们要吃 "jerky"，他就会回传 "whiskey"，要吃其他东西的话，就会回传 "beer"。乍看之下这个函数没什么特别，但如果用 ``applyLog`` 的话就会有趣些。
 
 ```
 ghci> ("beans", Sum 10) `applyLog` addDrink  
@@ -134,31 +134,31 @@ ghci> ("dogmeat", Sum 5) `applyLog` addDrink
 ("beer",Sum {getSum = 35})  
 ```
 
-牛奶價值 ``25`` 美分，但如果我們也吃了價值 ``10`` 美分的豆子的話，總共需要付 ``35`` 美分。這樣很清楚地展示了伴隨的值不一定需要是 log，他可以是任何 monoid。至於兩個值要如何結合，那要看 monoid 中怎麼定義。當我們需要的是 log 的時候，他們是串接，但這個 case 裡面，數字是被加起來。
+牛奶价值 ``25`` 美分，但如果我们也吃了价值 ``10`` 美分的豆子的话，总共需要付 ``35`` 美分。这样很清楚地展示了伴随的值不一定需要是 log，他可以是任何 monoid。至于两个值要如何结合，那要看 monoid 中怎么定义。当我们需要的是 log 的时候，他们是串接，但这个 case 里面，数字是被加起来。
 
-由於 ``addDrink`` 回傳一個 ``(Food,Price)``，我們可以再把結果重新餵給 ``addDrink``，這可以很容易告訴我們總共喝了多少錢：
+由于 ``addDrink`` 回传一个 ``(Food,Price)``，我们可以再把结果重新喂给 ``addDrink``，这可以很容易告诉我们总共喝了多少钱：
 
 ```
 ghci> ("dogmeat", Sum 5) `applyLog` addDrink `applyLog` addDrink  
 ("beer",Sum {getSum = 65})  
 ```
 
-將狗食跟 30 美分的啤酒加在一起會得到 ``("beer", Sum 35)``。如果我們用 ``applyLog`` 將上面的結果再餵給 ``addDrink``，我們會得到 ``("beer", Sum 65)`` 這樣的結果。
+将狗食跟 30 美分的啤酒加在一起会得到 ``("beer", Sum 35)``。如果我们用 ``applyLog`` 将上面的结果再喂给 ``addDrink``，我们会得到 ``("beer", Sum 65)`` 这样的结果。
 
 
 ### The Writer type
 
-我們認識了一個附加 monoid 的值其實表現出來的是一個 monad，我們來再來看看其他類似的 ``Monad`` instance。``Control.Monad.Writer`` 這模組含有 ``Writer w a`` 的一個型態，裏面定義了他 ``Monad`` 的 instance，還有一些操作這些值的函數。
+我们认识了一个附加 monoid 的值其实表现出来的是一个 monad，我们来再来看看其他类似的 ``Monad`` instance。``Control.Monad.Writer`` 这模组含有 ``Writer w a`` 的一个型态，里面定义了他 ``Monad`` 的 instance，还有一些操作这些值的函数。
 
-首先，我們來看一下型態。要把一個 monoid 附加給一個值，只需要定義一個 tuple 就好了。``Writer w a`` 這型態其實是一個 ``newtype`` wrapper。他的定義很簡單：
+首先，我们来看一下型态。要把一个 monoid 附加给一个值，只需要定义一个 tuple 就好了。``Writer w a`` 这型态其实是一个 ``newtype`` wrapper。他的定义很简单：
 
 ```
 newtype Writer w a = Writer { runWriter :: (a, w) }      
 ```
 
-他包在一個 ``newtype`` 裏面，並且可以是一個 ``Monad`` 的 instance，而且這樣定義的好處是可以跟單純 tuple 的型態區分開來。``a`` 這個型態參數代表是包含的值的型態，而 ``w`` 則是附加的 monoid 的型態。
+他包在一个 ``newtype`` 里面，并且可以是一个 ``Monad`` 的 instance，而且这样定义的好处是可以跟单纯 tuple 的型态区分开来。``a`` 这个型态参数代表是包含的值的型态，而 ``w`` 则是附加的 monoid 的型态。
 
-他 ``Monad`` instance 的定義如下：
+他 ``Monad`` instance 的定义如下：
 
 ```
 instance (Monoid w) => Monad (Writer w) where  
@@ -166,12 +166,12 @@ instance (Monoid w) => Monad (Writer w) where
     (Writer (x,v)) >>= f = let (Writer (y, v')) = f x in Writer (y, v `mappend` v')  
 ```
 
-[$../img/angeleyes.png]
+![](angeleyes.png)
 
-首先，我們來看看 ``>>=``。他的實作基本上就是 ``applyLog``，只是我們的 tuple 現在是包在一個 ``Writer`` 的 ``newtype`` 中，我們可以用 pattern matching 的方式把他給 unwrap。我們將 ``x`` 餵給 ``f``。這會回給我們 ``Writer w a``。接著可以用 ``let`` expression 來做 pattern matching。把結果綁定到 ``y`` 這個名字上，然後用 ``mappend`` 來結合舊的 monoid 值跟新的 monoid 值。最後把結果跟 monoid 值用 ``Writer`` constructor 包起來，形成我們最後的 ``Writer`` value。
+首先，我们来看看 ``>>=``。他的实作基本上就是 ``applyLog``，只是我们的 tuple 现在是包在一个 ``Writer`` 的 ``newtype`` 中，我们可以用 pattern matching 的方式把他给 unwrap。我们将 ``x`` 喂给 ``f``。这会回给我们 ``Writer w a``。接着可以用 ``let`` expression 来做 pattern matching。把结果绑定到 ``y`` 这个名字上，然后用 ``mappend`` 来结合旧的 monoid 值跟新的 monoid 值。最后把结果跟 monoid 值用 ``Writer`` constructor 包起来，形成我们最后的 ``Writer`` value。
 
 
-那 ``return`` 呢？回想 ``return`` 的作用是接受一個值，並回傳一個具有意義的最小 context 來裝我們的值。那究竟什麼樣的 context 可以代表我們的 ``Writer`` 呢？如果我們希望 monoid 值所造成的影響愈小愈好，那 ``mempty`` 是個合理的選擇。``mempty`` 是被當作 identity monoid value，像是 ``""`` 或 ``Sum 0``，或是空的 bytestring。當我們對 ``mempty`` 用 ``mappend`` 跟其他 monoid 值結合，結果會是其他的 monoid 值。所以如果我們用 ``return`` 來做一個 ``Writer``，然後用 ``>>=`` 來餵給其他的函數，那函數回傳的便是算出來的 monoid。下面我們試著用 ``return`` 搭配不同 context 來回傳 ``3``：
+那 ``return`` 呢？回想 ``return`` 的作用是接受一个值，并回传一个具有意义的最小 context 来装我们的值。那究竟什么样的 context 可以代表我们的 ``Writer`` 呢？如果我们希望 monoid 值所造成的影响愈小愈好，那 ``mempty`` 是个合理的选择。``mempty`` 是被当作 identity monoid value，像是 ``""`` 或 ``Sum 0``，或是空的 bytestring。当我们对 ``mempty`` 用 ``mappend`` 跟其他 monoid 值结合，结果会是其他的 monoid 值。所以如果我们用 ``return`` 来做一个 ``Writer``，然后用 ``>>=`` 来喂给其他的函数，那函数回传的便是算出来的 monoid。下面我们试着用 ``return`` 搭配不同 context 来回传 ``3``：
 
 ```
 ghci> runWriter (return 3 :: Writer String Int)  
@@ -182,14 +182,14 @@ ghci> runWriter (return 3 :: Writer (Product Int) Int)
 (3,Product {getProduct = 1})  
 ```
 
-因為 ``Writer`` 並沒有定義成 ``Show`` 的 instance，我們必須用 ``runWriter`` 來把我們的 ``Writer`` 轉成正常的 tuple。對於 ``String``，monoid 的值就是空字串。而對於 ``Sum`` 來說則是 ``0``，因為 ``0`` 加上其他任何值都會是對方。而對 ``Product`` 來說，則是 ``1``。
+因为 ``Writer`` 并没有定义成 ``Show`` 的 instance，我们必须用 ``runWriter`` 来把我们的 ``Writer`` 转成正常的 tuple。对于 ``String``，monoid 的值就是空字串。而对于 ``Sum`` 来说则是 ``0``，因为 ``0`` 加上其他任何值都会是对方。而对 ``Product`` 来说，则是 ``1``。
 
-這裡的 ``Writer`` instance 並沒有定義 ``fail``，所以如果 pattern matching 失敗的話，就會呼叫 ``error``。
+这里的 ``Writer`` instance 并没有定义 ``fail``，所以如果 pattern matching 失败的话，就会呼叫 ``error``。
 
 
 ### Using do notation with Writer
 
-既然我們定義了 ``Monad`` 的 instance，我們自然可以用 ``do`` 串接 ``Writer`` 型態的值。這在我們需要對一群 ``Writer`` 型態的值做處理時顯得特別方便。就如其他的 monad，我們可以把他們當作具有 context 的值。在現在這個 case 中，所有的 monoid 的值都會用 ``mappend`` 來連接起來並得到最後的結果。這邊有一個簡單的範例，我們用 ``Writer`` 來相乘兩個數。
+既然我们定义了 ``Monad`` 的 instance，我们自然可以用 ``do`` 串接 ``Writer`` 型态的值。这在我们需要对一群 ``Writer`` 型态的值做处理时显得特别方便。就如其他的 monad，我们可以把他们当作具有 context 的值。在现在这个 case 中，所有的 monoid 的值都会用 ``mappend`` 来连接起来并得到最后的结果。这边有一个简单的范例，我们用 ``Writer`` 来相乘两个数。
 
 ```
 import Control.Monad.Writer  
@@ -204,14 +204,14 @@ multWithLog = do
     return (a*b)  
 ```
 
-``logNumber`` 接受一個數並把這個數做成一個 ``Writer``。我們再用一串 string 來當作我們的 monoid 值，每一個數都跟著一個只有一個元素的 list，說明我們只有一個數。``multWithLog`` 式一個 ``Writer``，他將 ``3`` 跟 ``5`` 相乘並確保相乘的紀錄有寫進最後的 log 中。我們用 ``return`` 來做成 ``a*b`` 的結果。我們知道 ``return`` 會接受某個值並加上某個最小的 context，我們可以確定他不會多添加額外的 log。如果我們執行程式會得到：
+``logNumber`` 接受一个数并把这个数做成一个 ``Writer``。我们再用一串 string 来当作我们的 monoid 值，每一个数都跟着一个只有一个元素的 list，说明我们只有一个数。``multWithLog`` 式一个 ``Writer``，他将 ``3`` 跟 ``5`` 相乘并确保相乘的纪录有写进最后的 log 中。我们用 ``return`` 来做成 ``a*b`` 的结果。我们知道 ``return`` 会接受某个值并加上某个最小的 context，我们可以确定他不会多添加额外的 log。如果我们执行程式会得到：
 
 ```
 ghci> runWriter multWithLog  
 (15,["Got number: 3","Got number: 5"])  
 ```
 
-有時候我們就是想要在某個時間點放進某個 Monoid value。``tell`` 正是我們需要的函數。他實作了 ``MonadWriter`` 這個 type class，而且在當 ``Writer`` 用的時候也能接受一個 monoid value，好比說 ``["This is going on"]``。我們能用他來把我們的 monoid value 接到任何一個 dummy value ``()`` 上來形成一個 Writer。當我們拿到的結果是 ``()`` 的時候，我們不會把他綁定到變數上。來看一個 ``multWithLog`` 的範例：
+有时候我们就是想要在某个时间点放进某个 Monoid value。``tell`` 正是我们需要的函数。他实作了 ``MonadWriter`` 这个 type class，而且在当 ``Writer`` 用的时候也能接受一个 monoid value，好比说 ``["This is going on"]``。我们能用他来把我们的 monoid value 接到任何一个 dummy value ``()`` 上来形成一个 Writer。当我们拿到的结果是 ``()`` 的时候，我们不会把他绑定到变数上。来看一个 ``multWithLog`` 的范例：
 
 ```
 multWithLog :: Writer [String] Int  
@@ -222,7 +222,7 @@ multWithLog = do
     return (a*b)  
 ```
 
-``return (a*b)`` 是我們的最後一行，還記得在一個 ``do`` 中的最後一行代表整個 ``do`` 的結果。如果我們把 ``tell`` 擺到最後，則 ``do`` 的結果則會是 ``()``。我們會因此丟掉乘法運算的結果。除此之外，log 的結果是不變的。
+``return (a*b)`` 是我们的最后一行，还记得在一个 ``do`` 中的最后一行代表整个 ``do`` 的结果。如果我们把 ``tell`` 摆到最后，则 ``do`` 的结果则会是 ``()``。我们会因此丢掉乘法运算的结果。除此之外，log 的结果是不变的。
 
 ```
 ghci> runWriter multWithLog  
@@ -231,7 +231,7 @@ ghci> runWriter multWithLog
 
 
 ### Adding logging to programs
-歐幾里得算法是找出兩個數的最大公因數。Haskell 已經提供了 ``gcd`` 的函數，但我們來實作一個具有 log 功能的 gcd：
+欧几里得算法是找出两个数的最大公因数。Haskell 已经提供了 ``gcd`` 的函数，但我们来实作一个具有 log 功能的 gcd：
 
 ```
 gcd' :: Int -> Int -> Int  
@@ -240,20 +240,20 @@ gcd' a b
     | otherwise = gcd' b (a `mod` b)  
 ```
 
-演算法的內容很簡單。首先他檢查第二個數字是否為零。如果是零，那就回傳第一個數字。如果不是，那結果就是第二個數字跟將第一個數字除以第二個數字的餘數兩個數字的最大公因數。舉例來說，如果我們想知道 8 跟 3 的最大公因數，首先可以注意到 3 不是 0。所以我們要求的是 3 跟 2 的最大公因數(8 除以 3 餘二)。接下去我可以看到 2 不是 0，所以我們要再找 2 跟 1 的最大公因數。同樣的，第二個數不是 0，所以我們再找 1 跟 0 的最大公因數。最後第二個數終於是 0 了，所以我們得到最大公因數是 1。
+演算法的内容很简单。首先他检查第二个数字是否为零。如果是零，那就回传第一个数字。如果不是，那结果就是第二个数字跟将第一个数字除以第二个数字的余数两个数字的最大公因数。举例来说，如果我们想知道 8 跟 3 的最大公因数，首先可以注意到 3 不是 0。所以我们要求的是 3 跟 2 的最大公因数(8 除以 3 余二)。接下去我可以看到 2 不是 0，所以我们要再找 2 跟 1 的最大公因数。同样的，第二个数不是 0，所以我们再找 1 跟 0 的最大公因数。最后第二个数终于是 0 了，所以我们得到最大公因数是 1。
 
 ```
 ghci> gcd' 8 3  
 1  
 ```
 
-答案真的是這樣。接著我們想加進 context，context 會是一個 monoid value 並且像是一個 log 一樣。就像之前的範例，我們用一串 string 來當作我們的 monoid。所以 ``gcd'`` 會長成這樣：
+答案真的是这样。接着我们想加进 context，context 会是一个 monoid value 并且像是一个 log 一样。就像之前的范例，我们用一串 string 来当作我们的 monoid。所以 ``gcd'`` 会长成这样：
 
 ```
 gcd' :: Int -> Int -> Writer [String] Int  
 ```
 
-而他的程式碼會像這樣：
+而他的程式码会像这样：
 
 ```
 import Control.Monad.Writer  
@@ -268,24 +268,24 @@ gcd' a b
       gcd' b (a `mod` b)  
 ```
 
-這個函數接受兩個 ``Int`` 並回傳一個 ``Writer [String] Int``，也就是說是一個有 log context 的 ``Int``。當 ``b`` 等於 ``0`` 的時候，我們用一個 ``do`` 來組成一個 ``Writer`` 的值。我們先用 ``tell`` 來寫入我們的 log，然後用 ``return`` 來當作 ``do`` 的結果。當然我們也可以這樣寫：
+这个函数接受两个 ``Int`` 并回传一个 ``Writer [String] Int``，也就是说是一个有 log context 的 ``Int``。当 ``b`` 等于 ``0`` 的时候，我们用一个 ``do`` 来组成一个 ``Writer`` 的值。我们先用 ``tell`` 来写入我们的 log，然后用 ``return`` 来当作 ``do`` 的结果。当然我们也可以这样写：
 
 ```
 Writer (a, ["Finished with " ++ show a])  
 ```
 
-但我想 ``do`` 的表達方式是比較容易閱讀的。接下來我們看看當 ``b`` 不等於 ``0`` 的時候。我們會把 ``mod`` 的使用情況寫進 log。然後在 ``do`` 當中的第二行遞迴呼叫 ``gcd'``。``gcd'`` 現在是回傳一個 ``Writer`` 的型態，所以 ``gcd' b (a `mod` b)`` 這樣的寫法是完全沒問題的。
+但我想 ``do`` 的表达方式是比较容易阅读的。接下来我们看看当 ``b`` 不等于 ``0`` 的时候。我们会把 ``mod`` 的使用情况写进 log。然后在 ``do`` 当中的第二行递回呼叫 ``gcd'``。``gcd'`` 现在是回传一个 ``Writer`` 的型态，所以 ``gcd' b (a `mod` b)`` 这样的写法是完全没问题的。
 
-儘管去 trace 這個 ``gcd'`` 對於理解十分有幫助，但我想了解整個大概念，把值視為具有 context 是更加有用的。
+尽管去 trace 这个 ``gcd'`` 对于理解十分有帮助，但我想了解整个大概念，把值视为具有 context 是更加有用的。
 
-接著來試試跑我們的 ``gcd'``，他的結果會是 ``Writer [String] Int``，如果我們把他從 ``newtype`` 中取出來，我們會拿到一個 tuple。tuple 的第一個部份就是我們要的結果：
+接着来试试跑我们的 ``gcd'``，他的结果会是 ``Writer [String] Int``，如果我们把他从 ``newtype`` 中取出来，我们会拿到一个 tuple。tuple 的第一个部份就是我们要的结果：
 
 ```
 ghci> fst $ runWriter (gcd' 8 3)  
 1  
 ```
 
-至於 log 呢，由於 log 是一連串 string，我們就用 ``mapM_ putStrLn`` 來把這些 string 印出來：
+至于 log 呢，由于 log 是一连串 string，我们就用 ``mapM_ putStrLn`` 来把这些 string 印出来：
 
 ```
 ghci> mapM_ putStrLn $ snd $ runWriter (gcd' 8 3)  
@@ -295,26 +295,26 @@ ghci> mapM_ putStrLn $ snd $ runWriter (gcd' 8 3)
 Finished with 1  
 ```
 
-把普通的演算法轉換成具有 log 是很棒的經驗，我們不過是把普通的 value 重寫成 Monadic value，剩下的就靠 ``>>=`` 跟 ``Writer`` 來幫我們處理一切。用這樣的方法我們幾乎可以對任何函數加上 logging 的功能。我們只要把普通的值換成 ``Writer``，然後把一般的函數呼叫換成 ``>>=`` (當然也可以用 ``do``)
+把普通的演算法转换成具有 log 是很棒的经验，我们不过是把普通的 value 重写成 Monadic value，剩下的就靠 ``>>=`` 跟 ``Writer`` 来帮我们处理一切。用这样的方法我们几乎可以对任何函数加上 logging 的功能。我们只要把普通的值换成 ``Writer``，然后把一般的函数呼叫换成 ``>>=`` (当然也可以用 ``do``)
 
 ### Inefficient list construction
-當製作 ``Writer`` Monad 的時候，要特別注意你是使用哪種 monoid。使用 list 的話效能有時候是沒辦法接受的。因為 list 是使用 ``++`` 來作為 ``mappend`` 的實現。而 ``++`` 在 list 很長的時候是非常慢的。
+当制作 ``Writer`` Monad 的时候，要特别注意你是使用哪种 monoid。使用 list 的话效能有时候是没办法接受的。因为 list 是使用 ``++`` 来作为 ``mappend`` 的实现。而 ``++`` 在 list 很长的时候是非常慢的。
 
-在之前的 ``gcd'`` 中，log 並不會慢是因為 list append 的動作實際上看起來是這樣：
+在之前的 ``gcd'`` 中，log 并不会慢是因为 list append 的动作实际上看起来是这样：
 
 ```
 a ++ (b ++ (c ++ (d ++ (e ++ f))))  
 ```
 
-list 是建立的方向是從左到右，當我們先建立左邊的部份，而把另一串 list 加到右邊的時候效能會不錯。但如果我們不小心使用，而讓 ``Writer`` monad 實際在操作 list 的時候變成像這樣的話。
+list 是建立的方向是从左到右，当我们先建立左边的部份，而把另一串 list 加到右边的时候效能会不错。但如果我们不小心使用，而让 ``Writer`` monad 实际在操作 list 的时候变成像这样的话。
 
 ```
 ((((a ++ b) ++ c) ++ d) ++ e) ++ f 
 ```
 
-這會讓我們的操作是 left associative，而不是 right associative。這非常沒有效率，因為每次都是把右邊的部份加到左邊的部份，而左邊的部份又必須要從頭開始建起。
+这会让我们的操作是 left associative，而不是 right associative。这非常没有效率，因为每次都是把右边的部份加到左边的部份，而左边的部份又必须要从头开始建起。
 
-下面這個函數跟 ``gcd'`` 差不多，只是 log 的順序是相反的。他先紀錄剩下的操作，然後紀錄現在的步驟。
+下面这个函数跟 ``gcd'`` 差不多，只是 log 的顺序是相反的。他先纪录剩下的操作，然后纪录现在的步骤。
 
 ```
 import Control.Monad.Writer  
@@ -330,7 +330,7 @@ gcdReverse a b
       return result  
 ```
 
-他先遞迴呼叫，然後把結果綁定到 ``result``。然後把目前的動作寫到 log，在遞迴的結果之後。最後呈現的就是完整的 log。
+他先递回呼叫，然后把结果绑定到 ``result``。然后把目前的动作写到 log，在递回的结果之后。最后呈现的就是完整的 log。
 
 ``` 
 ghci> mapM_ putStrLn $ snd $ runWriter (gcdReverse 8 3)  
@@ -340,36 +340,36 @@ Finished with 1
 8 mod 3 = 2  
 ```
 
-這沒效率是因為他讓 ``++`` 成為 left associative 而不是 right associative。
+这没效率是因为他让 ``++`` 成为 left associative 而不是 right associative。
 
 
 ### Difference lists
 
-[^../img/cactus.png]
+![](cactus.png)
 
-由於 list 在重複 append 的時候顯得低效，我們最好能使用一種支援高效 appending 的資料結構。其中一種就是 difference list。difference list 很類似 list，只是他是一個函數。他接受一個 list 並 prepend 另一串 list 到他前面。一個等價於 ``[1,2,3]`` 的 difference list 是這樣一個函數 ``\xs -> [1,2,3] ++ xs``。一個等價於 ``[]`` 的 difference list 則是 ``\xs -> [] ++ xs``。
+由于 list 在重复 append 的时候显得低效，我们最好能使用一种支援高效 appending 的资料结构。其中一种就是 difference list。difference list 很类似 list，只是他是一个函数。他接受一个 list 并 prepend 另一串 list 到他前面。一个等价于 ``[1,2,3]`` 的 difference list 是这样一个函数 ``\xs -> [1,2,3] ++ xs``。一个等价于 ``[]`` 的 difference list 则是 ``\xs -> [] ++ xs``。
 
-Difference list 最酷的地方在於他支援高效的 appending。當我們用 ``++`` 來實現 appending 的時候，他必須要走到左邊的 list 的尾端，然後把右邊的 list 一個個從這邊接上。那 difference list 是怎麼作的呢？appending 兩個 difference list 就像這樣
+Difference list 最酷的地方在于他支援高效的 appending。当我们用 ``++`` 来实现 appending 的时候，他必须要走到左边的 list 的尾端，然后把右边的 list 一个个从这边接上。那 difference list 是怎么作的呢？appending 两个 difference list 就像这样
 
 ```
 f `append` g = \xs -> f (g xs)  
 ```
 
-``f`` 跟 ``g`` 這邊是兩個函數，他們都接受一個 list 並 prepend 另一串 list。舉例來說，如果 ``f`` 代表 ``("dog"++)``（可以寫成 ``\xs -> "dog" ++ xs``）而 ``g`` 是 ``("meat"++)``，那 ``f `append` g`` 就會做成一個新的函數，等價於：
+``f`` 跟 ``g`` 这边是两个函数，他们都接受一个 list 并 prepend 另一串 list。举例来说，如果 ``f`` 代表 ``("dog"++)``（可以写成 ``\xs -> "dog" ++ xs``）而 ``g`` 是 ``("meat"++)``，那 ``f `append` g`` 就会做成一个新的函数，等价于：
 
 ```
 \xs -> "dog" ++ ("meat" ++ xs)  
 ```
 
-append 兩個 difference list 其實就是用一個函數，這函數先餵一個 list 給第一個 difference list，然後再把結果餵給第二個 difference list。
+append 两个 difference list 其实就是用一个函数，这函数先喂一个 list 给第一个 difference list，然后再把结果喂给第二个 difference list。
 
-我們可以用一個 ``newtype`` 來包起來
+我们可以用一个 ``newtype`` 来包起来
 
 ``` 
 newtype DiffList a = DiffList { getDiffList :: [a] -> [a] }  
 ```
 
-我們包起來的型態是 ``[a] -> [a]``，因為 difference list 不過就是一個轉換一個 list 到另一個 list 的函數。要把普通 list 轉換成 difference list 也很容易。
+我们包起来的型态是 ``[a] -> [a]``，因为 difference list 不过就是一个转换一个 list 到另一个 list 的函数。要把普通 list 转换成 difference list 也很容易。
 
 ``` 
 toDiffList :: [a] -> DiffList a  
@@ -379,9 +379,9 @@ fromDiffList :: DiffList a -> [a]
 fromDiffList (DiffList f) = f []  
 ```
 
-要把一個普通 list 轉成 difference list 不過就是照之前定義的，作一個 prepend 另一個 list 的函數。由於 difference list 只是一個 prepend 另一串 list 的一個函數，假如我們要轉回來的話，只要餵給他空的 list 就行了。
+要把一个普通 list 转成 difference list 不过就是照之前定义的，作一个 prepend 另一个 list 的函数。由于 difference list 只是一个 prepend 另一串 list 的一个函数，假如我们要转回来的话，只要喂给他空的 list 就行了。
 
-這邊我們給一個 difference list 的 ``Monoid`` 定義
+这边我们给一个 difference list 的 ``Monoid`` 定义
 
 ```
 instance Monoid (DiffList a) where  
@@ -389,14 +389,14 @@ instance Monoid (DiffList a) where
     (DiffList f) `mappend` (DiffList g) = DiffList (\xs -> f (g xs))  
 ```
 
-我們可以看到 ``mempty`` 不過就是 ``id``，而 ``mappend`` 其實是 function composition。
+我们可以看到 ``mempty`` 不过就是 ``id``，而 ``mappend`` 其实是 function composition。
 
 ```
 ghci> fromDiffList (toDiffList [1,2,3,4] `mappend` toDiffList [1,2,3])  
 [1,2,3,4,1,2,3]  
 ```
 
-現在我們可以用 difference list 來加速我們的 ``gcdReverse``
+现在我们可以用 difference list 来加速我们的 ``gcdReverse``
 
 ```
 import Control.Monad.Writer  
@@ -412,7 +412,7 @@ gcd' a b
       return result  
 ```
 
-我們只要把 monoid 的型態從 ``[String]`` 改成 ``DiffList String``，並在使用 ``tell`` 的時候把普通的 list 用 ``toDiffList`` 轉成 difference list 就可以了。
+我们只要把 monoid 的型态从 ``[String]`` 改成 ``DiffList String``，并在使用 ``tell`` 的时候把普通的 list 用 ``toDiffList`` 转成 difference list 就可以了。
 
 ```
 ghci> mapM_ putStrLn . fromDiffList . snd . runWriter $ gcdReverse 110 34  
@@ -422,12 +422,12 @@ Finished with 2
 110 mod 34 = 8  
 ```
 
-我們用 ``runWriter`` 來取出 ``gcdReverse 110 34`` 的結果，然後用 ``snd`` 取出 log，並用 ``fromDiffList`` 轉回普通的 list 印出來。
+我们用 ``runWriter`` 来取出 ``gcdReverse 110 34`` 的结果，然后用 ``snd`` 取出 log，并用 ``fromDiffList`` 转回普通的 list 印出来。
 
 
 ### Comparing Performance
 
-要體會 Difference List 能如何增進效率，考慮一個從某數數到零的 case。我們紀錄的時候就像 ``gcdReverse`` 一樣是反過來記的，所以在 log 中實際上是從零數到某個數。
+要体会 Difference List 能如何增进效率，考虑一个从某数数到零的 case。我们纪录的时候就像 ``gcdReverse`` 一样是反过来记的，所以在 log 中实际上是从零数到某个数。
 
 ```
 finalCountDown :: Int -> Writer (DiffList String) ()  
@@ -438,9 +438,9 @@ finalCountDown x = do
     tell (toDiffList [show x])  
 ```
 
-如果我們餵 ``0``，他就只 log 0。如果餵其他正整數，他會先倒數到 ``0`` 然後 append 那些數到 log 中，所以如果我們呼叫 ``finalCountDown`` 並餵給他 ``100``，那 log 的最後一筆就會是 ``"100"``。
+如果我们喂 ``0``，他就只 log 0。如果喂其他正整数，他会先倒数到 ``0`` 然后 append 那些数到 log 中，所以如果我们呼叫 ``finalCountDown`` 并喂给他 ``100``，那 log 的最后一笔就会是 ``"100"``。
 
-如果你把這個函數 load 進 GHCi 中並餵給他一個比較大的整數 ``500000``，你會看到他無停滯地從 ``0`` 開始數起：
+如果你把这个函数 load 进 GHCi 中并喂给他一个比较大的整数 ``500000``，你会看到他无停滞地从 ``0`` 开始数起：
 
 ```
 ghci> mapM_ putStrLn . fromDiffList . snd . runWriter $ finalCountDown 500000  
@@ -449,7 +449,7 @@ ghci> mapM_ putStrLn . fromDiffList . snd . runWriter $ finalCountDown 500000
 2  
 ```
 
-但如果我們用普通的 list 而不用 difference list
+但如果我们用普通的 list 而不用 difference list
 
 ```
 finalCountDown :: Int -> Writer [String] ()  
@@ -460,22 +460,22 @@ finalCountDown x = do
     tell [show x]  
 ```
 
-並下同樣的指令
+并下同样的指令
 
 ```
 ghci> mapM_ putStrLn . snd . runWriter $ finalCountDown 500000  
 ```
 
-我們會看到整個運算卡卡的。
+我们会看到整个运算卡卡的。
 
-當然這不是一個嚴謹的測試方法，但足以表顯出 difference list 是比較有效率的寫法。
+当然这不是一个严谨的测试方法，但足以表显出 difference list 是比较有效率的写法。
 
 
 ## Reader Monad
 
-[^../img/revolver.png]
+![](revolver.png)
 
-在講 Applicative 的章節中，我們說過了 ``(->) r`` 的型態只是 ``Functor`` 的一個 instance。要將一個函數 ``f`` map over 一個函數 ``g``，基本上等價於一個函數，他可以接受原本 ``g`` 接受的參數，先套用 ``g`` 然後再把其結果丟給 ``f``。
+在讲 Applicative 的章节中，我们说过了 ``(->) r`` 的型态只是 ``Functor`` 的一个 instance。要将一个函数 ``f`` map over 一个函数 ``g``，基本上等价于一个函数，他可以接受原本 ``g`` 接受的参数，先套用 ``g`` 然后再把其结果丢给 ``f``。
 
 ```
 ghci> let f = (*5)  
@@ -483,7 +483,7 @@ ghci> let g = (+3)
 ghci> (fmap f g) 8
 ```
 
-我們已經見識過函數當作 applicative functors 的例子。這樣能讓我們對函數的結果直接進行操作。
+我们已经见识过函数当作 applicative functors 的例子。这样能让我们对函数的结果直接进行操作。
 
 ```
 ghci> let f = (+) <$> (*2) <*> (+10)
@@ -491,11 +491,11 @@ ghci> f 3
 19
 ```
 
-``(+) <$> (*2) <*> (+10)`` 代表一個函數，他接受一個數值，分別把這數值交給 ``(*2)`` 跟 ``(+10)``。然後把結果加起來。例如說，如果我們餵 ``3`` 給這個函數，他會分別對 ``3`` 做 ``(*2)`` 跟 ``(+10)`` 的動作。而得到 ``6`` 跟 ``13``。然後呼叫 ``(+)``，而得到 ``19``。
+``(+) <$> (*2) <*> (+10)`` 代表一个函数，他接受一个数值，分别把这数值交给 ``(*2)`` 跟 ``(+10)``。然后把结果加起来。例如说，如果我们喂 ``3`` 给这个函数，他会分别对 ``3`` 做 ``(*2)`` 跟 ``(+10)`` 的动作。而得到 ``6`` 跟 ``13``。然后呼叫 ``(+)``，而得到 ``19``。
 
-其實 ``(->) r`` 不只是一個 functor 跟一個 applicative functor，他也是一個 monad。就如其他 monadic value 一般，一個函數也可以被想做是包含一個 context 的。這個 context 是說我們期待某個值，他還沒出現，但我們知道我們會把他當作函數的參數，呼叫函數來得到結果。
+其实 ``(->) r`` 不只是一个 functor 跟一个 applicative functor，他也是一个 monad。就如其他 monadic value 一般，一个函数也可以被想做是包含一个 context 的。这个 context 是说我们期待某个值，他还没出现，但我们知道我们会把他当作函数的参数，呼叫函数来得到结果。
 
-我們已經見識到函數是怎樣可以看作 functor 或是 applicative functors 了。再來讓我們看看當作 ``Monad`` 的一個 instance 時會是什麼樣子。你可以在 ``Control.Monad.Instances`` 裡面找到，他看起來像這樣：
+我们已经见识到函数是怎样可以看作 functor 或是 applicative functors 了。再来让我们看看当作 ``Monad`` 的一个 instance 时会是什么样子。你可以在 ``Control.Monad.Instances`` 里面找到，他看起来像这样：
 
 ```
 instance Monad ((->) r) where  
@@ -503,11 +503,11 @@ instance Monad ((->) r) where
     h >>= f = \w -> f (h w) w  
 ```
 
-我們之前已經看過函數的 ``pure`` 實作了，而 ``return`` 差不多就是 ``pure``。他接受一個值並把他放進一個 minimal context 裡面。而要讓一個函數能夠是某個定值的唯一方法就是讓他完全忽略他的參數。
+我们之前已经看过函数的 ``pure`` 实作了，而 ``return`` 差不多就是 ``pure``。他接受一个值并把他放进一个 minimal context 里面。而要让一个函数能够是某个定值的唯一方法就是让他完全忽略他的参数。
 
-而 ``>>=`` 的實作看起來有點難以理解，我們可以仔細來看看。當我們使用 ``>>=`` 的時候，餵進去的是一個 monadic value，處理他的是一個函數，而吐出來的也是一個 monadic value。在這個情況下，當我們將一個函數餵進一個函數，吐出來的也是一個函數。這就是為什麼我們在最外層使用了一個 lambda。在我們目前看過的實作中，``>>=`` 幾乎都是用 lambda 將內部跟外部隔開來，然後在內部來使用 ``f``。這邊也是一樣的道理。要從一個函數得到一個結果，我們必須餵給他一些東西，這也是為什麼我們先用 ``(h w)`` 取得結果，然後將他丟給 ``f``。而 ``f`` 回傳一個 monadic value，在這邊這個 monadic value 也就是一個函數。我們再把 ``w`` 餵給他。
+而 ``>>=`` 的实作看起来有点难以理解，我们可以仔细来看看。当我们使用 ``>>=`` 的时候，喂进去的是一个 monadic value，处理他的是一个函数，而吐出来的也是一个 monadic value。在这个情况下，当我们将一个函数喂进一个函数，吐出来的也是一个函数。这就是为什么我们在最外层使用了一个 lambda。在我们目前看过的实作中，``>>=`` 几乎都是用 lambda 将内部跟外部隔开来，然后在内部来使用 ``f``。这边也是一样的道理。要从一个函数得到一个结果，我们必须喂给他一些东西，这也是为什么我们先用 ``(h w)`` 取得结果，然后将他丢给 ``f``。而 ``f`` 回传一个 monadic value，在这边这个 monadic value 也就是一个函数。我们再把 ``w`` 喂给他。
 
-如果你還不太懂 ``>>=`` 怎麼寫出來的，不要擔心，因為接下來的範例會讓你曉得這真的是一個簡單的 Monad。我們造一個 ``do`` expression 來使用這個 Monad。
+如果你还不太懂 ``>>=`` 怎么写出来的，不要担心，因为接下来的范例会让你晓得这真的是一个简单的 Monad。我们造一个 ``do`` expression 来使用这个 Monad。
 
 ``` 
 import Control.Monad.Instances  
@@ -519,14 +519,14 @@ addStuff = do
   return (a+b)  
 ```
 
-這跟我們之前寫的 applicative expression 差不多，只差在他是運作在 monad 上。一個 ``do`` expression 的結果永遠會是一個 monadic vlaue，這個也不例外。而這個 monadic value 其實是一個函數。只是在這邊他接受一個數字，然後套用 ``(*2)``，把結果綁定到 ``a`` 上面。而 ``(+10)`` 也同用被套用到同樣的參數。結果被綁定到 ``b`` 上。``return`` 就如其他 monad 一樣，只是製作一個簡單的 monadic value 而不會作多餘的事情。這讓整個函數的結果是 ``a+b``。如果我們試著跑跑看，會得到之前的結果。
+这跟我们之前写的 applicative expression 差不多，只差在他是运作在 monad 上。一个 ``do`` expression 的结果永远会是一个 monadic vlaue，这个也不例外。而这个 monadic value 其实是一个函数。只是在这边他接受一个数字，然后套用 ``(*2)``，把结果绑定到 ``a`` 上面。而 ``(+10)`` 也同用被套用到同样的参数。结果被绑定到 ``b`` 上。``return`` 就如其他 monad 一样，只是制作一个简单的 monadic value 而不会作多余的事情。这让整个函数的结果是 ``a+b``。如果我们试着跑跑看，会得到之前的结果。
 
 ```
 ghci> addStuff 3  
 19  
 ```
 
-其中 ``3`` 會被餵給 ``(*2)`` 跟 ``(+10)``。而且他也會被餵給 ``return (a+b)``，只是他會忽略掉 ``3`` 而永遠回傳 ``a+b`` 正因為如此，function monad 也被稱作 reader monad。所有函數都從一個固定的地方讀取。要寫得更清楚一些，可以把 ``addStuff`` 改寫如下：
+其中 ``3`` 会被喂给 ``(*2)`` 跟 ``(+10)``。而且他也会被喂给 ``return (a+b)``，只是他会忽略掉 ``3`` 而永远回传 ``a+b`` 正因为如此，function monad 也被称作 reader monad。所有函数都从一个固定的地方读取。要写得更清楚一些，可以把 ``addStuff`` 改写如下：
 
 ```
 addStuff :: Int -> Int  
@@ -536,16 +536,16 @@ addStuff x = let
     in a+b  
 ```
 
-我們見識了把函數視作具有 context 的值很自然的可以表達成 reader monad。只要我們當作我們知道函數會回傳什麼值就好。他作的就是把所有的函數都黏在一起做成一個大的函數，然後把這個函數的參數都餵給全部組成的函數，這有點取出他們未來的值的意味。實作做完了然後 ``>>=`` 就會保證一切都能正常運作。
+我们见识了把函数视作具有 context 的值很自然的可以表达成 reader monad。只要我们当作我们知道函数会回传什么值就好。他作的就是把所有的函数都黏在一起做成一个大的函数，然后把这个函数的参数都喂给全部组成的函数，这有点取出他们未来的值的意味。实作做完了然后 ``>>=`` 就会保证一切都能正常运作。
 
 ## State Monad
 
-[^../img/texas.png]
+![](texas.png)
 
-Haskell 是一個純粹的語言，正因為如此，我們的程式是有一堆沒辦法改變全域狀態或變數的函數所組成，他們只會作些處理並回傳結果。這樣的性質讓我們很容易思考我們的程式在幹嘛，因為我們不需要擔心變數在某一個時間點的值是什麼。然而，有一些領域的問題根本上就是依賴於隨著時間而改變的狀態。雖然我們也可以用 Haskell 寫出這樣的程式，但有時候寫起來蠻痛苦的。這也是為什麼 Haskell 要加進 State Monad 這個特性。這讓我們在 Haskell 中可以容易地處理狀態性的問題，並讓其他部份的程式還是保持純粹性。
+Haskell 是一个纯粹的语言，正因为如此，我们的程式是有一堆没办法改变全域状态或变数的函数所组成，他们只会作些处理并回传结果。这样的性质让我们很容易思考我们的程式在干嘛，因为我们不需要担心变数在某一个时间点的值是什么。然而，有一些领域的问题根本上就是依赖于随着时间而改变的状态。虽然我们也可以用 Haskell 写出这样的程式，但有时候写起来蛮痛苦的。这也是为什么 Haskell 要加进 State Monad 这个特性。这让我们在 Haskell 中可以容易地处理状态性的问题，并让其他部份的程式还是保持纯粹性。
 
 
-當我們處理亂數的時候，我們的函數接受一個 random generator 並回傳一個新的亂數跟一個新的 random generator。如果我們需要很多個亂數，我們可以用前一個函數回傳的 random generator 繼續做下去。當我們要寫一個接受 ``StdGen`` 的函數並產生丟三個硬幣結果的函數，我們會這樣寫：
+当我们处理乱数的时候，我们的函数接受一个 random generator 并回传一个新的乱数跟一个新的 random generator。如果我们需要很多个乱数，我们可以用前一个函数回传的 random generator 继续做下去。当我们要写一个接受 ``StdGen`` 的函数并产生丢三个硬币结果的函数，我们会这样写：
 
 ```
 threeCoins :: StdGen -> (Bool, Bool, Bool)  
@@ -556,32 +556,32 @@ threeCoins gen =
     in  (firstCoin, secondCoin, thirdCoin)  
 ```
 
-他接受一個 ``gen`` 然後用 ``random gen`` 產生一個 ``Bool`` 型態的值以及新的 generator。要模擬丟第二個硬幣的話，便使用新的 generator。在其他語言中，多半除了亂數之外不需要多回傳一個 generator。那是因為我們可以對現有的進行修改。但 Haskell 是純粹的語言，我們沒辦法那麼做，所以我們必須要接受一個狀態，產生結果然後回傳一個新的狀態，然後用新的狀態來繼續做下去。
+他接受一个 ``gen`` 然后用 ``random gen`` 产生一个 ``Bool`` 型态的值以及新的 generator。要模拟丢第二个硬币的话，便使用新的 generator。在其他语言中，多半除了乱数之外不需要多回传一个 generator。那是因为我们可以对现有的进行修改。但 Haskell 是纯粹的语言，我们没办法那么做，所以我们必须要接受一个状态，产生结果然后回传一个新的状态，然后用新的状态来继续做下去。
 
-一般來講你應該不會喜歡這麼寫，在程式中有赤裸裸的狀態，但我們又不想放棄 Haskell 的純粹性質。這就是 State Monad 的好處了，他可以幫我們處理這些瑣碎的事情，又讓我們保持 Haskell 的純粹性。
+一般来讲你应该不会喜欢这么写，在程式中有赤裸裸的状态，但我们又不想放弃 Haskell 的纯粹性质。这就是 State Monad 的好处了，他可以帮我们处理这些琐碎的事情，又让我们保持 Haskell 的纯粹性。
 
-為了深入理解狀態性的計算，我們先來看看應該給他們什麼樣的型態。我們會說一個狀態性的計算是一個函數，他接受一個狀態，回傳一個值跟一個新的狀態。寫起來會像這樣：
+为了深入理解状态性的计算，我们先来看看应该给他们什么样的型态。我们会说一个状态性的计算是一个函数，他接受一个状态，回传一个值跟一个新的状态。写起来会像这样：
 
 ```
 s -> (a,s) 
 ```
 
-``s`` 是狀態的型態，而 ``a`` 是計算結果的型態。
+``s`` 是状态的型态，而 ``a`` 是计算结果的型态。
 
 
-    在其他的語言中，賦值大多是被當作會改變狀態的操作。舉例來說，當我們在命令式語言寫 ``x = 5``，這通常代表的是把 ``5`` 指定給 ``x`` 這變數。而且這邊 ``5`` 是一個 expression。
+    在其他的语言中，赋值大多是被当作会改变状态的操作。举例来说，当我们在命令式语言写 ``x = 5``，这通常代表的是把 ``5`` 指定给 ``x`` 这变数。而且这边 ``5`` 是一个 expression。
     
-    如果你用函數語言的角度去思考，你可以把他想做是一個函數，接受一個狀態，並回傳結果跟新的狀態。那新的狀態代表所有已指定的值與新加入的變數。
+    如果你用函数语言的角度去思考，你可以把他想做是一个函数，接受一个状态，并回传结果跟新的状态。那新的状态代表所有已指定的值与新加入的变数。
 
-這種改變狀態的計算，除了想做是一個接受狀態並回傳結果跟新狀態的函數外，也可以想做是具有 context 的值。
-實際的值是結果。然而要得到結果，我們必須要給一個初始的狀態，才能得到結果跟最後的狀態。
+这种改变状态的计算，除了想做是一个接受状态并回传结果跟新状态的函数外，也可以想做是具有 context 的值。
+实际的值是结果。然而要得到结果，我们必须要给一个初始的状态，才能得到结果跟最后的状态。
 
 
 ### Stack and Stones
 
-考慮現在我們要對一個堆疊的操作建立模型。你可以把東西推上堆疊頂端，或是把東西從頂端拿下來。如果你要的元素是在堆疊的底層的話，你必須要把他上面的東西都拿下來才能拿到他。
+考虑现在我们要对一个堆叠的操作建立模型。你可以把东西推上堆叠顶端，或是把东西从顶端拿下来。如果你要的元素是在堆叠的底层的话，你必须要把他上面的东西都拿下来才能拿到他。
 
-我們用一個 list 來代表我們的堆疊。而我們把 list 的頭當作堆疊的頂端。為了正確的建立模型，我們要寫兩個函數：``pop`` 跟 ``push``。``pop`` 會接受一個堆疊，取下一個元素並回傳一個新的堆疊，這個新的堆疊不包含取下的元素。``push`` 會接受一個元素，把他堆到堆疊中，並回傳一個新的堆疊，其包含這個新的元素。
+我们用一个 list 来代表我们的堆叠。而我们把 list 的头当作堆叠的顶端。为了正确的建立模型，我们要写两个函数：``pop`` 跟 ``push``。``pop`` 会接受一个堆叠，取下一个元素并回传一个新的堆叠，这个新的堆叠不包含取下的元素。``push`` 会接受一个元素，把他堆到堆叠中，并回传一个新的堆叠，其包含这个新的元素。
 
 ```
 type Stack = [Int]  
@@ -593,9 +593,9 @@ push :: Int -> Stack -> ((),Stack)
 push a xs = ((),a:xs)  
 ```
 
-我們用 ``()`` 來當作 pushing 的結果，畢竟推上堆疊並不需要什麼回傳值，他的重點是在改變堆疊。注意到 ``push`` 跟 ``pop`` 都是改變狀態的計算，可以從他們的型態看出來。
+我们用 ``()`` 来当作 pushing 的结果，毕竟推上堆叠并不需要什么回传值，他的重点是在改变堆叠。注意到 ``push`` 跟 ``pop`` 都是改变状态的计算，可以从他们的型态看出来。
 
-我們來寫一段程式來模擬一個堆疊的操作。我們接受一個堆疊，把 ``3`` 推上去，然後取出兩個元素。
+我们来写一段程式来模拟一个堆叠的操作。我们接受一个堆叠，把 ``3`` 推上去，然后取出两个元素。
 
 ```
 stackManip :: Stack -> (Int, Stack)  
@@ -605,16 +605,16 @@ stackManip stack = let
     in pop newStack2 
 ```
 
-我們拿一個 ``stack`` 來作 ``push 3 stack`` 的動作，其結果是一個 tuple。tuple 的第一個部份是 ``()``，而第二個部份是新的堆疊，我們把他命名成 ``newStack1``。然後我們從 ``newStack1`` 上 pop 出一個數字。其結果是我們之前 push 上去的一個數字 ``a``，然後把這個更新的堆疊叫做 ``newStack2``。然後我們從 ``newStack2`` 上再 pop 出一個數字 ``b``，並得到 ``newStack3``。我們回傳一個 tuple 跟最終的堆疊。
+我们拿一个 ``stack`` 来作 ``push 3 stack`` 的动作，其结果是一个 tuple。tuple 的第一个部份是 ``()``，而第二个部份是新的堆叠，我们把他命名成 ``newStack1``。然后我们从 ``newStack1`` 上 pop 出一个数字。其结果是我们之前 push 上去的一个数字 ``a``，然后把这个更新的堆叠叫做 ``newStack2``。然后我们从 ``newStack2`` 上再 pop 出一个数字 ``b``，并得到 ``newStack3``。我们回传一个 tuple 跟最终的堆叠。
 
 ```
 ghci> stackManip [5,8,2,1]  
 (5,[8,2,1])  
 ```
 
-結果就是 ``5`` 跟新的堆疊 ``[8,2,1]``。注意到 ``stackManip`` 是一個會改變狀態的操作。我們把一堆會改變狀態的操作綁在一起操作，有沒有覺得很耳熟的感覺。
+结果就是 ``5`` 跟新的堆叠 ``[8,2,1]``。注意到 ``stackManip`` 是一个会改变状态的操作。我们把一堆会改变状态的操作绑在一起操作，有没有觉得很耳熟的感觉。
 
-``stackManip`` 的程式有點冗長，因為我們要寫得太詳細，必須把狀態給每個操作，然後把新的狀態再餵給下一個。如果我們可以不要這樣作的話，那程式應該會長得像這樣：
+``stackManip`` 的程式有点冗长，因为我们要写得太详细，必须把状态给每个操作，然后把新的状态再喂给下一个。如果我们可以不要这样作的话，那程式应该会长得像这样：
 
 ``` 
 stackManip = do  
@@ -624,20 +624,20 @@ stackManip = do
 ```
 
 
-這就是 State Monad 在做的事。有了他，我們便可以免除於要把狀態操作寫得太明白的窘境。
+这就是 State Monad 在做的事。有了他，我们便可以免除于要把状态操作写得太明白的窘境。
 
 
 ### The State Monad
 
-``Control.Monad.State`` 這個模組提供了一個 ``newtype`` 包起來的型態。
+``Control.Monad.State`` 这个模组提供了一个 ``newtype`` 包起来的型态。
 
 ```
 newtype State s a = State { runState :: s -> (a,s) }  
 ```
 
-一個 ``State s a`` 代表的是一個改變狀態的操作，他操縱的狀態為型態 ``s``，而產生的結果是 ``a``。
+一个 ``State s a`` 代表的是一个改变状态的操作，他操纵的状态为型态 ``s``，而产生的结果是 ``a``。
 
-我們已經見識過什麼是改變狀態的操作，以及他們是可以被看成具有 context 的值。接著來看看他們 ``Monad`` 的 instance：
+我们已经见识过什么是改变状态的操作，以及他们是可以被看成具有 context 的值。接着来看看他们 ``Monad`` 的 instance：
 
 ```
 instance Monad (State s) where  
@@ -647,14 +647,14 @@ instance Monad (State s) where
                                     in  g newState  
 ```
 
-我們先來看看 ``return`` 那一行。我們 ``return`` 要作的事是接受一個值，並做出一個改變狀態的操作，讓他永遠回傳那個值。所以我們才做了一個 lambda 函數，``\s -> (x,s)``。我們把 ``x`` 當成是結果，並且狀態仍然是 ``s``。這就是 ``return`` 要完成的 minimal context。
+我们先来看看 ``return`` 那一行。我们 ``return`` 要作的事是接受一个值，并做出一个改变状态的操作，让他永远回传那个值。所以我们才做了一个 lambda 函数，``\s -> (x,s)``。我们把 ``x`` 当成是结果，并且状态仍然是 ``s``。这就是 ``return`` 要完成的 minimal context。
 
-[$../img/badge.png]
+![](badge.png)
 
-那 ``>>=`` 的實作呢？很明顯的把改變狀態的操作餵進 ``>>=`` 也必須要丟出另一個改變狀態的操作。所以我們用 ``State`` 這個 ``newtype`` wrapper 來把一個 lambda 函數包住。這個 lambda 會是新的一個改變狀態的操作。但裡面的內容是什麼？首先我們應該要從接受的操作取出結果。由於 lambda 是在一個大的操作中，所以我們可以餵給 ``h`` 我們現在的狀態，也就是 ``s``。那會產生 ``(a, newState)``。到目前為止每次我們在實作 ``>>=`` 的時候，我們都會先從 monadic value 中取出結果，然後餵給 ``f`` 來得到新的 monadic value。在寫 ``Writer`` 的時候，我們除了這樣作還要確保 context 是用 ``mappend`` 把舊的 monoid value 跟新的接起來。在這邊我們則是用 ``f a`` 得到一個新的操作 ``g``。現在我們有了新的操作跟新的狀態（叫做 ``newState``），我們就把 ``newState`` 餵給 ``g``。結果便是一個 tuple，裡面包含了最後的結果跟最終的狀態。
+那 ``>>=`` 的实作呢？很明显的把改变状态的操作喂进 ``>>=`` 也必须要丢出另一个改变状态的操作。所以我们用 ``State`` 这个 ``newtype`` wrapper 来把一个 lambda 函数包住。这个 lambda 会是新的一个改变状态的操作。但里面的内容是什么？首先我们应该要从接受的操作取出结果。由于 lambda 是在一个大的操作中，所以我们可以喂给 ``h`` 我们现在的状态，也就是 ``s``。那会产生 ``(a, newState)``。到目前为止每次我们在实作 ``>>=`` 的时候，我们都会先从 monadic value 中取出结果，然后喂给 ``f`` 来得到新的 monadic value。在写 ``Writer`` 的时候，我们除了这样作还要确保 context 是用 ``mappend`` 把旧的 monoid value 跟新的接起来。在这边我们则是用 ``f a`` 得到一个新的操作 ``g``。现在我们有了新的操作跟新的状态（叫做 ``newState``），我们就把 ``newState`` 喂给 ``g``。结果便是一个 tuple，里面包含了最后的结果跟最终的状态。
 
 
-有了 ``>>=``，我們便可以把兩個操作黏在一起，只是第二個被放在一個函數中，專門接受第一個的結果。由於 ``pop`` 跟 ``push`` 已經是改變狀態的操作了，我們可以把他們包在 ``State`` 中
+有了 ``>>=``，我们便可以把两个操作黏在一起，只是第二个被放在一个函数中，专门接受第一个的结果。由于 ``pop`` 跟 ``push`` 已经是改变状态的操作了，我们可以把他们包在 ``State`` 中
 
 ```
 import Control.Monad.State  
@@ -666,7 +666,7 @@ push :: Int -> State Stack ()
 push a = State $ \xs -> ((),a:xs)  
 ```
 
-``pop`` 已經滿足我們的條件，而 ``push`` 要先接受一個 ``Int`` 才會回傳我們要的操作。所以我們可以改寫先前的範例如下：
+``pop`` 已经满足我们的条件，而 ``push`` 要先接受一个 ``Int`` 才会回传我们要的操作。所以我们可以改写先前的范例如下：
 
 ```
 import Control.Monad.State  
@@ -679,14 +679,14 @@ stackManip = do
 ```
 
 
-看到我們是怎麼把一個 ``push`` 跟兩個 ``pop`` 黏成一個操作嗎？當我們將他們從一個 ``newtype`` 取出，其實就是需要一個能餵進初始狀態的函數：
+看到我们是怎么把一个 ``push`` 跟两个 ``pop`` 黏成一个操作吗？当我们将他们从一个 ``newtype`` 取出，其实就是需要一个能喂进初始状态的函数：
 
 ```
 ghci> runState stackManip [5,8,2,1]  
 (5,[8,2,1])  
 ```
 
-我們不須綁定第二個 ``pop``，因為我們根本不會用到 ``a``，所以可以寫成下面的樣子：
+我们不须绑定第二个 ``pop``，因为我们根本不会用到 ``a``，所以可以写成下面的样子：
 
 ```
 stackManip :: State Stack Int  
@@ -696,7 +696,7 @@ stackManip = do
     pop  
 ```
 
-再來嘗試另外一種方式，先從堆疊上取下一個數字，看看他是不是 ``5``，如果是的話就把他放回堆疊上，如果不是的話就堆上 ``3`` 跟 ``8``。
+再来尝试另外一种方式，先从堆叠上取下一个数字，看看他是不是 ``5``，如果是的话就把他放回堆叠上，如果不是的话就堆上 ``3`` 跟 ``8``。
 
 ```
 stackStuff :: State Stack ()  
@@ -709,14 +709,14 @@ stackStuff = do
             push 8 
 ```
 
-很直覺吧！我們來看看初始的堆疊的樣子。
+很直觉吧！我们来看看初始的堆叠的样子。
 
 ```
 ghci> runState stackStuff [9,0,2,1,0]  
 ((),[8,3,0,2,1,0]) 
 ```
 
-還記得我們說過 ``do`` 的結果會是一個 monadic value，而在 ``State`` monad 的 case，``do`` 也就是一個改變狀態的函數。而由於 ``stackManip`` 跟 ``stackStuff`` 都是改變狀態的計算，因此我們可以把他們黏在一起：
+还记得我们说过 ``do`` 的结果会是一个 monadic value，而在 ``State`` monad 的 case，``do`` 也就是一个改变状态的函数。而由于 ``stackManip`` 跟 ``stackStuff`` 都是改变状态的计算，因此我们可以把他们黏在一起：
 
 ```
 moreStack :: State Stack ()  
@@ -727,21 +727,21 @@ moreStack = do
         else return ()  
 ```
 
-如果 ``stackManip`` 的結果是 ``100``，我們就會跑 ``stackStuff``，如果不是的話就什麼都不做。``return ()`` 不過就是什麼是都不做，全部保持原樣。
+如果 ``stackManip`` 的结果是 ``100``，我们就会跑 ``stackStuff``，如果不是的话就什么都不做。``return ()`` 不过就是什么是都不做，全部保持原样。
 
-``Contorl.Monad.State`` 提供了一個 ``MonadState`` 的 typeclass，他有兩個有用的函數，分別是 ``get`` 跟 ``put``。對於 ``State`` 來說，``get`` 的實作就像這樣：
+``Contorl.Monad.State`` 提供了一个 ``MonadState`` 的 typeclass，他有两个有用的函数，分别是 ``get`` 跟 ``put``。对于 ``State`` 来说，``get`` 的实作就像这样：
 
 ```
 get = State $ \s -> (s,s)
 ```
 
-他只是取出現在的狀態除此之外什麼也不做。而 ``put`` 函數會接受一個狀態並取代掉現有的狀態。
+他只是取出现在的状态除此之外什么也不做。而 ``put`` 函数会接受一个状态并取代掉现有的状态。
 
 ```
 put newState = State $ \s -> ((),newState)  
 ```
 
-有了這兩個狀態，我們便可以看到現在堆疊中有什麼，或是把整個堆疊中的元素換掉。
+有了这两个状态，我们便可以看到现在堆叠中有什么，或是把整个堆叠中的元素换掉。
 
 ```
 stackyStack :: State Stack ()  
@@ -752,31 +752,31 @@ stackyStack = do
         else put [9,2,1]  
 ```
 
-我們可以看看對於 ``State`` 而言，``>>=`` 的型態會是什麼：
+我们可以看看对于 ``State`` 而言，``>>=`` 的型态会是什么：
 
 ```
 (>>=) :: State s a -> (a -> State s b) -> State s b  
 ```
 
-我們可以看到狀態的型態都是 ``s``，而結果從型態 ``a`` 變成型態 ``b``。這代表我們可以把好幾個改變狀態的計算黏在一起，這些計算的結果可以都不一樣，但狀態的型態會是一樣的。舉例來說，對於 ``Maybe`` 而言，``>>=`` 的型態會是：
+我们可以看到状态的型态都是 ``s``，而结果从型态 ``a`` 变成型态 ``b``。这代表我们可以把好几个改变状态的计算黏在一起，这些计算的结果可以都不一样，但状态的型态会是一样的。举例来说，对于 ``Maybe`` 而言，``>>=`` 的型态会是：
 
 ```
 (>>=) :: Maybe a -> (a -> Maybe b) -> Maybe b  
 ```
 
-``Maybe`` 不變是有道理的，但如果用 ``>>=`` 來把兩種不同的 monad 接起來是沒道理的。但對於 state monad 而言，monad 其實是 ``State s``，所以如果 ``s`` 不一樣，我們就要用 ``>>=`` 來把兩個 monad 接起來。
+``Maybe`` 不变是有道理的，但如果用 ``>>=`` 来把两种不同的 monad 接起来是没道理的。但对于 state monad 而言，monad 其实是 ``State s``，所以如果 ``s`` 不一样，我们就要用 ``>>=`` 来把两个 monad 接起来。
 
-### 隨機性與 state monad
+### 随机性与 state monad
 
-在章節的一開始，我們知道了在 Haskell 中要產生亂數的不方便。我們要拿一個產生器，並回傳一個亂數跟一個新的產生器。接下來我們還一定要用新的產生器不可。但 State Monad 讓我們可以方便一些。
+在章节的一开始，我们知道了在 Haskell 中要产生乱数的不方便。我们要拿一个产生器，并回传一个乱数跟一个新的产生器。接下来我们还一定要用新的产生器不可。但 State Monad 让我们可以方便一些。
 
-``System.Random`` 中的 ``random`` 函數有下列的型態：
+``System.Random`` 中的 ``random`` 函数有下列的型态：
 
 ```
 random :: (RandomGen g, Random a) => g -> (a, g)  
 ```
 
-代表他接受一個亂數產生器，並產生一個亂數跟一個新的產生器。很明顯他是一個會改變狀態的計算，所以我們可以用 ``newtype`` 把他包在一個 ``State`` 中，然後把他當作 monadic value 來操作。
+代表他接受一个乱数产生器，并产生一个乱数跟一个新的产生器。很明显他是一个会改变状态的计算，所以我们可以用 ``newtype`` 把他包在一个 ``State`` 中，然后把他当作 monadic value 来操作。
 
 ```
 import System.Random  
@@ -786,7 +786,7 @@ randomSt :: (RandomGen g, Random a) => State g a
 randomSt = State random  
 ```
 
-這樣我們要丟三個硬幣的結果可以改寫成這樣：
+这样我们要丢三个硬币的结果可以改写成这样：
 
 ```
 import System.Random  
@@ -800,20 +800,20 @@ threeCoins = do
   return (a,b,c)  
 ```
 
-``threeCoins`` 是一個改變狀態的計算，他接受一個初始的亂數產生器，他會把他餵給 ``randomSt``，他會產生一個數字跟一個新的產生器，然後會一直傳遞下去。我們用 ``return (a,b,c)`` 來呈現 ``(a,b,c)``，這樣並不會改變最近一個產生器的狀態。
+``threeCoins`` 是一个改变状态的计算，他接受一个初始的乱数产生器，他会把他喂给 ``randomSt``，他会产生一个数字跟一个新的产生器，然后会一直传递下去。我们用 ``return (a,b,c)`` 来呈现 ``(a,b,c)``，这样并不会改变最近一个产生器的状态。
 
 ```
 ghci> runState threeCoins (mkStdGen 33)  
 ((True,False,True),680029187 2103410263)
 ```
 
-要完成像這樣要改變狀態的任務便因此變得輕鬆了很多。
+要完成像这样要改变状态的任务便因此变得轻松了很多。
 
 ## Error Monad
 
-我們知道 ``Maybe`` 是拿來賦予一個值具有可能失敗的 context。一個值可能會是 ``Just something`` 或是一個 ``Nothing``。儘管這很有用，但當我們拿到了一個 ``Nothing``，我們只知道他失敗了，但我們沒辦法塞進一些有用的資訊，告訴我們究竟是在什麼樣的情況下失敗了。
+我们知道 ``Maybe`` 是拿来赋予一个值具有可能失败的 context。一个值可能会是 ``Just something`` 或是一个 ``Nothing``。尽管这很有用，但当我们拿到了一个 ``Nothing``，我们只知道他失败了，但我们没办法塞进一些有用的资讯，告诉我们究竟是在什么样的情况下失败了。
 
-而 ``Either e a`` 則能讓我們可以加入一個可能會發生錯誤的 context，還可以增加些有用的訊息，這樣能讓我們知道究竟是什麼東西出錯了。一個 ``Either e a`` 的值可以是代表正確的 ``Right``，或是代表錯誤的 ``Left``，例如說：
+而 ``Either e a`` 则能让我们可以加入一个可能会发生错误的 context，还可以增加些有用的讯息，这样能让我们知道究竟是什么东西出错了。一个 ``Either e a`` 的值可以是代表正确的 ``Right``，或是代表错误的 ``Left``，例如说：
 
 ```
 ghci> :t Right 4  
@@ -822,9 +822,9 @@ ghci> :t Left "out of cheese error"
 Left "out of cheese error" :: Either [Char] b  
 ```
 
-這就像是加強版的 ``Maybe``，他看起來實在很像一個 monad，畢竟他也可以當作是一個可能會發生錯誤的 context，只是多了些訊息罷了。
+这就像是加强版的 ``Maybe``，他看起来实在很像一个 monad，毕竟他也可以当作是一个可能会发生错误的 context，只是多了些讯息罢了。
 
-在 ``Control.Monad.Error`` 裡面有他的 ``Monad`` instance。
+在 ``Control.Monad.Error`` 里面有他的 ``Monad`` instance。
 
 ```
 instance (Error e) => Monad (Either e) where  
@@ -834,12 +834,12 @@ instance (Error e) => Monad (Either e) where
     fail msg = Left (strMsg msg)  
 ```
 
-``return`` 就是建立起一個最小的 context，由於我們用 ``Right`` 代表正確的結果，所以他把值包在一個 ``Right`` constructor 裡面。就像實作 ``Maybe`` 時的 ``return`` 一樣。
+``return`` 就是建立起一个最小的 context，由于我们用 ``Right`` 代表正确的结果，所以他把值包在一个 ``Right`` constructor 里面。就像实作 ``Maybe`` 时的 ``return`` 一样。
 
-``>>=`` 會檢查兩種可能的情況：也就是 ``Left`` 跟 ``Right``。如果進來的是 ``Right``，那我們就呼叫 ``f``，就像我們在寫 ``Just`` 的時候一樣，只是呼叫對應的函數。而在錯誤的情況下，``Left`` 會被傳出來，而且裡面保有描述失敗的值。
+``>>=`` 会检查两种可能的情况：也就是 ``Left`` 跟 ``Right``。如果进来的是 ``Right``，那我们就呼叫 ``f``，就像我们在写 ``Just`` 的时候一样，只是呼叫对应的函数。而在错误的情况下，``Left`` 会被传出来，而且里面保有描述失败的值。
 
 
-``Either e`` 的 ``Monad`` instance 有一項額外的要求，就是包在 ``Left`` 中的型態，也就是 ``e``，必須是 ``Error`` typeclass 的 instance。``Error`` 這個 typeclass 描述一個可以被當作錯誤訊息的型態。他定義了 ``strMsg`` 這個函數，他接受一個用字串表達的錯誤。一個明顯的範例就是 ``String`` 型態，當他是 ``String`` 的時候，``strMsg`` 只不過回傳他接受到的字串。
+``Either e`` 的 ``Monad`` instance 有一项额外的要求，就是包在 ``Left`` 中的型态，也就是 ``e``，必须是 ``Error`` typeclass 的 instance。``Error`` 这个 typeclass 描述一个可以被当作错误讯息的型态。他定义了 ``strMsg`` 这个函数，他接受一个用字串表达的错误。一个明显的范例就是 ``String`` 型态，当他是 ``String`` 的时候，``strMsg`` 只不过回传他接受到的字串。
 
 ```
 ghci> :t strMsg  
@@ -848,9 +848,9 @@ ghci> strMsg "boom!" :: String
 "boom!"  
 ```
 
-但因為我們通常在用 ``Either`` 來描述錯誤的時候，是用 ``String`` 來裝錯誤訊息，所以我們也不用擔心這一點。當在 ``do`` 裡面做 pattern match 失敗的時候，``Left`` 的值會拿來代表失敗。
+但因为我们通常在用 ``Either`` 来描述错误的时候，是用 ``String`` 来装错误讯息，所以我们也不用担心这一点。当在 ``do`` 里面做 pattern match 失败的时候，``Left`` 的值会拿来代表失败。
 
-總之來看看一個範例吧：
+总之来看看一个范例吧：
 
 ```
 ghci> Left "boom" >>= \x -> return (x+1)  
@@ -860,9 +860,9 @@ Left "no way!"
 ```
 
 
-當我們用 ``>>=`` 來把一個 ``Left`` 餵進一個函數，函數的運算會被忽略而直接回傳丟進去的 ``Left`` 值。當我們餵 ``Right`` 值給函數，函數就會被計算而得到結果，但函數還是產生了一個 ``Left`` 值。
+当我们用 ``>>=`` 来把一个 ``Left`` 喂进一个函数，函数的运算会被忽略而直接回传丢进去的 ``Left`` 值。当我们喂 ``Right`` 值给函数，函数就会被计算而得到结果，但函数还是产生了一个 ``Left`` 值。
 
-當我們試著餵一個 ``Right`` 值給函數，而且函數也成功地計算，我們卻碰到了一個奇怪的 type error。
+当我们试着喂一个 ``Right`` 值给函数，而且函数也成功地计算，我们却碰到了一个奇怪的 type error。
 
 ```
 ghci> Right 3 >>= \x -> return (x + 100)  
@@ -874,43 +874,43 @@ ghci> Right 3 >>= \x -> return (x + 100)
   Probable fix: add a type signature that fixes these type variable(s)  
 ```
 
-Haskell 警告說他不知道要為 ``e`` 選擇什麼樣的型態，儘管我們是要印出 ``Right`` 的值。這是因為 ``Error e`` 被限制成 ``Monad``。把 ``Either`` 當作 Monad 使用就會碰到這樣的錯誤，你只要明確寫出 type signature 就行了：
+Haskell 警告说他不知道要为 ``e`` 选择什么样的型态，尽管我们是要印出 ``Right`` 的值。这是因为 ``Error e`` 被限制成 ``Monad``。把 ``Either`` 当作 Monad 使用就会碰到这样的错误，你只要明确写出 type signature 就行了：
 
 ```
 ghci> Right 3 >>= \x -> return (x + 100) :: Either String Int  
 Right 103  
 ```
 
-這樣就沒問題了。
+这样就没问题了。
 
 
-撇除這個小毛病，把 ``Either`` 當 Monad 使用就像使用 ``Maybe`` 一樣。在前一章中，我們展示了 ``Maybe`` 的使用方式。你可以把前一章的範例用 ``Either`` 重寫當作練習。
+撇除这个小毛病，把 ``Either`` 当 Monad 使用就像使用 ``Maybe`` 一样。在前一章中，我们展示了 ``Maybe`` 的使用方式。你可以把前一章的范例用 ``Either`` 重写当作练习。
 
-## 一些實用的 Moandic functions
+## 一些实用的 Moandic functions
 
-在這個章節，我們會看看一些操作 monadic value 的函數。這樣的函數通常我們稱呼他們為 monadic function。其中有些你是第一次見到，但有些不過是 ``filter`` 或 ``foldl`` 的變形。讓我們來看看吧！
+在这个章节，我们会看看一些操作 monadic value 的函数。这样的函数通常我们称呼他们为 monadic function。其中有些你是第一次见到，但有些不过是 ``filter`` 或 ``foldl`` 的变形。让我们来看看吧！
 
 ### liftM 
 
-[$../img/wolf.png]
+![](wolf.png)
 
-當我們開始學習 Monad 的時候，我們是先學習 functors，他代表可以被 map over 的事物。接著我們學了 functors 的加強版，也就是 applicative functors，他可以對 applicative values 做函數的套用，也可以把一個一般值放到一個預設的 context 中。最後，我們介紹在 applicative functors 上更進一步的 monad，他讓這些具有 context 的值可以被餵進一般函數中。 
+当我们开始学习 Monad 的时候，我们是先学习 functors，他代表可以被 map over 的事物。接着我们学了 functors 的加强版，也就是 applicative functors，他可以对 applicative values 做函数的套用，也可以把一个一般值放到一个预设的 context 中。最后，我们介绍在 applicative functors 上更进一步的 monad，他让这些具有 context 的值可以被喂进一般函数中。 
 
-也就是說每一個 monad 都是個 applicative functor，而每一個 applicative functor 也都是一個 functor。``Applicative`` typeclass 中有加入限制，讓每一個 ``Applicative`` 都是 ``Functor``。但 ``Monad`` 卻沒有這樣的限制，讓每個 ``Monad`` 都是 ``Applicative``。這是因為 ``Monad`` 這個 typeclass 是在 ``Applicative`` 引入前就存在的緣故。
+也就是说每一个 monad 都是个 applicative functor，而每一个 applicative functor 也都是一个 functor。``Applicative`` typeclass 中有加入限制，让每一个 ``Applicative`` 都是 ``Functor``。但 ``Monad`` 却没有这样的限制，让每个 ``Monad`` 都是 ``Applicative``。这是因为 ``Monad`` 这个 typeclass 是在 ``Applicative`` 引入前就存在的缘故。
 
-但即使每個 monad 都是一個 functor，但我們不需要依賴 ``Functor`` 的定義。那是因為我們有 ``liftM`` 這個函數。他會接受一個函數跟一個 monadic value，然後把函數 map over 那些 monadic value。所以他其實就是 ``fmap``，以下是他的型態：
+但即使每个 monad 都是一个 functor，但我们不需要依赖 ``Functor`` 的定义。那是因为我们有 ``liftM`` 这个函数。他会接受一个函数跟一个 monadic value，然后把函数 map over 那些 monadic value。所以他其实就是 ``fmap``，以下是他的型态：
 
 ```
 liftM :: (Monad m) => (a -> b) -> m a -> m b  
 ```
 
-而這是 ``fmap`` 的型態：
+而这是 ``fmap`` 的型态：
 
 ```
 fmap :: (Functor f) => (a -> b) -> f a -> f b
 ```
 
-如果 ``Functor`` 跟 ``Monad`` 的 instance 遵守 functor 跟 monad 的法則（到目前為止我們看過的 monad 都遵守），那這兩個函數其實是等價的。這就像 ``pure`` 跟 ``return`` 其實是同一件事，只是一個在 ``Applicative`` 中，而另外一個在 ``Monad`` 裡面，我們來試試看 ``liftM`` 吧：
+如果 ``Functor`` 跟 ``Monad`` 的 instance 遵守 functor 跟 monad 的法则（到目前为止我们看过的 monad 都遵守），那这两个函数其实是等价的。这就像 ``pure`` 跟 ``return`` 其实是同一件事，只是一个在 ``Applicative`` 中，而另外一个在 ``Monad`` 里面，我们来试试看 ``liftM`` 吧：
 
 ```
 ghci> liftM (*3) (Just 8)  
@@ -927,15 +927,15 @@ ghci> runState (fmap (+100) pop) [1,2,3,4]
 (101,[2,3,4]) 
 ```
 
-我們已經知道 ``fmap`` 是如何運作在 ``Maybe`` 上。而 ``liftM`` 又跟 ``fmap`` 等價。對於 ``Writer`` 型態的值而言，函數只有對他的第一個 component 做處理。而對於改變狀態的計算，``fmap`` 跟 ``liftM`` 也都是產生另一個改變狀態的計算。我們也看過了 ``(+100)`` 當作用在 ``pop`` 上會產生 ``(1, [2,3,4])``。
+我们已经知道 ``fmap`` 是如何运作在 ``Maybe`` 上。而 ``liftM`` 又跟 ``fmap`` 等价。对于 ``Writer`` 型态的值而言，函数只有对他的第一个 component 做处理。而对于改变状态的计算，``fmap`` 跟 ``liftM`` 也都是产生另一个改变状态的计算。我们也看过了 ``(+100)`` 当作用在 ``pop`` 上会产生 ``(1, [2,3,4])``。
 
-來看看 ``liftM`` 是如何被實作的：
+来看看 ``liftM`` 是如何被实作的：
 ```
 liftM :: (Monad m) => (a -> b) -> m a -> m b  
 liftM f m = m >>= (\x -> return (f x)) 
 ```
 
-或者用 ``do`` 來表示得清楚些
+或者用 ``do`` 来表示得清楚些
 
 ```
 liftM :: (Monad m) => (a -> b) -> m a -> m b  
@@ -944,10 +944,10 @@ liftM f m = do
     return (f x)  
 ```
 
-我們餵一個 monadic value ``m`` 給函數，我們套用那個函數然後把結果放進一個預設的 context。由於遵守 monad laws，這保證這操作不會改變 context，只會呈現最後的結果。我們可以看到實作中 ``liftM`` 也沒有用到 ``Functor`` 的性質。這代表我們能只用 monad 提供給我們的就實作完 ``fmap``。這特性讓我們可以得到 monad 比 functor 性質要強的結論。
+我们喂一个 monadic value ``m`` 给函数，我们套用那个函数然后把结果放进一个预设的 context。由于遵守 monad laws，这保证这操作不会改变 context，只会呈现最后的结果。我们可以看到实作中 ``liftM`` 也没有用到 ``Functor`` 的性质。这代表我们能只用 monad 提供给我们的就实作完 ``fmap``。这特性让我们可以得到 monad 比 functor 性质要强的结论。
 
-``Applicative`` 讓我們可以操作具有 context 的值就像操作一般的值一樣。
-就像這樣：
+``Applicative`` 让我们可以操作具有 context 的值就像操作一般的值一样。
+就像这样：
 
 ```
 ghci> (+) <$> Just 3 <*> Just 5  
@@ -956,16 +956,16 @@ ghci> (+) <$> Just 3 <*> Nothing
 Nothing  
 ```
 
-使用 applicative 的特性讓事情變得很精簡。
-``<$>`` 不過就是 ``fmap``，而 ``<*>`` 只是一個具有下列型態的函數：
+使用 applicative 的特性让事情变得很精简。
+``<$>`` 不过就是 ``fmap``，而 ``<*>`` 只是一个具有下列型态的函数：
 
 ```
 (<*>) :: (Applicative f) => f (a -> b) -> f a -> f b  
 ```
 
-他有點像 ``fmap``，只是函數本身有一個 context。我們必須把他從 context 中抽出，對 ``f a`` 做 map over 的東做，然後再放回 context 中。由於在 Haskel 中函數預設都是 curried，我們便能用 ``<$>`` 以及 ``<*>`` 來讓接受多個參數的函數也能接受 applicative 種類的值。
+他有点像 ``fmap``，只是函数本身有一个 context。我们必须把他从 context 中抽出，对 ``f a`` 做 map over 的东做，然后再放回 context 中。由于在 Haskel 中函数预设都是 curried，我们便能用 ``<$>`` 以及 ``<*>`` 来让接受多个参数的函数也能接受 applicative 种类的值。
 
-總之 ``<*>`` 跟 ``fmap`` 很類似，他也能只用 ``Monad`` 保證的性質實作出來。``ap`` 這個函數基本上就是 ``<*>``，只是他是限制在 ``Monad`` 上而不是 ``Applicative`` 上。這邊是他的定義：
+总之 ``<*>`` 跟 ``fmap`` 很类似，他也能只用 ``Monad`` 保证的性质实作出来。``ap`` 这个函数基本上就是 ``<*>``，只是他是限制在 ``Monad`` 上而不是 ``Applicative`` 上。这边是他的定义：
 
 ```
 ap :: (Monad m) => m (a -> b) -> m a -> m b  
@@ -976,7 +976,7 @@ ap mf m = do
 ```
 
 
-``mf`` 是一個 monadic value，他的結果是一個函數。由於函數跟值都是放在 context 中，假設我們從 context 取出的函數叫 ``f``，從 context 取出的值叫 ``x``，我們把 ``x`` 餵給 ``f`` 然後再把結果放回 context。像這樣：
+``mf`` 是一个 monadic value，他的结果是一个函数。由于函数跟值都是放在 context 中，假设我们从 context 取出的函数叫 ``f``，从 context 取出的值叫 ``x``，我们把 ``x`` 喂给 ``f`` 然后再把结果放回 context。像这样：
 
 ```
 ghci> Just (+3) <*> Just 4  
@@ -990,29 +990,29 @@ ghci> [(+1),(+2),(+3)] `ap` [10,11]
 ```
 
 
-由於我們能用 ``Monad`` 提供的函數實作出 ``Applicative`` 的函數，因此我們看到 Monad 有比 applicative 強的性質。事實上，當我們知道一個型態是 monad 的時候，大多數會先定義出 ``Monad`` 的 instance，然後才定義 ``Applicative`` 的 instance。而且只要把 ``pure`` 定義成 ``return``，``<*>`` 定義成 ``ap`` 就行了。同樣的，如果你已經有了 ``Monad`` 的 instance，你也可以簡單的定義出 ``Functor``，只要把 ``fmap`` 定義成 ``liftM`` 就行了。
+由于我们能用 ``Monad`` 提供的函数实作出 ``Applicative`` 的函数，因此我们看到 Monad 有比 applicative 强的性质。事实上，当我们知道一个型态是 monad 的时候，大多数会先定义出 ``Monad`` 的 instance，然后才定义 ``Applicative`` 的 instance。而且只要把 ``pure`` 定义成 ``return``，``<*>`` 定义成 ``ap`` 就行了。同样的，如果你已经有了 ``Monad`` 的 instance，你也可以简单的定义出 ``Functor``，只要把 ``fmap`` 定义成 ``liftM`` 就行了。
 
-``liftA2`` 是一個方便的函數，他可以把兩個 applicative 的值餵給一個函數。他的定義很簡單：
+``liftA2`` 是一个方便的函数，他可以把两个 applicative 的值喂给一个函数。他的定义很简单：
 
 ```
 liftA2 :: (Applicative f) => (a -> b -> c) -> f a -> f b -> f c  
 liftA2 f x y = f <$> x <*> y  
 ```
 
-``liftM2`` 也是做差不多的事情，只是多了 ``Monad`` 的限制。在函式庫中其實也有 ``liftM3``，``liftM4`` 跟 ``liftM5``。
+``liftM2`` 也是做差不多的事情，只是多了 ``Monad`` 的限制。在函式库中其实也有 ``liftM3``，``liftM4`` 跟 ``liftM5``。
 
-我們看到了 monad 相較於 applicative 跟 functor 有比較強的性質。儘管 moand 有 functor 跟 applicative functor 的性質，但他們不見得有 ``Functor`` 跟 ``Applicative`` 的 instance 定義。所以我們檢視了一些在 monad 中定義，且等價於 functor 或 applicative functor 所具有的函數。
+我们看到了 monad 相较于 applicative 跟 functor 有比较强的性质。尽管 moand 有 functor 跟 applicative functor 的性质，但他们不见得有 ``Functor`` 跟 ``Applicative`` 的 instance 定义。所以我们检视了一些在 monad 中定义，且等价于 functor 或 applicative functor 所具有的函数。
 
 
 ### The join function
 
-如果一個 monadic value 的結果是另一個 monadic value，也就是其中一個 monadic value 被包在另一個裡面，你能夠把他們變成一個普通的 monadic value 嗎？就好像把他們打平一樣。譬如說，我們有 ``Just (Just 9)``，我們能夠把他變成 ``Just 9`` 嗎？事實上是可以的，這也是 monad 的一個性質。也就是我要看的 ``join`` 函數，他的型態是這樣：
+如果一个 monadic value 的结果是另一个 monadic value，也就是其中一个 monadic value 被包在另一个里面，你能够把他们变成一个普通的 monadic value 吗？就好像把他们打平一样。譬如说，我们有 ``Just (Just 9)``，我们能够把他变成 ``Just 9`` 吗？事实上是可以的，这也是 monad 的一个性质。也就是我要看的 ``join`` 函数，他的型态是这样：
 
 ```
 join :: (Monad m) => m (m a) -> m a  
 ```
 
-他接受一個包在另一個 monadic value 中的 monadic value，然後會回給我們一個普通的 monadic value。這邊有一些 ``Maybe`` 的範例：
+他接受一个包在另一个 monadic value 中的 monadic value，然后会回给我们一个普通的 monadic value。这边有一些 ``Maybe`` 的范例：
 
 ```
 ghci> join (Just (Just 9))  
@@ -1023,27 +1023,27 @@ ghci> join Nothing
 Nothing  
 ```
 
-第一行是一個計算成功的結果包在另一個計算成功的結果，他們應該要能結合成為一個比較大的計算成功的結果。第二行則是一個 ``Nothing`` 包在一個 ``Just`` 中。我們之前在處理 ``Maybe`` 型態的值時，會用 ``<*>`` 或 ``>>=`` 把他們結合起來。輸入必須都是 ``Just`` 時結果出來才會是 ``Just``。如果中間有任何的失敗，結果就會是一個失敗的結果。而第三行就是這樣，我們嘗試把失敗的結果接合起來，結果也會是一個失敗。
+第一行是一个计算成功的结果包在另一个计算成功的结果，他们应该要能结合成为一个比较大的计算成功的结果。第二行则是一个 ``Nothing`` 包在一个 ``Just`` 中。我们之前在处理 ``Maybe`` 型态的值时，会用 ``<*>`` 或 ``>>=`` 把他们结合起来。输入必须都是 ``Just`` 时结果出来才会是 ``Just``。如果中间有任何的失败，结果就会是一个失败的结果。而第三行就是这样，我们尝试把失败的结果接合起来，结果也会是一个失败。
 
-要 ``join`` 一個 list 也是很簡單：
+要 ``join`` 一个 list 也是很简单：
 
 ```
 ghci> join [[1,2,3],[4,5,6]]  
 [1,2,3,4,5,6]  
 ```
 
-你可以看到，對於 list 而言 ``join`` 不過就是 ``concat``。
-而要 ``join`` 一個包在 ``Writer`` 中的 ``Writer``，
-我們必須用 ``mappend``：
+你可以看到，对于 list 而言 ``join`` 不过就是 ``concat``。
+而要 ``join`` 一个包在 ``Writer`` 中的 ``Writer``，
+我们必须用 ``mappend``：
 
 ```
 ghci> runWriter $ join (Writer (Writer (1,"aaa"),"bbb"))  
 (1,"bbbaaa")  
 ```
 
-``"bbb"`` 先被加到 monoid 中，接著 ``"aaa"`` 被附加上去。你想要檢視 ``Writer`` 中的值的話，必須先把值寫進去才行。
+``"bbb"`` 先被加到 monoid 中，接着 ``"aaa"`` 被附加上去。你想要检视 ``Writer`` 中的值的话，必须先把值写进去才行。
 
-要對 ``Either`` 做 ``join`` 跟對 ``Maybe`` 做 ``join`` 是很類似的：
+要对 ``Either`` 做 ``join`` 跟对 ``Maybe`` 做 ``join`` 是很类似的：
 
 ```
 ghci> join (Right (Right 9)) :: Either String Int  
@@ -1054,16 +1054,16 @@ ghci> join (Left "error") :: Either String Int
 Left "error"  
 ```
 
-如果我們對一個包了另外一個改變狀態的計算的進行改變狀態的計算，要作 ``join`` 的動作會讓外面的先被計算，然後才是計算裡面的：
+如果我们对一个包了另外一个改变状态的计算的进行改变状态的计算，要作 ``join`` 的动作会让外面的先被计算，然后才是计算里面的：
 
 ```
 ghci> runState (join (State $ \s -> (push 10,1:2:s))) [0,0,0]  
 ((),[10,1,2,0,0,0])  
 ```
 
-這邊的 lambda 函數接受一個狀態，並把 ``2`` 跟 ``1`` 放到堆疊中，並把 ``push 10`` 當作他的結果。當對整個東西做 ``join`` 的時候，他會先把 ``2`` 跟 ``1`` 放到堆疊上，然後進行 ``push 10`` 的計算，因而把 ``10`` 放到堆疊的頂端。
+这边的 lambda 函数接受一个状态，并把 ``2`` 跟 ``1`` 放到堆叠中，并把 ``push 10`` 当作他的结果。当对整个东西做 ``join`` 的时候，他会先把 ``2`` 跟 ``1`` 放到堆叠上，然后进行 ``push 10`` 的计算，因而把 ``10`` 放到堆叠的顶端。
 
-``join`` 的實作像是這樣：
+``join`` 的实作像是这样：
 
 ```
 join :: (Monad m) => m (m a) -> m a  
@@ -1072,7 +1072,7 @@ join mm = do
     m  
 ```
 
-因為 ``mm`` 的結果會是一個 monadic value，我們單獨用 ``m <- mm`` 拿取他的結果。這也可以說明 ``Maybe`` 只有當外層跟內層的值都是 ``Just`` 的時候才會是 ``Just``。如果把 ``mm`` 的值設成 ``Just (Just 8)`` 的話，他看起來會是這樣：
+因为 ``mm`` 的结果会是一个 monadic value，我们单独用 ``m <- mm`` 拿取他的结果。这也可以说明 ``Maybe`` 只有当外层跟内层的值都是 ``Just`` 的时候才会是 ``Just``。如果把 ``mm`` 的值设成 ``Just (Just 8)`` 的话，他看起来会是这样：
 
 ```
 joinedMaybes :: Maybe Int  
@@ -1081,40 +1081,40 @@ joinedMaybes = do
     m  
 ```
 
-[$../img/tipi.png]
+![](tipi.png)
 
-最有趣的是對於一個 monadic value 而言，用 ``>>=`` 把他餵進一個函數其實等價於對 monad 做 mapping over 的動作，然後用 ``join`` 來把值從 nested 的狀態變成扁平的狀態。也就是說 ``m >>= f`` 其實就是 ``join (fmap f m)``。如果你仔細想想的話其實很明顯。``>>=`` 的使用方式是，把一個 monadic value 餵進一個接受普通值的函數，但他卻會回傳 monadic value。如果我們 map over 一個 monadic value，我們會做成一個 monadic value 包了另外一個 monadic value。例如說，我們現在手上有 ``Just 9`` 跟 ``\x -> Just (x+1)``。如果我們把這個函數 map over ``Just 9``，我們會得到 ``Just (Just 10)``
+最有趣的是对于一个 monadic value 而言，用 ``>>=`` 把他喂进一个函数其实等价于对 monad 做 mapping over 的动作，然后用 ``join`` 来把值从 nested 的状态变成扁平的状态。也就是说 ``m >>= f`` 其实就是 ``join (fmap f m)``。如果你仔细想想的话其实很明显。``>>=`` 的使用方式是，把一个 monadic value 喂进一个接受普通值的函数，但他却会回传 monadic value。如果我们 map over 一个 monadic value，我们会做成一个 monadic value 包了另外一个 monadic value。例如说，我们现在手上有 ``Just 9`` 跟 ``\x -> Just (x+1)``。如果我们把这个函数 map over ``Just 9``，我们会得到 ``Just (Just 10)``
 
-事實上 ``m >>= f`` 永遠等價於 ``join (fmap f m)`` 這性質非常有用。如果我們要定義自己的 ``Monad`` instance，要知道怎麼把 nested monadic value 變成扁平比起要定義 ``>>=`` 是比較容易的一件事。
+事实上 ``m >>= f`` 永远等价于 ``join (fmap f m)`` 这性质非常有用。如果我们要定义自己的 ``Monad`` instance，要知道怎么把 nested monadic value 变成扁平比起要定义 ``>>=`` 是比较容易的一件事。
 
 
 ### filterM
 
-``filter`` 函數是 Haskell 中不可或缺的要素。他接受一個斷言(predicate)跟一個 list 來過濾掉斷言為否的部份並回傳一個新的 list。他的型態是這樣：
+``filter`` 函数是 Haskell 中不可或缺的要素。他接受一个断言(predicate)跟一个 list 来过滤掉断言为否的部份并回传一个新的 list。他的型态是这样：
 
 ```
 filter :: (a -> Bool) -> [a] -> [a]  
 ```
 
-predicate 能接 list 中的一個元素並回傳一個 ``Bool`` 型態的值。但如果 ``Bool`` 型態其實是一個 monadic value 呢？也就是他有一個 context。例如說除了 ``True`` 跟 ``False`` 之外還伴隨一個 monoid，像是 ``["Accepted the number 5"]``，或 ``["3 is too small"]``。照前面所學的聽起來是沒問題，而且產出的 list 也會跟隨 context，在這個例子中就是 log。所以如果 ``Bool`` 會回傳伴隨 context 的布林值，我們會認為最終的結果也會具有 context。要不然這些 context 都會在處理過程中遺失。
+predicate 能接 list 中的一个元素并回传一个 ``Bool`` 型态的值。但如果 ``Bool`` 型态其实是一个 monadic value 呢？也就是他有一个 context。例如说除了 ``True`` 跟 ``False`` 之外还伴随一个 monoid，像是 ``["Accepted the number 5"]``，或 ``["3 is too small"]``。照前面所学的听起来是没问题，而且产出的 list 也会跟随 context，在这个例子中就是 log。所以如果 ``Bool`` 会回传伴随 context 的布林值，我们会认为最终的结果也会具有 context。要不然这些 context 都会在处理过程中遗失。
 
-在 ``Control.Monad`` 中的 ``filterM`` 函數正是我們所需要的，他的型態如下：
+在 ``Control.Monad`` 中的 ``filterM`` 函数正是我们所需要的，他的型态如下：
 
 ```
 filterM :: (Monad m) => (a -> m Bool) -> [a] -> m [a]  
 ```
 
-predicate 會回傳一個 monadic value，他的結果會是 ``Bool`` 型態，由於他是 monadic value，他的 context 有可能會是任何 context，譬如說可能的失敗，non-determinism，甚至其他的 context。一旦我們能保證 context 也會被保存在最後的結果中，結果也就是一個 monadic value。
+predicate 会回传一个 monadic value，他的结果会是 ``Bool`` 型态，由于他是 monadic value，他的 context 有可能会是任何 context，譬如说可能的失败，non-determinism，甚至其他的 context。一旦我们能保证 context 也会被保存在最后的结果中，结果也就是一个 monadic value。
 
 
-我們來寫一個接受 list 然後過濾掉小於 4 的函數。先嘗試使用 ``filter`` 函數：
+我们来写一个接受 list 然后过滤掉小于 4 的函数。先尝试使用 ``filter`` 函数：
 
 ```
 ghci> filter (\x -> x < 4) [9,1,5,2,10,3]  
 [1,2,3] 
 ```
 
-很簡單吧。接著我們在做個 predicate，除了表達 ``True`` 或 ``False`` 之外，還提供了一個 log。我們會用 ``Writer`` monad 來表達這件事：
+很简单吧。接着我们在做个 predicate，除了表达 ``True`` 或 ``False`` 之外，还提供了一个 log。我们会用 ``Writer`` monad 来表达这件事：
 
 ```
 keepSmall :: Int -> Writer [String] Bool  
@@ -1127,16 +1127,16 @@ keepSmall x
         return False  
 ```
 
-這個函數會回傳 ``Writer [String] Bool`` 而不是一個單純的 ``Bool``。他是一個 monadic predicate。如果掃到的數字小於 ``4`` 的話，我們就會回報要保存他，而且回傳 ``return True``。
+这个函数会回传 ``Writer [String] Bool`` 而不是一个单纯的 ``Bool``。他是一个 monadic predicate。如果扫到的数字小于 ``4`` 的话，我们就会回报要保存他，而且回传 ``return True``。
 
-接著，我們把他跟一個 list 餵給 ``filterM``。由於 predicate 會回傳 ``Writer``，所以結果仍會是一個 ``Writer`` 值。
+接着，我们把他跟一个 list 喂给 ``filterM``。由于 predicate 会回传 ``Writer``，所以结果仍会是一个 ``Writer`` 值。
 
 ```
 ghci> fst $ runWriter $ filterM keepSmall [9,1,5,2,10,3]  
 [1,2,3]  
 ```
 
-要檢查 ``Writer`` 的結果，我們想要印出 log 看看裡面有什麼東西：
+要检查 ``Writer`` 的结果，我们想要印出 log 看看里面有什么东西：
 
 ```
 ghci> mapM_ putStrLn $ snd $ runWriter $ filterM keepSmall [9,1,5,2,10,3]  
@@ -1148,9 +1148,9 @@ Keeping 2
 Keeping 3  
 ```
 
-提供 monadic predicate 給 ``filterM``，我們便能夠做 filter 的動作，同時還能保有 monadic context。
+提供 monadic predicate 给 ``filterM``，我们便能够做 filter 的动作，同时还能保有 monadic context。
 
-一個比較炫的技巧是用 ``filterM`` 來產生一個 list 的 powerset。一個 powerset 就是一個集合所有子集所形成的集合。如果說我們的 list 是 ``[1,2,3]``，那他個 powerset 就會是：
+一个比较炫的技巧是用 ``filterM`` 来产生一个 list 的 powerset。一个 powerset 就是一个集合所有子集所形成的集合。如果说我们的 list 是 ``[1,2,3]``，那他个 powerset 就会是：
 
 ```
 [1,2,3]  
@@ -1163,50 +1163,50 @@ Keeping 3
 []  
 ```
 
-換句話說，要產生一個 powerset 就是要列出所有要丟掉跟保留的組合。``[2,3]`` 只不過代表我們把 ``1`` 給丟掉而已。
+换句话说，要产生一个 powerset 就是要列出所有要丢掉跟保留的组合。``[2,3]`` 只不过代表我们把 ``1`` 给丢掉而已。
 
 
-我們要依賴 non-determinism 來寫我們這產生 powerset 的函數。我們接受一個 list ``[1,2,3]`` 然後查看第一個元素，這個例子中是 ``1``，我們會問：我們要保留他呢？還是丟掉他呢？答案是我們都要做。所以我們會用一個 non-determinism 的 predicate 來過濾我的 list。也就是我們的 ``powerset`` 函數：
+我们要依赖 non-determinism 来写我们这产生 powerset 的函数。我们接受一个 list ``[1,2,3]`` 然后查看第一个元素，这个例子中是 ``1``，我们会问：我们要保留他呢？还是丢掉他呢？答案是我们都要做。所以我们会用一个 non-determinism 的 predicate 来过滤我的 list。也就是我们的 ``powerset`` 函数：
 
 ```
 powerset :: [a] -> [[a]]  
 powerset xs = filterM (\x -> [True, False]) xs 
 ```
 
-等等，我們已經寫完了嗎？沒錯，就這麼簡單，我們可以同時丟掉跟保留每個元素。只要我們用 non-deterministic predicate，那結果也就是一個 non-deterministic value，也便是一個 list 的 list。試著跑跑看：
+等等，我们已经写完了吗？没错，就这么简单，我们可以同时丢掉跟保留每个元素。只要我们用 non-deterministic predicate，那结果也就是一个 non-deterministic value，也便是一个 list 的 list。试着跑跑看：
 
 ```
 ghci> powerset [1,2,3]  
 [[1,2,3],[1,2],[1,3],[1],[2,3],[2],[3],[]]  
 ```
 
-這樣的寫法需要讓你好好想一下，但如果你能接受 list 其實就是 non-deterministic value 的話，那要想通會比較容易一些。
+这样的写法需要让你好好想一下，但如果你能接受 list 其实就是 non-deterministic value 的话，那要想通会比较容易一些。
 
 
 ### foldM
 
-``foldl`` 的 monadic 的版本叫做 ``foldM``。如果你還有印象的話，``foldl`` 會接受一個 binary 函數，一個起始累加值跟一串 list，他會從左邊開始用 binary 函數每次帶進一個值來 fold。``foldM`` 也是做同樣的事，只是他接受的這個 binary 函數會產生 monadic value。不意外的，他的結果也會是 monadic value。``foldl`` 的型態是：
+``foldl`` 的 monadic 的版本叫做 ``foldM``。如果你还有印象的话，``foldl`` 会接受一个 binary 函数，一个起始累加值跟一串 list，他会从左边开始用 binary 函数每次带进一个值来 fold。``foldM`` 也是做同样的事，只是他接受的这个 binary 函数会产生 monadic value。不意外的，他的结果也会是 monadic value。``foldl`` 的型态是：
 
 ```
 foldl :: (a -> b -> a) -> a -> [b] -> a 
 ```
 
-而 ``foldM`` 的型態則是：
+而 ``foldM`` 的型态则是：
 
 ```
 foldM :: (Monad m) => (a -> b -> m a) -> a -> [b] -> m a  
 ```
 
-binary 函數的回傳值是 monadic，所以結果也會是 monadic。我們來試著把 list 的值用 fold 全部加起來：
+binary 函数的回传值是 monadic，所以结果也会是 monadic。我们来试着把 list 的值用 fold 全部加起来：
 
 ```
 ghci> foldl (\acc x -> acc + x) 0 [2,8,3,1]  
 14  
 ```
 
-這邊起始的累加值是 ``0``，首先 ``2`` 會被加進去，變成 ``2``。然後 ``8`` 被加進去變成 ``10``，直到我們沒有值可以再加，那便是最終的結果。
+这边起始的累加值是 ``0``，首先 ``2`` 会被加进去，变成 ``2``。然后 ``8`` 被加进去变成 ``10``，直到我们没有值可以再加，那便是最终的结果。
 
-但如果我們想額外加一個條件，也就是當碰到一個數字大於 ``9`` 時候，整個運算就算失敗呢？一種合理的修改就是用一個 binary 函數，他會檢查現在這個數是否大於 ``9``，如果是便引發失敗，如果不是就繼續。由於有失敗的可能性，我們便需要這個 binary 函數回傳一個 ``Maybe``，而不是一個普通的值。我們來看看這個函數：
+但如果我们想额外加一个条件，也就是当碰到一个数字大于 ``9`` 时候，整个运算就算失败呢？一种合理的修改就是用一个 binary 函数，他会检查现在这个数是否大于 ``9``，如果是便引发失败，如果不是就继续。由于有失败的可能性，我们便需要这个 binary 函数回传一个 ``Maybe``，而不是一个普通的值。我们来看看这个函数：
 
 ```
 binSmalls :: Int -> Int -> Maybe Int  
@@ -1215,7 +1215,7 @@ binSmalls acc x
     | otherwise = Just (acc + x)  
 ```
 
-由於這邊的 binary 函數是 monadic function，我們不能用普通的 ``foldl``，我們必須用 ``foldM``：
+由于这边的 binary 函数是 monadic function，我们不能用普通的 ``foldl``，我们必须用 ``foldM``：
 
 ```
 ghci> foldM binSmalls 0 [2,8,3,1]  
@@ -1224,16 +1224,16 @@ ghci> foldM binSmalls 0 [2,11,3,1]
 Nothing  
 ```
 
-由於這串 list 中有一個數值大於 ``9``，所以整個結果會是 ``Nothing``。另外你也可以嘗試 fold 一個回傳 ``Writer`` 的 binary 函數，他會在 fold 的過程中紀錄你想紀錄的資訊。
+由于这串 list 中有一个数值大于 ``9``，所以整个结果会是 ``Nothing``。另外你也可以尝试 fold 一个回传 ``Writer`` 的 binary 函数，他会在 fold 的过程中纪录你想纪录的资讯。
 
 
 ### Making a safe RPN calculator
 
-[^../img/miner.png]
+![](miner.png)
 
-之前的章節我們實作了一個 RPN 計算機，但我們沒有做錯誤的處理。他只有在輸入是合法的時候才會運算正確。假如有東西出錯了，整個程式便會當掉。我們在這章看到了要怎樣把程式碼轉換成 monadic 的版本，我們先嘗適用 ``Maybe`` monad 來幫我們的 RPN 計算機加上些錯誤處理。
+之前的章节我们实作了一个 RPN 计算机，但我们没有做错误的处理。他只有在输入是合法的时候才会运算正确。假如有东西出错了，整个程式便会当掉。我们在这章看到了要怎样把程式码转换成 monadic 的版本，我们先尝适用 ``Maybe`` monad 来帮我们的 RPN 计算机加上些错误处理。
 
-我們的 RPN 計算機接受一個像 ``"1 3 + 2 *"`` 這樣的字串，把他斷成 word，變成 ``["1","3","+","2","*"]`` 這樣。然後用一個 binary 函數，跟一個空的堆疊，從左邊開始或是將數值推進堆疊中，或是操作堆疊最上層的兩個元素。
+我们的 RPN 计算机接受一个像 ``"1 3 + 2 *"`` 这样的字串，把他断成 word，变成 ``["1","3","+","2","*"]`` 这样。然后用一个 binary 函数，跟一个空的堆叠，从左边开始或是将数值推进堆叠中，或是操作堆叠最上层的两个元素。
 
 以下便是程式的核心部份：
 
@@ -1244,7 +1244,7 @@ solveRPN :: String -> Double
 solveRPN = head . foldl foldingFunction [] . words  
 ```
 
-我們把輸入變成一個字串的 list，從左邊開始 fold，當堆疊中只剩下一個元素的時候，他便是我們要的答案。以下是我們的 folding 函數：
+我们把输入变成一个字串的 list，从左边开始 fold，当堆叠中只剩下一个元素的时候，他便是我们要的答案。以下是我们的 folding 函数：
 
 ```
 foldingFunction :: [Double] -> String -> [Double]  
@@ -1254,17 +1254,17 @@ foldingFunction (x:y:ys) "-" = (y - x):ys
 foldingFunction xs numberString = read numberString:xs  
 ```
 
-這邊我們的累加元素是一個堆疊，我們用一個 ``Double`` 的 list 來表示他。當我們在做 folding 的過程，如果當前的元素是一個 operator，他會從堆疊上拿下兩個元素，用 operator 施行運算然後把結果放回堆疊。如果當前的元素是一個表示成字串的數字，他會把字串轉換成數字，並回傳一個新的堆疊包含了轉換後的數字。
+这边我们的累加元素是一个堆叠，我们用一个 ``Double`` 的 list 来表示他。当我们在做 folding 的过程，如果当前的元素是一个 operator，他会从堆叠上拿下两个元素，用 operator 施行运算然后把结果放回堆叠。如果当前的元素是一个表示成字串的数字，他会把字串转换成数字，并回传一个新的堆叠包含了转换后的数字。
 
-我們首先把我們的 folding 函數加上處理錯誤的 case，所以他的型態會變成這樣：
+我们首先把我们的 folding 函数加上处理错误的 case，所以他的型态会变成这样：
 
 ```
 foldingFunction :: [Double] -> String -> Maybe [Double]  
 ```
 
-他不是回傳一個 ``Just`` 的堆疊就是回傳 ``Nothing``。
+他不是回传一个 ``Just`` 的堆叠就是回传 ``Nothing``。
 
-``reads`` 函數就像 ``read`` 一樣，差別在於他回傳一個 list。在成功讀取的情況下 list 中只包含讀取的那個元素。如果他失敗了，他會回傳一個空的 list。除了回傳讀取的元素，他也回傳剩下讀取失敗的元素。他必須要看完整串輸入，我們想把他弄成一個 ``readMaybe`` 的函數，好方便我們進行。
+``reads`` 函数就像 ``read`` 一样，差别在于他回传一个 list。在成功读取的情况下 list 中只包含读取的那个元素。如果他失败了，他会回传一个空的 list。除了回传读取的元素，他也回传剩下读取失败的元素。他必须要看完整串输入，我们想把他弄成一个 ``readMaybe`` 的函数，好方便我们进行。
 
 ```
 readMaybe :: (Read a) => String -> Maybe a  
@@ -1272,7 +1272,7 @@ readMaybe st = case reads st of [(x,"")] -> Just x
                                 _ -> Nothing  
 ```
 
-測試結果如下：
+测试结果如下：
 
 ```
 ghci> readMaybe "1" :: Maybe Int  
@@ -1281,7 +1281,7 @@ ghci> readMaybe "GO TO HELL" :: Maybe Int
 Nothing  
 ```
 
-看起來運作正常。我們再把他變成一個可以處理失敗情況的 monadic 函數
+看起来运作正常。我们再把他变成一个可以处理失败情况的 monadic 函数
 
 ```
 foldingFunction :: [Double] -> String -> Maybe [Double]  
@@ -1291,7 +1291,7 @@ foldingFunction (x:y:ys) "-" = return ((y - x):ys)
 foldingFunction xs numberString = liftM (:xs) (readMaybe numberString)  
 ```
 
-前三種 case 跟前面的很像，只差在堆疊現在是包在 ``Just`` 裡面（我們常常是用 ``return`` 來做到這件事，但其實我們也可以用 ``Just``）。在最後一種情況，我們用 ``readMaybe numberString`` 然後我們用 ``(:xs)`` map over 他。所以如果堆疊 ``xs`` 是 ``[1.0,2.0]`` 且 ``readMaybe numberString`` 產生 ``Just 3.0``，那結果便是 ``Just [3.0,1.0,2.0]``。如果 ``readyMaybe numberString`` 產生 ``Nothing`` 那結果便是 ``Nothing``。我們來試著跑跑看 folding 函數
+前三种 case 跟前面的很像，只差在堆叠现在是包在 ``Just`` 里面（我们常常是用 ``return`` 来做到这件事，但其实我们也可以用 ``Just``）。在最后一种情况，我们用 ``readMaybe numberString`` 然后我们用 ``(:xs)`` map over 他。所以如果堆叠 ``xs`` 是 ``[1.0,2.0]`` 且 ``readMaybe numberString`` 产生 ``Just 3.0``，那结果便是 ``Just [3.0,1.0,2.0]``。如果 ``readyMaybe numberString`` 产生 ``Nothing`` 那结果便是 ``Nothing``。我们来试着跑跑看 folding 函数
 
 ```
 ghci> foldingFunction [3,2] "*"  
@@ -1306,7 +1306,7 @@ ghci> foldingFunction [] "1 wawawawa"
 Nothing  
 ```
 
-看起來正常運作。我們可以用他來寫一個新的 ``solveRPN``。
+看起来正常运作。我们可以用他来写一个新的 ``solveRPN``。
 
 ```
 import Data.List  
@@ -1317,7 +1317,7 @@ solveRPN st = do
   return result  
 ```
 
-我們仍是接受一個字串把他斷成一串 word。然後我們用一個空的堆疊來作 folding 的動作，只差在我們用的是 ``foldM`` 而不是 ``foldl``。``foldM`` 的結果會是 ``Maybe``，``Maybe`` 裡面包含了一個只有一個元素的 list。我們用 ``do`` expression 來取出值，把他綁定到 ``result`` 上。當 ``foldM`` 回傳 ``Nothing`` 的時候，整個結果就變成 ``Nothing``。也特別注意我們有在 ``do`` 裡面做 pattern match 的動作，所以如果 list 中不是只有一個元素的話，最後結果便會是 ``Nothing``。最後一行我們用 ``return result`` 來展示 RPN 計算的結果，把他包在一個 ``Maybe`` 裡面。
+我们仍是接受一个字串把他断成一串 word。然后我们用一个空的堆叠来作 folding 的动作，只差在我们用的是 ``foldM`` 而不是 ``foldl``。``foldM`` 的结果会是 ``Maybe``，``Maybe`` 里面包含了一个只有一个元素的 list。我们用 ``do`` expression 来取出值，把他绑定到 ``result`` 上。当 ``foldM`` 回传 ``Nothing`` 的时候，整个结果就变成 ``Nothing``。也特别注意我们有在 ``do`` 里面做 pattern match 的动作，所以如果 list 中不是只有一个元素的话，最后结果便会是 ``Nothing``。最后一行我们用 ``return result`` 来展示 RPN 计算的结果，把他包在一个 ``Maybe`` 里面。
 
 ```
 ghci> solveRPN "1 2 * 4 +"  
@@ -1330,11 +1330,11 @@ ghci> solveRPN "1 8 wharglbllargh"
 Nothing  
 ```
 
-第一個例子會失敗是因為 list 中不是只有一個元素，所以 ``do`` 裡面的 pattern matching 失敗了。第二個例子會失敗是因為 ``readMaybe`` 回傳了 ``Nothing``。
+第一个例子会失败是因为 list 中不是只有一个元素，所以 ``do`` 里面的 pattern matching 失败了。第二个例子会失败是因为 ``readMaybe`` 回传了 ``Nothing``。
 
 ### Composing monadic functions
 
-當我們介紹 monad law 的時候，我們說過 ``<=<`` 就像是函數合成一樣，只差在一個是作用在普通函數 ``a -> b``。一個是作用在 monadic 函數 ``a -> m b``。
+当我们介绍 monad law 的时候，我们说过 ``<=<`` 就像是函数合成一样，只差在一个是作用在普通函数 ``a -> b``。一个是作用在 monadic 函数 ``a -> m b``。
 
 ```
 ghci> let f = (+1) . (*100)  
@@ -1345,9 +1345,9 @@ ghci> Just 4 >>= g
 Just 401  
 ```
 
-在這個例子中我們合成了兩個普通的函數，並餵給給他 ``4``。我們也合成了兩個 monadic 函數並用 ``>>=`` 餵給他 ``Just 4``。
+在这个例子中我们合成了两个普通的函数，并喂给给他 ``4``。我们也合成了两个 monadic 函数并用 ``>>=`` 喂给他 ``Just 4``。
 
-如果我們在 list 中有一大堆函數，我們可以把他們合成一個巨大的函數。用 ``id`` 當作累加的起點，``.`` 當作 binary 函數，用 fold 來作這件事。
+如果我们在 list 中有一大堆函数，我们可以把他们合成一个巨大的函数。用 ``id`` 当作累加的起点，``.`` 当作 binary 函数，用 fold 来作这件事。
 
 ```
 ghci> let f = foldr (.) id [(+1),(*100),(+1)]  
@@ -1355,22 +1355,22 @@ ghci> f 1
 201  
 ```
 
-``f`` 接受一個數字，然後會幫他加 ``1``，乘以 ``100``，再加 ``1``。我們也可以將 monadic 函數用同樣的方式做合成，只是不用 ``.`` 而用 ``<=<``，不用 ``id`` 而用 ``return``。我們不需要 ``foldM``，由於 ``<=<`` 只用 ``foldr`` 就足夠了。
+``f`` 接受一个数字，然后会帮他加 ``1``，乘以 ``100``，再加 ``1``。我们也可以将 monadic 函数用同样的方式做合成，只是不用 ``.`` 而用 ``<=<``，不用 ``id`` 而用 ``return``。我们不需要 ``foldM``，由于 ``<=<`` 只用 ``foldr`` 就足够了。
 
-當我們在之前的章節介紹 list monad 的時候， 我們用他來解決一個騎士是否能在三步內走到另一點的問題。 那個函數叫做 ``moveKnight``， 他接受一個座標然後回傳所有可能的下一步。 然後產生出所有可能三步的移動。
+当我们在之前的章节介绍 list monad 的时候， 我们用他来解决一个骑士是否能在三步内走到另一点的问题。 那个函数叫做 ``moveKnight``， 他接受一个座标然后回传所有可能的下一步。 然后产生出所有可能三步的移动。
 
 ```
 in3 start = return start >>= moveKnight >>= moveKnight >>= moveKnight   
 ```
 
-要檢查我們是否能只用三步從 ``start`` 走到 ``end``，我們用下列函數
+要检查我们是否能只用三步从 ``start`` 走到 ``end``，我们用下列函数
 
 ```
 canReachIn3 :: KnightPos -> KnightPos -> Bool  
 canReachIn3 start end = end `elem` in3 start  
 ```
 
-如果使用 monadic 版本的合成的話，我們也可以做一個類似的 ``in3``，但我們希望他不只有三步的版本，而希望有任意步的版本。如果你仔細觀察 ``in3``，他只不過用 ``>>=`` 跟 ``moveKnight`` 把之前所有可能結果餵到下一步。把他一般化，就會像下面的樣子：
+如果使用 monadic 版本的合成的话，我们也可以做一个类似的 ``in3``，但我们希望他不只有三步的版本，而希望有任意步的版本。如果你仔细观察 ``in3``，他只不过用 ``>>=`` 跟 ``moveKnight`` 把之前所有可能结果喂到下一步。把他一般化，就会像下面的样子：
 
 ```
 import Data.List  
@@ -1379,9 +1379,9 @@ inMany :: Int -> KnightPos -> [KnightPos]
 inMany x start = return start >>= foldr (<=<) return (replicate x moveKnight)  
 ```
 
-首先我們用 ``replicate`` 來做出一個 list，裡面有 ``x`` 份的 ``moveKnight``。然後我們把所有函數都合成起來，就會給我們從起點走 ``x`` 步內所有可能的的位置。然後我們只需要把起始位置餵給他就好了。
+首先我们用 ``replicate`` 来做出一个 list，里面有 ``x`` 份的 ``moveKnight``。然后我们把所有函数都合成起来，就会给我们从起点走 ``x`` 步内所有可能的的位置。然后我们只需要把起始位置喂给他就好了。
 
-我們也可以一般化我們的 ``canReachIn3``：
+我们也可以一般化我们的 ``canReachIn3``：
 
 ```
 canReachIn :: Int -> KnightPos -> KnightPos -> Bool  
@@ -1389,23 +1389,23 @@ canReachIn x start end = end `elem` inMany x start
 ```
 
 
-## 定義自己的 Monad
+## 定义自己的 Monad
 
-[../img/spearhead.png]
+![](spearhead.png)
 
-在這一章節，我們會帶你看看究竟一個型態是怎麼被辨認，確認是一個 monad 而且正確定義出 ``Monad`` 的 instance。我們通常不會為了定義 monad 而定義。比較常發生的是，我們想要針對一個問題建立模型，卻稍後發現我們定義的型態其實是一個 Monad，所以就定義一個 ``Monad`` 的 instance。
+在这一章节，我们会带你看看究竟一个型态是怎么被辨认，确认是一个 monad 而且正确定义出 ``Monad`` 的 instance。我们通常不会为了定义 monad 而定义。比较常发生的是，我们想要针对一个问题建立模型，却稍后发现我们定义的型态其实是一个 Monad，所以就定义一个 ``Monad`` 的 instance。
 
-正如我們看到的，list 是被拿來當作 non-deterministic values。對於 ``[3,5,9]``，我們可以看作是一個 non-deterministic value，我們不能知道究竟是哪一個。當我們把一個 list 用 ``>>=`` 餵給一個函數，他就是把一串可能的選擇都丟給函數，函數一個個去計算在那種情況下的結果，結果也便是一個 list。
+正如我们看到的，list 是被拿来当作 non-deterministic values。对于 ``[3,5,9]``，我们可以看作是一个 non-deterministic value，我们不能知道究竟是哪一个。当我们把一个 list 用 ``>>=`` 喂给一个函数，他就是把一串可能的选择都丢给函数，函数一个个去计算在那种情况下的结果，结果也便是一个 list。
 
-如果我們把 ``[3,5,9]`` 看作是 ``3``,``5``,``9`` 各出現一次，但這邊沒有每一種數字出現的機率。如果我們把 non-deterministic 的值看作是 ``[3,5,9]``，但 ``3`` 出現的機率是 50%，``5`` 跟 ``9`` 出現的機率各是 25%呢？我們來試著用 Haskell 描述看看。
+如果我们把 ``[3,5,9]`` 看作是 ``3``,``5``,``9`` 各出现一次，但这边没有每一种数字出现的机率。如果我们把 non-deterministic 的值看作是 ``[3,5,9]``，但 ``3`` 出现的机率是 50%，``5`` 跟 ``9`` 出现的机率各是 25%呢？我们来试着用 Haskell 描述看看。
 
-如果說 list 中的每一個元素都伴隨著他出現的機率。那下面的形式就蠻合理的：
+如果说 list 中的每一个元素都伴随着他出现的机率。那下面的形式就蛮合理的：
 
 ```
 [(3,0.5),(5,0.25),(9,0.25)]  
 ```
 
-在數學上，機率通常不是用百分比表示，而是用介於 0 跟 1 的實數表示。0 代表不可能會發生，而 1 代表絕對會發生。但浮點數很有可能很快隨著運算失去精準度，所以 Haskell 有提供有理數。他的型態是擺在 ``Data.Ratio`` 中，叫做 ``Rational``。要創造出一個 ``Rational``，我們會把他寫成一個分數的形式。分子跟分母用 ``%`` 分隔。這邊有幾個例子：
+在数学上，机率通常不是用百分比表示，而是用介于 0 跟 1 的实数表示。0 代表不可能会发生，而 1 代表绝对会发生。但浮点数很有可能很快随着运算失去精准度，所以 Haskell 有提供有理数。他的型态是摆在 ``Data.Ratio`` 中，叫做 ``Rational``。要创造出一个 ``Rational``，我们会把他写成一个分数的形式。分子跟分母用 ``%`` 分隔。这边有几个例子：
 
 ```
 ghci> 1%4  
@@ -1416,17 +1416,17 @@ ghci> 1%3 + 5%4
 19 % 12  
 ```
 
-第一行代表四分之一，第二行代表兩個二分之一加起來變成一。而第三行我們把三分之一跟四分之五加起來變成十二分之十九。所以我們來用 ``Rational`` 取代浮點數來當作我們的機率值吧。
+第一行代表四分之一，第二行代表两个二分之一加起来变成一。而第三行我们把三分之一跟四分之五加起来变成十二分之十九。所以我们来用 ``Rational`` 取代浮点数来当作我们的机率值吧。
 
 ```
 ghci> [(3,1%2),(5,1%4),(9,1%4)]  
 [(3,1 % 2),(5,1 % 4),(9,1 % 4)]  
 ```
 
-所以 ``3`` 有二分之一的機會出現，而 ``5`` 跟 ``9`` 有四分之一的機會出現。
+所以 ``3`` 有二分之一的机会出现，而 ``5`` 跟 ``9`` 有四分之一的机会出现。
 
 
-可以看到我們幫 list 加上了一些額外的 context。再我們繼續深入之前，我們用一個 ``newtype`` 把他包起來，好讓我們幫他寫 instance。
+可以看到我们帮 list 加上了一些额外的 context。再我们继续深入之前，我们用一个 ``newtype`` 把他包起来，好让我们帮他写 instance。
 
 ```
 import Data.Ratio
@@ -1434,33 +1434,33 @@ import Data.Ratio
 newtype Prob a = Prob { getProb :: [(a,Rational)] } deriving Show  
 ```
 
-接著我們想問，這是一個 functor 嗎？list 是一個 functor，所以很有可能他也是一個 functor，畢竟我們只是在 list 上多加一些東西而已。在 list 的情況下，我們可以針對每個元素用函數做處理。這邊我們也是用函數針對每個元素做處理，只是我們是輸出機率值。所以我們就來寫個 functor 的 instance 吧。
+接着我们想问，这是一个 functor 吗？list 是一个 functor，所以很有可能他也是一个 functor，毕竟我们只是在 list 上多加一些东西而已。在 list 的情况下，我们可以针对每个元素用函数做处理。这边我们也是用函数针对每个元素做处理，只是我们是输出机率值。所以我们就来写个 functor 的 instance 吧。
 
 ```
 instance Functor Prob where  
     fmap f (Prob xs) = Prob $ map (\(x,p) -> (f x,p)) xs 
 ```
 
-我們可以用 pattern matching 的方式把 ``newtype`` 解開來，套用函數 ``f`` 之後再包回去。過程中不會動到機率值。
+我们可以用 pattern matching 的方式把 ``newtype`` 解开来，套用函数 ``f`` 之后再包回去。过程中不会动到机率值。
 
 ```
 ghci> fmap negate (Prob [(3,1%2),(5,1%4),(9,1%4)])  
 Prob {getProb = [(-3,1 % 2),(-5,1 % 4),(-9,1 % 4)]}  
 ```
 
-要注意機率的和永遠是 ``1``。如果我們沒有漏掉某種情形的話，沒有道理他們加起來的值不為 ``1``。一個有 75% 機率是正面以及 50% 機率是反面的硬幣根本沒什麼道理。
+要注意机率的和永远是 ``1``。如果我们没有漏掉某种情形的话，没有道理他们加起来的值不为 ``1``。一个有 75% 机率是正面以及 50% 机率是反面的硬币根本没什么道理。
 
-接著要問一個重要的問題，他是一個 monad 嗎？我們知道 list 是一個 monad，所以他很有可能也是一個 monad。首先來想想 ``return``。他在 list 是怎麼運作的？他接受一個普通的值並把他放到一個 list 中變成只有一個元素的 list。那在這邊又如何？由於他是一個最小的 context，他也應該是一個元素的 list。那機率值呢？``return x`` 的值永遠都是 ``x``，所以機率值不應該是 ``0``，而應該是 ``1``。
-
-
-至於 ``>>=`` 呢？看起來有點複雜，所以我們換種方式來思考，我們知道 ``m >>= f`` 會等價於 ``join (fmap f m)``，所以我們來想要怎麼把一串包含 probability list 的 list 弄平。舉個例子，考慮一個 list，``'a'`` 跟 ``'b'`` 恰出現其中一個的機率為 25%，兩個出現的機率相等。而 ``'c'`` 跟 ``'d'`` 恰出現其中一個的機率為 75%，兩個出現的機率也是相等。這邊有一個圖將情形畫出來。
+接着要问一个重要的问题，他是一个 monad 吗？我们知道 list 是一个 monad，所以他很有可能也是一个 monad。首先来想想 ``return``。他在 list 是怎么运作的？他接受一个普通的值并把他放到一个 list 中变成只有一个元素的 list。那在这边又如何？由于他是一个最小的 context，他也应该是一个元素的 list。那机率值呢？``return x`` 的值永远都是 ``x``，所以机率值不应该是 ``0``，而应该是 ``1``。
 
 
-[^../img/prob.png]
+至于 ``>>=`` 呢？看起来有点复杂，所以我们换种方式来思考，我们知道 ``m >>= f`` 会等价于 ``join (fmap f m)``，所以我们来想要怎么把一串包含 probability list 的 list 弄平。举个例子，考虑一个 list，``'a'`` 跟 ``'b'`` 恰出现其中一个的机率为 25%，两个出现的机率相等。而 ``'c'`` 跟 ``'d'`` 恰出现其中一个的机率为 75%，两个出现的机率也是相等。这边有一个图将情形画出来。
 
-每個字母發生的機率有多高呢？如果我們用四個盒子來代表每個字母，那每個盒子的機率為何？每個盒子的機率是他們所裝有的機率值相乘的結果。``'a'`` 的機率是八分之一，``'b'`` 同樣也是八分之一。八分之一是因為我們把二分之一跟四分之一相乘得到的結果。而 ``'c'`` 發生的機率是八分之三，是因為二分之一乘上四分之三。``'d'`` 同樣也是八分之三。如果把所有的機率加起來，就會得到一，符合機率的規則。
 
-來看看怎麼用一個 list 表達我們要說明的東西：
+![](prob.png)
+
+每个字母发生的机率有多高呢？如果我们用四个盒子来代表每个字母，那每个盒子的机率为何？每个盒子的机率是他们所装有的机率值相乘的结果。``'a'`` 的机率是八分之一，``'b'`` 同样也是八分之一。八分之一是因为我们把二分之一跟四分之一相乘得到的结果。而 ``'c'`` 发生的机率是八分之三，是因为二分之一乘上四分之三。``'d'`` 同样也是八分之三。如果把所有的机率加起来，就会得到一，符合机率的规则。
+
+来看看怎么用一个 list 表达我们要说明的东西：
 
 ```
 thisSituation :: Prob (Prob Char)  
@@ -1470,7 +1470,7 @@ thisSituation = Prob
     ]
 ```
 
-注意到這邊的型態是 ``Prob (Prob Char)``。所以我們要思考的是如何把一串包含機率 list 的 list 打平。如果能成功寫出這樣的邏輯，``>>=`` 不過就是 ``join (fmap f m)``，我們便得到了一個 monad。我們這邊寫了一個 ``flatten`` 來做這件事。
+注意到这边的型态是 ``Prob (Prob Char)``。所以我们要思考的是如何把一串包含机率 list 的 list 打平。如果能成功写出这样的逻辑，``>>=`` 不过就是 ``join (fmap f m)``，我们便得到了一个 monad。我们这边写了一个 ``flatten`` 来做这件事。
 
 ```
 flatten :: Prob (Prob a) -> Prob a  
@@ -1478,9 +1478,9 @@ flatten (Prob xs) = Prob $ concat $ map multAll xs
     where multAll (Prob innerxs,p) = map (\(x,r) -> (x,p*r)) innerxs  
 ```
 
-``multAll`` 接受一個 tuple，裡面包含一個 probability list 跟一個伴隨的機率值 ``p``，所以我們要作的事是把 list 裡面的機率值都乘以 ``p``，並回傳一個新的 tuple 包含新的 list 跟新的機率值。我們將 ``multAll`` map over 到我們的 probability list 上，我們就成功地打平了我們的 list。
+``multAll`` 接受一个 tuple，里面包含一个 probability list 跟一个伴随的机率值 ``p``，所以我们要作的事是把 list 里面的机率值都乘以 ``p``，并回传一个新的 tuple 包含新的 list 跟新的机率值。我们将 ``multAll`` map over 到我们的 probability list 上，我们就成功地打平了我们的 list。
 
-現在我們就能定義我們的 ``Monad`` instance。
+现在我们就能定义我们的 ``Monad`` instance。
 
 ```
 instance Monad Prob where  
@@ -1489,15 +1489,15 @@ instance Monad Prob where
     fail _ = Prob []  
 ```
 
-[$../img/ride.png]
+![](ride.png)
 
-由於我們已經把所有苦工的做完了，定義這個 instance 顯得格外輕鬆。我們也定義了 ``fail``，我們定義他的方式跟定義 list 一樣。如果在 ``do`` 中發生了失敗的 pattern match，那就會呼叫 ``fail``。
+由于我们已经把所有苦工的做完了，定义这个 instance 显得格外轻松。我们也定义了 ``fail``，我们定义他的方式跟定义 list 一样。如果在 ``do`` 中发生了失败的 pattern match，那就会呼叫 ``fail``。
 
-檢查我們定義的 instance 是否遵守 monad law 也是很重要的。monad law 的第一個定律是 ``return x >>= f`` 應該要等價於 ``f x``。要寫出嚴格的證明會很麻煩，但我們可以觀察到下列事實：首先用 ``return`` 做一個最小的 context，然後用 ``fmap`` 將一個函數 map over 這個 context，再將他打平。這樣做出來的 probability list，每一個機率值都相當於將我們最初放到 minimal context 中的值乘上 ``1%1``。同樣的邏輯，也可以看出 ``m >>= return`` 是等價於 ``m``。第三個定律是 ``f <=< (g <=< h)`` 應該要等價於 ``(f <=< g) <=< h``。我們可以從乘法有結合律的性質，以及 list monad 的特性上推出 probability monad 也符合這個定律。``1%2 * (1%3 * 1%5)`` 等於 ``(1%2 * 1%3) * 1%5``。
+检查我们定义的 instance 是否遵守 monad law 也是很重要的。monad law 的第一个定律是 ``return x >>= f`` 应该要等价于 ``f x``。要写出严格的证明会很麻烦，但我们可以观察到下列事实：首先用 ``return`` 做一个最小的 context，然后用 ``fmap`` 将一个函数 map over 这个 context，再将他打平。这样做出来的 probability list，每一个机率值都相当于将我们最初放到 minimal context 中的值乘上 ``1%1``。同样的逻辑，也可以看出 ``m >>= return`` 是等价于 ``m``。第三个定律是 ``f <=< (g <=< h)`` 应该要等价于 ``(f <=< g) <=< h``。我们可以从乘法有结合律的性质，以及 list monad 的特性上推出 probability monad 也符合这个定律。``1%2 * (1%3 * 1%5)`` 等于 ``(1%2 * 1%3) * 1%5``。
 
-現在我們有了一個 monad，這樣有什麼好處呢？他可以幫助我們計算機率值。我們可以把機率事件看作是具有 context 的 value，而 probability monad 可以保證機率值能正確地被計算成最終的結果。
+现在我们有了一个 monad，这样有什么好处呢？他可以帮助我们计算机率值。我们可以把机率事件看作是具有 context 的 value，而 probability monad 可以保证机率值能正确地被计算成最终的结果。
 
-好比說我們現在有兩個普通的硬幣以及一個灌鉛的硬幣。灌鉛的硬幣十次中有九次會出現正面，只有一次會出現反面。如果我們一次丟擲這三個硬幣，有多大的機會他們都會出現正面呢？讓我們先來表達丟擲硬幣這件事，分別丟的是灌鉛的跟普通的硬幣。
+好比说我们现在有两个普通的硬币以及一个灌铅的硬币。灌铅的硬币十次中有九次会出现正面，只有一次会出现反面。如果我们一次丢掷这三个硬币，有多大的机会他们都会出现正面呢？让我们先来表达丢掷硬币这件事，分别丢的是灌铅的跟普通的硬币。
 
 
 ```
@@ -1510,7 +1510,7 @@ loadedCoin :: Prob Coin
 loadedCoin = Prob [(Heads,1%10),(Tails,9%10)]  
 ```
 
-最後，來看看擲硬幣的函數：
+最后，来看看掷硬币的函数：
 
 ```
 import Data.List (all)  
@@ -1523,7 +1523,7 @@ flipThree = do
   return (all (==Tails) [a,b,c])  
 ```
 
-試著跑一下的話，我們會看到儘管我們用了不公平的硬幣，三個反面的機率還是不高。
+试着跑一下的话，我们会看到尽管我们用了不公平的硬币，三个反面的机率还是不高。
 
 ```
 ghci> getProb flipThree  
@@ -1531,6 +1531,7 @@ ghci> getProb flipThree
  (False,1 % 40),(False,9 % 40),(False,1 % 40),(True,9 % 40)]  
 ```
 
-同時出現正面的機率是四十分之九，差不多是 25%的機會。我們的 monad 並沒有辦法 join 所有都是 ``False`` 的情形，也就是所有硬幣都是出現反面的情況。不過那不是個嚴重的問題，可以寫個函數來將同樣的結果變成一種結果，這就留給讀者當作習題。
+同时出现正面的机率是四十分之九，差不多是 25%的机会。我们的 monad 并没有办法 join 所有都是 ``False`` 的情形，也就是所有硬币都是出现反面的情况。不过那不是个严重的问题，可以写个函数来将同样的结果变成一种结果，这就留给读者当作习题。
 
-在這章節中，我們從提出問題到真的寫出型態，並確認這個型態是一個 monad，寫出他的 instance 並實際操作他。這是個很棒的經驗。現在讀者們應該對於 monad 有不少的了解才是。
+在这章节中，我们从提出问题到真的写出型态，并确认这个型态是一个 monad，写出他的 instance 并实际操作他。这是个很棒的经验。现在读者们应该对于 monad 有不少的了解才是。
+

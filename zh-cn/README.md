@@ -1,9 +1,9 @@
-# HASKELL 趣學指南
+# HASKELL 趣学指南
 
-### 簡介
+### 简介
 LEARN YOU A HASKELL FOR GREAT GOOD 中文版
 
-### Top 貢獻者
+### Top 贡献者
 * Fleuria
 * letoh
 * jiyinyiyong
@@ -14,5 +14,6 @@ LEARN YOU A HASKELL FOR GREAT GOOD 中文版
 * [haskell.tw](http://webchat.freenode.net/)
 * [haskell.sg](http://www.meetup.com/haskell-sg)
 
-### 貢獻
+### 贡献
 * [github repo](https://github.com/MnO2/learnyouahaskell-zh)
+
