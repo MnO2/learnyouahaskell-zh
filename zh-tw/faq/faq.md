@@ -30,4 +30,4 @@
 
 ## 關於繁體譯者
 
-我是[MnO2](http://blog.mno2.org)]，Haskell 愛好者，
+我是[MnO2](http://blog.mno2.org)，Haskell 愛好者，
