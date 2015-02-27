@@ -18,14 +18,14 @@
 * [CS240h](http://www.scs.stanford.edu/11au-cs240h/notes/): David Mazières 跟 Bryan O'Sullivan 在 Stanford 開的課。
 * [本物のプログラマはHaskellを使う](http://itpro.nikkeibp.co.jp/article/COLUMN/20060915/248215/): Haskell 專欄
 * [Write Yourself a Scheme in 48 Hours](http://en.wikibooks.org/wiki/Write_Yourself_a_Scheme_in_48_Hours)，Audrey Tang 寫的教學，教你如何用 Haskell 寫出一個 Scheme。
-* [http://video.s-inf.de/*FP.2005-SS-Giesl.(COt).HD_Videoaufzeichnung]: 德國大學的 Functional Programming 課程，語言是用 FP （英文授課）
-* [http://community.haskell.org/~simonmar/slides/cadarache2012/]: Simon Marlow 講解 parallel haskell 的投影片
+* [德國大學的 Functional Programming 課程，語言是用 FP （英文授課）](http://video.s-inf.de/*FP.2005-SS-Giesl.(COt).HD_Videoaufzeichnung) 
+* [Simon Marlow 講解 parallel haskell 的投影片](http://community.haskell.org/~simonmar/slides/cadarache2012/) 
 * [FLOLAC 2012](http://flolac.iis.sinica.edu.tw/flolac12/doku.php?id=zh-tw:start)
 * [ICFP 2012](http://www.youtube.com/channel/UCP9g4dLR7xt6KzCYntNqYcw?&desktop_uri=%2Fchannel%2FUCP9g4dLR7xt6KzCYntNqYcw)
 * [Explanation of Generalized Algebraic Data Types](http://archive.org/details/ExplanationOfGeneralizedAlgebraicDataTypesgadts)
 * [A Quick Intro to Snap](http://bonus500.github.com/sc2blog/*title-slide)
 * [Logic, Languages, Compilation, and Verification 2012](http://www.cs.uoregon.edu/Research/summerschool/summer12/curriculum.html)
-* [ Haskell in Halle/Saale](http://iba-cg.de/hal7.html)
+* [Haskell in Halle/Saale](http://iba-cg.de/hal7.html)
 * [Fast Code Nation](http://bos.github.com/reaktor-dev-day-2012/reaktor-talk-slides.html*(1))
 
 ## Forum
