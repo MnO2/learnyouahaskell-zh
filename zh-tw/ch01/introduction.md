@@ -31,7 +31,7 @@ Haskell 是*靜態類型 (statically typed)* 的。當你編譯程式時，編�
 
 Haskell 採納了很多高階程式語言的概念，因而它的程式碼*優雅且簡練*。與同層次的命令式語言相比，Haskell 的程式碼往往會更短，更短就意味着更容易理解，bug 也就更少。
 
-Haskell 這語言是一群非常聰明的人設計的 (他們每個人都有 PhD 學位)。最初的工作始於 1987 年，一群學者聚在一起想設計一個屌到爆的程式語言。到了 2003 年，他們公開了 Haskell Report，這份報告描述了 Haskell 語言的一個穩定版本。(譯註：這份報告是 Haskell 98 標準的修訂版，Haskell 98 是在 1999 年公開的，是目前 Haskell 各個編譯器實現預設支援的標準。在 2010 年又公開了另一份 Haskell 2010 標準，詳情可見穆信成老師所撰寫的[http://www.iis.sinica.edu.tw/~scm/ncs/2010/07/haskell-2010-report/ 簡介]。
+Haskell 這語言是一群非常聰明的人設計的 (他們每個人都有 PhD 學位)。最初的工作始於 1987 年，一群學者聚在一起想設計一個屌到爆的程式語言。到了 2003 年，他們公開了 Haskell Report，這份報告描述了 Haskell 語言的一個穩定版本。(譯註：這份報告是 Haskell 98 標準的修訂版，Haskell 98 是在 1999 年公開的，是目前 Haskell 各個編譯器實現預設支援的標準。在 2010 年又公開了另一份 Haskell 2010 標準，詳情可見穆信成老師所撰寫的[簡介](http://www.iis.sinica.edu.tw/~scm/ncs/2010/07/haskell-2010-report/)。
 
 ##  要使用 Haskell 有哪些要求呢？
 
