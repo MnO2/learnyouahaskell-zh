@@ -10,7 +10,7 @@
 * [Hoogle](http://www.haskell.org/hoogle/): Haskell 函數的搜尋引擎，不只可以用函數的名稱搜尋，也可以用函數的型態來搜尋。
 * [Hayoo](http://holumbus.fh-wedel.de/hayoo/hayoo.html): 跟 Hoogle 同樣功能。
 * [hdiff](http://hdiff.luite.com/): 可以方便查詢 package 不同版號之間的差異。
-* [http://packdeps.haskellers.com/]: 方便查詢 Hackage 上面 package 之間的相依性。
+* [packdeps](http://packdeps.haskellers.com/): 方便查詢 Hackage 上面 package 之間的相依性。
 
 
 ## Lectures & Articles
