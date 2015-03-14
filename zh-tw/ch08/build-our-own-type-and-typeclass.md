@@ -494,14 +494,14 @@ ghci> True `compare` False
 GT
 ghci> True > False
 True
-ghci> True
+ghci> True < False
 False
 ```
 
 在 ``Maybe a`` 數據型別中，值構造子 ``Nothing`` 在 ``Just`` 值構造子前面，所以一個 ``Nothing`` 總要比 ``Just something`` 的值小。即便這個 ``something`` 是 ``-100000000`` 也是如此。
 
 ```
-ghci> Nothing
+ghci> Nothing < Just 100
 True
 ghci> Nothing > Just (-49999)
 False
