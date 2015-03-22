@@ -6,7 +6,7 @@
 
 我们已经见识过许多型别，如 ``Bool``、``Int``、``Char``、``Maybe`` 等等，不过在 Haskell 中该如何构造自己的型别呢？好问题，一种方法是使用 *data* 关键字。首先我们来看看 ``Bool`` 在标准函式库中的定义：
 
-```
+```haskell
 data Bool = False | True
 ```
 
@@ -14,7 +14,7 @@ data Bool = False | True
 
 相似，我们可以假想 ``Int`` 型别的声明：
 
-```
+```haskell
 data Int = -2147483648 | -2147483647 | ... | -1 | 0 | 1 | 2 | ... | 2147483647
 ```
 
@@ -24,7 +24,7 @@ data Int = -2147483648 | -2147483647 | ... | -1 | 0 | 1 | 2 | ... | 2147483647
 
 我们想想 Haskell 中图形的表示方法。表示圆可以用一个 Tuple，如 ``(43.1,55.0,10.4)``，前两项表示圆心的位置，末项表示半径。听着不错，不过三维向量或其它什么东西也可能是这种形式！更好的方法就是自己构造一个表示图形的型别。假定图形可以是圆 (Circle) 或长方形 (Rectangle)：
 
-```
+```haskell
 data Shape = Circle Float Float Float | Rectangle Float Float Float Float
 ```
 
@@ -32,7 +32,7 @@ data Shape = Circle Float Float Float | Rectangle Float Float Float Float
 
 谈到「项」 (field)，其实应为「参数」 (parameters)。值构造子的本质是个函数，可以返回一个型别的值。我们看下这两个值构造子的型别声明：
 
-```
+```haskell
 ghci> :t Circle
 Circle :: Float -> Float -> Float -> Shape
 ghci> :t Rectangle
@@ -41,7 +41,7 @@ Rectangle :: Float -> Float -> Float -> Float -> Shape
 
 Cool，这么说值构造子就跟普通函数并无二致啰，谁想得到？我们写个函数计算图形面积：
 
-```
+```haskell
 surface :: Shape -> Float
 surface (Circle _ _ r) = pi * r ^ 2
 surface (Rectangle x1 y1 x2 y2) = (abs $ x2 - x1) * (abs $ y2 - y1)
@@ -51,7 +51,7 @@ surface (Rectangle x1 y1 x2 y2) = (abs $ x2 - x1) * (abs $ y2 - y1)
 
 我们只关心圆的半径，因此不需理会表示坐标的前两项：
 
-```
+```haskell
 ghci> surface $ Circle 10 20 10
 314.15927
 ghci> surface $ Rectangle 0 0 100 100
@@ -60,13 +60,13 @@ ghci> surface $ Rectangle 0 0 100 100
 
 Yay，it works！不过我们若尝试输出 ``Circle 10 20`` 到控制台，就会得到一个错误。这是因为 Haskell 还不知道该型别的字元串表示方法。想想，当我们往控制台输出值的时候，Haskell 会先呼叫 ``show`` 函数得到这个值的字元串表示才会输出。因此要让我们的 ``Shape`` 型别成为 Show 型别类的成员。可以这样修改：
 
-```
+```haskell
 data Shape = Circle Float Float Float | Rectangle Float Float Float Float deriving (Show)
 ```
 
 先不去深究 *deriving*（派生），可以先这样理解：若在 ``data`` 声明的后面加上 ``deriving (Show)``，那 Haskell 就会自动将该型别至于 ``Show`` 型别类之中。好了，由于值构造子是个函数，因此我们可以拿它交给 ``map``，拿它不全呼叫，以及普通函数能做的一切。
 
-```
+```haskell
 ghci> Circle 10 20 5
 Circle 10.0 20.0 5.0
 ghci> Rectangle 50 230 60 90
@@ -75,21 +75,21 @@ Rectangle 50.0 230.0 60.0 90.0
 
 我们若要取一组不同半径的同心圆，可以这样：
 
-```
+```haskell
 ghci> map (Circle 10 20) [4,5,6,6]
 [Circle 10.0 20.0 4.0,Circle 10.0 20.0 5.0,Circle 10.0 20.0 6.0,Circle 10.0 20.0 6.0]
 ```
 
 我们的型别还可以更好。增加加一个表示二维空间中点的型别，可以让我们的 ``Shape`` 更加容易理解：
 
-```
+```haskell
 data Point = Point Float Float deriving (Show)
 data Shape = Circle Point Float | Rectangle Point Point deriving (Show)
 ```
 
 注意下 ``Point`` 的定义，它的型别与值构造子用了相同的名字。没啥特殊含义，实际上，在一个型别含有唯一值构造子时这种重名是很常见的。好的，如今我们的 ``Circle`` 含有两个项，一个是 ``Point`` 型别，一个是 ``Float`` 型别，好作区分。``Rectangle`` 也是同样，我们得修改 ``surface`` 函数以适应型别定义的变动。
 
-```
+```haskell
 surface :: Shape -> Float
 surface (Circle _ r) = pi * r ^ 2
 surface (Rectangle (Point x1 y1) (Point x2 y2)) = (abs $ x2 - x1) * (abs $ y2 - y1)
@@ -97,7 +97,7 @@ surface (Rectangle (Point x1 y1) (Point x2 y2)) = (abs $ x2 - x1) * (abs $ y2 - 
 
 唯一需要修改的地方就是模式。在 ``Circle`` 的模式中，我们无视了整个 ``Point``。而在 ``Rectangle`` 的模式中，我们用了一个嵌套的模式来取得 ``Point`` 中的项。若出于某原因而需要整个 ``Point``，那么直接匹配就是了。
 
-```
+```haskell
 ghci> surface (Rectangle (Point 0 0) (Point 100 100))
 10000.0
 ghci> surface (Circle (Point 0 0) 24)
@@ -106,7 +106,7 @@ ghci> surface (Circle (Point 0 0) 24)
 
 表示移动一个图形的函数该怎么写？它应当取一个 ``Shape`` 和表示位移的两个数，返回一个位于新位置的图形。
 
-```
+```haskell
 nudge :: Shape -> Float -> Float -> Shape
 nudge (Circle (Point x y) r) a b = Circle (Point (x+a) (y+b)) r
 nudge (Rectangle (Point x1 y1) (Point x2 y2)) a b = Rectangle (Point (x1+a) (y1+b)) (Point (x2+a) (y2+b))
@@ -114,14 +114,14 @@ nudge (Rectangle (Point x1 y1) (Point x2 y2)) a b = Rectangle (Point (x1+a) (y1+
 
 简洁明了。我们再给这一 ``Shape`` 的点加上位移的量。
 
-```
+```haskell
 ghci> nudge (Circle (Point 34 34) 10) 5 10
 Circle (Point 39.0 44.0) 10.0
 ```
 
 如果不想直接处理 ``Point``，我们可以搞个辅助函数 (auxilliary function)，初始从原点创建图形，再移动它们。
 
-```
+```haskell
 baseCircle :: Float -> Shape
 baseCircle r = Circle (Point 0 0) r
 
@@ -129,7 +129,7 @@ baseRect :: Float -> Float -> Shape
 baseRect width height = Rectangle (Point 0 0) (Point width height)
 ```
 
-```
+```haskell
 ghci> nudge (baseRect 40 100) 60 23
 Rectangle (Point 60.0 23.0) (Point 100.0 123.0)
 ```
@@ -138,7 +138,7 @@ Rectangle (Point 60.0 23.0) (Point 100.0 123.0)
 
 若要将这里定义的所有函数和型别都导出到一个模组中，可以这样：
 
-```
+```haskell
 module Shapes
 ( Point(..)
 , Shape(..)
@@ -162,13 +162,13 @@ module Shapes
 
 OK，我们需要一个数据型别来描述一个人，得包含他的姓、名、年龄、身高、体重、电话号码以及最爱的冰激淋。我不知你的想法，不过我觉得要了解一个人，这些资料就够了。就这样，实现出来！
 
-```
+```haskell
 data Person = Person String String Int Float String String deriving (Show)
 ```
 
 O~Kay，第一项是名，第二项是姓，第三项是年龄，等等。我们造一个人：
 
-```
+```haskell
 ghci> let guy = Person "Buddy" "Finklestein" 43 184.2 "526-2928" "Chocolate"
 ghci> guy
 Person "Buddy" "Finklestein" 43 184.2 "526-2928" "Chocolate"
@@ -176,7 +176,7 @@ Person "Buddy" "Finklestein" 43 184.2 "526-2928" "Chocolate"
 
 貌似很酷，就是难读了点儿。弄个函数得人的某项资料又该如何？如姓的函数，名的函数，等等。好吧，我们只能这样：
 
-```
+```haskell
 firstName :: Person -> String
 firstName (Person firstname _ _ _ _ _) = firstname
 
@@ -198,7 +198,7 @@ flavor (Person _ _ _ _ _ flavor) = flavor
 
 唔，我可不愿写这样的程式码！虽然 it works，但也太无聊了哇。
 
-```
+```haskell
 ghci> let guy = Person "Buddy" "Finklestein" 43 184.2 "526-2928" "Chocolate"
 ghci> firstName guy
 "Buddy"
@@ -212,7 +212,7 @@ ghci> flavor guy
 
 开个玩笑，其实有的，哈哈哈～Haskell 的发明者都是天才，早就料到了此类情形。他们引入了一个特殊的型别，也就是刚才提到的更好的方法 -- *Record Syntax*。
 
-```
+```haskell
 data Person = Person { firstName :: String
                      , lastName :: String
                      , age :: Int
@@ -224,7 +224,7 @@ data Person = Person { firstName :: String
 
 与原先让那些项一个挨一个的空格隔开不同，这里用了花括号 ``{}``。先写出项的名字，如 ``firstName``，后跟两个冒号(也叫 Paamayim Nekudotayim，哈哈~(译者不知道什么意思~囧))，标明其型别，返回的数据型别仍与以前相同。这样的好处就是，可以用函数从中直接按项取值。通过 Record Syntax，Haskell 就自动生成了这些函数：``firstName``, ``lastName``, ``age``, ``height``, ``phoneNumber`` 和 ``flavor``。
 
-```
+```haskell
 ghci> :t flavor
 flavor :: Person -> String
 ghci> :t firstName
@@ -233,22 +233,22 @@ firstName :: Person -> String
 
 还有个好处，就是若派生 (deriving) 到 ``Show`` 型别类，它的显示是不同的。假如我们有个型别表示一辆车，要包含生产商、型号以及出场年份：
 
-```
+```haskell
 data Car = Car String String Int deriving (Show)
 ```
 
-```
+```haskell
 ghci> Car "Ford" "Mustang" 1967
 Car "Ford" "Mustang" 1967
 ```
 
 若用 Record Syntax，就可以得到像这样的新车：
 
-```
+```haskell
 data Car = Car {company :: String, model :: String, year :: Int} deriving (Show)
 ```
 
-```
+```haskell
 ghci> Car {company="Ford", model="Mustang", year=1967}
 Car {company = "Ford", model = "Mustang", year = 1967}
 ```
@@ -263,7 +263,7 @@ Car {company = "Ford", model = "Mustang", year = 1967}
 
 值构造子可以取几个参数产生一个新值，如 ``Car`` 的构造子是取三个参数返回一个 ``Car``。与之相似，型别构造子可以取型别作参数，产生新的型别。这咋一听貌似有点深奥，不过实际上并不复杂。如果你对 C++ 的模板有了解，就会看到很多相似的地方。我们看一个熟悉的型别，好对型别参数有个大致印象：
 
-```
+```haskell
 data Maybe a = Nothing | Just a
 ```
 
@@ -277,7 +277,7 @@ data Maybe a = Nothing | Just a
 
 把玩一下 ``Maybe``！
 
-```
+```haskell
 ghci> Just "Haha"
 Just "Haha"
 ghci> Just 84
@@ -300,7 +300,7 @@ Just 10.0
 
 型别参数有很多好处，但前提是用对了地方才行。一般都是不关心型别里面的内容，如 ``Maybe a``。一个型别的行为若有点像是容器，那么使用型别参数会是个不错的选择。我们完全可以把我们的``Car``型别从
 
-```
+```haskell
 data Car = Car { company :: String
                  , model :: String
                  , year :: Int
@@ -309,7 +309,7 @@ data Car = Car { company :: String
 
 改成：
 
-```
+```haskell
 data Car a b c = Car { company :: a
                        , model :: b
                        , year :: c
@@ -318,12 +318,12 @@ data Car a b c = Car { company :: a
 
 但是，这样我们又得到了什么好处？回答很可能是，一无所得。因为我们只定义了处理 ``Car String String Int`` 型别的函数，像以前，我们还可以弄个简单函数来描述车的属性。
 
-```
+```haskell
 tellCar :: Car -> String
 tellCar (Car {company = c, model = m, year = y}) = "This " ++ c ++ " " ++ m ++ " was made in " ++ show y
 ```
 
-```
+```haskell
 ghci> let stang = Car {company="Ford", model="Mustang", year=1967}
 ghci> tellCar stang
 "This Ford Mustang was made in 1967"
@@ -331,14 +331,14 @@ ghci> tellCar stang
 
 可爱的小函数！它的型别声明得很漂亮，而且工作良好。好，如果改成 ``Car a b c`` 又会怎样？
 
-```
+```haskell
 tellCar :: (Show a) => Car String String a -> String
 tellCar (Car {company = c, model = m, year = y}) = "This " ++ c ++ " " ++ m ++ " was made in " ++ show y
 ```
 
 我们只能强制性地给这个函数安一个 ``(Show a) => Car String String a`` 的型别约束。看得出来，这要繁复得多。而唯一的好处貌似就是，我们可以使用 ``Show`` 型别类的 ``instance`` 来作 ``a`` 的型别。
 
-```
+```haskell
 ghci> tellCar (Car "Ford" "Mustang" 1967)
 "This Ford Mustang was made in 1967"
 ghci> tellCar (Car "Ford" "Mustang" "nineteen sixty seven")
@@ -353,7 +353,7 @@ Car "Ford" "Mustang" "nineteen sixty seven" :: Car [Char] [Char] [Char]
 
 我们之前还遇见过一个型别参数的应用，就是 ``Data.Map`` 中的 ``Map k v``。 ``k`` 表示 Map 中键的型别，``v`` 表示值的型别。这是个好例子，Map 中型别参数的使用允许我们能够用一个型别索引另一个型别，只要键的型别在 ``Ord`` 型别类就行。如果叫我们自己定义一个 Map 型别，可以在 ``data`` 声明中加上一个型别类的约束。
 
-```
+```haskell
 data (Ord k) => Map k v = ...
 ```
 
@@ -363,7 +363,7 @@ data (Ord k) => Map k v = ...
 
 我们实现个表示三维向量的型别，再给它加几个处理函数。我么那就给它个型别参数，虽然大多数情况都是数值型，不过这一来它就支持了多种数值型别。
 
-```
+```haskell
 data Vector a = Vector a a a deriving (Show)
 vplus :: (Num t) => Vector t -> Vector t -> Vector t
 (Vector i j k) `vplus` (Vector l m n) = Vector (i+l) (j+m) (k+n)
@@ -377,7 +377,7 @@ scalarMult :: (Num t) => Vector t -> Vector t -> t
 
 再度重申，型别构造子和值构造子的区分是相当重要的。在声明数据型别时，等号=左端的那个是型别构造子，右端的(中间可能有|分隔)都是值构造子。拿 ``Vector t t t -> Vector t t t -> t`` 作函数的型别就会产生一个错误，因为在型别声明中只能写型别，而 ``Vector`` 的型别构造子只有个参数，它的值构造子才是有三个。我们就慢慢耍：
 
-```
+```haskell
 ghci> Vector 3 5 8 `vplus` Vector 9 2 8
 Vector 12 7 16
 ghci> Vector 3 5 8 `vplus` Vector 9 2 8 `vplus` Vector 0 2 3
@@ -404,7 +404,7 @@ Vector 148 666 222
 
 看这个数据型别：
 
-```
+```haskell
 data Person = Person { firstName :: String
                      , lastName :: String
                      , age :: Int
@@ -413,7 +413,7 @@ data Person = Person { firstName :: String
 
 这描述了一个人。我们先假定世界上没有重名重姓又同龄的人存在，好，假如有两个 record，有没有可能是描述同一个人呢？当然可能，我么可以判定姓名年龄的相等性，来判断它俩是否相等。这一来，让这个型别成为 ``Eq`` 的成员就很靠谱了。直接 derive 这个 instance：
 
-```
+```haskell
 data Person = Person { firstName :: String
                      , lastName :: String
                      , age :: Int
@@ -422,7 +422,7 @@ data Person = Person { firstName :: String
 
 在一个型别 derive 为 ``Eq`` 的 instance 后，就可以直接使用 ``==`` 或 ``/=`` 来判断它们的相等性了。Haskell 会先看下这两个值的值构造子是否一致(这里只是单值构造子)，再用 ``==`` 来检查其中的所有数据(必须都是 ``Eq`` 的成员)是否一致。在这里只有 ``String`` 和 Int，所以是没有问题的。测试下我们的 Eqinstance：
 
-```
+```haskell
 ghci> let mikeD = Person {firstName = "Michael", lastName = "Diamond", age = 43}
 ghci> let adRock = Person {firstName = "Adam", lastName = "Horovitz", age = 41}
 ghci> let mca = Person {firstName = "Adam", lastName = "Yauch", age = 44}
@@ -438,7 +438,7 @@ True
 
 自然，``Person`` 如今已经成为了 ``Eq`` 的成员，我们就可以将其应用于所有在型别声明中用到 ``Eq`` 类约束的函数了，如 ``elem``。
 
-```
+```haskell
 ghci> let beastieBoys = [mca, adRock, mikeD]
 ghci> mikeD `elem` beastieBoys
 True
@@ -446,7 +446,7 @@ True
 
 ``Show`` 和 ``Read`` 型别类处理可与字元串相互转换的东西。同 ``Eq`` 相似，如果一个型别的构造子含有参数，那所有参数的型别必须都得属于 ``Show`` 或 ``Read`` 才能让该型别成为其 instance。就让我们的 ``Person`` 也成为 ``Read`` 和 ``Show`` 的一员吧。
 
-```
+```haskell
 data Person = Person { firstName :: String
                      , lastName :: String
                      , age :: Int
@@ -455,7 +455,7 @@ data Person = Person { firstName :: String
 
 然后就可以输出一个 ``Person`` 到控制台了。
 
-```
+```haskell
 ghci> let mikeD = Person {firstName = "Michael", lastName = "Diamond", age = 43}
 ghci> mikeD
 Person {firstName = "Michael", lastName = "Diamond", age = 43}
@@ -467,14 +467,14 @@ ghci> "mikeD is: " ++ show mikeD
 
 ``Read`` 几乎就是与 ``Show`` 相对的型别类，``show`` 是将一个值转换成字元串，而 ``read`` 则是将一个字元串转成某型别的值。还记得，使用 ``read`` 函数时我们必须得用型别注释注明想要的型别，否则 Haskell 就不会知道如何转换。
 
-```
+```haskell
 ghci> read "Person {firstName =\"Michael\", lastName =\"Diamond\", age = 43}" :: Person
 Person {firstName = "Michael", lastName = "Diamond", age = 43}
 ```
 
 如果我们 ``read`` 的结果会在后面用到参与计算，Haskell 就可以推导出是一个 Person 的行为，不加注释也是可以的。
 
-```
+```haskell
 ghci> read "Person {firstName =\"Michael\", lastName =\"Diamond\", age = 43}" == mikeD
 True
 ```
@@ -483,13 +483,13 @@ True
 
 很容易想象 ``Ord`` 型别类 derive instance 的行为。首先，判断两个值构造子是否一致，如果是，再判断它们的参数，前提是它们的参数都得是 ``Ord`` 的 instance。``Bool`` 型别可以有两种值，``False`` 和 ``True``。为了了解在比较中程序的行为，我们可以这样想象：
 
-```
+```haskell
 data Bool = False | True deriving (Ord)
 ```
 
 由于值构造子 ``False`` 安排在 ``True`` 的前面，我们可以认为 ``True`` 比 ``False`` 大。
 
-```
+```haskell
 ghci> True `compare` False
 GT
 ghci> True > False
@@ -500,7 +500,7 @@ False
 
 在 ``Maybe a`` 数据型别中，值构造子 ``Nothing`` 在 ``Just`` 值构造子前面，所以一个 ``Nothing`` 总要比 ``Just something`` 的值小。即便这个 ``something`` 是 ``-100000000`` 也是如此。
 
-```
+```haskell
 ghci> Nothing < Just 100
 True
 ghci> Nothing > Just (-49999)
@@ -515,20 +515,20 @@ True
 
 作枚举，使用数字型别就能轻易做到。不过使用 ``Enum`` 和 ``Bounded`` 型别类会更好，看下这个型别：
 
-```
+```haskell
 data Day = Monday | Tuesday | Wednesday | Thursday | Friday | Saturday | Sunday
 ```
 
 所有的值构造子都是 ``nullary`` 的(也就是没有参数)，每个东西都有前置子和后继子，我们可以让它成为 ``Enum`` 型别类的成员。同样，每个东西都有可能的最小值和最大值，我们也可以让它成为 ``Bounded`` 型别类的成员。在这里，我们就同时将它搞成其它可 derive型别类的 instance。再看看我们能拿它做啥：
 
-```
+```haskell
 data Day = Monday | Tuesday | Wednesday | Thursday | Friday | Saturday | Sunday
            deriving (Eq, Ord, Show, Read, Bounded, Enum)
 ```
 
 由于它是 ``Show`` 和 ``Read`` 型别类的成员，我们可以将这个型别的值与字元串相互转换。
 
-```
+```haskell
 ghci> Wednesday
 Wednesday
 ghci> show Wednesday
@@ -539,7 +539,7 @@ Saturday
 
 由于它是 ``Eq`` 与 ``Ord`` 的成员，因此我们可以拿 ``Day`` 作比较。
 
-```
+```haskell
 ghci> Saturday == Sunday
 False
 ghci> Saturday == Saturday
@@ -552,7 +552,7 @@ LT
 
 它也是 ``Bounded`` 的成员，因此有最早和最晚的一天。
 
-```
+```haskell
 ghci> minBound :: Day
 Monday
 ghci> maxBound :: Day
@@ -561,7 +561,7 @@ Sunday
 
 它也是 ``Enum`` 的 instance，可以得到前一天和后一天，并且可以对此使用 List 的区间。
 
-```
+```haskell
 ghci> succ Monday
 Tuesday
 ghci> pred Saturday
@@ -579,7 +579,7 @@ ghci> [minBound .. maxBound] :: [Day]
 
 在前面我们提到在写型别名的时候，``[Char]`` 和 ``String`` 等价，可以互换。这就是由型别别名实现的。型别别名实际上什么也没做，只是给型别提供了不同的名字，让我们的程式码更容易理解。这就是 ``[Char]`` 的别名 ``String`` 的由来。
 
-```
+```haskell
 type String = [Char]
 ```
 
@@ -589,7 +589,7 @@ type String = [Char]
 
 在前面 ``Data.Map`` 那部分，我们用了一个关联 ``List`` 来表示 ``phoneBook``，之后才改成的 Map。我们已经发现了，一个关联 List 就是一组键值对组成的 List。再看下我们 ``phoneBook`` 的样子：
 
-```
+```haskell
 phoneBook :: [(String,String)]
 phoneBook =
     [("betty","555-2938")
@@ -603,13 +603,13 @@ phoneBook =
 
 可以看出，``phoneBook`` 的型别就是 ``[(String,String)]``，这表示一个关联 List 仅是 String 到 String 的映射关系。我们就弄个型别别名，好让它型别声明中能够表达更多资讯。
 
-```
+```haskell
 type PhoneBook = [(String,String)]
 ```
 
 现在我们 ``phoneBook`` 的型别声明就可以是 ``phoneBook :: PhoneBook`` 了。再给字元串加上别名：
 
-```
+```haskell
 type PhoneNumber = String
 type Name = String
 type PhoneBook = [(Name,PhoneNumber)]
@@ -619,7 +619,7 @@ Haskell 程序员给 String 加别名是为了让函数中字元串的表达方�
 
 好的，我们实现了一个函数，它可以取一名字和号码检查它是否存在于电话本。现在可以给它加一个相当好看明了的型别声明：
 
-```
+```haskell
 inPhoneBook :: Name -> PhoneNumber -> PhoneBook -> Bool
 inPhoneBook name pnumber pbook = (name,pnumber) `elem` pbook
 ```
@@ -630,7 +630,7 @@ inPhoneBook name pnumber pbook = (name,pnumber) `elem` pbook
 
 型别别名也是可以有参数的，如果你想搞个型别来表示关联 List，但依然要它保持通用，好让它可以使用任意型别作 ``key`` 和 ``value``，我们可以这样：
 
-```
+```haskell
 type AssocList k v = [(k,v)]
 ```
 
@@ -640,13 +640,13 @@ type AssocList k v = [(k,v)]
 
 我们可以用不全呼叫来得到新的函数，同样也可以使用不全呼叫得到新的型别构造子。同函数一样，用不全的型别参数呼叫型别构造子就可以得到一个不全呼叫的型别构造子，如果我们要一个表示从整数到某东西间映射关系的型别，我们可以这样：
 
-```
+```haskell
 type IntMap v = Map Int v
 ```
 
 也可以这样：
 
-```
+```haskell
 type IntMap = Map Int
 ```
 
@@ -658,13 +658,13 @@ Oh yeah，如果要你去实现它，很可能会用个 ``qualified import`` 来
 
 另一个很酷的二参型别就是 ``Either a b`` 了，它大约是这样定义的：
 
-```
+```haskell
 data Either a b = Left a | Right b deriving (Eq, Ord, Read, Show)
 ```
 
 它有两个值构造子。如果用了 ``Left``，那它内容的型别就是 ``a``；用了 ``Right``，那它内容的型别就是 ``b``。我们可以用它来将可能是两种型别的值封装起来，从里面取值时就同时提供 ``Left`` 和 ``Right`` 的模式匹配。
 
-```
+```haskell
 ghci> Right 20
 Right 20
 ghci> Left "w00t"
@@ -679,7 +679,7 @@ Left True :: Either Bool b
 
 一个例子：有个学校提供了不少壁橱，好给学生们地方放他们的 Gun'N'Rose 海报。每个壁橱都有个密码，哪个学生想用个壁橱，就告诉管理员壁橱的号码，管理员就会告诉他壁橱的密码。但如果这个壁橱已经让别人用了，管理员就不能告诉他密码了，得换一个壁橱。我们就用 ``Data.Map`` 的一个 Map 来表示这些壁橱，把一个号码映射到一个表示壁橱占用情况及密码的 Tuple 里。
 
-```
+```haskell
 import qualified Data.Map as Map
 
 data LockerState = Taken | Free deriving (Show, Eq)
@@ -691,7 +691,7 @@ type LockerMap = Map.Map Int (LockerState, Code)
 
 很简单，我们引入了一个新的型别来表示壁橱的占用情况。并为壁橱密码及按号码找壁橱的 Map 分别设置了一个别名。好，现在我们实现这个按号码找壁橱的函数，就用 ``Either String Code`` 型别表示我们的结果，因为 ``lookup`` 可能会以两种原因失败。橱子已经让别人用了或者压根就没有这个橱子。如果 ``lookup`` 失败，就用字元串表明失败的原因。
 
-```
+```haskell
 lockerLookup :: Int -> LockerMap -> Either String Code
 lockerLookup lockerNumber map =
     case Map.lookup lockerNumber map of
@@ -705,7 +705,7 @@ lockerLookup lockerNumber map =
 
 如下是个 Map 的例子：
 
-```
+```haskell
 lockers :: LockerMap
 lockers = Map.fromList
     [(100,(Taken,"ZD39I"))
@@ -719,7 +719,7 @@ lockers = Map.fromList
 
 现在从里面 ``lookup`` 某个橱子号..
 
-```
+```haskell
 ghci> lockerLookup 101 lockers
 Right "JAH3I"
 ghci> lockerLookup 100 lockers
@@ -745,19 +745,19 @@ Right "QOTSA"
 
 我们用 algebraic data type 来实作我们自己的 List！
 
-```
+```haskell
 data List a = Empty | Cons a (List a) deriving (Show, Read, Eq, Ord)
 ```
 
 这读起来好像我们前一段提及的定义。他要码是空的 List，或是一个元素跟一串 List 的结合。如果你被搞混了，看看用 record syntax 定义的可能比较清楚。
 
-```
+```haskell
 data List a = Empty | Cons { listHead :: a, listTail :: List a} deriving (Show, Read, Eq, Ord)
 ```
 
 你可能也对这边的 ``Cons`` 构造子不太清楚。``cons`` 其实就是指 ``:``。对 List 而言，``:`` 其实是一个构造子，他接受一个值跟另一串 List 来构造一个 List。现在我们可以使用我们新定义的 List 型态。换句话说，他有两个 field，其中一个 field 具有型态 ``a``，另一个有型态 ``[a]``。
 
-```
+```haskell
 ghci> Empty
 Empty
 ghci> 5 `Cons` Empty
@@ -772,7 +772,7 @@ Cons 3 (Cons 4 (Cons 5 Empty))
 
 我们可以只用特殊字元来定义函数，这样他们就会自动具有中缀的性质。我们也能同样的手法套用在构造子上，毕竟他们不过是回传型态的函数而已。
 
-```
+```haskell
 infixr 5 :-:
 data List a = Empty | a :-: (List a) deriving (Show, Read, Eq, Ord)
 ```
@@ -781,7 +781,7 @@ data List a = Empty | a :-: (List a) deriving (Show, Read, Eq, Ord)
 
 这样我们就可以写成 ``a :-: (List a)`` 而不是 ``Cons a (List a)``：
 
-```
+```haskell
 ghci> 3 :-: 4 :-: 5 :-: Empty
 (:-:) 3 ((:-:) 4 ((:-:) 5 Empty))
 ghci> let a = 3 :-: 4 :-: 5 :-: Empty
@@ -793,7 +793,7 @@ Haskell 在宣告 ``deriving Show`` 的时候，他会仍视构造子为前缀�
 
 我们在来写个函数来把两个 List 连起来。一般 ``++`` 在操作普通 List 的时候是这样的：
 
-```
+```haskell
 infixr 5  ++
 (++) :: [a] -> [a] -> [a]
 []     ++ ys = ys
@@ -802,7 +802,7 @@ infixr 5  ++
 
 我们把他偷过来用在我们的 List 上，把函数命名成 ``.++``：
 
-```
+```haskell
 infixr 5  .++
 (.++) :: List a -> List a -> List a
 Empty .++ ys = ys
@@ -811,7 +811,7 @@ Empty .++ ys = ys
 
 来看看他如何运作：
 
-```
+```haskell
 ghci> let a = 3 :-: 4 :-: 5 :-: Empty
 ghci> let b = 6 :-: 7 :-: Empty
 ghci> a .++ b
@@ -828,7 +828,7 @@ ghci> a .++ b
 
 这边我们来定义一棵树的结构：他不是一棵空的树就是带有值并含有两棵子树。听起来非常符合 algebraic data type 的结构！
 
-```
+```haskell
 data Tree a = EmptyTree | Node a (Tree a) (Tree a) deriving (Show, Read, Eq)
 ```
 
@@ -839,7 +839,7 @@ data Tree a = EmptyTree | Node a (Tree a) (Tree a) deriving (Show, Read, Eq)
 
 来看下列两个函数。第一个做了一个单节点的树，而第二个插入一个元素到一棵树中。
 
-```
+```haskell
 singleton :: a -> Tree a
 singleton x = Node x EmptyTree EmptyTree
 
@@ -858,7 +858,7 @@ treeInsert x (Node a left right)
 接下来，我们要写一个函数来检查某个元素是否已经在这棵树中。首先我们定义终端条件。如果我们已经走到一棵空的树，那这个元素一定不在这棵树中。这跟我们搜寻 List 的情形是一致的。如果我们要在空的 List 中搜寻某一元素，那就代表他不在这个 List 里面。假设我们现在搜寻一棵非空的树，而且 root 中的元素刚好就是我们要的，那就找到了。那如果不是呢？我们就要利用在 root 节点左边的元素都比 root 小的这个性质。如果我们的元素比 root 小，那就往左子树中找。如果比较大，那就往右子树中找。
 
 
-```
+```haskell
 treeElem :: (Ord a) => a -> Tree a -> Bool
 treeElem x EmptyTree = False
 treeElem x (Node a left right)
@@ -869,7 +869,7 @@ treeElem x (Node a left right)
 
 我们要作的就是把之前段落所描述的事转换成程式码。首先我们不想手动一个个来创造一棵树。我们想用一个 ``fold`` 来从一个 List 创造一棵树。要知道走遍一个 List 并回传某种值的操作都可以用 ``fold`` 来实现。我们先从一棵空的树开始，然后从右边走过 List的 每一个元素，一个一个丢到树里面。
 
-```
+```haskell
 ghci> let nums = [8,6,4,1,7,3,5]
 ghci> let numsTree = foldr treeInsert EmptyTree nums
 ghci> numsTree
@@ -880,7 +880,7 @@ Node 5 (Node 3 (Node 1 EmptyTree EmptyTree) (Node 4 EmptyTree EmptyTree)) (Node 
 
 当我们想把我们的树印出来的时候，印出来的形式会不太容易读。但如果我们能有结构地印出来呢？我们知道 root 是 5，他有两棵子树，其中一个的 root 是 3 另一个则是 7。
 
-```
+```haskell
 ghci> 8 `treeElem` numsTree
 True
 ghci> 100 `treeElem` numsTree
@@ -911,7 +911,7 @@ Typeclass 跟 Java 或 Python 中的 class 一点关系也没有。这个概念�
 这边来看看在 ``Prelude`` 之中 ``Eq`` 是怎么被定义的。
 
 
-```
+```haskell
 class Eq a where
     (==) :: a -> a -> Bool
     (/=) :: a -> a -> Bool
@@ -934,7 +934,7 @@ class Eq a where
 当我们有了 class 以后，可以用来做些什么呢？说实话，不多。不过一旦我们为它写一些 instance，就会有些好功能。来看看下面这个型别：
 
 
-```
+```haskell
 data TrafficLight = Red | Yellow | Green
 ```
 
@@ -942,7 +942,7 @@ data TrafficLight = Red | Yellow | Green
 这里定义了红绿灯的状态。请注意这个型别并不是任何 class 的 instance，虽然可以透过 derive 让它成为 ``Eq`` 或 ``Show`` 的 instance，但我们打算手工打造。下面展示了如何让一个型别成为 ``Eq`` 的 instance：
 
 
-```
+```haskell
 instance Eq TrafficLight where
     Red == Red = True
     Green == Green = True
@@ -957,7 +957,7 @@ instance Eq TrafficLight where
 由于 ``==`` 是用 ``/=`` 来定义的，同样的 ``/=`` 也是用 ``==`` 来定义。所以我们只需要在 instance 定义中复写其中一个就好了。我们这样叫做定义了一个 minimal complete definition。这是说能让型别符合 class 行为所最小需要实作的函数数量。而 ``Eq`` 的 minimal complete definition 需要 ``==`` 或 ``/=`` 其中一个。而如果 ``Eq`` 是这样定义的：
 
 
-```
+```haskell
 class Eq a where
     (==) :: a -> a -> Bool
     (/=) :: a -> a -> Bool
@@ -974,7 +974,7 @@ class Eq a where
 
 
 
-```
+```haskell
 instance Show TrafficLight where
     show Red = "Red light"
     show Yellow = "Yellow light"
@@ -983,7 +983,7 @@ instance Show TrafficLight where
 
 再一次地，我们用模式匹配来完成我们的任务。我们来看看他是如何运作的。
 
-```
+```haskell
 ghci> Red == Red
 True
 ghci> Red == Yellow
@@ -1000,7 +1000,7 @@ ghci> [Red, Yellow, Green]
 
 你也可以把 typeclass 定义成其他 typeclass 的 subclass。像是 ``Num`` 的 class 宣告就有点冗长，但我们先看个雏型。
 
-```
+```haskell
 class (Eq a) => Num a where
    ...
 ```
@@ -1013,7 +1013,7 @@ class (Eq a) => Num a where
 但像是 ``Maybe`` 或是 List 是如何被定义成 typeclass 的 instance 呢？``Maybe`` 的特别之处在于他跟 ``TrafficLight`` 不一样，他不是一个具体的型别。他是一个型别构造子，接受一个型别参数（像是 ``Char`` 之类的）而构造出一个具体的型别（像是 ``Maybe Char`` ）。让我们再回顾一下 ``Eq`` 这个 typeclass：
 
 
-```
+```haskell
 class Eq a where
     (==) :: a -> a -> Bool
     (/=) :: a -> a -> Bool
@@ -1025,14 +1025,14 @@ class Eq a where
 从型别宣告来看，可以看到 ``a`` 必须是一个具体型别，因为所有在函数中的型别都必须是具体型别。(你没办法写一个函数，他的型别是 ``a -> Maybe``，但你可以写一个函数，他的型别是 ``a -> Maybe a``，或是 ``Maybe Int -> Maybe String``) 这就是为什么我们不能写成像这样：
 
 
-```
+```haskell
 instance Eq Maybe where
     ...
 ```
 
 
 
-```
+```haskell
 instance Eq (Maybe m) where
     Just x == Just y = x == y
     Nothing == Nothing = True
@@ -1045,7 +1045,7 @@ instance Eq (Maybe m) where
 
 不过这仍然有一个问题。你能看出来吗？ 我们用 ``==`` 来比较 ``Maybe`` 包含的东西，但我们并没有任何保证说 ``Maybe`` 装的东西可以是 ``Eq``。这就是为什么我们需要修改我们的 instance 定义：
 
-```
+```haskell
 instance (Eq m) => Eq (Maybe m) where
     Just x == Just y = x == y
     Nothing == Nothing = True
@@ -1077,7 +1077,7 @@ instance (Eq m) => Eq (Maybe m) where
 
 尽管使用 ``Bool`` 来表达布林的语意是比较好的作法。为了有趣起见，我们来试试看模仿 Javascript 的行为。我们先从 typeclass 宣告开始看：
 
-```
+```haskell
 class YesNo a where
     yesno :: a -> Bool
 ```
@@ -1087,7 +1087,7 @@ class YesNo a where
 
 接下来我们来定义一些 instance。对于数字，我们会假设任何非零的数字都会被当作 ``true``，而 0 则当作 ``false``。
 
-```
+```haskell
 instance YesNo Int where
     yesno 0 = False
     yesno _ = True
@@ -1095,7 +1095,7 @@ instance YesNo Int where
 
 空的 List (包含字串)代表 ``false``，而非空的 List 则代表 ``true``。
 
-```
+```haskell
 instance YesNo [a] where
     yesno [] = False
     yesno _ = True
@@ -1103,7 +1103,7 @@ instance YesNo [a] where
 
 留意到我们加了一个型别参数 ``a`` 来让整个 List 是一个具体型别，不过我们并没有对包涵在 List 中的元素的型别做任何额外假设。我们还剩下 ``Bool`` 可以被作为真假值，要定义他们也很容易：
 
-```
+```haskell
 instance YesNo Bool where
     yesno = id
 ```
@@ -1112,7 +1112,7 @@ instance YesNo Bool where
 
 我们也让 ``Maybe a`` 成为 ``YesNo`` 的 instance。
 
-```
+```haskell
 instance YesNo (Maybe a) where
     yesno (Just _) = True
     yesno Nothing = False
@@ -1123,7 +1123,7 @@ instance YesNo (Maybe a) where
 
 之前我们定义了 ``Tree a``，那代表一个二元搜寻树。我们可以说一棵空的树是 ``false``，而非空的树则是 ``true``。
 
-```
+```haskell
 instance YesNo (Tree a) where
     yesno EmptyTree = False
     yesno _ = True
@@ -1132,7 +1132,7 @@ instance YesNo (Tree a) where
 
 而一个红绿灯可以代表 yes or no 吗？当然可以。如果他是红灯，那你就会停下来，如果他是绿灯，那你就能走。但如果是黄灯呢？只能说我通常会闯黄灯。
 
-```
+```haskell
 instance YesNo TrafficLight where
     yesno Red = False
     yesno _ = True
@@ -1140,7 +1140,7 @@ instance YesNo TrafficLight where
 
 现在我们定义了许多 instance，来试着跑跑看！
 
-```
+```haskell
 ghci> yesno $ length []
 False
 ghci> yesno "haha"
@@ -1163,7 +1163,7 @@ yesno :: (YesNo a) => a -> Bool
 
 很好，统统是我们预期的结果。我们来写一个函数来模仿 if statement 的行为，但他是运作在 ``YesNo`` 的型别上。
 
-```
+```haskell
 yesnoIf :: (YesNo y) => y -> a -> a -> a
 yesnoIf yesnoVal yesResult noResult =
     if yesno yesnoVal then yesResult else noResult
@@ -1171,7 +1171,7 @@ yesnoIf yesnoVal yesResult noResult =
 
 很直觉吧！他接受一个 yes or no 的值还有两个部份，如果值是代表 "yes"，那第一个部份就会被执行，而如果值是 "no"，那第二个部份就会执行。
 
-```
+```haskell
 ghci> yesnoIf [] "YEAH!" "NO!"
 "NO!"
 ghci> yesnoIf [2,3,4] "YEAH!" "NO!"
@@ -1191,7 +1191,7 @@ ghci> yesnoIf Nothing "YEAH!" "NO!"
 
 来看看他的实作会是了解 ``Functor`` 的最佳方式：
 
-```
+```haskell
 class Functor f where
     fmap :: (a -> b) -> f a -> f b
 ```
@@ -1203,7 +1203,7 @@ class Functor f where
 他接受一个函数，这函数把一个型别的东西映射成另一个。还有一串装有某个型别的 List 变成装有另一个型别的 List。到这边听起来实在太像 functor 了。实际上，``map`` 就是针对 List 的 ``fmap``。来看看 List 是如何被定义成 ``Functor`` 的 instance 的。
 
 
-```
+```haskell
 instance Functor [] where
     fmap = map
 ```
@@ -1214,7 +1214,7 @@ instance Functor [] where
 
 对于 List，``fmap`` 只不过是 ``map``，对 List 操作的时候他们都是一样的。
 
-```
+```haskell
 map :: (a -> b) -> [a] -> [b]
 ghci> fmap (*2) [1..3]
 [2,4,6]
@@ -1227,7 +1227,7 @@ ghci> map (*2) [1..3]
 
 可以当作盒子的型别可能就是一个 functor。你可以把 List 想做是一个拥有无限小隔间的盒子。他们可能全部都是空的，已也可能有一部份是满的其他是空的。所以作为一个盒子会具有什么性质呢？例如说 ``Maybe a``。他表现得像盒子在于他可能什么东西都没有，就是 ``Nothing``，或是可以装有一个东西，像是 ``"HAHA"``，在这边就是 ``Just "HAHA"``。可以看到 ``Maybe`` 作为一个 functor 的定义：
 
-```
+```haskell
 instance Functor Maybe where
     fmap f (Just x) = Just (f x)
     fmap f Nothing = Nothing
@@ -1239,7 +1239,7 @@ instance Functor Maybe where
 
 总之，``fmap`` 的实作是很简单的。如果一个空值是 ``Nothing``，那他就会回传 ``Nothing``。如果我们 map over 一个空的盒子，我们就会得到一个空的盒子。就像我们 map over 一个空的 List，那我们就会得到一个空的 List。如果他不是一个空值，而是包在 ``Just`` 中的某个值，那我们就会套用在包在 ``Just`` 中的值。
 
-```
+```haskell
 ghci> fmap (++ " HEY GUYS IM INSIDE THE JUST") (Just "Something serious.")
 Just "Something serious. HEY GUYS IM INSIDE THE JUST"
 ghci> fmap (++ " HEY GUYS IM INSIDE THE JUST") Nothing
@@ -1253,14 +1253,14 @@ Nothing
 
 另外 ``Tree a`` 的型别也可以被 map over 且被定义成 ``Functor`` 的一个 instance。他可以被想成是一个盒子，而 ``Tree`` 的型别构造子也刚好接受单一一个型别参数。如果你把 ``fmap`` 看作是一个特别为 ``Tree`` 写的函数，他的型别宣告会长得像这样 ``(a -> b) -> Tree a -> Tree b``。不过我们在这边会用到递回。map over 一棵空的树会得到一棵空的树。map over 一棵非空的树会得到一棵被函数映射过的树，他的 root 会先被映射，然后左右子树都分别递回地被函数映射。
 
-```
+```haskell
 instance Functor Tree where
     fmap f EmptyTree = EmptyTree
     fmap f (Node x leftsub rightsub) =
         Node (f x) (fmap f leftsub) (fmap f rightsub)
 ```
 
-```
+```haskell
 ghci> fmap (*2) EmptyTree
 EmptyTree
 ghci> fmap (*4) (foldr treeInsert EmptyTree [5,7,3,2,1,7])
@@ -1269,7 +1269,7 @@ Node 28 (Node 4 EmptyTree (Node 8 EmptyTree (Node 12 EmptyTree (Node 20 EmptyTre
 
 那 ``Either a b`` 又如何？他可以是一个 functor 吗？``Functor`` 限制型别构造子只能接受一个型别参数，但 ``Either`` 却接受两个。聪明的你会想到我可以 partial apply ``Either``，先喂给他一个参数，并把另一个参数当作 free parameter。来看看 ``Either a`` 在标准函式库中是如何被定义的：
 
-```
+```haskell
 instance Functor (Either a) where
     fmap f (Right x) = Right (f x)
     fmap f (Left x) = Left x
@@ -1278,7 +1278,7 @@ instance Functor (Either a) where
 我们在这边做了些什么？你可以看到我们把 ``Either a`` 定义成一个 instance，而不是 ``Either``。那是因为 ``Either a`` 是一个接受单一型别参数的型别构造子，而 ``Either`` 则接受两个。如果 ``fmap`` 是针对 ``Either a``，那他的型别宣告就会像是 ``(b -> c) -> Either a b -> Either a c``，他又等价于 ``(b -> c) -> (Either a) b -> (Either a) c``。在实作中，我们碰到一个 ``Right`` 的时候会做 ``map``，但在碰到 ``Left`` 的时候却不这样做，为什么呢？如果我们回头看看 ``Either a b`` 是怎么定义的：
 
 
-```
+```haskell
 data Either a b = Left a | Right b
 ```
 
@@ -1310,7 +1310,7 @@ data Either a b = Left a | Right b
 
 那kind可以拿来做什么呢？我们可以在 ghci 中用 ``:k`` 来得知一个型别的 kind。
 
-```
+```haskell
 ghci> :k Int
 Int :: *
 ```
@@ -1319,7 +1319,7 @@ Int :: *
 
 我们再看看 ``Maybe`` 的 kind：
 
-```
+```haskell
 ghci> :k Maybe
 Maybe :: * -> *
 ```
@@ -1327,7 +1327,7 @@ Maybe :: * -> *
 
 ``Maybe`` 的型别构造子接受一个具体型别（像是 ``Int``）然后回传一个具体型别，像是 ``Maybe Int``。这就是 kind 告诉我们的资讯。就像 ``Int -> Int`` 代表这个函数接受 ``Int`` 并回传一个 ``Int``。``* -> *`` 代表这个型别构造子接受一个具体型别并回传一个具体型别。我们再来对 ``Maybe`` 套用型别参数后再看看他的 kind 是什么：
 
-```
+```haskell
 ghci> :k Maybe Int
 Maybe Int :: *
 ```
@@ -1339,7 +1339,7 @@ Maybe Int :: *
 
 我们再来看看其他的 kind
 
-```
+```haskell
 ghci> :k Either
 Either :: * -> * -> *
 ```
@@ -1347,7 +1347,7 @@ Either :: * -> * -> *
 这告诉我们 ``Either`` 接受两个具体型别作为参数，并构造出一个具体型别。他看起来也像是一个接受两个参数并回传值的函数型别。型别构造子是可以做 curry 的，所以我们也能 partially apply。
 
 
-```
+```haskell
 ghci> :k Either String
 Either String :: * -> *
 ghci> :k Either String Int
@@ -1358,7 +1358,7 @@ Either String Int :: *
 当我们希望定义 ``Either`` 成为 ``Functor`` 的 instance 的时候，我们必须先 partial apply，因为 ``Functor`` 预期有一个型别参数，但 ``Either`` 却有两个。也就是说，``Functor`` 希望型别的 kind 是 ``* -> *``，而我们必须先 partial apply ``Either`` 来得到 kind ``* -> *``，而不是最开始的 ``* -> * -> *``。我们再来看看 ``Functor`` 的定义
 
 
-```
+```haskell
 class Functor f where
     fmap :: (a -> b) -> f a -> f b
 ```
@@ -1369,7 +1369,7 @@ class Functor f where
 
 现在我们来练习一下。来看看下面这个新定义的 typeclass。
 
-```
+```haskell
 class Tofu t where
     tofu :: j a -> t a j
 ```
@@ -1379,14 +1379,14 @@ class Tofu t where
 
 我们再来定义出一个型别具有 ``* -> (* -> *) -> *`` 的 kind，下面是一种定义的方法：
 
-```
+```haskell
 data Frank a b  = Frank {frankField :: b a} deriving (Show)
 ```
 
 我们怎么知道这个型别具有 ``* -> (* -> *) -> *`` 的 kind 呢？ADT 中的栏位是要来塞值的，所以他们必须是 ``*`` kind。我们假设 ``a`` 是 ``*``，那 ``b`` 就是接受一个型别参数的 kind ``* -> *``。现在我们知道 ``a`` 跟 ``b`` 的 kind 了，而他们又是 ``Frank`` 的型别参数，所以我们知道 ``Frank`` 会有 ``* -> (* -> *) -> *`` 的 kind。第一个 ``*`` 代表 ``a``，而 ``(* -> *)`` 代表 ``b``。我们构造些 ``Frank`` 的值并检查他们的型别吧：
 
 
-```
+```haskell
 ghci> :t Frank {frankField = Just "HAHA"}
 Frank {frankField = Just "HAHA"} :: Frank [Char] Maybe
 ghci> :t Frank {frankField = Node 'a' EmptyTree EmptyTree}
@@ -1399,13 +1399,13 @@ Frank {frankField = "YES"} :: Frank Char []
 
 要把 ``Frank`` 定义成 ``Tofu`` 的 instance 也是很简单。我们看到 ``tofu`` 接受 ``j a``（例如 ``Maybe Int``）并回传 ``t a j``。所以我们将 ``Frank`` 代入 ``t``，就得到 ``Frank Int Maybe``。
 
-```
+```haskell
 instance Tofu Frank where
     tofu x = Frank x
 ```
 
 
-```
+```haskell
 ghci> tofu (Just 'a') :: Frank Char Maybe
 Frank {frankField = Just 'a'}
 ghci> tofu ["HELLO"] :: Frank [Char] []
@@ -1414,20 +1414,20 @@ Frank {frankField = ["HELLO"]}
 
 这并不是很有用，但让我们做了不少型别的练习。再来看看下面的型别：
 
-```
+```haskell
 data Barry t k p = Barry { yabba :: p, dabba :: t k }
 ```
 
 我们想要把他定义成 ``Functor`` 的 instance。``Functor`` 希望是 ``* -> *`` 的型别，但 ``Barry`` 并不是那种 kind。那 ``Barry`` 的 kind 是什么呢？我们可以看到他接受三个型别参数，所以会是 ``something -> something -> something -> *``。``p`` 是一个具体型别因此是 ``*``。至于 ``k``，我们假设他是 ``*``，所以 ``t`` 会是 ``* -> *``。现在我们把这些代入 ``something``，所以 kind 就变成 ``(* -> *) -> * -> * -> *``。我们用 ghci 来检查一下。
 
-```
+```haskell
 ghci> :k Barry
 Barry :: (* -> *) -> * -> * -> *
 ```
 
 我们猜对了！现在要把这个型别定义成 ``Functor``，我们必须先 partially apply 头两个型别参数，这样我们就会是 ``* -> *`` 的 kind。这代表 instance 定义会是 ``instance Functor (Barry a b) where``。如果我们看 ``fmap`` 针对 ``Barry`` 的型别，也就是把 ``f`` 代换成 ``Barry c d``，那就会是 ``fmap :: (a -> b) -> Barry c d a -> Barry c d b``。第三个 ``Barry`` 的型别参数是对于任何型别，所以我们并不牵扯进他。
 
-```
+```haskell
 instance Functor (Barry a b) where
     fmap f (Barry {yabba = x, dabba = y}) = Barry {yabba = f x, dabba = y}
 ```
