@@ -437,7 +437,7 @@ nameIs name (File fileName _) = name == fileName
 ghci> let newFocus = (myDisk,[]) -: fsTo "pics" -: fsTo "skull_man(scary).bmp"      
 ```
 
-``newFocus`` 现在是一个锁定在 ``"skull_man(scary).bmp"的 Zipper。我们把 zipper 的第一个部份拿出来看看：
+``newFocus`` 现在是一个锁定在 ``"skull_man(scary).bmp"`` 的 Zipper。我们把 zipper 的第一个部份拿出来看看：
 
 ```haskell
 ghci> fst newFocus  

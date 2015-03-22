@@ -386,7 +386,7 @@ Nothing
 ```haskell
 (<$>) :: (Functor f) => (a -> b) -> f a -> f b  
 f <$> x = fmap f x  
-```haskell
+```
 	
     
     要记住型别变数跟参数的名字还有值绑定的名称不冲突。``f`` 在函数的型别宣告中是型别变数，说明 ``f`` 应该要满足 ``Functor`` typeclass 的条件。而在函数本体中的 ``f`` 则表示一个函数，我们将他 map over x。我们同样用 ``f`` 来表示他们并代表他们是相同的东西。
@@ -845,7 +845,7 @@ data Race = Human | Elf | Orc | Goblin
 data PlayerCharacter = PlayerCharacter Race Profession  
 ```
 
-当使用 ``newtype 的时候，你是被限制只能用一个值构造子跟单一栏位。
+当使用 ``newtype`` 的时候，你是被限制只能用一个值构造子跟单一栏位。
 
 
 对于 ``newtype`` 我们也能使用 ``deriving`` 关键字。我们可以 derive 像是 ``Eq``, ``Ord``, ``Enum``, ``Bounded``, ``Show`` 跟 ``Read`` 的 instance。如果我们想要对新的型别做 derive，那原本的型别必须已经在那个 typeclass 中。这样很合理，毕竟 ``newtype`` 就是要将现有的型别包起来。如果我们按照下面的方式定义的话，我们就能对我们的型别做印出以及比较相等性的操作：
