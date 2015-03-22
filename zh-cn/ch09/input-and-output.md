@@ -102,20 +102,23 @@ nameTag = "Hello, my name is " ++ getLine
 如果你回答不是，恭喜你。如果你说是，你答错了。这么做不对的理由是 ``++`` 要求两个参数都必须是串列。他左边的参数是 ``String``，也就是 ``[Char]``。然而 ``getLine`` 的型态是 ``IO String``。你不能串接一个字串跟 I/O action。我们必须先把 ``String`` 的值从 I/O action 中取出，而唯一可行的方法就是在 I/O action 中使用 ``name <- getLine``。如果我们需要处理一些非纯粹的资料，那我们就要在非纯粹的环境中做。所以我们最好把 I/O 的部分缩减到最小的比例。
 
 每个 I/O action 都有一个值封装在里面。这也是为什么我们之前的程式可以这么写：
+
 ```haskell
 main = do
     foo <- putStrLn "Hello, what's your name?"
     name <- getLine
     putStrLn ("Hey " ++ name ++ ", you rock!")
-```haskell
+```
 然而，``foo`` 只会有一个 ``()`` 的值，所以绑定到 ``foo`` 这个名字似乎是多余的。另外注意到我们并没有绑定最后一行的 ``putStrLn`` 给任何名字。那是因为在一个 do block 中，最后一个 action 不能绑定任何名字。我们在之后讲解 Monad 的时候会说明为什么。现在你可以先想成 do block 会自动从最后一个 action 取出值并绑定给他的结果。
 
 除了最后一行之外，其他在 do 中没有绑定名字的其实也可以写成绑定的形式。所以 ``putStrLn "BLAH"`` 可以写成 ``_ <- putStrLn "BLAH"``。但这没什么实际的意义，所以我们宁愿写成 ``putStrLn something``。
 
 初学者有时候会想错
+
 ```haskell
     name = getLine
-```haskell
+```
+
 以为这行会读取输入并给他绑定一个名字叫 ``name`` 但其实只是把 ``getLine`` 这个 I/O action 指定一个名字叫 ``name`` 罢了。记住，要从一个 I/O action 中取出值，你必须要在另一个 I/O action 中将他用 ``<-`` 绑定给一个名字。
 
 I/O actions 只会在绑定给 ``main`` 的时候或是在另一个用 do 串起来的 I/O action 才会执行。你可以用 do 来串接 I/O actions，再用 do 来串接这些串接起来的 I/O actions。不过只有最外面的 I/O action 被指定给 main 才会触发执行。
@@ -148,6 +151,7 @@ main = do
 你也许会问究竟什么时候要用 ``<-``，什么时候用 let bindings？记住，``<-`` 是用来运算 I/O actions 并将他的结果绑定到名称。而 ``map toUpper firstName`` 并不是一个 I/O action。他只是一个纯粹的 expression。所以总结来说，当你要绑定 I/O actions 的结果时用 ``<-``，而对于纯粹的 expression 使用 let bindings。对于错误的 ``let firstName = getLine``，我们只不过是把 ``getLine`` 这个 I/O actions 给了一个不同的名字罢了。最后还是要用 ``<-`` 将结果取出。
 
 现在我们来写一个会一行一行不断地读取输入，并将读进来的字反过来输出到萤幕上的程式。程式会在输入空白行的时候停止。
+
 ```haskell
 main = do
     line <- getLine
@@ -159,7 +163,8 @@ main = do
 
 reverseWords :: String -> String
 reverseWords = unwords . map reverse . words
-```haskell
+```
+
 在分析这段程式前，你可以执行看看来感受一下程式的运行。
 
 首先，我们来看一下 ``reverseWords``。他不过是一个普通的函数，假如接受了个字串 ``"hey there man"``，他会先呼叫 ``words`` 来产生一个字的串列 ``["hey", "there", "man"]``。然后用 ``reverse`` 来 map 整个串列，得到 ``["yeh", "ereht", "nam"]``，接着用 ``unwords`` 来得到最终的结果 ``"yeh ereht nam"``。这些用函数合成来简洁的表达。如果没有用函数合成，那就会写成丑丑的样子 ``reverseWords st = unwords (map reverse (words st))``
@@ -167,6 +172,7 @@ reverseWords = unwords . map reverse . words
 那 ``main`` 又是怎么一回事呢？首先，我们用 ``getLine`` 从终端读取了一行，并把这行输入取名叫 ``line``。然后接着一个条件式 expression。记住，在 Haskell 中 if 永远要伴随一个 else，这样每个 expression 才会有值。当 if 的条件是 true （也就是输入了一个空白行），我们便执行一个 I/O action，如果 if 的条件是 false，那 else 底下的 I/O action 被执行。这也就是说当 if 在一个 I/O do block 中的时候，长的样子是 ``if condition then I/O action else I/O action``。
 
 我们首先来看一下在 else 中发生了什么事。由于我们在 else 中只能有一个 I/O action，所以我们用 do 来将两个 I/O actions 绑成一个，你可以写成这样：
+
 ```haskell
 else (do
     putStrLn $ reverseWords line
@@ -178,6 +184,7 @@ else (do
 那假如 ``null line`` 的结果是 true 呢？也就是说 then 的区块被执行。我们看一下区块里面有 ``then return ()``。如果你是从 C、Java 或 Python 过来的，你可能会认为 ``return`` 不过是作一样的事情便跳过这一段。但很重要的： ``return`` 在 Hakell 里面的意义跟其他语言的 ``return`` 完全不同！他们有相同的样貌，造成了许多人搞错，但确实他们是不一样的。在命令式语言中，``return`` 通常结束 method 或 subroutine 的执行，并且回传某个值给呼叫者。在 Haskell 中，他的意义则是利用某个 pure value 造出 I/O action。用之前盒子的比喻来说，就是将一个 value 装进箱子里面。产生出的 I/O action 并没有作任何事，只不过将 value 包起来而已。所以在 I/O 的情况下来说，``return "haha"`` 的型态是 ``IO String``。将 pure value 包成 I/O action 有什么实质意义呢？为什么要弄成 ``IO`` 包起来的值？这是因为我们一定要在 else 中摆上某些 I/O action，所以我们才用 ``return ()`` 做了一个没作什么事情的 I/O action。
 
 在 I/O do block 中放一个 ``return`` 并不会结束执行。像下面这个程式会执行到底。
+
 ```haskell
 main = do
     return ()
@@ -189,6 +196,7 @@ main = do
 ```
 
 所有在程式中的 ``return`` 都是将 value 包成 I/O actions，而且由于我们没有将他们绑定名称，所以这些结果都被忽略。我们能用 ``<-`` 与 ``return`` 来达到绑定名称的目的。
+
 ```haskell
 main = do
     a <- return "hell"
@@ -197,6 +205,7 @@ main = do
 ```
 
 可以看到 ``return`` 与 ``<-`` 作用相反。``return`` 把 value 装进盒子中，而 ``<-`` 将 value 从盒子拿出来，并绑定一个名称。不过这么做是有些多余，因为你可以用 let bindings 来绑定
+
 ```haskell
 main = do
     let a = "hell"
@@ -209,6 +218,7 @@ main = do
 在我们接下去讲档案之前，让我们来看看有哪些实用的函数可以处理 I/O。
 
 ``putStr`` 跟 ``putStrLn`` 几乎一模一样，都是接受一个字串当作参数，并回传一个 I/O action 打印出字串到终端上，只差在 ``putStrLn`` 会换行而 ``putStr`` 不会罢了。
+
 ```haskell
 main = do putStr "Hey, "
           putStr "I'm "
@@ -223,6 +233,7 @@ Hey, I'm Andy!
 他的 type signature 是 ``putStr :: String -> IO ()``，所以是一个包在 I/O action 中的 unit。也就是空值，没有办法绑定他。
 
 ``putChar`` 接受一个字元，并回传一个 I/O action 将他打印到终端上。
+
 ```haskell
 main = do putChar 't'
           putChar 'e'
@@ -235,16 +246,19 @@ teh
 ```
 
 ``putStr`` 实际上就是 ``putChar`` 递回定义出来的。``putStr`` 的边界条件是空字串，所以假设我们打印一个空字串，那他只是回传一个什么都不做的 I/O action，像 ``return ()``。如果打印的不是空字串，那就先用 ``putChar`` 打印出字串的第一个字元，然后再用 ``putStr`` 打印出字串剩下部份。
+
 ```haskell
 putStr :: String -> IO ()
 putStr [] = return ()
 putStr (x:xs) = do
     putChar x
     putStr xs
-```haskell
+```
+
 看看我们如何在 I/O 中使用递回，就像我们在 pure code 中所做的一样。先定义一个边界条件，然后再思考剩下如何作。
 
 ``print`` 接受任何是 ``Show`` typeclass 的 instance 的型态的值，这代表我们知道如何用字串表示他，呼叫 ``show`` 来将值变成字串然后将其输出到终端上。基本上，他就是 ``putStrLn . show``。首先呼叫 ``show`` 然后把结果喂给 ``putStrLn``，回传一个 I/O action 打印出我们的值。
+
 ```haskell
 main = do print True
           print 2
@@ -263,6 +277,7 @@ True
 ```
 
 就像你看到的，这是个很方便的函数。还记得我们提到 I/O actions 只有在 ``main`` 中才会被执行以及在 GHCI 中运算的事情吗？当我们用键盘打了些值，像 ``3`` 或 ``[1,2,3]`` 并按下 Enter，GHCI 实际上就是用了 ``print`` 来将这些值输出到终端。
+
 ```haskell
 ghci> 3
 3
@@ -277,6 +292,7 @@ ghci> print (map (++"!") ["hey", "ho", "woo"])
 当我们需要打印出字串，我们会用 ``putStrLn``，因为我们不想要周围有引号，但对于输出值来说，``print`` 才是最常用的。
 
 ``getChar`` 是一个从输入读进一个字元的 I/O action，因此他的 type signature 是 ``getChar :: IO Char``，代表一个 I/O action 的结果是 ``Char``。注意由于缓冲区的关系，只有当 Enter 被按下的时候才会触发读取字元的行为。
+
 ```haskell
 main = do
     c <- getChar
@@ -285,13 +301,16 @@ main = do
             putChar c
             main
         else return ()
-```haskell
+```
+
 这程式看起来像是读取一个字元并检查他是否为一个空白。如果是的话便停止，如果不是的话便打印到终端上并重复之前的行为。在某种程度上来说也不能说错，只是结果不如你预期而已。来看看结果吧。
+
 ```haskell
 $ runhaskell getchar_test.hs
 hello sir
 hello
-```haskell
+```
+
 上面的第二行是输入。我们输入了 ``hello sir`` 并按下了 Enter。由于缓冲区的关系，程式是在我们按了 Enter 后才执行而不是在某个输入字元的时候。一旦我们按下了 Enter，那他就把我们直到目前输入的一次做完。
 
 ``when`` 这函数可以在 ``Control.Monad`` 中找到他 (你必须 ``import Contorl.Monad`` 才能使用他)。他在一个 do block 中看起来就像一个控制流程的 statement，但实际上他的确是一个普通的函数。他接受一个 boolean 值跟一个 I/O action。如果 boolean 值是 ``True``，便回传我们传给他的 I/O action。如果 boolean 值是 ``False``，便回传 ``return ()``，即什么都不做的 I/O action。我们接下来用 ``when`` 来改写我们之前的程式。
@@ -369,6 +388,7 @@ main = forever $ do
 ```
 
 在 ``Control.Monad`` 中的 ``forM`` 跟 ``mapM`` 的作用一样，只是参数的顺序相反而已。第一个参数是串列，而第二个则是函数。这有什么用？在一些有趣的情况下还是有用的：
+
 ```haskell
 import Control.Monad
 
@@ -385,6 +405,7 @@ main = do
 
 
 你可以把 ``forM`` 的意思想成将串列中的每个元素作成一个 I/O action。至于每个 I/O action 实际作什么就要看原本的元素是什么。然后，执行这些 I/O action 并将结果绑定到某个名称上。或是直接将结果忽略掉。
+
 ```haskell
 $ runhaskell from_test.hs
 Which color do you associate with the number 1?
@@ -416,6 +437,7 @@ orange
 ``getChar`` 是一个读取单一字元的 I/O action。``getLine`` 是一个读取一行的 I/O action。这是两个非常直觉的函式，多数程式语言也有类似这两个函式的 statement 或 function。但现在我们来看看 *getContents*。``getContents`` 是一个从标准输入读取直到 end-of-file 字元的 I/O action。他的型态是 ``getContents :: IO String``。最酷的是 ``getContents`` 是惰性 I/O (Lazy I/O)。当我们写了 ``foo <- getContents``，他并不会马上读取所有输入，将他们存在 memory 里面。他只有当你真的需要输入资料的时候才会读取。
 
 当我们需要重导一个程式的输出到另一个程式的输入时，``getContents`` 非常有用。假设我们有下面一个文字档：
+
 ```haskell
 I'm a lil' teapot
 What's with that airplane food, huh?
@@ -423,6 +445,7 @@ It's so small, tasteless
 ```
 
 还记得我们介绍 ``forever`` 时写的小程式吗？会把所有输入的东西转成大写的那一个。为了防止你忘记了，这边再重复一遍。
+
 ```haskell
 import Control.Monad
 import Data.Char
@@ -483,6 +506,7 @@ LETS GO
 按下 Ctrl-D 来离开环境。就像你看到的，程式是一行一行将我们的输入打印出来。当 ``getContent`` 的结果被绑定到 ``contents`` 的时候，他不是被表示成在记忆体中的一个字串，反而比较像是他有一天会是字串的一个承诺。当我们将 ``toUpper`` map 到 ``contents`` 的时候，便也是一个函数被承诺将会被 map 到内容上。最后 ``putStr`` 则要求先前的承诺说，给我一行大写的字串吧。实际上还没有任何一行被取出，所以便跟 ``contents`` 说，不如从终端那边取出些字串吧。这才是 ``getContents`` 真正从终端读入一行并把这一行交给程式的时候。程式便将这一行用 ``toUpper`` 处理并交给 ``putStr``，``putStr`` 则打印出他。之后 ``putStr`` 再说：我需要下一行。整个步骤便再重复一次，直到读到 end-of-file 为止。
 
 接着我们来写个程式，读取输入，并只打印出少于十个字元的行。
+
 ```haskell
 main = do
     contents <- getContents
@@ -636,11 +660,13 @@ I think you need a new one!
 我们来一行行看一下程式。我们的程式用 do 把好几个 I/O action 绑在一起。在 do block 的第一行，我们注意到有一个新的函数叫 **openFile**。他的 type signature 是 ``openFile :: FilePath -> IOMode -> IO Handle``。他说了 ``openFile`` 接受一个档案路径跟一个 ``IOMode``，并回传一个 I/O action，他会打开一个档案并把档案关联到一个 handle。
 
 ``FilePath`` 不过是 ``String`` 的 type synonym。
+
 ```haskell
 type FilePath = String
 ```
 
 ``IOMode`` 则是一个定义如下的型态
+
 ```haskell
 data IOMode = ReadMode | WriteMode | AppendMode | ReadWriteMode
 ```
@@ -779,6 +805,7 @@ main = do
 我们已经写了一个将 item 加进 to-do list 里面的程式，现在我们想加进移除 item 的功能。我先把程式码贴上然后讲解他。我们会使用一些新面孔像是 ``System.Directory`` 以及 ``System.IO`` 里面的函数。
 
 来看一下我们包含移除功能的程式:
+
 ```haskell
 import System.IO
 import System.Directory
@@ -933,7 +960,8 @@ main = do
 ```haskell
 add :: [String] -> IO ()
 add [fileName, todoItem] = appendFile fileName (todoItem ++ "\n")
-```haskell
+```
+
 如果我们这样执行程式 ``todo add todo.txt "Spank the monkey"``，则 ``"add"`` 会被绑定到 ``command``，而 ``["todo.txt", "Spank the monkey"]`` 会被带到从 dispatch list 中拿到的函数。
 
 由于我们不处理不合法的输入，我们只针对这两项作 pattern matching，然后回传一个附加一行到档案末尾的 I/O action。
@@ -967,7 +995,7 @@ remove [fileName, numberString] = do
     hClose tempHandle
     removeFile fileName
     renameFile tempName fileName
-```haskell
+```
 我们打开 ``fileName`` 的档案以及一个暂存。删除使用者要我们删的那一行后，把档案内容写到暂存档。砍掉原本的档案然后把暂存档重新命名成 ``fileName``。
 
 来看看完整的程式。
