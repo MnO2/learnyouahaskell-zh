@@ -6,7 +6,7 @@
 
 准备来开始我们的旅程！如果你就是那种从不看说明书的人，我推荐你还是回头看一下简介的最后一节。那里面讲了这个教学中你需要用到的工具及基本用法。我们首先要做的就是进入 ghc 的互动模式，接着就可以写几个函数体验一下 Haskell 了。打开终端机，输入 ``ghci``，你会看到下列欢迎讯息：
 
-```
+```haskell
 GHCi, version 6.8.2: http://www.haskell.org/ghc/
 :? for help  Loading package base ... linking ... done.
 Prelude>
@@ -16,7 +16,7 @@ Prelude>
 
 首先来看一些简单的运算
 
-```
+```haskell
 ghci> 2 + 15
 17
 ghci> 49 * 100
@@ -30,7 +30,7 @@ ghci>
 
 很简单吧！你也可以在一行中使用多个运算子，他们会按照运算子优先顺序执行计算，而使用括号可以改变执行的优先顺序。
 
-```
+```haskell
 ghci> (50 * 100) - 4999
 1  
 ghci> 50 * 100 - 4999
@@ -43,7 +43,7 @@ ghci> 50 * (100 - 4999)
 
 要进行布林代数 (Boolean Algebra) 的演算也是很直觉的。你也许早就会猜，``&&`` 指的是布林代数上的 AND，而 ``||`` 指的是布林代数上的 OR，``not`` 会把 ``True`` 变成 ``False``，``False`` 变成 ``True``。
 
-```
+```haskell
 ghci> True && False
 False
 ghci> True && True
@@ -58,7 +58,7 @@ False
 
 相等性可以这样判定
 
-```
+```haskell
 ghci> 5 == 5
 True
 ghci> 1 == 0
@@ -73,7 +73,7 @@ True
 
 那执行 ``5+"llama"`` 或者 ``5==True`` 会怎样？ 如果我们真的试着在 ghci 中跑，会得到下列的错误讯息：
 
-```
+```haskell
 No instance for (Num [Char])
 arising from a use of `+' at :1:0-9
 Possible fix: add an instance declaration for (Num [Char])
@@ -89,14 +89,14 @@ In the definition of `it': it = 5 + "llama"
 
 也许你并未察觉，不过从始至终我们一直都在使用函数。``*`` 就是一个将两个数相乘的函数，就像三明治一样，用两个参数将它夹在中央，这被称作中缀函数。而其他大多数不能与数夹在一起的函数则被称作前缀函数。绝大部分函数都是前缀函数，在接下来我们就不多做区别。大多数命令式程式语言中的函数呼叫形式通常就是函数名，括号，由逗号分隔的参数列。而在 Haskell 中，函数呼叫的形式是函数名，空格，空格分隔的参数列。简单举个例子，我们呼叫 Haskell 中最无趣的函数：
 
-```
+```haskell
 ghci> succ 8
 9
 ```
 
 ``succ`` 函数返回一个数的后继 (successor)。而且如你所见，在 Haskell 中是用空格来将函数与参数分隔的。至于呼叫多个参数的函数也很容易，``min`` 和 ``max`` 接受两个可比较大小的参数，并返回较大或者较小的那个数。
 
-```
+```haskell
 ghci> min 9 10
 9
 ghci> min 3.4 3.2
@@ -107,7 +107,7 @@ ghci> max 100 101
 
 函数呼叫拥有最高的优先顺序，如下两句是等效的
 
-```
+```haskell
 ghci> succ 9 + max 5 4 + 1
 16
 ghci> (succ 9) + (max 5 4) + 1
@@ -125,7 +125,7 @@ ghci> (succ 9) + (max 5 4) + 1
 
 在前一节中我们简单介绍了函数的呼叫，现在让我们编写我们自己的函数！打开你最喜欢的编辑器，输入如下程式码，它的功能就是将一个数字乘以 2。
 
-```
+```haskell
 doubleMe x = x + x
 ```
 
@@ -133,7 +133,7 @@ doubleMe x = x + x
 
 保存为 ``baby.hs`` 或任意名称，然后转至保存的位置，打开 ghci，执行 ``:l baby.hs``。这样我们的函数就装载成功，可以呼叫了。
 
-```
+```haskell
 ghci> :l baby  
 [1 of 1] Compiling Main             ( baby.hs, interpreted )
 Ok, modules loaded: Main.
@@ -145,13 +145,13 @@ ghci> doubleMe 8.3
 
 ``+`` 运算子对整数和浮点都可用(实际上所有有数字特征的值都可以)，所以我们的函数可以处理一切数值。声明一个包含两个参数的函数如下：
 
-```
+```haskell
 doubleUs x y = x*2 + y*2
 ```
 
 很简单。将其写成 ``doubleUs x y = x + x + y + y`` 也可以。测试一下(记住要保存为 ``baby.hs`` 并到 ghci 下边执行 ``:l baby.hs``)
 
-```
+```haskell
 ghci> doubleUs 4 9
 26
 ghci> doubleUs 2.3 34.2
@@ -162,7 +162,7 @@ ghci> doubleUs 28 88 + doubleMe 123
 
 你可以在其他函数中呼叫你编写的函数，如此一来我们可以将 ``doubleUs`` 函数改为：
 
-```
+```haskell
 doubleUs x y = doubleMe x + doubleMe y
 ```
 
@@ -174,7 +174,7 @@ doubleUs x y = doubleMe x + doubleMe y
 
 Haskell 中的函数并没有顺序，所以先声明 ``doubleUs`` 还是先声明 ``doubleMe`` 都是同样的。如下，我们编写一个函数，它将小于 100 的数都乘以 2，因为大于 100 的数都已经足够大了！
 
-```
+```haskell
 doubleSmallNumber x = if x > 100
                       then x
                       else  x*2
@@ -182,13 +182,13 @@ doubleSmallNumber x = if x > 100
 
 接下来介绍 Haskell 的 ``if`` 语句。你也许会觉得和其他语言很像，不过存在一些不同。Haskell 中 ``if`` 语句的 ``else`` 部分是不可省略。在命令式语言中，你可以通过 ``if`` 语句来跳过一段程式码，而在 ``Haskell`` 中，每个函数和表达式都要返回一个结果。对于这点我觉得将 ``if`` 语句置于一行之中会更易理解。Haskell 中的 ``if`` 语句的另一个特点就是它其实是个表达式，表达式就是返回一个值的一段程式码：5 是个表达式，它返回 5；``4+8`` 是个表达式；``x+y`` 也是个表达式，它返回 ``x+y`` 的结果。正由于 ``else`` 是强制的，``if`` 语句一定会返回某个值，所以说 ``if`` 语句也是个表达式。如果要给刚刚定义的函数的结果都加上 1，可以如此修改：
 
-```
+```haskell
 doubleSmallNumber' x = (if x > 100 then x else x*2) + 1 
 ```
 
 若是去掉括号，那就会只在小于 100 的时候加 1。注意函数名最后的那个单引号，它没有任何特殊含义，只是一个函数名的合法字元罢了。通常，我们使用单引号来区分一个稍经修改但差别不大的函数。定义这样的函数也是可以的：
 
-```
+```haskell
 conanO'Brien = "It's a-me, Conan O'Brien!"  
 ```
 
@@ -202,7 +202,7 @@ conanO'Brien = "It's a-me, Conan O'Brien!"  
 
     *Note*: 在 ghci 下，我们可以使用 ``let`` 关键字来定义一个常量。在 ghci 下执行 ``let a=1`` 与在脚本中编写 ``a=1`` 是等价的。
 
-```
+```haskell
 ghci> let lostNumbers = [4,8,15,16,23,48]  
 ghci> lostNumbers  
 [4,8,15,16,23,48] 
@@ -210,7 +210,7 @@ ghci> lostNumbers  
 
 如你所见，一个 List 由方括号括起，其中的元素用逗号分隔开来。若试图写 ``[1,2,'a',3,'b','c',4]`` 这样的 List，Haskell 就会报出这几个字元不是数字的错误。字串实际上就是一组字元的 List，"Hello" 只是 ``['h','e','l','l','o']`` 的语法糖而已。所以我们可以使用处理 List 的函数来对字串进行操作。 将两个 List 合并是很常见的操作，这可以通过 ``++`` 运算子实现。
 
-```
+```haskell
 ghci> [1,2,3,4] ++ [9,10,11,12]  
 [1,2,3,4,9,10,11,12]  
 ghci> "hello" ++ " " ++ "world"  
@@ -221,7 +221,7 @@ ghci> ['w','o'] ++ ['o','t']  
 
 在使用 ``++`` 运算子处理长字串时要格外小心(对长 List 也是同样)，Haskell 会遍历整个的 List(``++`` 符号左边的那个)。在处理较短的字串时问题还不大，但要是在一个 5000 万长度的 List 上追加元素，那可得执行好一会儿了。所以说，用 ``:`` 运算子往一个 List 前端插入元素会是更好的选择。
 
-```
+```haskell
 ghci> 'A':" SMALL CAT"  
 "A SMALL CAT"  
 ghci> 5:[1,2,3,4,5] 
@@ -234,7 +234,7 @@ ghci> 5:[1,2,3,4,5] 
 
 若是要按照索引取得 List 中的元素，可以使用 ``!!`` 运算子，索引的下标为 0。
 
-```
+```haskell
 ghci> "Steve Buscemi" !! 6  
 'B'  
 ghci> [9.4,33.2,96.2,11.2,23.25] !! 1  
@@ -245,7 +245,7 @@ ghci> [9.4,33.2,96.2,11.2,23.25] !! 1  
 
 List 同样也可以用来装 List，甚至是 List 的 List 的 List：
 
-```
+```haskell
 ghci> let b = [[1,2,3,4],[5,3,3,3],[1,2,2,3,4],[1,2,3]]
 ghci> b
 [[1,2,3,4],[5,3,3,3],[1,2,2,3,4],[1,2,3]]
@@ -259,7 +259,7 @@ ghci> b !! 2
 
 List 中的 List 可以是不同长度，但必须得是相同的型别。如不可以在 List 中混合放置字元和数组相同，混合放置数值和字元的 List 也是同样不可以的。当 List 内装有可比较的元素时，使用 ``>`` 和 ``>=`` 可以比较 List 的大小。它会先比较第一个元素，若它们的值相等，则比较下一个，以此类推。
 
-```
+```haskell
 ghci> [3,2,1] > [2,1,0]  
 True  
 ghci> [3,2,1] > [2,10,100]  
@@ -276,28 +276,28 @@ True 
 
 **head** 返回一个 List 的头部，也就是 List 的首个元素。
 
-```
+```haskell
 ghci> head [5,4,3,2,1] 
 5
 ```
 
 **tail** 返回一个 List 的尾部，也就是 List 除去头部之后的部分。
 
-```
+```haskell
 ghci> tail [5,4,3,2,1]  
 [4,3,2,1]  
 ```
 
 **last** 返回一个 List 的最后一个元素。
 
-```
+```haskell
 ghci> last [5,4,3,2,1]  
 1  
 ```
 
 **init** 返回一个 List 除去最后一个元素的部分。
 
-```
+```haskell
 ghci> init [5,4,3,2,1]
 [5,4,3,2]
 ```
@@ -308,7 +308,7 @@ ghci> init [5,4,3,2,1]
 
 试一下，若是取一个空 List 的 ``head`` 又会怎样？
 
-```
+```haskell
 ghci> head []  
 *** Exception: Prelude.head: empty list 
 ```
@@ -317,14 +317,14 @@ ghci> head []  
 
 **length** 返回一个 List 的长度。
 
-```
+```haskell
 ghci> length [5,4,3,2,1]  
 5 
 ```
 
 **null** 检查一个 List 是否为空。如果是，则返回 ``True``，否则返回 ``False``。应当避免使用 ``xs==[]`` 之类的语句来判断 List 是否为空，使用 null 会更好。
 
-```
+```haskell
 ghci> null [1,2,3]  
 False  
 ghci> null []  
@@ -333,14 +333,14 @@ True 
 
 **reverse** 将一个 List 反转:
 
-```
+```haskell
 ghci> reverse [5,4,3,2,1]  
 [1,2,3,4,5] 
 ```
 
 **take** 返回一个 List 的前几个元素，看：
 
-```
+```haskell
 ghci> take 3 [5,4,3,2,1]  
 [5,4,3]  
 ghci> take 1 [3,9,3]  
@@ -353,7 +353,7 @@ ghci> take 0 [6,6,6] 
 
 如上，若是图取超过 List 长度的元素个数，只能得到原 List。若 ``take 0`` 个元素，则会得到一个空 List！ ``drop`` 与 ``take`` 的用法大体相同，它会删除一个 List 中的前几个元素。
 
-```
+```haskell
 ghci> drop 3 [8,4,2,1,5,6]  
 [1,5,6]  
 ghci> drop 0 [1,2,3,4]  
@@ -364,7 +364,7 @@ ghci> drop 100 [1,2,3,4]  
 
 **maximum** 返回一个 List 中最大的那个元素。``minimun`` 返回最小的。
 
-```
+```haskell
 ghci> minimum [8,4,2,1,5,6]  
 1  
 ghci> maximum [1,9,2,3,4]  
@@ -373,7 +373,7 @@ ghci> maximum [1,9,2,3,4]  
 
 **sum** 返回一个 List 中所有元素的和。``product`` 返回一个 List 中所有元素的积。
 
-```
+```haskell
 ghci> sum [5,2,1,6,3,2,5,7]  
 31  
 ghci> product [6,2,1,2]  
@@ -384,7 +384,7 @@ ghci> product [1,2,5,6,7,9,2,0]  
 
 **elem** 判断一个元素是否在包含于一个 List，通常以中缀函数的形式呼叫它。
 
-```
+```haskell
 ghci> 4 `elem` [3,4,5,6]  
 True  
 ghci> 10 `elem` [3,4,5,6]  
@@ -401,7 +401,7 @@ False 
 
 要得到包含 1 到 20 中所有自然数的 List，只要 ``[1..20]`` 即可，这与用手写 ``[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]`` 是完全等价的。其实用手写一两个还不是什么大事，但若是手写一个非常长的 List 那就铁定是个笨方法。
 
-```
+```haskell
 ghci> [1..20]
 [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]
 ghci> ['a'..'z']
@@ -412,7 +412,7 @@ ghci> ['K'..'Z']  
 
 Range 的特点是他还允许你指定每一步该跨多远。譬如说，今天的问题换成是要得到 1 到 20 间所有的偶数或者 3 的倍数该怎样？
 
-```
+```haskell
 ghci> [2,4..20]
 [2,4,6,8,10,12,14,16,18,20]
 ghci> [3,6..20]
@@ -421,7 +421,7 @@ ghci> [3,6..20]
 
 仅需用逗号将前两个元素隔开，再标上上限即可。尽管 Range 很聪明，但它恐怕还满足不了一些人对它的期许。你就不能通过 ``[1,2,4..100]``这样的语句来获得所有 2 的幂。一方面是因为步长只能标明一次，另一方面就是仅凭前几项，数组的后项是不能确定的。要得到 20 到 1 的 List，``[20..1]`` 是不可以的。必须得 ``[20,19..1]``。 在 Range 中使用浮点数要格外小心！出于定义的原因，浮点数并不精确。若是使用浮点数的话，你就会得到如下的糟糕结果
 
-```
+```haskell
 ghci> [0.1, 0.3 .. 1]
 [0.1,0.3,0.5,0.7,0.8999999999999999,1.0999999999999999]
 ```
@@ -432,7 +432,7 @@ ghci> [0.1, 0.3 .. 1]
 
 由于 Haskell 是惰性的，它不会对无限长度的 List 求值，否则会没完没了的。它会等着，看你会从它那儿取多少。在这里它见你只要 24 个元素，便欣然交差。如下是几个生成无限 List 的函数 ``cycle`` 接受一个 List 做参数并返回一个无限 List 。如果你只是想看一下它的运算结果而已，它会运行个没完的。所以应该在某处划好范围。
 
-```
+```haskell
 ghci> take 10 (cycle [1,2,3])
 [1,2,3,1,2,3,1,2,3,1]
 ghci> take 12 (cycle "LOL ")
@@ -441,7 +441,7 @@ ghci> take 12 (cycle "LOL ")
 
 **repeat** 接受一个值作参数，并返回一个仅包含该值的无限 List。这与用 ``cycle`` 处理单元素 List 差不多。
 
-```
+```haskell
 ghci> take 10 (repeat 5)
 [5,5,5,5,5,5,5,5,5,5]
 ```
@@ -454,62 +454,62 @@ ghci> take 10 (repeat 5)
 
 学过数学的你对集合的 comprehension (Set Comprehension) 概念一定不会陌生。通过它，可以从既有的集合中按照规则产生一个新集合。前十个偶数的 set comprehension 可以表示为![](setnotation.png)，竖线左端的部分是输出函数，``x`` 是变数，``N`` 是输入集合。在 Haskell 下，我们可以通过类似 ``take 10 [2,4..]`` 的程式码来实现。但若是把简单的乘 2 改成更复杂的函数操作该怎么办呢？用 list comprehension，它与 set comprehension 十分的相似，用它取前十个偶数轻而易举。这个 list comprehension 可以表示为：
 
-```
+```haskell
 ghci> [x*2 | x <- [1..10]]
 [2,4,6,8,10,12,14,16,18,20]
 ```
 
 如你所见，结果正确。给这个 comprehension 再添个限制条件 (predicate)，它与前面的条件由一个逗号分隔。在这里，我们要求只取乘以 2 后大于等于 12 的元素。
 
-```
+```haskell
 ghci> [x*2 | x <- [1..10], x*2 >= 12]
 [12,14,16,18,20]
 ```
 
 cool，灵了。若是取 50 到 100 间所有除7的余数为 3 的元素该怎么办？简单：
 
-```
+```haskell
 ghci> [ x | x <- [50..100], x `mod` 7 == 3]
 [52,59,66,73,80,87,94]
 ```
 
 成功！从一个 List 中筛选出符合特定限制条件的操作也可以称为过滤 (flitering)。即取一组数并且按照一定的限制条件过滤它们。再举个例子 吧，假如我们想要一个 comprehension，它能够使 List 中所有大于 10 的奇数变为 ``"BANG"``，小于 10 的奇数变为 ``"BOOM"``，其他则统统扔掉。方便重用起见，我们将这个 comprehension 置于一个函数之中。
 
-```
+```haskell
 boomBangs xs = [ if x < 10 then "BOOM!" else "BANG!" | x <- xs, odd x]
 ```
 
 这个 comprehension 的最后部分就是限制条件，使用 ``odd`` 函数判断是否为奇数：返回 ``True``，就是奇数，该 List 中的元素才被包含。
 
-```
+```haskell
 ghci> boomBangs [7..13]
 ["BOOM!","BOOM!","BANG!","BANG!"]
 ```
 
 也可以加多个限制条件。若要达到 10 到 20 间所有不等于 13，15 或 19 的数，可以这样：
 
-```
+```haskell
 ghci> [ x | x <- [10..20], x /= 13, x /= 15, x /= 19]
 [10,11,12,14,16,17,18,20]
 ```
 
 除了多个限制条件之外，从多个 List 中取元素也是可以的。这样的话 comprehension 会把所有的元素组合交付给我们的输出函数。在不过滤的前提 下，取自两个长度为 4 的集合的 comprehension 会产生一个长度为 16 的 List。假设有两个 List，``[2,5,10]`` 和 ``[8,10,11]``， 要取它们所有组合的积，可以这样：
 
-```
+```haskell
 ghci> [ x*y | x <- [2,5,10], y <- [8,10,11]]
 [16,20,22,40,50,55,80,100,110]
 ```
 
 意料之中，得到的新 List 长度为 9。若只取乘积大于 50 的结果该如何？
 
-```
+```haskell
 ghci> [ x*y | x <-[2,5,10], y <- [8,10,11], x*y > 50]
 [55,80,100,110]
 ```
 
 取个包含一组名词和形容词的 List comprehension 吧，写诗的话也许用得着。
 
-```
+```haskell
 ghci> let nouns = ["hobo","frog","pope"]
 ghci> let adjectives = ["lazy","grouchy","scheming"]
 ghci> [adjective ++ " " ++ noun | adjective <- adjectives, noun <- nouns]
@@ -519,19 +519,19 @@ ghci> [adjective ++ " " ++ noun | adjective <- adjectives, noun <- no
 
 明白！让我们编写自己的 ``length`` 函数吧！就叫做 ``length'``!
 
-```
+```haskell
 length' xs = sum [1 | _ <- xs]
 ```
 
 ``_`` 表示我们并不关心从 List 中取什么值，与其弄个永远不用的变数，不如直接一个 ``_``。这个函数将一个 List 中所有元素置换为 1，并且使其相加求和。得到的结果便是我们的 List 长度。友情提示：字串也是 List，完全可以使用 list comprehension 来处理字串。如下是个除去字串中所有非大写字母的函数：
 
-```
+```haskell
 removeNonUppercase st = [ c | c <- st, c `elem` ['A'..'Z']]
 ```
 
 测试一下：
 
-```
+```haskell
 ghci> removeNonUppercase "Hahaha! Ahahaha!"
 "HA"
 ghci> removeNonUppercase "IdontLIKEFROGS"
@@ -542,7 +542,7 @@ ghci> removeNonUppercase "IdontLIKEFROGS"
 
 若操作含有 List 的 List，使用嵌套的 List comprehension 也是可以的。假设有个包含许多数值的 List 的 List，让我们在不拆开它的前提下除去其中的所有奇数：
 
-```
+```haskell
 ghci> let xxs = [[1,3,5,2,3,1,2,4,5],[1,2,3,4,5,6,7,8,9],[1,2,4,2,1,6,3,1,3,2,3,6]]
 ghci> [ [ x | x <- xs, even x ] | xs <- xxs]
 [[2,2,4],[2,4,6,8],[2,4,2,6,2,6]]
@@ -560,7 +560,7 @@ ghci> [ [ x | x <- xs, even x ] | xs <- xxs]
 
 动脑筋，在 Haskell 中表示二维向量该如何？使用 List 是一种方法，它倒也工作良好。若要将一组向量置于一个 List 中来表示平面图形又该怎样？我们可以写类似 ``[[1,2],[8,11],[4,5]]`` 的程式码来实现。但问题在于，``[[1,2],[8,11,5],[4,5]]`` 也是同样合法的，因为其中元素的型别都相同。尽管这样并不靠谱，但编译时并不会报错。然而一个长度为 2 的 Tuple (也可以称作序对，Pair) ，是一个独立的类型，这便意味着一个包含一组序对的 List 不能再加入一个三元组，所以说把原先的方括号改为圆括号使用 Tuple 会 更好: ``[(1,2),(8,11),(4,5)]``。若试图表示这样的图形： ``[(1,2),(8,11,5),(4,5)]``，就会报出以下的错误：
 
-```
+```haskell
 Couldn't match expected type `(t, t1)'
 against inferred type `(t2, t3, t4)'
 In the expression: (8, 11, 5)
@@ -578,7 +578,7 @@ In the definition of `it': it = [(1, 2), (8, 11, 5), (4, 5)]
 
 **fst** 返回一个序对的首项。
 
-```
+```haskell
 ghci> fst (8,11)
 8
 ghci> fst ("Wow", False)
@@ -587,7 +587,7 @@ ghci> fst ("Wow", False)
 
 **snd** 返回序对的尾项。
 
-```
+```haskell
 ghci> snd (8,11)
 11
 ghci> snd ("Wow", False)
@@ -598,7 +598,7 @@ False
 
 有个函数很 cool，它就是 ``zip``。它可以用来生成一组序对 (Pair) 的 List。它取两个 List，然后将它们交叉配对，形成一组序对的 List。它很简单，却很实用，尤其是你需要组合或是遍历两个 List 时。如下是个例子：
 
-```
+```haskell
 ghci> zip [1,2,3,4,5] [5,5,5,5,5]
 [(1,5),(2,5),(3,5),(4,5),(5,5)]
 ghci> zip [1 .. 5] ["one", "two", "three", "four", "five"]
@@ -607,33 +607,33 @@ ghci> zip [1 .. 5] ["one", "two", "three", "four", "five"]
 
 它把元素配对并返回一个新的 List。第一个元素配第一个，第二个元素配第二个..以此类推。注意，由于序对中可以含有不同的型别，``zip`` 函数可能会将不同型别的序对组合在一起。若是两个不同长度的 List 会怎么样？
 
-```
+```haskell
 ghci> zip [5,3,2,6,2,7,2,5,4,6,6] ["im","a","turtle"]
 [(5,"im"),(3,"a"),(2,"turtle")]
 ```
 
 较长的那个会在中间断开，去匹配较短的那个。由于 Haskell 是惰性的，使用 ``zip`` 同时处理有限和无限的 List 也是可以的：
 
-```
+```haskell
 ghci> zip [1..] ["apple", "orange", "cherry", "mango"]
 [(1,"apple"),(2,"orange"),(3,"cherry"),(4,"mango")]
 ```
 
 接下来考虑一个同时应用到 List 和 Tuple 的问题：如何取得所有三边长度皆为整数且小于等于 10，周长为 24 的直角三角形？首先，把所有三遍长度小于等于 10 的三角形都列出来：
 
-```
+```haskell
 ghci> let triangles = [ (a,b,c) | c <- [1..10], b <- [1..10], a <- [1..10] ]
 ```
 
 刚才我们是从三个 List 中取值，并且通过输出函数将其组合为一个三元组。只要在 ghci 下边呼叫 triangle，你就会得到所有三边都小于等于 10 的三角形。我们接下来给它添加一个限制条件，令其必须为直角三角形。同时也考虑上 ``b`` 边要短于斜边，``a`` 边要短于 ``b`` 边情况：
 
-```
+```haskell
 ghci> let rightTriangles = [ (a,b,c) | c <- [1..10], b <- [1..c], a <- [1..b], a^2 + b^2 == c^2]
 ```
 
 已经差不多了。最后修改函数，告诉它只要周长为 24 的三角形。
 
-```
+```haskell
 ghci> let rightTriangles' = [ (a,b,c) | c <- [1..10], b <- [1..c], a <- [1..b], a^2 + b^2 == c^2, a+b+c == 24]
 ghci> rightTriangles'
 [(6,8,10)]
