@@ -56,7 +56,7 @@ ghci> charName 'b'  
 "Broseph"  
 ghci> charName 'h'  
 "*** Exception: tut.hs:(53,0)-(55,21): Non-exhaustive patterns in function charName  
-```haskell
+```
  
 它告訴我們說，這個模式不夠全面。因此，在定義模式時，一定要留一個萬能匹配的模式，這樣我們的程序就不會為了不可預料的輸入而崩潰了。
 
@@ -65,7 +65,7 @@ ghci> charName 'h'  
 ```haskell
 addVectors :: (Num a) => (a, a) -> (a, a) -> (a, a)  
 addVectors a b = (fst a + fst b, snd a + snd b)  
-```haskell
+```
  
 嗯，可以運行。但有更好的方法，上模式匹配：
 

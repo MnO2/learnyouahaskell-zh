@@ -310,7 +310,7 @@ numLongChains = length (filter isLong (map chain [1..100]))
 ghci> let listOfFuns = map (*) [0..]  
 ghci> (listOfFuns !! 4) 5  
 20
-```haskell
+```
  
 取所得 List 的第四个元素可得一函数，与 ``(*4)`` 等价。 然后用 ``5`` 呼叫它，与 ``(* 4) 5`` 或 `` 4*5 `` 都是等价的.
 
@@ -385,7 +385,7 @@ flip' f = \x y -> f y x
  
 我们再实现下 ``sum``，这次用 ``fold`` 替代那复杂的递归：
 
-``` 
+```haskell
 sum' :: (Num a) => [a] -> a  
 sum' xs = foldl (\acc x -> acc + x) 0 xs  
 ```
@@ -461,7 +461,7 @@ head' = foldr1 (\x _ -> x)
 last' :: [a] -> a  
 last' = foldl1 (\_ x -> x)  
 
-```haskell
+```
  
 仅靠模式匹配就可以实现 ``head`` 函数和 ``last`` 函数，而且效率也很高。这里只是为了演示，用 ``fold`` 的实现方法。我觉得我们这个 ``reverse'`` 定义的相当聪明，用一个空 List 做初始值，并向左展开 List，从左追加到累加值，最后得到一个反转的新 List。``\acc x -> x : acc`` 有点像 ``:`` 函数，只是参数顺序相反。所以我们可以改成 `` foldl (flip (:)) []``。
  
@@ -550,7 +550,7 @@ ghci> map (\x -> negate (abs x)) [5,-3,-6,7,-3,2,-19,24]
 
 注意下这个 lambda 与那函数组合是多么的相像。用函数组合，我们可以将程式码改为：
 
-``` 
+```haskell
 ghci> map (negate . abs) [5,-3,-6,7,-3,2,-19,24]  
 [-5,-3,-6,-7,-3,-2,-19,-24]  
 ```
@@ -564,7 +564,7 @@ ghci> map (\xs -> negate (sum (tail xs))) [[1..5],[3..6],[1..7]]
 
 改为：
 
-``` 
+```haskell
 ghci> map (negate . sum . tail) [[1..5],[3..6],[1..7]]  
 [-14,-15,-27]  
 ```
@@ -586,7 +586,7 @@ fn x = ceiling (negate (tan (cos (max 50 x))))
 
 像刚才那样简单去掉两端的 ``x`` 是不行的，函数定义中 ``x`` 的右边还有括号。``cos (max 50)`` 是有错误的，你不能求一个函数的余弦。我们的解决方法就是，使用函数组合。
 
-``` 
+```haskell
 fn = ceiling . negate . tan . cos . max 50  
 ```
 

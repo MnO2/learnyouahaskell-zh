@@ -332,7 +332,7 @@ gcdReverse a b
 
 他先递回呼叫，然后把结果绑定到 ``result``。然后把目前的动作写到 log，在递回的结果之后。最后呈现的就是完整的 log。
 
-``` 
+```haskell
 ghci> mapM_ putStrLn $ snd $ runWriter (gcdReverse 8 3)  
 Finished with 1  
 2 mod 1 = 0  
@@ -365,13 +365,13 @@ append 两个 difference list 其实就是用一个函数，这函数先喂一�
 
 我们可以用一个 ``newtype`` 来包起来
 
-``` 
+```haskell
 newtype DiffList a = DiffList { getDiffList :: [a] -> [a] }  
 ```
 
 我们包起来的型态是 ``[a] -> [a]``，因为 difference list 不过就是一个转换一个 list 到另一个 list 的函数。要把普通 list 转换成 difference list 也很容易。
 
-``` 
+```haskell
 toDiffList :: [a] -> DiffList a  
 toDiffList xs = DiffList (xs++)  
   
