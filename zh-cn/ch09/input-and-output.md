@@ -560,9 +560,11 @@ shortLinesOnly input =
 ```
 
 我们甚至可以再让程式码更短一些，像这样
+
 ```haskell
 main = interact $ unlines . filter ((<10) . length) . lines
-```haskell
+```
+
 看吧，我们让程式缩到只剩一行了，很酷吧！
 
 能应用 ``interact`` 的情况有几种，像是从输入 pipe 读进一些内容，然后丢出一些结果的程式；或是从使用者获取一行一行的输入，然后丢回根据那一行运算的结果，再拿取另一行。这两者的差别主要是取决于使用者使用他们的方式。
@@ -629,6 +631,7 @@ palindrome
 到目前为止，我们的示范都是从终端读取某些东西或是打印出某些东西到终端。但如果我们想要读写档案呢？其实从某个角度来说我们已经作过这件事了。我们可以把读写终端想成读写档案。只是把档案命名成 ``stdout`` 跟 ``stdin`` 而已。他们分别代表标准输出跟标准输入。我们即将看到的读写档案跟读写终端并没什么不同。
 
 首先来写一个程式，他会开启一个叫 girlfriend.txt 的档案，档案里面有 Avril Lavigne 的畅销名曲 Girlfriend，并将内容打印到终端上。接下来是 girlfriend.txt 的内容。
+
 ```haskell
 Hey! Hey! You! You!
 I don't like your girlfriend!
@@ -637,6 +640,7 @@ I think you need a new one!
 ```
 
 这则是我们的主程式。
+
 ```haskell
 import System.IO
 
@@ -648,6 +652,7 @@ main = do
 ```
 
 执行他后得到的结果。
+
 ```haskell
 $ runhaskell girlfriend.hs
 Hey! Hey! You! You!

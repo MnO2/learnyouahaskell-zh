@@ -332,7 +332,7 @@ gcdReverse a b
 
 他先遞迴呼叫，然後把結果綁定到 ``result``。然後把目前的動作寫到 log，在遞迴的結果之後。最後呈現的就是完整的 log。
 
-``` 
+```haskell
 ghci> mapM_ putStrLn $ snd $ runWriter (gcdReverse 8 3)  
 Finished with 1  
 2 mod 1 = 0  
@@ -365,13 +365,13 @@ append 兩個 difference list 其實就是用一個函數，這函數先餵一�
 
 我們可以用一個 ``newtype`` 來包起來
 
-``` 
+```haskell
 newtype DiffList a = DiffList { getDiffList :: [a] -> [a] }  
 ```
 
 我們包起來的型態是 ``[a] -> [a]``，因為 difference list 不過就是一個轉換一個 list 到另一個 list 的函數。要把普通 list 轉換成 difference list 也很容易。
 
-``` 
+```haskell
 toDiffList :: [a] -> DiffList a  
 toDiffList xs = DiffList (xs++)  
   
@@ -616,7 +616,7 @@ ghci> stackManip [5,8,2,1]
 
 ``stackManip`` 的程式有點冗長，因為我們要寫得太詳細，必須把狀態給每個操作，然後把新的狀態再餵給下一個。如果我們可以不要這樣作的話，那程式應該會長得像這樣：
 
-``` 
+```haskell
 stackManip = do  
     push 3  
     a <- pop  
