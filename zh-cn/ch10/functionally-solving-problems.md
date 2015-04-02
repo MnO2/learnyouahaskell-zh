@@ -42,7 +42,7 @@
 
 来看看我们的实作：
 
-```
+```haskell
 import Data.List  
   
 solveRPN :: (Num a) => String -> a  
@@ -54,7 +54,7 @@ solveRPN expression = head (foldl foldingFunction [] (words expression))
 
 所以我们现在只缺一个接受堆叠的 folding 函数，像是可以接受 ``[4,10]`` 跟 ``"3"``，然后得到 ``[3,4,10]``。如果是 ``[4,10]`` 跟 ``"*"``，那就会得到 ``[40]``。但在实作之前，我们先把我们的函数改写成 point-free style，这样可以省下许多括号。
 
-```
+```haskell
 import Data.List  
   
 solveRPN :: (Num a) => String -> a  
@@ -64,7 +64,7 @@ solveRPN = head . foldl foldingFunction [] . words
 
 看起来好多了。我们的 folding 函数会接受一个堆叠、新的项，并回传一个新的堆叠。我们使用模式匹配的方式来取出堆叠最上层的元素，然后对 ``"*"`` 跟 ``"-"`` 做匹配。
 
-```
+```haskell
 solveRPN :: (Num a, Read a) => String -> a  
 solveRPN = head . foldl foldingFunction [] . words  
     where   foldingFunction (x:y:ys) "*" = (x * y):ys  
@@ -84,7 +84,7 @@ solveRPN = head . foldl foldingFunction [] . words
 我们来试试看我们新写的函数：
 
 
-```
+```haskell
 ghci> solveRPN "10 4 3 + 2 * -"  
 -4  
 ghci> solveRPN "2 3 +"  
@@ -104,7 +104,7 @@ ghci> solveRPN "90 3 -"
 
 我们来改写一下我们的函数让他多支援几个运算子。为了简单起见，我们改写宣告让他回传 ``Float`` 型别。
 
-```
+```haskell
 import Data.List  
   
 solveRPN :: String -> Float  
@@ -121,7 +121,7 @@ where   foldingFunction (x:y:ys) "*" = (x * y):ys
 
 看起来不错，没有疑问地 ``/`` 是除法而 ``**`` 是取 exponential。至于 log 运算子，我们只需要模式匹配一个元素，毕竟 log 只需要一个元素。而 sum 运算子，我们只回传一个仅有一个元素的堆叠，包含了所有元素的和。
 
-```
+```haskell
 ghci> solveRPN "2.7 ln"  
 0.9932518  
 ghci> solveRPN "10 10 10 10 sum 4 /"  
@@ -134,7 +134,7 @@ ghci> solveRPN "10 2 ^"
 
 由于 ``read`` 知道如何转换浮点数，我们也可在运算适中使用他。
 
-```
+```haskell
 ghci> solveRPN "43.2425 0.5 ^"  
 6.575903  
 ```
@@ -158,7 +158,7 @@ ghci> solveRPN "43.2425 0.5 ^"
 
 我们任务就是要写一个程式，他接受道路配置的输入，然后印出对应的最短路径。我们的输入看起来像是这样：
 
-```
+```haskell
 50  
 10  
 30  
@@ -213,7 +213,7 @@ ghci> solveRPN "43.2425 0.5 ^"
 接下来的问题是，我们要如何用 Haskell 的型别来代表这里的道路配置呢？一种方式就是把起始点跟交叉点都当作图的节点，并连到其他的交叉点。如果我们想像其实起点也有一条长度为 1 的虚拟道路连接彼此，那每个交叉点或是节点就都连接对面的节点了。同时他们也连到下一个交叉点。唯一的例外是最后一个节点，他们只连接到对面。
 
 
-```
+```haskell
 data Node = Node Road Road | EndNode Road  
 data Road = Road Int Node 
 ```
@@ -222,7 +222,7 @@ data Road = Road Int Node
 
 另一种方式就是用 ``Maybe`` 来代表往下一个交叉点走的路。每个节点有指到对面节点的路径部份，但只有不是终端节点的节点才有指向下一个交叉点的路。
 
-```
+```haskell
 data Node = Node Road (Maybe Road)  
 data Road = Road Int Node  
 ```
@@ -231,7 +231,7 @@ data Road = Road Int Node
 
 让我们资料型别越简单越好，不过这样已经是极限了。
 
-```
+```haskell
 data Section = Section { getA :: Int, getB :: Int, getC :: Int } deriving (Show)  
 type RoadSystem = [Section]  
 ```
@@ -244,21 +244,21 @@ type RoadSystem = [Section]
 
 从希思罗机场到伦敦的道路系统便可以这样表示：
 
-```
+```haskell
 heathrowToLondon :: RoadSystem  
 heathrowToLondon = [Section 50 10 30, Section 5 90 20, Section 40 2 25, Section 10 8 0]  
 ```
 
 我们现在要做的就是用 Haskell 实作我们先前的解法。所以我们应该怎样宣告我们计算最短路径函数的型别呢？他应该接受一个道路系统作为参数，然后回传一个路径。我们会用一个 list 来代表我们的路径。我们定义了 ``Label`` 来表示 ``A``, ``B`` 或 ``C``。并且也定义一个同义词 ``Path``：
 
-```
+```haskell
 data Label = A | B | C deriving (Show)  
 type Path = [(Label, Int)] 
 ```
 
 而我们的函数 ``optimalPath`` 应该要有 ``optimalPath :: RoadSystem -> Path`` 这样的型别。如果被喂给 ``heathrowToLondon`` 这样的道路系统，他应该要回传下列的路径：
 
-```
+```haskell
 [(B,10),(C,30),(A,5),(C,20),(B,2),(B,8)]      
 ```
 
@@ -271,7 +271,7 @@ type Path = [(Label, Int)]
 	提示：把 ``(Path, Path) -> Section -> (Path, Path)`` 当作 left fold 用的二元函数，fold 要求的型态是 ``a -> b -> a``。
 
 
-```
+```haskell
 roadStep :: (Path, Path) -> Section -> (Path, Path)  
 roadStep (pathA, pathB) (Section a b c) =   
     let priceA = sum $ map snd pathA  
@@ -303,7 +303,7 @@ roadStep (pathA, pathB) (Section a b c) =
 我们把 ``heathrowToLondon`` 的第一个 section 喂给我们的函数。由于他是第一个 section，所以到 A 跟 B 的最佳路径就是一对空的 list。
 
 
-```
+```haskell
 ghci> roadStep ([], []) (head heathrowToLondon)  
 ([(C,30),(B,10)],[(B,10)])  
 ```
@@ -317,7 +317,7 @@ ghci> roadStep ([], []) (head heathrowToLondon)
 现在我们有了一个函数他接受一对路径跟一个 section，并产生新的最佳路径。我们可以用一个 left fold 来做。我们用 ``([],[])`` 跟第一个 section 来喂给 ``roadStep`` 并得到一对最佳路径。然后他又被喂给这个新得到的最佳路径跟下一个 section。以此类推。当我们走过全部的 section 的时候，我们就会得到一对最佳路径，而其中比较短的那个就是解答。有了这样的想法，我们便可以实作 ``optimalPath``。
 
 
-```
+```haskell
 optimalPath :: RoadSystem -> Path  
 optimalPath roadSystem = 
     let (bestAPath, bestBPath) = foldl roadStep ([],[]) roadSystem  
@@ -330,7 +330,7 @@ optimalPath roadSystem =
 
 我们来测试一下吧！
 
-```
+```haskell
 ghci> optimalPath heathrowToLondon  
 [(B,10),(C,30),(A,5),(C,20),(B,2),(B,8),(C,0)]  
 ```
@@ -343,7 +343,7 @@ ghci> optimalPath heathrowToLondon
 
 首先，我们写一个函数，他接受一串 list 并把他切成同样大小的 group。我们命名他为 ``groupOf``。当参数是 ``[1..10]`` 时，``groupOf 3`` 应该回传 ``[[1,2,3],[4,5,6],[7,8,9],[10]]``。
 
-```
+```haskell
 groupsOf :: Int -> [a] -> [[a]]  
 groupsOf 0 _ = undefined  
 groupsOf _ [] = []  
@@ -352,7 +352,7 @@ groupsOf n xs = take n xs : groupsOf n (drop n xs)
 
 一个标准的递回函数。对于 ``xs`` 等于 ``[1..10]`` 且 ``n`` 等于 ``3``，这可以写成 ``[1,2,3] : groupsOf 3 [4,5,6,7,8,9,10]``。当这个递回结束的时候，我们的 list 就三个三个分好组。而下列是我们的 ``main`` 函数，他从标准输入读取资料，构造 ``RoadSystem`` 并印出最短路径。
 
-```
+```haskell
 import Data.List  
   
 main = do  
@@ -371,7 +371,7 @@ main = do
 我们将下列文字存成档案。
 
 
-```
+```haskell
 50  
 10  
 30  
@@ -389,7 +389,7 @@ main = do
 
 存成一个叫 ``paths.txt`` 的档案然后喂给我们的程式。
 
-```
+```haskell
 $ cat paths.txt | runhaskell heathrow.hs  
 The best path to take is: BCACBBC  
 The price is: 75  
