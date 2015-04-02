@@ -20,7 +20,7 @@
 
 现在，我们把下一行打到你熟悉的编辑器中
 
-```
+```haskell
 main = putStrLn "hello, world"
 ```
 
@@ -29,7 +29,7 @@ main = putStrLn "hello, world"
 
 现在我们将做一件之前没做过的事：编译你的程式。打开你的终端并切换到包含 ``helloworld.hs`` 的目录，并输入下列指令。
 
-```
+```haskell
 $ ghc --make helloworld
 [1 of 1] Compiling Main                 ( helloworld.hs, hellowowlrd.o )
 Linking helloworld ...
@@ -38,7 +38,7 @@ Linking helloworld ...
 
 顺利的话你就会得到如上的讯息，接着你便可以执行你的程式 ``./helloworld``
 
-```
+```haskell
 $ ./helloworld
 hello, world
 ```
@@ -47,7 +47,7 @@ hello, world
 
 让我们来看一下我们究竟做了些什么，首先来看一下 ``putStrLn`` 函数的型态：
 
-```
+```haskell
 ghci> :t putStrLn
 putStrLn :: String -> IO ()
 ghci> :t putStrLn "hello, world"
@@ -60,7 +60,7 @@ putStrLn "hello, world" :: IO ()
 
 把整个程式限制在只能有一个 I/O action 看似是个极大的限制。这就是为什么我们需要 do 表示法来将所有 I/O action 绑成一个。来看看下面这个例子。
 
-```
+```haskell
 main = do
     putStrLn "Hello, what's your name?"
     name <- getLine
@@ -73,7 +73,7 @@ main = do
 
 另一个有趣的事情是第三行 ``name <- getLine``。它看起来像是从输入读取一行并存到一个变数 ``name`` 之中。真的是这样吗？我们来看看 ``getLine`` 的型态吧
 
-```
+```haskell
 ghci> :t getLine
 getLine :: IO String
 ```
@@ -84,7 +84,7 @@ getLine :: IO String
 
 但这不表示我们不能在纯粹的程式码中使用 I/O action 回传的资料。只要我们绑定它到一个名字，我们便可以暂时地使用它。像在 ``name <- getLine`` 中 ``name`` 不过是一个普通字串，代表在盒子中的内容。我们能将这个普通的字串传给一个极度复杂的函数，并回传你一生会有多少财富。像是这样：
 
-```
+```haskell
 main = do
     putStrLn "Hello, what's your name?"
     name <- getLine
@@ -95,14 +95,15 @@ main = do
 
 再来看看这段程式码吧，他是合法的吗?
 
-```
+```haskell
 nameTag = "Hello, my name is " ++ getLine
 ```
 
 如果你回答不是，恭喜你。如果你说是，你答错了。这么做不对的理由是 ``++`` 要求两个参数都必须是串列。他左边的参数是 ``String``，也就是 ``[Char]``。然而 ``getLine`` 的型态是 ``IO String``。你不能串接一个字串跟 I/O action。我们必须先把 ``String`` 的值从 I/O action 中取出，而唯一可行的方法就是在 I/O action 中使用 ``name <- getLine``。如果我们需要处理一些非纯粹的资料，那我们就要在非纯粹的环境中做。所以我们最好把 I/O 的部分缩减到最小的比例。
 
 每个 I/O action 都有一个值封装在里面。这也是为什么我们之前的程式可以这么写：
-```
+
+```haskell
 main = do
     foo <- putStrLn "Hello, what's your name?"
     name <- getLine
@@ -113,16 +114,18 @@ main = do
 除了最后一行之外，其他在 do 中没有绑定名字的其实也可以写成绑定的形式。所以 ``putStrLn "BLAH"`` 可以写成 ``_ <- putStrLn "BLAH"``。但这没什么实际的意义，所以我们宁愿写成 ``putStrLn something``。
 
 初学者有时候会想错
-```
+
+```haskell
     name = getLine
 ```
+
 以为这行会读取输入并给他绑定一个名字叫 ``name`` 但其实只是把 ``getLine`` 这个 I/O action 指定一个名字叫 ``name`` 罢了。记住，要从一个 I/O action 中取出值，你必须要在另一个 I/O action 中将他用 ``<-`` 绑定给一个名字。
 
 I/O actions 只会在绑定给 ``main`` 的时候或是在另一个用 do 串起来的 I/O action 才会执行。你可以用 do 来串接 I/O actions，再用 do 来串接这些串接起来的 I/O actions。不过只有最外面的 I/O action 被指定给 main 才会触发执行。
 
 喔对，其实还有另外一个情况。就是在 GHCi 中输入一个 I/O action 并按下 Enter 键，那也会被执行
 
-```
+```haskell
 ghci> putStrLn "HEEY"
 HEEY
 ```
@@ -130,7 +133,7 @@ HEEY
 就算我们只是在 GHCi 中打几个数字或是呼叫一个函数，按下 Enter 就会计算它并呼叫 ``show``，再用 ``putStrLn`` 将字串打印出在终端上。
 
 还记得 let binding 吗？如果不记得，回去温习一下这个章节。它们的形式是 ``let bindings in expression``，其中 ``bindings`` 是 expression 中的名字、``expression`` 则是被运用到这些名字的算式。我们也提到了 list comprehensions 中，``in`` 的部份不是必需的。你能够在 do blocks 中使用 let bindings 如同在 list comprehensions 中使用它们一样，像这样：
-```
+```haskell
 import Data.Char
 
 main = do
@@ -148,7 +151,8 @@ main = do
 你也许会问究竟什么时候要用 ``<-``，什么时候用 let bindings？记住，``<-`` 是用来运算 I/O actions 并将他的结果绑定到名称。而 ``map toUpper firstName`` 并不是一个 I/O action。他只是一个纯粹的 expression。所以总结来说，当你要绑定 I/O actions 的结果时用 ``<-``，而对于纯粹的 expression 使用 let bindings。对于错误的 ``let firstName = getLine``，我们只不过是把 ``getLine`` 这个 I/O actions 给了一个不同的名字罢了。最后还是要用 ``<-`` 将结果取出。
 
 现在我们来写一个会一行一行不断地读取输入，并将读进来的字反过来输出到萤幕上的程式。程式会在输入空白行的时候停止。
-```
+
+```haskell
 main = do
     line <- getLine
     if null line
@@ -160,6 +164,7 @@ main = do
 reverseWords :: String -> String
 reverseWords = unwords . map reverse . words
 ```
+
 在分析这段程式前，你可以执行看看来感受一下程式的运行。
 
 首先，我们来看一下 ``reverseWords``。他不过是一个普通的函数，假如接受了个字串 ``"hey there man"``，他会先呼叫 ``words`` 来产生一个字的串列 ``["hey", "there", "man"]``。然后用 ``reverse`` 来 map 整个串列，得到 ``["yeh", "ereht", "nam"]``，接着用 ``unwords`` 来得到最终的结果 ``"yeh ereht nam"``。这些用函数合成来简洁的表达。如果没有用函数合成，那就会写成丑丑的样子 ``reverseWords st = unwords (map reverse (words st))``
@@ -167,7 +172,8 @@ reverseWords = unwords . map reverse . words
 那 ``main`` 又是怎么一回事呢？首先，我们用 ``getLine`` 从终端读取了一行，并把这行输入取名叫 ``line``。然后接着一个条件式 expression。记住，在 Haskell 中 if 永远要伴随一个 else，这样每个 expression 才会有值。当 if 的条件是 true （也就是输入了一个空白行），我们便执行一个 I/O action，如果 if 的条件是 false，那 else 底下的 I/O action 被执行。这也就是说当 if 在一个 I/O do block 中的时候，长的样子是 ``if condition then I/O action else I/O action``。
 
 我们首先来看一下在 else 中发生了什么事。由于我们在 else 中只能有一个 I/O action，所以我们用 do 来将两个 I/O actions 绑成一个，你可以写成这样：
-```
+
+```haskell
 else (do
     putStrLn $ reverseWords line
     main)
@@ -178,7 +184,8 @@ else (do
 那假如 ``null line`` 的结果是 true 呢？也就是说 then 的区块被执行。我们看一下区块里面有 ``then return ()``。如果你是从 C、Java 或 Python 过来的，你可能会认为 ``return`` 不过是作一样的事情便跳过这一段。但很重要的： ``return`` 在 Hakell 里面的意义跟其他语言的 ``return`` 完全不同！他们有相同的样貌，造成了许多人搞错，但确实他们是不一样的。在命令式语言中，``return`` 通常结束 method 或 subroutine 的执行，并且回传某个值给呼叫者。在 Haskell 中，他的意义则是利用某个 pure value 造出 I/O action。用之前盒子的比喻来说，就是将一个 value 装进箱子里面。产生出的 I/O action 并没有作任何事，只不过将 value 包起来而已。所以在 I/O 的情况下来说，``return "haha"`` 的型态是 ``IO String``。将 pure value 包成 I/O action 有什么实质意义呢？为什么要弄成 ``IO`` 包起来的值？这是因为我们一定要在 else 中摆上某些 I/O action，所以我们才用 ``return ()`` 做了一个没作什么事情的 I/O action。
 
 在 I/O do block 中放一个 ``return`` 并不会结束执行。像下面这个程式会执行到底。
-```
+
+```haskell
 main = do
     return ()
     return "HAHAHA"
@@ -189,7 +196,8 @@ main = do
 ```
 
 所有在程式中的 ``return`` 都是将 value 包成 I/O actions，而且由于我们没有将他们绑定名称，所以这些结果都被忽略。我们能用 ``<-`` 与 ``return`` 来达到绑定名称的目的。
-```
+
+```haskell
 main = do
     a <- return "hell"
     b <- return "yeah!"
@@ -197,7 +205,8 @@ main = do
 ```
 
 可以看到 ``return`` 与 ``<-`` 作用相反。``return`` 把 value 装进盒子中，而 ``<-`` 将 value 从盒子拿出来，并绑定一个名称。不过这么做是有些多余，因为你可以用 let bindings 来绑定
-```
+
+```haskell
 main = do
     let a = "hell"
         b = "yeah"
@@ -209,13 +218,14 @@ main = do
 在我们接下去讲档案之前，让我们来看看有哪些实用的函数可以处理 I/O。
 
 ``putStr`` 跟 ``putStrLn`` 几乎一模一样，都是接受一个字串当作参数，并回传一个 I/O action 打印出字串到终端上，只差在 ``putStrLn`` 会换行而 ``putStr`` 不会罢了。
-```
+
+```haskell
 main = do putStr "Hey, "
           putStr "I'm "
           putStrLn "Andy!"
 ```
 
-```
+```haskell
 $ runhaskell putstr_test.hs
 Hey, I'm Andy!
 ```
@@ -223,29 +233,33 @@ Hey, I'm Andy!
 他的 type signature 是 ``putStr :: String -> IO ()``，所以是一个包在 I/O action 中的 unit。也就是空值，没有办法绑定他。
 
 ``putChar`` 接受一个字元，并回传一个 I/O action 将他打印到终端上。
-```
+
+```haskell
 main = do putChar 't'
           putChar 'e'
           putChar 'h'
 ```
 
-```
+```haskell
 $ runhaskell putchar_test.hs
 teh
 ```
 
 ``putStr`` 实际上就是 ``putChar`` 递回定义出来的。``putStr`` 的边界条件是空字串，所以假设我们打印一个空字串，那他只是回传一个什么都不做的 I/O action，像 ``return ()``。如果打印的不是空字串，那就先用 ``putChar`` 打印出字串的第一个字元，然后再用 ``putStr`` 打印出字串剩下部份。
-```
+
+```haskell
 putStr :: String -> IO ()
 putStr [] = return ()
 putStr (x:xs) = do
     putChar x
     putStr xs
 ```
+
 看看我们如何在 I/O 中使用递回，就像我们在 pure code 中所做的一样。先定义一个边界条件，然后再思考剩下如何作。
 
 ``print`` 接受任何是 ``Show`` typeclass 的 instance 的型态的值，这代表我们知道如何用字串表示他，呼叫 ``show`` 来将值变成字串然后将其输出到终端上。基本上，他就是 ``putStrLn . show``。首先呼叫 ``show`` 然后把结果喂给 ``putStrLn``，回传一个 I/O action 打印出我们的值。
-```
+
+```haskell
 main = do print True
           print 2
           print "haha"
@@ -253,7 +267,7 @@ main = do print True
           print [3,4,3]
 ```
 
-```
+```haskell
 $ runhaskell print_test.hs
 True
 2
@@ -263,7 +277,8 @@ True
 ```
 
 就像你看到的，这是个很方便的函数。还记得我们提到 I/O actions 只有在 ``main`` 中才会被执行以及在 GHCI 中运算的事情吗？当我们用键盘打了些值，像 ``3`` 或 ``[1,2,3]`` 并按下 Enter，GHCI 实际上就是用了 ``print`` 来将这些值输出到终端。
-```
+
+```haskell
 ghci> 3
 3
 ghci> print 3
@@ -277,7 +292,8 @@ ghci> print (map (++"!") ["hey", "ho", "woo"])
 当我们需要打印出字串，我们会用 ``putStrLn``，因为我们不想要周围有引号，但对于输出值来说，``print`` 才是最常用的。
 
 ``getChar`` 是一个从输入读进一个字元的 I/O action，因此他的 type signature 是 ``getChar :: IO Char``，代表一个 I/O action 的结果是 ``Char``。注意由于缓冲区的关系，只有当 Enter 被按下的时候才会触发读取字元的行为。
-```
+
+```haskell
 main = do
     c <- getChar
     if c /= ' '
@@ -286,17 +302,20 @@ main = do
             main
         else return ()
 ```
+
 这程式看起来像是读取一个字元并检查他是否为一个空白。如果是的话便停止，如果不是的话便打印到终端上并重复之前的行为。在某种程度上来说也不能说错，只是结果不如你预期而已。来看看结果吧。
-```
+
+```haskell
 $ runhaskell getchar_test.hs
 hello sir
 hello
 ```
+
 上面的第二行是输入。我们输入了 ``hello sir`` 并按下了 Enter。由于缓冲区的关系，程式是在我们按了 Enter 后才执行而不是在某个输入字元的时候。一旦我们按下了 Enter，那他就把我们直到目前输入的一次做完。
 
 ``when`` 这函数可以在 ``Control.Monad`` 中找到他 (你必须 ``import Contorl.Monad`` 才能使用他)。他在一个 do block 中看起来就像一个控制流程的 statement，但实际上他的确是一个普通的函数。他接受一个 boolean 值跟一个 I/O action。如果 boolean 值是 ``True``，便回传我们传给他的 I/O action。如果 boolean 值是 ``False``，便回传 ``return ()``，即什么都不做的 I/O action。我们接下来用 ``when`` 来改写我们之前的程式。
 
-```
+```haskell
 import Control.Monad
 
 main = do
@@ -310,7 +329,7 @@ main = do
 
 ``sequence`` 接受一串 I/O action，并回传一个会依序执行他们的 I/O action。运算的结果是包在一个 I/O action 的一连串 I/O action 的运算结果。他的 type signature 是 ``sequence :: [IO a] -> IO [a]``
 
-```
+```haskell
 main = do
     a <- getLine
     b <- getLine
@@ -320,7 +339,7 @@ main = do
 
 其实可以写成
 
-```
+```haskell
 main = do
     rs <- sequence [getLine, getLine, getLine]
     print rs
@@ -330,7 +349,7 @@ main = do
 
 一个常见的使用方式是我们将 ``print`` 或 ``putStrLn`` 之类的函数 map 到串列上。``map print [1,2,3,4]`` 这个动作并不会产生一个 I/O action，而是一串 I/O action，就像是 ``[print 1, print 2, print 3, print 4]``。如果我们将一串 I/O action 变成一个 I/O action，我们必须用 ``sequence``
 
-```
+```haskell
 ghci> sequence (map print [1,2,3,4,5])
 1
 2
@@ -344,7 +363,7 @@ ghci> sequence (map print [1,2,3,4,5])
 
 由于对一个串列 map 一个回传 I/O action 的函数，然后再 sequence 他这个动作太常用了。所以有一些函数在函式库中 ``mapM`` 跟 ``mapM_``。``mapM`` 接受一个函数跟一个串列，将对串列用函数 map 然后 sequence 结果。``mapM_`` 也作同样的事，只是他把运算的结果丢掉而已。在我们不关心 I/O action 结果的情况下，``mapM_`` 是最常被使用的。
 
-```
+```haskell
 ghci> mapM print [1,2,3]
 1
 2
@@ -358,7 +377,7 @@ ghci> mapM_ print [1,2,3]
 
 ``forever`` 接受一个 I/O action 并回传一个永远作同一件事的 I/O action。你可以在 ``Control.Monad`` 中找到他。下面的程式会不断地要使用者输入些东西，并把输入的东西转成大写输出到萤幕上。
 
-```
+```haskell
 import Control.Monad
 import Data.Char
 
@@ -369,7 +388,8 @@ main = forever $ do
 ```
 
 在 ``Control.Monad`` 中的 ``forM`` 跟 ``mapM`` 的作用一样，只是参数的顺序相反而已。第一个参数是串列，而第二个则是函数。这有什么用？在一些有趣的情况下还是有用的：
-```
+
+```haskell
 import Control.Monad
 
 main = do
@@ -385,7 +405,8 @@ main = do
 
 
 你可以把 ``forM`` 的意思想成将串列中的每个元素作成一个 I/O action。至于每个 I/O action 实际作什么就要看原本的元素是什么。然后，执行这些 I/O action 并将结果绑定到某个名称上。或是直接将结果忽略掉。
-```
+
+```haskell
 $ runhaskell from_test.hs
 Which color do you associate with the number 1?
 white
@@ -416,14 +437,16 @@ orange
 ``getChar`` 是一个读取单一字元的 I/O action。``getLine`` 是一个读取一行的 I/O action。这是两个非常直觉的函式，多数程式语言也有类似这两个函式的 statement 或 function。但现在我们来看看 *getContents*。``getContents`` 是一个从标准输入读取直到 end-of-file 字元的 I/O action。他的型态是 ``getContents :: IO String``。最酷的是 ``getContents`` 是惰性 I/O (Lazy I/O)。当我们写了 ``foo <- getContents``，他并不会马上读取所有输入，将他们存在 memory 里面。他只有当你真的需要输入资料的时候才会读取。
 
 当我们需要重导一个程式的输出到另一个程式的输入时，``getContents`` 非常有用。假设我们有下面一个文字档：
-```
+
+```haskell
 I'm a lil' teapot
 What's with that airplane food, huh?
 It's so small, tasteless
 ```
 
 还记得我们介绍 ``forever`` 时写的小程式吗？会把所有输入的东西转成大写的那一个。为了防止你忘记了，这边再重复一遍。
-```
+
+```haskell
 import Control.Monad
 import Data.Char
 
@@ -435,7 +458,7 @@ main = forever $ do
 
 将我们的程式存成 ``capslocker.hs`` 然后编译他。然后用 Unix 的 Pipe 将文字档喂给我们的程式。我们使用的是 GNU 的 cat，会将指定的档案输出到萤幕。
 
-```
+```haskell
 $ ghc --make capslocker
 [1 of 1] Compiling Main             ( capslocker.hs, capslocker.o )
 Linking capslocker ...
@@ -454,7 +477,7 @@ capslocker <stdin>: hGetLine: end of file
 
 我们用 ``forever`` 在做的事基本上就是将输入经过转换后变成输出。用 ``getContents`` 的话可以让我们的程式更加精炼。
 
-```
+```haskell
 import Data.Char
 
 main = do
@@ -464,7 +487,7 @@ main = do
 
 我们将 ``getContents`` 取回的字串绑定到 ``contents``。然后用 ``toUpper`` map 到整个字串后打印到终端上。记住字串基本上就是一串惰性的串列 (list)，同时 ``getContents`` 也是惰性 I/O，他不会一口气读入内容然后将内容存在记忆体中。实际上，他会一行一行读入并输出大写的版本，这是因为输出才是真的需要输入的资料的时候。
 
-```
+```haskell
 $ cat haiku.txt | ./capslocker
 I'M A LIL' TEAPOT
 WHAT'S WITH THAT AIRPLAN FOOD, HUH?
@@ -472,7 +495,7 @@ IT'S SO SMALL, TASTELESS
 ```
 
 很好，程式运作正常。假如我们执行 capslocker 然后自己打几行字呢？
-```
+```haskell
 $ ./capslocker
 hey ho
 HEY HO
@@ -483,7 +506,8 @@ LETS GO
 按下 Ctrl-D 来离开环境。就像你看到的，程式是一行一行将我们的输入打印出来。当 ``getContent`` 的结果被绑定到 ``contents`` 的时候，他不是被表示成在记忆体中的一个字串，反而比较像是他有一天会是字串的一个承诺。当我们将 ``toUpper`` map 到 ``contents`` 的时候，便也是一个函数被承诺将会被 map 到内容上。最后 ``putStr`` 则要求先前的承诺说，给我一行大写的字串吧。实际上还没有任何一行被取出，所以便跟 ``contents`` 说，不如从终端那边取出些字串吧。这才是 ``getContents`` 真正从终端读入一行并把这一行交给程式的时候。程式便将这一行用 ``toUpper`` 处理并交给 ``putStr``，``putStr`` 则打印出他。之后 ``putStr`` 再说：我需要下一行。整个步骤便再重复一次，直到读到 end-of-file 为止。
 
 接着我们来写个程式，读取输入，并只打印出少于十个字元的行。
-```
+
+```haskell
 main = do
     contents <- getContents
     putStr (shortLinesOnly contents)
@@ -500,7 +524,7 @@ shortLinesOnly input =
 
 ``shortLinesOnly`` 的行为是这样：拿到一个字串，像是 ``"short\nlooooooooooooooong\nshort again"``。这字串有三行，前后两行比较短，中间一行很常。他用 ``lines`` 把字串分成 ``["short", "looooooooooooooong", "short again"]``，并把结果绑定成 ``allLines``。然后过滤这些字串，只有少于十个字元的留下，``["short", "short again"]``，最后用 ``unlines`` 把这些字串用换行接起来，形成 ``"short\nshort again"``
 
-```
+```haskell
 i'm short
 so am i
 i am a loooooooooong line!!!
@@ -510,7 +534,7 @@ loooooooooooooooooooooooooooong
 short
 ```
 
-```
+```haskell
 $ ghc --make shortlinesonly
 [1 of 1] Compiling Main             ( shortlinesonly.hs, shortlinesonly.o )
 Linking shortlinesonly ...
@@ -524,7 +548,7 @@ short
 
 从输入那一些字串，经由一些转换然后输出这样的模式实在太常用了。常用到甚至建立了一个函数叫 **interact**。``interact`` 接受一个 ``String -> String`` 的函数，并回传一个 I/O action。那个 I/O action 会读取一些输入，呼叫提供的函数，然后把函数的结果打印出来。所以我们的程式可以改写成这样。
 
-```
+```haskell
 main = interact shortLinesOnly
 
 shortLinesOnly :: String -> String
@@ -536,16 +560,18 @@ shortLinesOnly input =
 ```
 
 我们甚至可以再让程式码更短一些，像这样
-```
+
+```haskell
 main = interact $ unlines . filter ((<10) . length) . lines
 ```
+
 看吧，我们让程式缩到只剩一行了，很酷吧！
 
 能应用 ``interact`` 的情况有几种，像是从输入 pipe 读进一些内容，然后丢出一些结果的程式；或是从使用者获取一行一行的输入，然后丢回根据那一行运算的结果，再拿取另一行。这两者的差别主要是取决于使用者使用他们的方式。
 
 我们再来写另一个程式，它不断地读取一行行并告诉我们那一行字串是不是一个回文字串 (palindrome)。我们当然可以用 ``getLine`` 读取一行然后再呼叫 ``main`` 作同样的事。不过同样的事情可以用 ``interact`` 更简洁地达成。当使用 ``interact`` 的时候，想像你是将输入经有某些转换成输出。在这个情况当中，我们要将每一行输入转换成 ``"palindrome"`` 或 ``"not a palindrome"``。所以我们必须写一个函数将 ``"elephant\nABCBA\nwhatever"`` 转换成 ``not a palindrome\npalindrome\nnot a palindrome"``。来动手吧！
 
-```
+```haskell
 respondPalindromes contents = unlines (map (\xs ->
     if isPalindrome xs then "palindrome" else "not a palindrome") (lines contents))
         where isPalindrome xs = xs == reverse xs
@@ -553,7 +579,7 @@ respondPalindromes contents = unlines (map (\xs ->
 
 再来将程式改写成 point-free 的形式
 
-```
+```haskell
 respondPalindromes = unlines . map (\xs ->
     if isPalindrome xs then "palindrome" else "not a palindrome") . lines
         where isPalindrome xs = xs == reverse xs
@@ -561,13 +587,13 @@ respondPalindromes = unlines . map (\xs ->
 
 很直觉吧！首先将 ``"elephant\nABCBA\nwhatever"`` 变成 ``["elephant", "ABCBA", "whatever"]`` 然后将一个 lambda 函数 map 它，``["not a palindrome", "palindrome", "not a palindrome"]`` 然后用 ``unlines`` 变成一行字串。接着
 
-```
+```haskell
 main = interact respondPalindromes
 ```
 
 来测试一下吧。
 
-```
+```haskell
 $ runhaskell palindrome.hs
 hehe
 not a palindrome
@@ -581,7 +607,7 @@ not a palindrome
 
 我们也可以用 pipe 的方式将输入喂给程式。假设我们有这样一个档案。
 
-```
+```haskell
 dogaroo
 radar
 rotor
@@ -590,7 +616,7 @@ madam
 
 将他存为 ``words.txt``，将他喂给程式后得到的结果
 
-```
+```haskell
 $ cat words.txt | runhaskell palindromes.hs
 not a palindrome
 palindrome
@@ -605,7 +631,8 @@ palindrome
 到目前为止，我们的示范都是从终端读取某些东西或是打印出某些东西到终端。但如果我们想要读写档案呢？其实从某个角度来说我们已经作过这件事了。我们可以把读写终端想成读写档案。只是把档案命名成 ``stdout`` 跟 ``stdin`` 而已。他们分别代表标准输出跟标准输入。我们即将看到的读写档案跟读写终端并没什么不同。
 
 首先来写一个程式，他会开启一个叫 girlfriend.txt 的档案，档案里面有 Avril Lavigne 的畅销名曲 Girlfriend，并将内容打印到终端上。接下来是 girlfriend.txt 的内容。
-```
+
+```haskell
 Hey! Hey! You! You!
 I don't like your girlfriend!
 No way! No way!
@@ -613,7 +640,8 @@ I think you need a new one!
 ```
 
 这则是我们的主程式。
-```
+
+```haskell
 import System.IO
 
 main = do
@@ -624,7 +652,8 @@ main = do
 ```
 
 执行他后得到的结果。
-```
+
+```haskell
 $ runhaskell girlfriend.hs
 Hey! Hey! You! You!
 I don't like your girlfriend!
@@ -636,12 +665,14 @@ I think you need a new one!
 我们来一行行看一下程式。我们的程式用 do 把好几个 I/O action 绑在一起。在 do block 的第一行，我们注意到有一个新的函数叫 **openFile**。他的 type signature 是 ``openFile :: FilePath -> IOMode -> IO Handle``。他说了 ``openFile`` 接受一个档案路径跟一个 ``IOMode``，并回传一个 I/O action，他会打开一个档案并把档案关联到一个 handle。
 
 ``FilePath`` 不过是 ``String`` 的 type synonym。
-```
+
+```haskell
 type FilePath = String
 ```
 
 ``IOMode`` 则是一个定义如下的型态
-```
+
+```haskell
 data IOMode = ReadMode | WriteMode | AppendMode | ReadWriteMode
 ```
 
@@ -659,7 +690,7 @@ data IOMode = ReadMode | WriteMode | AppendMode | ReadWriteMode
 
 要达到我们目的的另一种方式是使用 **withFile**，他的 type signature 是 ``withFile :: FilePath -> IOMode -> (Handle -> IO a) -> IO a``。他接受一个档案路径，一个 ``IOMode`` 以及一个函数，这函数则接受一个 handle 跟一个 I/O action。``withFile`` 最后回传一个会打开档案，对档案作某件事然后关掉档案的 I/O action。处理的结果是包在最后的 I/O action 中，这结果跟我们给的函数的回传是相同的。这听起来有些复杂，但其实很简单，特别是我们有 lambda，来看看我们用 ``withFile`` 改写前面程式的一个范例：
 
-```
+```haskell
 import System.IO
 
 main = do
@@ -670,7 +701,7 @@ main = do
 
 正如你看到的，程式跟之前的看起来很像。``(\handle -> ... )`` 是一个接受 handle 并回传 I/O action 的函数，他通常都是用 lambda 来表示。我们需要一个回传 I/O action 的函数的理由而不是一个本身作处理并关掉档案的 I/O action，是因为这样一来那个 I/O action 不会知道他是对哪个档案在做处理。用 ``withFile`` 的话，``withFile`` 会打开档案并把 handle 传给我们给他的函数，之后他则拿到一个 I/O action，然后作成一个我们描述的 I/O action，最后关上档案。例如我们可以这样自己作一个 ``withFile``：
 
-```
+```haskell
 withFile' :: FilePath -> IOMode -> (Handle -> IO a) -> IO a
 withFile' path mode f = do
     handle <- openFile path mode
@@ -689,7 +720,7 @@ withFile' path mode f = do
 
 **readFile** 的 type signature 是 ``readFile :: FilePath -> IO String``。记住，``FilePath`` 不过是 ``String`` 的一个别名。``readFile`` 接受一个档案路径，回传一个惰性读取我们档案的 I/O action。然后将档案的内容绑定到某个字串。他比起先 ``openFile``，绑定 handle，然后 ``hGetContents`` 要好用多了。这边是一个用 ``readFile`` 改写之前例子的范例：
 
-```
+```haskell
 import System.IO
 
 main = do
@@ -701,7 +732,7 @@ main = do
 
 **writeFile** 的型态是 ``writefile :: FilePath -> String -> IO ()``。他接受一个档案路径，以及一个要写到档案中的字串，并回传一个写入动作的 I/O action。如果这个档案已经存在了，他会先把档案内容都砍了再写入。下面示范了如何把 girlfriend.txt 的内容转成大写然后写入到 girlfriendcaps.txt 中
 
-```
+```haskell
 import System.IO
 import Data.Char
 
@@ -710,7 +741,7 @@ main = do
     writeFile "girlfriendcaps.txt" (map toUpper contents)
 ```
 
-```
+```haskell
 $ runhaskell girlfriendtocaps.hs
 $ cat girlfriendcaps.txt
 HEY! HEY! YOU! YOU!
@@ -723,7 +754,7 @@ I THINK YOU NEED A NEW ONE!
 
 假设我们有一个档案叫 todo.txt``，里面每一行是一件要做的事情。现在我们写一个程式，从标准输入接受一行将他加到我们的 to-do list 中。
 
-```
+```haskell
 import System.IO
 
 main = do
@@ -731,7 +762,7 @@ main = do
     appendFile "todo.txt" (todoItem ++ "\n")
 ```
 
-```
+```haskell
 $ runhaskell appendtodo.hs
 Iron the dishes
 $ runhaskell appendtodo.hs
@@ -749,7 +780,7 @@ Take salad out of the oven
 还有一件事，我们提到 ``contents <- hGetContents handle`` 是惰性 I/O，不会将档案一次都读到记忆体中。
 所以像这样写的话：
 
-```
+```haskell
 main = do
     withFile "something.txt" ReadMode (\handle -> do
         contents <- hGetContents handle
@@ -762,7 +793,7 @@ main = do
 
 接下来是我们把之前的范例改写成用 2048 bytes 的 chunk 读取，而不是一行一行读。
 
-```
+```haskell
 main = do
     withFile "something.txt" ReadMode (\handle -> do
         hSetBuffering handle $ BlockBuffering (Just 2048)
@@ -779,7 +810,8 @@ main = do
 我们已经写了一个将 item 加进 to-do list 里面的程式，现在我们想加进移除 item 的功能。我先把程式码贴上然后讲解他。我们会使用一些新面孔像是 ``System.Directory`` 以及 ``System.IO`` 里面的函数。
 
 来看一下我们包含移除功能的程式:
-```
+
+```haskell
 import System.IO
 import System.Directory
 import Data.List
@@ -819,7 +851,7 @@ main = do
 
 这就是我们要的，实际上我们可以用更少行写出同样的程式，但我们很小心地避免覆写任何档案，并询问作业系统我们可以把暂存档摆在哪？让我们来执行看看。
 
-```
+```haskell
 $ runhaskell deletetodo.hs
 These are your TO-DO items:
 0 - Iron the dishes
@@ -860,7 +892,7 @@ Take salad out of the oven
 在 ``System.Environment`` 模组当中有两个很酷的 I/O actions，一个是 **getArgs**，他的 type 是 ``getArgs :: IO [String]``，他是一个拿取命令列引数的 I/O action，并把结果放在包含的一个串列中。**getProgName** 的型态是 ``getProgName :: IO String``，他则是一个 I/O action 包含了程式的名称。
 
 我们来看一个展现他们功能的程式。
-```
+```haskell
 import System.Environment
 import Data.List
 
@@ -875,7 +907,7 @@ main = do
 
 我们将 ``getArgs`` 跟 ``progName`` 分别绑定到 ``args`` 跟 ``progName``。我们打印出 ``The arguments are:`` 以及在 ``args`` 中的每个引数。最后，我们打印出程式的名字。我们把程式编译成 ``arg-test``。
 
-```
+```haskell
 $ ./arg-test first second w00t "multi word arg"
 The arguments are:
 first
@@ -900,7 +932,7 @@ arg-test
 
 我们先作一个分发的 association list。他会把命令列引数当作 key，而对应的处理函数当作 value。这些函数的型态都是 ``[String] -> IO ()``。他们会接受命令列引数的串列并回传对应的检视，加入以及删除的 I/O action。
 
-```
+```haskell
 import System.Environment
 import System.Directory
 import System.IO
@@ -915,7 +947,7 @@ dispatch =  [ ("add", add)
 
 我们定义了 ``main``，``add``，``view`` 跟 ``remove``，就从 ``main`` 开始讲吧：
 
-```
+```haskell
 main = do
     (command:args) <- getArgs
     let (Just action) = lookup command dispatch
@@ -930,17 +962,18 @@ main = do
 
 我们剩下要做的就是实作 ``add``，``view`` 跟 ``remove``，我们从 ``add`` 开始：
 
-```
+```haskell
 add :: [String] -> IO ()
 add [fileName, todoItem] = appendFile fileName (todoItem ++ "\n")
 ```
+
 如果我们这样执行程式 ``todo add todo.txt "Spank the monkey"``，则 ``"add"`` 会被绑定到 ``command``，而 ``["todo.txt", "Spank the monkey"]`` 会被带到从 dispatch list 中拿到的函数。
 
 由于我们不处理不合法的输入，我们只针对这两项作 pattern matching，然后回传一个附加一行到档案末尾的 I/O action。
 
 接着，我们来实作检视串列。如果我们想要检视所有 items，我们会 ``todo view todo.txt``。所以 ``command`` 会是 ``"view"``，而 ``args`` 会是 ``["todo.txt"]``。
 
-```
+```haskell
 view :: [String] -> IO ()
 view [fileName] = do
     contents <- readFile fileName
@@ -953,7 +986,7 @@ view [fileName] = do
 
 最后，我们要来实作 ``remove``。他基本上跟之前写的只有删除功能的程式很像，所以如果你不知道删除是怎么做的，可以去看之前的解释。主要的差别是我们不写死 todo.txt，而是从参数取得。我们也不会提示使用者要删除哪一号的 item，而是从参数取得。
 
-```
+```haskell
 remove :: [String] -> IO ()
 remove [fileName, numberString] = do
     handle <- openFile fileName ReadMode
@@ -972,7 +1005,7 @@ remove [fileName, numberString] = do
 
 来看看完整的程式。
 
-```
+```haskell
 import System.Environment
 import System.Directory
 import System.IO
@@ -1023,7 +1056,7 @@ remove [fileName, numberString] = do
 
 让我们看看执行结果。
 
-```
+```haskell
 $ ./todo view todo.txt
 0 - Iron the dishes
 1 - Dust the dog
@@ -1058,7 +1091,7 @@ $ ./todo view todo.txt
 
 在大多数其他的程式语言中，会给你一些函数能让你拿到些随机乱数。每呼叫一次他就会拿到一个不同的数字。那在 Haskell 中是如何？要记住 Haskell 是一个纯粹函数式语言。代表任何东西都具有 referential transparency。那代表你喂给一个函数相同的参数，不管怎么呼叫都是回传相同的结果。这很新奇的原因是因为他让我们理解程式的方式不同，而且可以让我们延迟计算，直到我们真正需要他。如果我呼叫一个函数，我可以确定他不会乱来。我真正在乎的是他的结果。然而，这会造成在乱数的情况有点复杂。如果我有一个函数像这样：
 
-```
+```haskell
 randomNumber :: (Num a) => a
 randomNumber = 4
 ```
@@ -1075,11 +1108,11 @@ randomNumber = 4
 
 要自己做一个 random generator，要使用 **mkStdGen** 这个函数。他的型态是 ``mkStdGen :: Int -> StdGen``。他接受一个整数，然后根据这个整数会给一个 random generator。让我们来试一下 ``random`` 以及 ``mkStdGen``，用他们产生一个乱数吧。
 
-```
+```haskell
 ghci> random (mkStdGen 100)
 ```
 
-```
+```haskell
 <interactive>:1:0:
     Ambiguous type variable `a' in the constraint:
         `Random a' arising from a use of `random' at <interactive>:1:0-20
@@ -1088,28 +1121,28 @@ ghci> random (mkStdGen 100)
 
 这是什么？由于 ``random`` 函数会回传 ``Random`` typeclass 中任何一种型态，所以我们必须告诉 Haskell 我们是要哪一种型态。不要忘了我们是回传 random value 跟 random generator 的一个 pair
 
-```
+```haskell
 ghci> random (mkStdGen 100) :: (Int, StdGen)
 (-1352021624,651872571 1655838864)
 ```
 
 我们终于有了一个看起来像乱数的数字。tuple 的第一个部份是我们的乱数，而第二个部份是一个新的 random generator 的文字表示。如果我们用相同的 random generator 再呼叫 ``random`` 一遍呢？
 
-```
+```haskell
 ghci> random (mkStdGen 100) :: (Int, StdGen)
 (-1352021624,651872571 1655838864)
 ```
 
 不易外地我们得到相同的结果。所以我们试试用不同的 random generator 作为我们的参数。
 
-```
+```haskell
 ghci> random (mkStdGen 949494) :: (Int, StdGen)
 (539963926,466647808 1655838864)
 ```
 
 很好，我们拿到了不同的数字。我们可以用不同的型态标志来拿到不同型态的乱数
 
-```
+```haskell
 ghci> random (mkStdGen 949488) :: (Float, StdGen)
 (0.8938442,1597344447 1655838864)
 ghci> random (mkStdGen 949488) :: (Bool, StdGen)
@@ -1122,7 +1155,7 @@ ghci> random (mkStdGen 949488) :: (Integer, StdGen)
 
 我们将一个铜板表示成 ``Bool``。``True`` 代表反面，``False`` 代表正面。
 
-```
+```haskell
 threeCoins :: StdGen -> (Bool, Bool, Bool)
 threeCoins gen =
     let (firstCoin, newGen) = random gen
@@ -1133,7 +1166,7 @@ threeCoins gen =
 
 我们用我们拿来当参数的 generator 呼叫 ``random`` 并得到一个掷铜板的结果跟一个新的 generator。然后我们再用新的 generator 呼叫他一遍，来得到第二个掷铜板的结果。对于第三个掷铜板的结果也是如法炮制。如果我们一直都用同样的 generator，那所有的结果都会是相同的值。也就是不是 ``(False, False, False)`` 就是 ``(True, True, True)``。
 
-```
+```haskell
 ghci> threeCoins (mkStdGen 21)
 (True,True,True)
 ghci> threeCoins (mkStdGen 22)
@@ -1148,7 +1181,7 @@ ghci> threeCoins (mkStdGen 944)
 
 假如我们要的是掷四次？甚至五次呢？有一个函数叫 **randoms**，他接受一个 generator 并回传一个无穷序列。
 
-```
+```haskell
 ghci> take 5 $ randoms (mkStdGen 11) :: [Int]
 [-1807975507,545074951,-1015194702,-1622477312,-502893664]
 ghci> take 5 $ randoms (mkStdGen 11) :: [Bool]
@@ -1159,7 +1192,7 @@ ghci> take 5 $ randoms (mkStdGen 11) :: [Float]
 
 为什么 ``randoms`` 不另外多回传一个新的 generator 呢？我们可以这样地实作 ``randoms``
 
-```
+```haskell
 randoms' :: (RandomGen g, Random a) => g -> [a]
 randoms' gen = let (value, newGen) = random gen in value:randoms' newGen
 ```
@@ -1168,7 +1201,7 @@ randoms' gen = let (value, newGen) = random gen in value:randoms' newGen
 
 我们可以写一个函数，他会回传有限个乱数跟一个新的 generator
 
-```
+```haskell
 finiteRandoms :: (RandomGen g, Random a, Num n) => n -> g -> ([a], g)
 finiteRandoms 0 gen = ([], gen)
 finiteRandoms n gen =
@@ -1181,7 +1214,7 @@ finiteRandoms n gen =
 
 如果我们要的是在某个范围内的乱数呢？现在拿到的乱数要不是太大就是太小。如果我们想要的是骰子上的数字呢？**randomR** 能满足我们的需求。他的型态是 ``randomR :: (RandomGen g, Random a) :: (a, a) -> g -> (a, g)``，代表他有点类似 ``random``。只不过他的第一个参数是一对数目，定义了最后产生乱数的上界以及下界。
 
-```
+```haskell
 ghci> randomR (1,6) (mkStdGen 359353)
 (6,1494289578 40692)
 ghci> randomR (1,6) (mkStdGen 35935335)
@@ -1190,7 +1223,7 @@ ghci> randomR (1,6) (mkStdGen 35935335)
 
 另外也有一个 **randomRs** 的函数，他会产生一连串在给定范围内的乱数：
 
-```
+```haskell
 ghci> take 10 $ randomRs ('a','z') (mkStdGen 3) :: [Char]
 "ndkxbvmomg"
 ```
@@ -1201,7 +1234,7 @@ ghci> take 10 $ randomRs ('a','z') (mkStdGen 3) :: [Char]
 
 这里有一个简单的产生随机字串的程式。
 
-```
+```haskell
 import System.Random
 
 main = do
@@ -1209,7 +1242,7 @@ main = do
     putStr $ take 20 (randomRs ('a','z') gen)
 ```
 
-```
+```haskell
 $ runhaskell random_string.hs
 pybphhzzhuepknbykxhe
 $ runhaskell random_string.hs
@@ -1222,7 +1255,7 @@ bakzhnnuzrkgvesqplrx
 
 要当心当我们连续两次呼叫 ``getStdGent`` 的时候，实际上都会回传同样的 global generator。像这样：
 
-```
+```haskell
 import System.Random
 
 main = do
@@ -1234,7 +1267,7 @@ main = do
 
 你会打印出两次同样的字串。要能得到两个不同的字串是建立一个无限的 stream，然后拿前 20 个字当作第一个字串，拿下 20 个字当作第二个字串。要这么做，我们需要在 ``Data.List`` 中的 ``splitAt`` 函数。他会把一个 list 根据给定的 index 切成一个 tuple，tuple 的第一部份就是切断的前半，第二个部份就是切断的后半。
 
-```
+```haskell
 import System.Random
 import Data.List
 
@@ -1249,7 +1282,7 @@ main = do
 
 另一种方法是用 **newStdGen** 这个 I/O action，他会把现有的 random generator 分成两个新的 generators。然后会把其中一个指定成 global generator，并回传另一个。
 
-```
+```haskell
 import System.Random
 
 main = do
@@ -1263,7 +1296,7 @@ main = do
 
 这边有一个小程式会让使用者猜数字：
 
-```
+```haskell
 import System.Random
 import Control.Monad(when)
 
@@ -1296,7 +1329,7 @@ askForNumber gen = do
 
 来看看我们的程式：
 
-```
+```haskell
 $ runhaskell guess_the_number.hs
 Which number in the range from 1 to 10 am I thinking of? 4
 Sorry, it was 3
@@ -1311,7 +1344,7 @@ Which number in the range from 1 to 10 am I thinking of?
 
 用另一种方式写的话像这样：
 
-```
+```haskell
 import System.Random
 import Control.Monad(when)
 
@@ -1348,7 +1381,7 @@ Bytestrings 有两种：strict 跟 lazy。Strict bytestrings 放在 ``Data.ByteS
 
 如果你大概看过 ``Data.ByteString.Lazy`` 的文件，你会看到到他有一堆函数的名称跟 ``Data.List`` 中的函数名称相同，只是出现的 type signature 是 ``ByteString`` 而不是 ``[a]``，是 ``Word8`` 而不是 ``a``。同样名称的函数基本上表现的行为跟 list 中的差不多。因为名称是一样的，所以必须用 qualified import 才不会在装载进 GHCI 的时候造成冲突。
 
-```
+```haskell
 import qualified Data.ByteString.Lazy as B
 import qualified Data.ByteString as S
 ```
@@ -1359,7 +1392,7 @@ import qualified Data.ByteString as S
 
 那 ``Word8`` 型态又是怎么一回事？。他就像 ``Int``，只是他的范围比较小，介于 0-255 之间。他代表一个 8-bit 的数字。就像 ``Int`` 一样，他是属于 ``Num`` 这个 typeclass。例如我们知道 ``5`` 是 polymorphic 的，他能够表现成任何数值型态。其实 ``Word8`` 他也能表示。
 
-```
+```haskell
 ghci> B.pack [99,97,110]
 Chunk "can" Empty
 ghci> B.pack [98..120]
@@ -1374,7 +1407,7 @@ Chunk "bcdefghijklmnopqrstuvwx" Empty
 
 **fromChunks** 接受一串 strict 的 bytestrings 并把他变成一串 lazy bytestring。**toChunks** 接受一个 lazy bytestrings 并将他变成一串 strict bytestrings。
 
-```
+```haskell
 ghci> B.fromChunks [S.pack [40,41,42], S.pack [43,44,45], S.pack [46,47,48]]
 Chunk "()*" (Chunk "+,-" (Chunk "./0" Empty))
 ```
@@ -1383,7 +1416,7 @@ Chunk "()*" (Chunk "+,-" (Chunk "./0" Empty))
 
 bytestring 版本的 ``:`` 叫做 **cons**。他接受一个 byte 跟一个 bytestring，并把这个 byte 放到 bytestring 的前端。他是 lazy 的操作，即使 bytestring 的第一个 chunk 不是满的，他也会新增一个 chunk。这也是为什么当你要插入很多 bytes 的时候最好用 strict 版本的 ``cons``，也就是 **cons'**。
 
-```
+```haskell
 ghci> B.cons 85 $ B.pack [80,81,82,84]
 Chunk "U" (Chunk "PQRT" Empty)
 ghci> B.cons' 85 $ B.pack [80,81,82,84]
@@ -1403,7 +1436,7 @@ bytestring 模组有一大票很像 ``Data.List`` 中的函数。包括了 ``hea
 
 让我们来写一个简单的程式，他从命令列接受两个档案名，然后拷贝第一个档案内容成第二个档案。虽然 ``System.Directory`` 中已经有一个函数叫 ``copyFile``，但我们想要实作自己的版本。
 
-```
+```haskell
 import System.Environment
 import qualified Data.ByteString.Lazy as B
 
@@ -1419,7 +1452,7 @@ copyFile source dest = do
 
 我们写了自己的函数，他接受两个 ``FilePath``（记住 ``FilePath`` 不过是 ``String`` 的同义词。）并回传一个 I/O action，他会用 bytestring 拷贝第一个档案至另一个。在 ``main`` 函数中，我们做的只是拿到命令列引数然后呼叫那个函数来拿到一个 I/O action。
 
-```
+```haskell
 $ runhaskell bytestringcopy.hs something.txt ../../something.txt
 ```
 
@@ -1440,7 +1473,7 @@ Haskell 有一个很棒的型态系统。Algebraic data types 允许像是 ``May
 
 我们了解到 I/O code 会丢出 exception 是件合理的事。至于 pure code 呢？其实他也能丢出 Exception。想想看 ``div`` 跟 ``head`` 两个案例。他们的型态是 ``(Integral a) => a -> a -> a`` 以及 ``[a] -> a``。``Maybe`` 跟 ``Either`` 都没有在他们的回传型态中，但他们都有可能失败。``div`` 有可能除以零，而 ``head`` 有可能你传给他一个空的 list。
 
-```
+```haskell
 ghci> 4 `div` 0
 *** Exception: divide by zero
 ghci> head []
@@ -1455,7 +1488,7 @@ pure code 能丢出 Exception，但 Exception 只能在 I/O section 中被接到
 
 这也是为什么我们要来看看怎么使用 I/O Excetion。I/O Exception 是当我们在 ``main`` 里面跟外界沟通失败而丢出的 Exception。例如我们尝试打开一个档案，结果发现他已经被删掉或是其他状况。来看看一个尝试打开命令列引数所指定档案名称，并计算里面有多少行的程式。
 
-```
+```haskell
 import System.Environment
 import System.IO
 
@@ -1466,14 +1499,14 @@ main = do (fileName:_) <- getArgs
 
 一个很简单的程式。我们使用 ``getArgs`` I/O action，并绑定第一个 string 到 ``fileName``。然后我们绑定档案内容到 ``contents``。最后，我们用 ``lines`` 来取得 line 的 list，并计算 list 的长度，并用 ``show`` 来转换数字成 string。他如我们想像的工作，但当我们给的档案名称不存在的时候呢？
 
-```
+```haskell
 $ runhaskell linecount.hs i_dont_exist.txt
 linecount.hs: i_dont_exist.txt: openFile: does not exist (No such file or directory)
 ```
 
 GHC 丢了错误讯息给我们，告诉我们档案不存在。然后程式就挂掉了。假如我们希望打印出比较好一些的错误讯息呢？一种方式就是在打开档案前检查他存不存在。用 ``System.Directory`` 中的 **doesFileExist**。
 
-```
+```haskell
 import System.Environment
 import System.IO
 import System.Directory
@@ -1500,7 +1533,7 @@ handler 接受一个 ``IOError`` 型态的值，他代表的是一个 I/O except
 
 我们来看看一个展示 ``catch`` 的程式
 
-```
+```haskell
 import System.Environment
 import System.IO
 import System.IO.Error
@@ -1520,7 +1553,7 @@ handler e = putStrLn "Whoops, had some trouble!"
 
 来看看执行的结果。
 
-```
+```haskell
 $ runhaskell count_lines.hs i_exist.txt
 The file has 3 lines!
 
@@ -1530,7 +1563,7 @@ Whoops, had some trouble!
 
 在 handler 里面我们并没有检查我们拿到的是什么样的 ``IOError``，我们只是打印出 ``"Whoops, had some trouble!"``。接住任何种类的 Exception 就跟其他语言一样，在 Haskell 中也不是一个好的习惯。假如其他种类的 Exception 发生了，好比说我们送一个中断指令，而我们没有接到的话会发生什么事？这就是为什么我们要做跟其他语言一样的事：就是检查我们拿到的是什么样的 Exception。如果说是我们要的 Exception，那就做对应的处理。如果不是，我们再重新丢出 Exception。我们把我们的程式这样修改，只接住档案不存在的 Exception。
 
-```
+```haskell
 import System.Environment
 import System.IO
 import System.IO.Error
@@ -1566,7 +1599,7 @@ handler e
 
 所以你可能写一个像这样的 handler
 
-```
+```haskell
 handler :: IOError -> IO ()
 handler e
     | isDoesNotExistError e = putStrLn "The file doesn't exist!"
@@ -1579,7 +1612,7 @@ handler e
 
 ``System.IO.Error`` 也提供了一些能询问 exception 性质的函数，像是哪些 handle 造成错误，或哪些档案名造成错误。这些函数都是 ``ioe`` 当开头。而且你可以在文件中看到一整串详细资料。假设我们想要打印出造成错误的档案名。我们不能直接打印出从 ``getArgs`` 那边拿到的 ``fileName``，因为只有 ``IOError`` 被传进 handler 中，而 handler 并不知道其他事情。一个函数只依赖于他所被呼叫时的参数。这也是为什么我们会用 **ioeGetFileName** 这函数，他的型态是 ``ioeGetFileName :: IOError -> Maybe FilePath``。他接受一个 ``IOError`` 并回传一个 ``FilePath``（他是 ``String`` 的同义词。）基本上他做的事就是从 ``IOError`` 中抽出档案路径。我们来修改一下我们的程式。
 
-```
+```haskell
 import System.Environment
 import System.IO
 import System.IO.Error
@@ -1603,7 +1636,7 @@ handler e
 
 你不想只用一个 ``catch`` 来接你 I/O part 中的所有 exception。你可以只在特定地方用 ``catch`` 接 exception，或你可以用不同的 handler。像这样：
 
-```
+```haskell
 main = do toTry `catch` handler1
           thenTryThis `catch` handler2
           launchRockets
