@@ -10,7 +10,7 @@
 * [Hoogle](http://www.haskell.org/hoogle/): Haskell 函数的搜寻引擎，不只可以用函数的名称搜寻，也可以用函数的型态来搜寻。
 * [Hayoo](http://holumbus.fh-wedel.de/hayoo/hayoo.html): 跟 Hoogle 同样功能。
 * [hdiff](http://hdiff.luite.com/): 可以方便查询 package 不同版号之间的差异。
-* [http://packdeps.haskellers.com/]: 方便查询 Hackage 上面 package 之间的相依性。
+* [packdeps](http://packdeps.haskellers.com/): 方便查询 Hackage 上面 package 之间的相依性。
 
 
 ## Lectures & Articles
