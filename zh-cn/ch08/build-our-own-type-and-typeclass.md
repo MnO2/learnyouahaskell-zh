@@ -160,7 +160,7 @@ module Shapes
 
 ## Record Syntax
 
-OK，我们需要一个数据型别来描述一个人，得包含他的姓、名、年龄、身高、体重、电话号码以及最爱的冰激淋。我不知你的想法，不过我觉得要了解一个人，这些资料就够了。就这样，实现出来！
+OK，我们需要一个数据型别来描述一个人，得包含他的姓、名、年龄、身高、电话号码以及最爱的冰激淋。我不知你的想法，不过我觉得要了解一个人，这些资料就够了。就这样，实现出来！
 
 ```haskell
 data Person = Person String String Int Float String String deriving (Show)
