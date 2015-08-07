@@ -1,8 +1,8 @@
 # Functors, Applicative Functors 与 Monoids
 
-Haskell 的一些特色，像是纯粹性，高阶函数，algebraic data types，typeclasses，这些让我们可以从更高的角度来看到 polymorphism 这件事。不像 OOP 当中需要从庞大的型态阶层来思考。我们只需要看看手边的型态的行为，将他们跟适当地 typeclass 对应起来就可以了。像 ``Int`` 的行为跟很多东西很像。好比说他可以比较相不相等，可以从大到小排列，也可以将他们一一穷举出来。
+Haskell 的一些特色，像是纯粹性，高端函数，algebraic data types，typeclasses，这些让我们可以从更高的角度来看到 polymorphism 这件事。不像 OOP 当中需要从庞大的型态阶层来思考。我们只需要看看手边的型态的行为，将他们跟适当地 typeclass 对应起来就可以了。像 ``Int`` 的行为跟很多东西很像。好比说他可以比较相不相等，可以从大到小排列，也可以将他们一一穷举出来。
 
-Typeclass 的运用是很随意的。我们可以定义自己的资料型态，然后描述他可以怎样被操作，跟 typeclass 关联起来便定义了他的行为。由于 Haskell 强大的型态系统，这让我们只要读函数的型态宣告就可以知道很多资讯。typeclass 可以定义得很抽象很 general。我们之前有看过 typeclass 定义了可以比较两个东西是否相等，或是定义了可以比较两个东西的大小。这些是既抽象但又描述简洁的行为，但我们不会认为他们有什么特别之处，因为我们时常碰到他们。最近我们看过了 functor，基本上他们是一群可以被 map over 的物件。这是其中一个例子能够抽象但又漂亮地描述行为。在这一章中，我们会详加阐述 functors，并会提到比较强一些的版本，也就是 applicative functors。我们也会提到 monoids。
+Typeclass 的运用是很随意的。我们可以定义自己的数据型态，然后描述他可以怎样被操作，跟 typeclass 关联起来便定义了他的行为。由于 Haskell 强大的型态系统，这让我们只要读函数的型态宣告就可以知道很多信息。typeclass 可以定义得很抽象很 general。我们之前有看过 typeclass 定义了可以比较两个东西是否相等，或是定义了可以比较两个东西的大小。这些是既抽象但又描述简洁的行为，但我们不会认为他们有什么特别之处，因为我们时常碰到他们。最近我们看过了 functor，基本上他们是一群可以被 map over 的对象。这是其中一个例子能够抽象但又漂亮地描述行为。在这一章中，我们会详加阐述 functors，并会提到比较强一些的版本，也就是 applicative functors。我们也会提到 monoids。
 
 
 ## 温习 Functors
@@ -11,15 +11,15 @@ Typeclass 的运用是很随意的。我们可以定义自己的资料型态，�
 
 我们已经在之前的章节提到 functors。如果你还没读那个章节，也许你应该先去看看。或是你直接假装你已经读过了。
 
-来快速复习一下：Functors 是可以被 map over 的物件，像是 lists，``Maybe``，trees 等等。在 Haskell 中我们是用 ``Functor`` 这个 typeclass 来描述他。这个 typeclass 只有一个 method，叫做 ``fmap``，他的型态是 ``fmap :: (a -> b) ->  f a -> f b``。这型态说明了如果给我一个从 ``a`` 映到 ``b`` 的函数，以及一个装了 ``a`` 的盒子，我会回给你一个装了 ``b`` 的盒子。就好像用这个函数将每个元素都转成 ``b`` 一样
+来快速复习一下：Functors 是可以被 map over 的对象，像是 lists，``Maybe``，trees 等等。在 Haskell 中我们是用 ``Functor`` 这个 typeclass 来描述他。这个 typeclass 只有一个 method，叫做 ``fmap``，他的型态是 ``fmap :: (a -> b) ->  f a -> f b``。这型态说明了如果给我一个从 ``a`` 映到 ``b`` 的函数，以及一个装了 ``a`` 的盒子，我会回给你一个装了 ``b`` 的盒子。就好像用这个函数将每个元素都转成 ``b`` 一样
 
     *给一点建议*。这盒子的比喻尝试让你抓到些 functors 是如何运作的感觉。在之后我们也会用相同的比喻来比喻 applicative functors 跟 monads。在多数情况下这种比喻是恰当的，但不要过度引申，有些 functors 是不适用这个比喻的。一个比较正确的形容是 functors 是一个计算语境（computational context）。这个语境可能是这个 computation 可能带有值，或是有可能会失败（像 ``Maybe`` 跟 ``Either a``），或是他可能有多个值（像 lists），等等。
 
 如果一个 type constructor 要是 ``Functor`` 的 instance，那他的 kind 必须是 ``* -> *``，这代表他必须刚好接受一个 type 当作 type parameter。像是 ``Maybe`` 可以是 Functor 的一个 instance，因为他接受一个 type parameter，来做成像是 ``Maybe Int``，或是 ``Maybe String``。如果一个 type constructor 接受两个参数，像是 ``Either``，我们必须给他两个 type parameter。所以我们不能这样写：``instance Functor Either where``，但我们可以写 ``instance Functor (Either a) where``，如果我们把 ``fmap`` 限缩成只是 ``Either a`` 的，那他的型态就是 ``fmap :: (b -> c) -> Either a b -> Either a c``。就像你看到的，``Either a`` 的是固定的一部分，因为 ``Either a`` 只恰好接受一个 type parameter，但 ``Either`` 则要接受两个 type parameters。这样 fmap 的型态变成 ``fmap :: (b -> c) -> Either b -> Either c``，这不太合理。
 
-我们知道有许多型态都是 ``Functor`` 的 instance，像是 ``[]``，``Maybe``，``Either a`` 以及我们自己写的 ``Tree``。我们也看到了如何用一个函数 map 他们。在这一章节，我们再多举两个例子，也就是 ``IO`` 跟 ``(->) r``。
+我们知道有许多态态都是 ``Functor`` 的 instance，像是 ``[]``，``Maybe``，``Either a`` 以及我们自己写的 ``Tree``。我们也看到了如何用一个函数 map 他们。在这一章节，我们再多举两个例子，也就是 ``IO`` 跟 ``(->) r``。
 
-如果一个值的型态是 ``IO String``，他代表的是一个会被计算成 String 结果的 I/O action。我们可以用 do syntax 来把结果绑定到某个名称。我们之前把 I/O action 比喻做长了脚的盒子，会到真实世界帮我们取一些值回来。我们可以检视他们取了什么值，但一旦看过，我们必须要把值放回盒子中。用这个比喻，``IO`` 的行为就像是一个 functor。
+如果一个值的型态是 ``IO String``，他代表的是一个会被计算成 String 结果的 I/O action。我们可以用 do syntax 来把结果绑定到某个名称。我们之前把 I/O action 比喻做长了脚的盒子，会到真实世界帮我们取一些值回来。我们可以查看他们取了什么值，但一旦看过，我们必须要把值放回盒子中。用这个比喻，``IO`` 的行为就像是一个 functor。
 
 我们来看看 ``IO`` 是怎么样的一个 ``Functor`` instance。当我们 ``fmap`` 用一个 function 来 map over I/O action 时，我们会想要拿回一个装着已经用 function 映射过值的 I/O action。
 
@@ -41,7 +41,7 @@ main = do line <- getLine
         putStrLn $ "Yes, you really said" ++ line' ++ " backwards!"  
 ```
 
-这程式要求使用者输入一行文字，然后印出一行反过来的。
+这程序要求用户输入一行文本，然后印出一行反过来的。
 我们可以用 ``fmap`` 来改写：
 
 ```haskell
@@ -58,7 +58,7 @@ main = do line <- fmap reverse getLine
 
 如果我们限缩 ``fmap`` 到 ``IO`` 型态上，那 fmap 的型态是 ``fmap :: (a -> b) -> IO a -> IO b``。``fmap`` 接受一个函数跟一个 I/O action，并回传一个 I/O action 包含了已经 apply 过 function 的结果。
 
-如果你曾经注意到你想要将一个 I/O action 绑定到一个名称上，只是为了要 apply 一个 function。你可以考虑使用 ``fmap``，那会更漂亮地表达这件事。或者你想要对 functor 中的资料做 transformation，你可以先将你要用的 function 写在 top level，或是把他作成一个 lambda function，甚至用 function composition。
+如果你曾经注意到你想要将一个 I/O action 绑定到一个名称上，只是为了要 apply 一个 function。你可以考虑使用 ``fmap``，那会更漂亮地表达这件事。或者你想要对 functor 中的数据做 transformation，你可以先将你要用的 function 写在 top level，或是把他作成一个 lambda function，甚至用 function composition。
 
 ```haskell
 import Data.Char  
@@ -76,7 +76,7 @@ E-R-E-H-T- -O-L-L-E-H
 
 正如你想的，``intersperse '-' . reverse . map toUpper`` 合成了一个 function，他接受一个字串，将他转成大写，然后反过来，再用 ``intersperse '-'`` 安插'-'。他是比较漂亮版本的 ``(\xs -> intersperse '-' (reverse (map toUpper xs)))``。
 
-另一个 ``Functor`` 的案例是 ``(->) r``，只是我们先前没有注意到。你可能会困惑到底 ``(->) r`` 究竟代表什么？一个 ``r -> a`` 的型态可以写成 ``(->) r a``，就像是 ``2 + 3`` 可以写成 ``(+) 2 3`` 一样。我们可以从一个不同的角度来看待 ``(->) r a``，他其实只是一个接受两个参数的 type constructor，好比 ``Either``。但记住我们说过 ``Functor`` 只能接受一个 type constructor。这也是为什么 ``(->)`` 不是 ``Functor`` 的一个 instance，但 ``(->) r`` 则是。如果程式的语法允许的话，你也可以将 ``(->) r`` 写成 ``(r ->)``。就如 ``(2+)`` 代表的其实是 ``(+) 2``。至于细节是如何呢？我们可以看看 ``Control.Monad.Instances``。
+另一个 ``Functor`` 的案例是 ``(->) r``，只是我们先前没有注意到。你可能会困惑到底 ``(->) r`` 究竟代表什么？一个 ``r -> a`` 的型态可以写成 ``(->) r a``，就像是 ``2 + 3`` 可以写成 ``(+) 2 3`` 一样。我们可以从一个不同的角度来看待 ``(->) r a``，他其实只是一个接受两个参数的 type constructor，好比 ``Either``。但记住我们说过 ``Functor`` 只能接受一个 type constructor。这也是为什么 ``(->)`` 不是 ``Functor`` 的一个 instance，但 ``(->) r`` 则是。如果程序的语法允许的话，你也可以将 ``(->) r`` 写成 ``(r ->)``。就如 ``(2+)`` 代表的其实是 ``(+) 2``。至于细节是如何呢？我们可以看看 ``Control.Monad.Instances``。
 
     我们通常说一个接受任何东西以及回传随便一个东西的函数型态是 ``a -> b``。``r -> a`` 是同样意思，只是把符号代换了一下。
 
@@ -103,7 +103,7 @@ instance Functor ((->) r) where
     fmap = (.)  
 ```
 
-这很明显就是把 ``fmap`` 当 composition 在用。可以用 ``:m + Control.Monad.Instances`` 把模组装载进来，并做一些尝试。
+这很明显就是把 ``fmap`` 当 composition 在用。可以用 ``:m + Control.Monad.Instances`` 把模块装载进来，并做一些尝试。
 
 ```haskell
 ghci> :t fmap (*3) (+100)  
@@ -118,7 +118,7 @@ ghci> fmap (show . (*3)) (*100) 1
 "300"  
 ```
 
-我们呼叫 ``fmap`` 的方式是 infix 的方式，这跟 ``.`` 很像。在第二行，我们把 ``(*3)`` map over 到 ``(+100)`` 上，这会回传一个先把输入值 ``(+100)`` 再 ``(*3)`` 的 function，我们再用 ``1`` 去呼叫他。
+我们调用 ``fmap`` 的方式是 infix 的方式，这跟 ``.`` 很像。在第二行，我们把 ``(*3)`` map over 到 ``(+100)`` 上，这会回传一个先把输入值 ``(+100)`` 再 ``(*3)`` 的 function，我们再用 ``1`` 去调用他。
 
 到这边为止盒子的比喻还适用吗？如果你硬是要解释的话还是解释得通。当我们将 ``fmap (+3)`` map over ``Just 3`` 的时候，对于 ``Maybe`` 我们很容易把他想成是装了值的盒子，我们只是对盒子里面的值 ``(+3)``。但对于 ``fmap (*3) (+100)`` 呢？你可以把 ``(+100)`` 想成是一个装了值的盒子。有点像把 I/O action 想成长了脚的盒子一样。对 ``(+100)`` 使用 ``fmap (*3)`` 会产生另一个表现得像 ``(+100)`` 的 function。只是在算出值之前，会再多计算 ``(*3)``。这样我们可以看出来 ``fmap`` 表现得就像 ``.`` 一样。
 
@@ -126,7 +126,7 @@ ghci> fmap (show . (*3)) (*100) 1
 
 ![](lifter.png)
 
-在我们继续看 ``fmap`` 该遵守的规则之前，我们再看一次 ``fmap`` 的型态，他是 ``fmap :: (a -> b) -> f a -> f b``。很明显我们是在讨论 Functor，所以为了简洁，我们就不写 ``(Functor f) =>`` 的部份。当我们在学 curry 的时候，我们说过 Haskell 的 function 实际上只接受一个参数。一个型态是 ``a -> b -> c`` 的函数实际上是接受 ``a`` 然后回传 ``b -> c``，而 ``b -> c`` 实际上接受一个 ``b`` 然后回传一个 ``c``。如果我们用比较少的参数呼叫一个函数，他就会回传一个函数需要接受剩下的参数。所以 ``a -> b -> c`` 可以写成 ``a -> (b -> c)``。这样 curry 可以明显一些。
+在我们继续看 ``fmap`` 该遵守的规则之前，我们再看一次 ``fmap`` 的型态，他是 ``fmap :: (a -> b) -> f a -> f b``。很明显我们是在讨论 Functor，所以为了简洁，我们就不写 ``(Functor f) =>`` 的部份。当我们在学 curry 的时候，我们说过 Haskell 的 function 实际上只接受一个参数。一个型态是 ``a -> b -> c`` 的函数实际上是接受 ``a`` 然后回传 ``b -> c``，而 ``b -> c`` 实际上接受一个 ``b`` 然后回传一个 ``c``。如果我们用比较少的参数调用一个函数，他就会回传一个函数需要接受剩下的参数。所以 ``a -> b -> c`` 可以写成 ``a -> (b -> c)``。这样 curry 可以明显一些。
 
 同样的，我们可以不要把 ``fmap`` 想成是一个接受 function 跟 functor 并回传一个 function 的 function。而是想成一个接受 function 并回传一个新的 function 的 function，回传的 function 接受一个 functor 并回传一个 functor。他接受 ``a -> b`` 并回传 ``f a -> f b``。这动作叫做 lifting。我们用 GHCI 的 ``:t`` 来做的实验。
 
@@ -161,9 +161,9 @@ Left "foo"
 ```
 
 
-接下来我们来看看 functor laws。一个东西要成为 functor，必须要遵守某些定律。不管任何一个 functor 都被要求具有某些性质。他们必须是能被 map over 的。对他们呼叫 ``fmap`` 应该是要用一个函数 map 每一个元素，不多做任何事情。这些行为都被 functor laws 所描述。对于 ``Functor`` 的 instance 来说，总共两条定律应该被遵守。不过他们不会在 Haskell 中自动被检查，所以你必须自己确认这些条件。
+接下来我们来看看 functor laws。一个东西要成为 functor，必须要遵守某些定律。不管任何一个 functor 都被要求具有某些性质。他们必须是能被 map over 的。对他们调用 ``fmap`` 应该是要用一个函数 map 每一个元素，不多做任何事情。这些行为都被 functor laws 所描述。对于 ``Functor`` 的 instance 来说，总共两条定律应该被遵守。不过他们不会在 Haskell 中自动被检查，所以你必须自己确认这些条件。
 
-functor law 的第一条说明，如果我们对 functor 做 map ``id``，那得到的新的 functor 应该要跟原来的一样。如果写得正式一点，他代表 ``fmap id = id``。基本上他就是说对 functor 呼叫 ``fmap id``，应该等同于对 functor 呼叫 ``id`` 一样。毕竟 ``id`` 只是 identity function，他只会把参数照原样丢出。他也可以被写成 ``\x -> x``。如果我们对 functor 的概念就是可以被 map over 的物件，那 ``fmap id = id`` 的性就显而易见。
+functor law 的第一条说明，如果我们对 functor 做 map ``id``，那得到的新的 functor 应该要跟原来的一样。如果写得正式一点，他代表 ``fmap id = id``。基本上他就是说对 functor 调用 ``fmap id``，应该等同于对 functor 调用 ``id`` 一样。毕竟 ``id`` 只是 identity function，他只会把参数照原样丢出。他也可以被写成 ``\x -> x``。如果我们对 functor 的概念就是可以被 map over 的对象，那 ``fmap id = id`` 的性就显而易见。
 
 我们来看看这个定律的几个案例：
 
@@ -201,10 +201,10 @@ instance Functor Maybe where
 *第二定律描述说先将两个函数合成并将结果 map over 一个 functor 的结果，应该跟先将第一个函数 map over 一个 functor，再将第二个函数 map over 那个 functor 的结果是一样的。*正式地写下来的话就是 ``fmap (f . g) = fmap f . fmap g``。或是用另外一种写法，对于任何一个 functor F，下面这个式子应该要被遵守：``fmap (f . g) F = fmap f (fmap g F)``。
 
 
-如果我们能够证明某个型别遵守两个定律，那我们就可以保证他跟其他 functor 对于映射方面都拥有相同的性质。我们知道如果对他用 ``fmap``，我们知道不会有除了 mapping 以外的事会发生，而他就仅仅会表现成某个可以被 map over 的东西。也就是一个 functor。你可以再仔细检视 ``fmap`` 对于某些型别的实作来了解第二定律。正如我们先前对 ``Maybe`` 检视第一定律一般。
+如果我们能够证明某个型别遵守两个定律，那我们就可以保证他跟其他 functor 对于映射方面都拥有相同的性质。我们知道如果对他用 ``fmap``，我们知道不会有除了 mapping 以外的事会发生，而他就仅仅会表现成某个可以被 map over 的东西。也就是一个 functor。你可以再仔细查看 ``fmap`` 对于某些型别的实作来了解第二定律。正如我们先前对 ``Maybe`` 查看第一定律一般。
 
 如果你需要的话，我们能在这边演练一下 ``Maybe`` 是如何遵守第二定律的。首先 ``fmap (f . g)`` 来 map over ``Nothing`` 的话，我们会得到 ``Nothing``。因为用任何函数来 ``fmap`` ``Nothing`` 的话都会回传 ``Nothing``。如果我们 ``fmap f (fmap g Nothing)``，我们会得到 ``Nothing``。可以看到当面对 ``Nothing`` 的时候，``Maybe`` 很显然是遵守第二定律的。
-那对于 ``Just something`` 呢？如果我们使用 ``fmap (f . g) (Just x)`` 的话，从实作的程式码中我可以看到 ``Just ((f . g ) x)``，也就是 ``Just (f (g x))``。如果我们使用 ``fmap f (fmap g (Just x))`` 的话我们可以从实作知道 ``fmap g (Just x)`` 会是 ``Just (g x)``。``fmap f (fmap g (Just x))`` 跟 ``fmap f (Just (g x))`` 相等。而从实作上这又会相等于 ``Just (f (g x))``。
+那对于 ``Just something`` 呢？如果我们使用 ``fmap (f . g) (Just x)`` 的话，从实作的代码中我可以看到 ``Just ((f . g ) x)``，也就是 ``Just (f (g x))``。如果我们使用 ``fmap f (fmap g (Just x))`` 的话我们可以从实作知道 ``fmap g (Just x)`` 会是 ``Just (g x)``。``fmap f (fmap g (Just x))`` 跟 ``fmap f (Just (g x))`` 相等。而从实作上这又会相等于 ``Just (f (g x))``。
 
 如果你不太理解这边的说明，别担心。只要确定你了解什么是函数合成就好。在多数的情况下你可以直觉地对应到这些型别表现得就像 containers 或函数一样。或是也可以换种方法，只要多尝试对型别中不同的值做操作你就可以看看型别是否有遵守定律。
 
@@ -262,10 +262,10 @@ CJust 0 "haha"
 ```
 
 
-我们知道 functor law 的第一定律描述当我们用 ``id`` 来 map over 一个 functor 的时候，他的结果应该跟只对 functor 呼叫 ``id`` 的结果一样。但我们可以看到这个例子中，这对于 ``CMaybe`` 并不遵守。尽管他的确是 ``Functor`` typeclass 的一个 instace。但他并不遵守 functor law 因此不是一个 functor。如果有人使用我们的 ``CMaybe`` 型别，把他当作 functor 用，那他就会期待 functor laws 会被遵守。但 ``CMaybe`` 并没办法满足，便会造成错误的程式。当我们使用一个 functor 的时候，函数合成跟 map over 的先后顺序不应该有影响。但对于 ``CMaybe`` 他是有影响的，因为他纪录了被 map over 的次数。如果我们希望 ``CMaybe`` 遵守 functor law，我们必须要让 ``Int`` 栏位在做 ``fmap`` 的时候维持不变。
+我们知道 functor law 的第一定律描述当我们用 ``id`` 来 map over 一个 functor 的时候，他的结果应该跟只对 functor 调用 ``id`` 的结果一样。但我们可以看到这个例子中，这对于 ``CMaybe`` 并不遵守。尽管他的确是 ``Functor`` typeclass 的一个 instace。但他并不遵守 functor law 因此不是一个 functor。如果有人使用我们的 ``CMaybe`` 型别，把他当作 functor 用，那他就会期待 functor laws 会被遵守。但 ``CMaybe`` 并没办法满足，便会造成错误的程序。当我们使用一个 functor 的时候，函数合成跟 map over 的先后顺序不应该有影响。但对于 ``CMaybe`` 他是有影响的，因为他纪录了被 map over 的次数。如果我们希望 ``CMaybe`` 遵守 functor law，我们必须要让 ``Int`` 字段在做 ``fmap`` 的时候维持不变。
 
 
-乍看之下 functor laws 看起来不是很必要，也容易让人搞不懂，但我们知道如果一个型别遵守 functor laws，那我们就能对他作些基本的假设。如果遵守了 functor laws，我们知道对他做 ``fmap`` 不会做多余的事情，只是用一个函数做映射而已。这让写出来的程式码足够抽象也容易扩展。因为我们可以用定律来推论型别的行为。
+乍看之下 functor laws 看起来不是很必要，也容易让人搞不懂，但我们知道如果一个型别遵守 functor laws，那我们就能对他作些基本的假设。如果遵守了 functor laws，我们知道对他做 ``fmap`` 不会做多余的事情，只是用一个函数做映射而已。这让写出来的代码足够抽象也容易扩展。因为我们可以用定律来推论型别的行为。
 
 
 所有在标准函式库中的 ``Functor`` 的 instance 都遵守这些定律，但你可以自己检查一遍。下一次你定义一个型别为 ``Functor`` 的 instance 的时候，花点时间确认他确实遵守 functor laws。一旦你操作过足够多的 functors 时，你就会获得直觉，知道他们会有什么样的性质跟行为。而且 functor laws 也会觉得显而易见。但就算没有这些直觉，你仍然可以一行一行地来找看看有没有反例让这些定律失效。
@@ -274,7 +274,7 @@ CJust 0 "haha"
 我们可以把 functor 看作输出具有 context 的值。例如说 ``Just 3`` 就是输出 ``3``，但他又带有一个可能没有值的 context。``[1,2,3]`` 输出三个值，``1``,``2`` 跟 ``3``，同时也带有可能有多个值或没有值的 context。``(+3)`` 则会带有一个依赖于参数的 context。
 
 
-如果你把 functor 想做是输出值这件事，那你可以把 map over 一个 functor 这件事想成在 functor 输出的后面再多加一层转换。当我们做 ``fmap (+3) [1,2,3]`` 的时候，我们是把 ``(+3)`` 接到 ``[1,2,3]`` 后面，所以当我们检视任何一个 list 的输出的时候，``(+3)`` 也会被套用在上面。另一个例子是对函数做 map over。当我们做 ``fmap (+3) (*3)``，我们是把 ``(+3)`` 这个转换套用在 ``(*3)`` 后面。这样想的话会很自然就会把 ``fmap`` 跟函数合成关联起来（``fmap (+3) (*3)`` 等价于 ``(+3) . (*3)``，也等价于 ``\x -> ((x*3)+3)``），毕竟我们是接受一个函数 ``(*3)`` 然后套用 ``(+3)`` 转换。最后的结果仍然是一个函数，只是当我们喂给他一个数字的时候，他会先乘上三然后做转换加上三。这基本上就是函数合成在做的事。
+如果你把 functor 想做是输出值这件事，那你可以把 map over 一个 functor 这件事想成在 functor 输出的后面再多加一层转换。当我们做 ``fmap (+3) [1,2,3]`` 的时候，我们是把 ``(+3)`` 接到 ``[1,2,3]`` 后面，所以当我们查看任何一个 list 的输出的时候，``(+3)`` 也会被套用在上面。另一个例子是对函数做 map over。当我们做 ``fmap (+3) (*3)``，我们是把 ``(+3)`` 这个转换套用在 ``(*3)`` 后面。这样想的话会很自然就会把 ``fmap`` 跟函数合成关联起来（``fmap (+3) (*3)`` 等价于 ``(+3) . (*3)``，也等价于 ``\x -> ((x*3)+3)``），毕竟我们是接受一个函数 ``(*3)`` 然后套用 ``(+3)`` 转换。最后的结果仍然是一个函数，只是当我们喂给他一个数字的时候，他会先乘上三然后做转换加上三。这基本上就是函数合成在做的事。
 
 ## Applicative functors
 
@@ -282,7 +282,7 @@ CJust 0 "haha"
 
 在这个章节中，我们会学到 applicative functors，也就是加强版的 functors，在 Haskell 中是用在 ``Control.Applicative`` 中的 ``Applicative`` 这个 typeclass 来定义的。
 
-你还记得 Haskell 中函数预设就是 Curried 的，那代表接受多个参数的函数实际上是接受一个参数然后回传一个接受剩余参数的函数，以此类推。如果一个函数的型别是 ``a -> b -> c``，我们通常会说这个函数接受两个参数并回传 ``c``，但他实际上是接受 ``a`` 并回传一个 ``b -> c`` 的函数。这也是为什么我们可以用 ``(f x) y`` 的方式呼叫 ``f x y``。这个机制让我们可以 partially apply 一个函数，可以用比较少的参数呼叫他们。可以做成一个函数再喂给其他函数。
+你还记得 Haskell 中函数缺省就是 Curried 的，那代表接受多个参数的函数实际上是接受一个参数然后回传一个接受剩余参数的函数，以此类推。如果一个函数的型别是 ``a -> b -> c``，我们通常会说这个函数接受两个参数并回传 ``c``，但他实际上是接受 ``a`` 并回传一个 ``b -> c`` 的函数。这也是为什么我们可以用 ``(f x) y`` 的方式调用 ``f x y``。这个机制让我们可以 partially apply 一个函数，可以用比较少的参数调用他们。可以做成一个函数再喂给其他函数。
 
 到目前为止，当我们要对 functor map over 一个函数的时候，我们用的函数都是只接受一个参数的。但如果我们要 map 一个接受两个参数的函数呢？我们来看几个具体的例子。如果我们有 ``Just 3`` 然后我们做 ``fmap (*) (Just 3)``，那我们会获得什么样的结果？从 ``Maybe`` 对 ``Functor`` 的 instance 实作来看，我们知道如果他是 ``Just something``，他会对在 ``Just`` 中的 ``something`` 做映射。因此当 ``fmap (*) (Just 3)`` 会得到 ``Just ((*) 3)``，也可以写做 ``Just (* 3)``。我们得到了一个包在 ``Just`` 中的函数。
 
@@ -297,7 +297,7 @@ ghci> :t fmap (\x y z -> x + y / z) [3,4,5,6]
 fmap (\x y z -> x + y / z) [3,4,5,6] :: (Fractional a) => [a -> a -> a]  
 ```
 
-如果我们 map ``compare`` 到一个包含许多字元的 list 呢？他的型别是 ``(Ord a) => a -> a -> Ordering``，我们会得到包含许多 ``Char -> Ordering`` 型别函数的 list，因为 ``compare`` 被 partially apply 到 list 中的字元。他不是包含许多 ``(Ord a) => a -> Ordering`` 的函数，因为第一个 ``a`` 碰到的型别是 ``Char``，所以第二个 ``a`` 也必须是 ``Char``。
+如果我们 map ``compare`` 到一个包含许多字符的 list 呢？他的型别是 ``(Ord a) => a -> a -> Ordering``，我们会得到包含许多 ``Char -> Ordering`` 型别函数的 list，因为 ``compare`` 被 partially apply 到 list 中的字符。他不是包含许多 ``(Ord a) => a -> Ordering`` 的函数，因为第一个 ``a`` 碰到的型别是 ``Char``，所以第二个 ``a`` 也必须是 ``Char``。
 
 
 我们看到如何用一个多参数的函数来 map functor，我们会得到一个包含了函数的 functor。那现在我们能对这个包含了函数的 functor 做什么呢？我们能用一个吃这些函数的函数来 map over 这个 functor，这些在 functor 中的函数都会被当作参数丢给我们的函数。
@@ -312,7 +312,7 @@ ghci> fmap (\f -> f 9) a
 
 但如果我们的有一个 functor 里面是 ``Just (3 *)`` 还有另一个 functor 里面是 ``Just 5``，但我们想要把第一个 ``Just (3 *)`` map over ``Just 5`` 呢？如果是普通的 functor，那就没救了。因为他们只允许 map 一个普通的函数。即使我们用 ``\f -> f 9`` 来 map 一个装了很多函数的 functor，我们也是使用了普通的函数。我们是无法单纯用 ``fmap`` 来把包在一个 functor 的函数 map 另一个包在 functor 中的值。我们能用模式匹配 ``Just`` 来把函数从里面抽出来，然后再 map ``Just 5``，但我们是希望有一个一般化的作法，对任何 functor 都有效。
 
-我们来看看 ``Applicative`` 这个 typeclass。他位在 ``Control.Applicative`` 中，在其中定义了两个函数 ``pure`` 跟 ``<*>``。他并没有提供预设的实作，如果我们想使用他必须要为他们 applicative functor 的实作。typeclass 定义如下：
+我们来看看 ``Applicative`` 这个 typeclass。他位在 ``Control.Applicative`` 中，在其中定义了两个函数 ``pure`` 跟 ``<*>``。他并没有提供缺省的实作，如果我们想使用他必须要为他们 applicative functor 的实作。typeclass 定义如下：
 
 ```haskell
 class (Functor f) => Applicative f where  
@@ -322,9 +322,9 @@ class (Functor f) => Applicative f where
 
 这简简单单的三行可以让我们学到不少。首先来看第一行。他开启了 ``Applicative`` 的定义，并加上 class contraint。描述了一个型别构造子要是 ``Applicative``，他必须也是 ``Functor``。这就是为什么我们说一个型别构造子属于 ``Applicative`` 的话，他也会是 ``Functor``，因此我们能对他使用 ``fmap``。
 
-第一个定义的是 ``pure``。他的型别宣告是 ``pure :: a -> f a``。``f`` 代表 applicative functor 的 instance。由于 Haskell 有一个优秀的型别系统，其中函数又是将一些参数映射成结果，我们可以从型别宣告中读出许多讯息。``pure`` 应该要接受一个值，然后回传一个包含那个值的 applicative functor。我们这边是用盒子来作比喻，即使有一些比喻不完全符合现实的情况。尽管这样，``a -> f a`` 仍有许多丰富的资讯，他确实告诉我们他会接受一个值并回传一个 applicative functor，里面装有结果。
+第一个定义的是 ``pure``。他的型别宣告是 ``pure :: a -> f a``。``f`` 代表 applicative functor 的 instance。由于 Haskell 有一个优秀的型别系统，其中函数又是将一些参数映射成结果，我们可以从型别宣告中读出许多消息。``pure`` 应该要接受一个值，然后回传一个包含那个值的 applicative functor。我们这边是用盒子来作比喻，即使有一些比喻不完全符合现实的情况。尽管这样，``a -> f a`` 仍有许多丰富的信息，他确实告诉我们他会接受一个值并回传一个 applicative functor，里面装有结果。
 
-对于 ``pure`` 比较好的说法是把一个普通值放到一个预设的 context 下，一个最小的 context 但仍然包含这个值。
+对于 ``pure`` 比较好的说法是把一个普通值放到一个缺省的 context 下，一个最小的 context 但仍然包含这个值。
 
 ``<*>`` 也非常有趣。他的型别是 ``f (a -> b) -> f a -> f b``。这有让你联想到什么吗？没错！就是 ``fmap :: (a -> b) -> f a -> f b``。他有点像加强版的 ``fmap``。然而 ``fmap`` 接受一个函数跟一个 functor，然后套用 functor 之中的函数。``<*>`` 则是接受一个装有函数的 functor 跟另一个 functor，然后取出第一个 functor 中的函数将他对第二个 functor 中的值做 map。
 
@@ -362,7 +362,7 @@ Nothing
 
 我们看到 ``pure (+3)`` 跟 ``Just (+3)`` 在这个 case 下是一样的。如果你是在 applicative context 底下跟 ``Maybe`` 打交道的话请用 ``pure``，要不然就用 ``Just``。前四个输入展示了函数是如何被取出并做 map 的动作，但在这个 case 底下，他们同样也可以用 unwrap 函数来 map over functors。最后一行比较有趣，因为我们试着从 ``Nothing`` 取出函数并将他 map 到某个值。结果当然是 ``Nothing``。
 
-对于普通的 functors，你可以用一个函数 map over 一个 functors，但你可能没办法拿到结果。而 applicative functors 则让你可以用单一一个函数操作好几个 functors。看看下面一段程式码：
+对于普通的 functors，你可以用一个函数 map over 一个 functors，但你可能没办法拿到结果。而 applicative functors 则让你可以用单一一个函数操作好几个 functors。看看下面一段代码：
 
 ```haskell
 ghci> pure (+) <*> Just 3 <*> Just 5  
@@ -381,7 +381,7 @@ Nothing
 这样很棒吧！用 applicative style 的方式来使用 applicative functors。像是 ``pure f <*> x <*> y <*> ...`` 就让我们可以拿一个接受多个参数的函数，而且这些参数不一定是被包在 functor 中。就这样来套用在多个在 functor context 的值。这个函数可以吃任意多的参数，毕竟 ``<*>`` 只是做 partial application 而已。
 
 
-如果我们考虑到 ``pure f <*> x`` 等于 ``fmap f x`` 的话，这样的用法就更方便了。这是 applicative laws 的其中一条。我们稍后会更仔细地检视这条定律。现在我们先依直觉来使用他。就像我们先前所说的，``pure`` 把一个值放进一个预设的 context 中。如果我们要把一个函数放在一个预设的 context，然后把他取出并套用在放在另一个 applicative functor 的值。我们会做的事就是把函数 map over 那个 applicative functor。但我们不会写成 ``pure f <*> x <*> y <*> ...``，而是写成 ``fmap f x <*> y <*> ...``。这也是为什么 ``Control.Applicative`` 会 export 一个函数 ``<$>``，他基本上就是中缀版的 ``fmap``。他是这么被定义的：
+如果我们考虑到 ``pure f <*> x`` 等于 ``fmap f x`` 的话，这样的用法就更方便了。这是 applicative laws 的其中一条。我们稍后会更仔细地查看这条定律。现在我们先依直觉来使用他。就像我们先前所说的，``pure`` 把一个值放进一个缺省的 context 中。如果我们要把一个函数放在一个缺省的 context，然后把他取出并套用在放在另一个 applicative functor 的值。我们会做的事就是把函数 map over 那个 applicative functor。但我们不会写成 ``pure f <*> x <*> y <*> ...``，而是写成 ``fmap f x <*> y <*> ...``。这也是为什么 ``Control.Applicative`` 会 export 一个函数 ``<$>``，他基本上就是中缀版的 ``fmap``。他是这么被定义的：
 
 ```haskell
 (<$>) :: (Functor f) => (a -> b) -> f a -> f b  
@@ -389,7 +389,7 @@ f <$> x = fmap f x
 ```
 	
     
-    要记住型别变数跟参数的名字还有值绑定的名称不冲突。``f`` 在函数的型别宣告中是型别变数，说明 ``f`` 应该要满足 ``Functor`` typeclass 的条件。而在函数本体中的 ``f`` 则表示一个函数，我们将他 map over x。我们同样用 ``f`` 来表示他们并代表他们是相同的东西。
+    要记住型别变量跟参数的名字还有值绑定的名称不冲突。``f`` 在函数的型别宣告中是型别变量，说明 ``f`` 应该要满足 ``Functor`` typeclass 的条件。而在函数本体中的 ``f`` 则表示一个函数，我们将他 map over x。我们同样用 ``f`` 来表示他们并代表他们是相同的东西。
 
 
 ``<$>`` 的使用显示了 applicative style 的好处。如果我们想要将 ``f`` 套用三个 applicative functor。我们可以写成 ``f <$> x <*> y <*> z``。如果参数不是 applicative functor 而是普通值的话。我们则写成 ``f x y z``。
@@ -426,7 +426,7 @@ instance Applicative [] where
 ```
 
 
-早先我们说过 ``pure`` 是把一个值放进预设的 context 中。换种说法就是一个会产生那个值的最小 context。而对 list 而言最小 context 就是 ``[]``，但由于空的 list 并不包含一个值，所以我们没办法把他当作 ``pure``。这也是为什么 ``pure`` 其实是接受一个值然后回传一个包含单元素的 list。同样的，``Maybe`` 的最小 context 是 ``Nothing``，但他其实表示的是没有值。所以 ``pure`` 其实是被实作成 ``Just`` 的。
+早先我们说过 ``pure`` 是把一个值放进缺省的 context 中。换种说法就是一个会产生那个值的最小 context。而对 list 而言最小 context 就是 ``[]``，但由于空的 list 并不包含一个值，所以我们没办法把他当作 ``pure``。这也是为什么 ``pure`` 其实是接受一个值然后回传一个包含单元素的 list。同样的，``Maybe`` 的最小 context 是 ``Nothing``，但他其实表示的是没有值。所以 ``pure`` 其实是被实作成 ``Just`` 的。
 
 ```haskell
 ghci> pure "Hey" :: [String]  
@@ -499,11 +499,11 @@ instance Applicative IO where
 
 ![](knight.png)
 
-由于 ``pure`` 是把一个值放进最小的 context 中，所以将 ``return`` 定义成 ``pure`` 是很合理的。因为 ``return`` 也是做同样的事情。他做了一个不做任何事情的 I/O action，他可以产生某些值来作为结果，但他实际上并没有做任何 I/O 的动作，例如说印出结果到终端或是档案。
+由于 ``pure`` 是把一个值放进最小的 context 中，所以将 ``return`` 定义成 ``pure`` 是很合理的。因为 ``return`` 也是做同样的事情。他做了一个不做任何事情的 I/O action，他可以产生某些值来作为结果，但他实际上并没有做任何 I/O 的动作，例如说印出结果到终端或是文件。
 
 如果 ``<*>`` 被限定在 ``IO`` 上操作的话，他的型别会是 ``(<*>) :: IO (a -> b) -> IO a -> IO b``。他接受一个产生函数的 I/O action，还有另一个 I/O action，并从以上两者创造一个新的 I/O action，也就是把第二个参数喂给第一个参数。而得到回传的结果，然后放到新的 I/O action 中。我们用 do 的语法来实作他。你还记得的话 do 就是把好几个 I/O action 黏在一起，变成一个大的 I/O action。
 
-而对于 ``Maybe`` 跟 ``[]`` 而言，我们可以把 ``<*>`` 想做是从左边的参数取出一个函数，然后套用到右边的参数上。至于 ``IO``，这种取出的类比方式仍然适用，但我们必须多加一个 sequencing 的概念，因为我们是从两个 I/O action 中取值，也是在 sequencing，把他们黏成一个。我们从第一个 I/O action 中取值，但要取出 I/O action 的结果，他必须要先被执行过。
+而对于 ``Maybe`` 跟 ``[]`` 而言，我们可以把 ``<*>`` 想做是从左边的参数取出一个函数，然后套用到右边的参数上。至于 ``IO``，这种取出的模拟方式仍然适用，但我们必须多加一个 sequencing 的概念，因为我们是从两个 I/O action 中取值，也是在 sequencing，把他们黏成一个。我们从第一个 I/O action 中取值，但要取出 I/O action 的结果，他必须要先被执行过。
 
 考虑下面这个范例：
 
@@ -516,7 +516,7 @@ myAction = do
 ```
 
 
-这是一个提示使用者输入两行并产生将两行输入串接在一起结果的一个 I/O action。我们先把两个 ``getLine`` 黏在一起，然后用一个 ``return``，这是因为我们想要这个黏成的 I/O action 包含 ``a ++ b`` 的结果。我们也可以用 applicative style 的方式来描述：
+这是一个提示用户输入两行并产生将两行输入串接在一起结果的一个 I/O action。我们先把两个 ``getLine`` 黏在一起，然后用一个 ``return``，这是因为我们想要这个黏成的 I/O action 包含 ``a ++ b`` 的结果。我们也可以用 applicative style 的方式来描述：
 
 ```haskell
 myAction :: IO String  
@@ -525,7 +525,7 @@ myAction = (++) <$> getLine <*> getLine
 
 我们先前的作法是将两个 I/O action 的结果喂给函数。还记得 ``getLine`` 的型别是 ``getLine :: IO String``。当我们对 applicative functor 使用 ``<*>`` 的时候，结果也会是 applicative functor。
 
-如果我们再使用盒子的类比，我们可以把 ``getLine`` 想做是一个去真实世界中拿取字串的盒子。而 ``(++) <$> getLine <*> getLine`` 会创造一个比较大的盒子，这个大盒子会派两个盒子去终端拿取字串，并把结果串接起来放进自己的盒子中。
+如果我们再使用盒子的模拟，我们可以把 ``getLine`` 想做是一个去真实世界中拿取字串的盒子。而 ``(++) <$> getLine <*> getLine`` 会创造一个比较大的盒子，这个大盒子会派两个盒子去终端拿取字串，并把结果串接起来放进自己的盒子中。
 
 ``(++) <$> getLine <*> getLine`` 的型别是 ``IO String``，他代表这个表达式式一个再普通不过的 I/O action，他里面也装着某种值。这也是为什么我们可以这样写：
 
@@ -535,7 +535,7 @@ main = do
     putStrLn $ "The two lines concatenated turn out to be: " ++ a  
 ```
 
-如果你发现你是在做 binding I/O action 的动作，而且在 binding 之后还呼叫一些函数，最后用 ``return`` 来将结果包起来。
+如果你发现你是在做 binding I/O action 的动作，而且在 binding 之后还调用一些函数，最后用 ``return`` 来将结果包起来。
 那你可以考虑使用 applicative style，这样可以更简洁。
 
 另一个 ``Applicative`` 的 instance 是 ``(->) r``。虽然他们通常是用在 code golf 的情况，但他们还是十分有趣的例子。所以我们还是来看一下他们是怎么被实作的。
@@ -581,7 +581,7 @@ ghci> (\x y z -> [x,y,z]) <$> (+3) <*> (*2) <*> (/2) $ 5
 
 ![](jazzb.png)
 
-这边也一样。我们创建了一个函数，他会呼叫 ``\x y z -> [x,y,z]``，而丢的参数是 ``(+3)``, ``(*2)`` 跟 ``(/2)``。``5`` 被丢给以上三个函数，然后他们结果又接到 `` \x y z -> [x, y, z]``。
+这边也一样。我们创建了一个函数，他会调用 ``\x y z -> [x,y,z]``，而丢的参数是 ``(+3)``, ``(*2)`` 跟 ``(/2)``。``5`` 被丢给以上三个函数，然后他们结果又接到 `` \x y z -> [x, y, z]``。
 
 
 你可以将函数想做是装着最终结果的盒子，所以 ``k <$> f <*> g`` 会制造一个函数，他会将 ``f`` 跟 ``g`` 的结果丢给 ``k``。当我们做 ``(+) <$> Just 3 <*> Just 5``，我们是用 ``+`` 套用在一些可能有或可能没有的值上，所以结果也会是可能有或没有。当我们做 ``(+) <$> (+10) <*> (+5)``，我们是将 ``+`` 套用在 ``(+10)`` 跟 ``(+5)`` 的结果上，而结果也会是一个函数，当被喂给一个参数的时候会产生结果。
@@ -599,7 +599,7 @@ ghci> (\x y z -> [x,y,z]) <$> (+3) <*> (*2) <*> (/2) $ 5
 然而 ``[(+3),(*2)] <*> [1,2]`` 也可以这样运作:把左边第一个函数套用至右边第一个值，接着左边第二个函数套用右边第二个值，以此类推。这样得到的会是 ``[4,4]``。或是 ``[1 + 3, 2 * 2]``。
 
 
-由于一个型别不能对同一个 typeclass 定义两个 instance，所以才会定义了 ``ZipList a``，他只有一个构造子 ``ZipList``，他只包含一个栏位，他的型别是 list。
+由于一个型别不能对同一个 typeclass 定义两个 instance，所以才会定义了 ``ZipList a``，他只有一个构造子 ``ZipList``，他只包含一个字段，他的型别是 list。
 
 ```haskell
 instance Applicative ZipList where  
@@ -629,7 +629,7 @@ ghci> getZipList $ (,,) <$> ZipList "dog" <*> ZipList "cat" <*> ZipList "rat"
 
     ``(,,)`` 函数跟 ``\x y z -> (x,y,z)`` 是等价的，而 ``(,)`` 跟 ``\x y -> (x,y)`` 是等价的。
 
-除了 ``zipWith``，标准函式库中也有 ``zipWith3``, ``zipWith4`` 之类的函数，最多支援到 7。``zipWith`` 接受一个接受两个参数的函数，并把两个 list zip 起来。``zipWith3`` 则接受一个接受三个参数的函数，然后把三个 list zip 起来。以此类推。用 applicative style 的方式来操作 zip list 的话，我们就不需要对每个数量的 list 都定义一个独立的 zip 函数来 zip 他们。我们只需要用 applicative style 的方式来把任意数量的 list zip 起来就可以了。
+除了 ``zipWith``，标准函式库中也有 ``zipWith3``, ``zipWith4`` 之类的函数，最多支持到 7。``zipWith`` 接受一个接受两个参数的函数，并把两个 list zip 起来。``zipWith3`` 则接受一个接受三个参数的函数，然后把三个 list zip 起来。以此类推。用 applicative style 的方式来操作 zip list 的话，我们就不需要对每个数量的 list 都定义一个独立的 zip 函数来 zip 他们。我们只需要用 applicative style 的方式来把任意数量的 list zip 起来就可以了。
 
 
 ``Control.Applicative`` 定义了一个函数叫做 ``liftA2``，他的型别是 ``liftA2 :: (Applicative f) => (a -> b -> c) -> f a -> f b -> f c``。他定义如下：
@@ -666,7 +666,7 @@ sequenceA [] = pure []
 sequenceA (x:xs) = (:) <$> x <*> sequenceA xs  
 ```
 
-居然用到了递回！首先我们来看一下他的型别。他将一串 applicative 的 list 转换成一个 applicative 装有一个 list。从这个资讯我们可以推测出边界条件。如果我们要将一个空的 list 变成一个装有 list 的 applicative。我们只要把这个空的 list 放进一个预设的 context。现在来看一下我们怎么用递回的。如果们有一个可以分成头跟尾的 list（``x`` 是一个 applicative 而 ``xs`` 是一串 applicatve），我们可以对尾巴呼叫 ``sequenceA``，便会得到一个装有 list 的 applicative。然后我们只要将在 ``x`` 中的值把他接到装有 list 的 applicative 前面就可以了。
+居然用到了递归！首先我们来看一下他的型别。他将一串 applicative 的 list 转换成一个 applicative 装有一个 list。从这个信息我们可以推测出边界条件。如果我们要将一个空的 list 变成一个装有 list 的 applicative。我们只要把这个空的 list 放进一个缺省的 context。现在来看一下我们怎么用递归的。如果们有一个可以分成头跟尾的 list（``x`` 是一个 applicative 而 ``xs`` 是一串 applicatve），我们可以对尾巴调用 ``sequenceA``，便会得到一个装有 list 的 applicative。然后我们只要将在 ``x`` 中的值把他接到装有 list 的 applicative 前面就可以了。
 
 
 所以如果我们做 ``sequenceA [Just 1, Just 2]``，也就是 ``(:) <$> Just 1 <*> sequenceA [Just 2]``。那会等价于 ``(:) <$> Just 1 <*> ((:) <$> Just 2 <*> sequenceA [])``。我们知道 ``sequenceA []`` 算出来会是 ``Just []``，所以运算式就变成 ``(:) <$> Just 1 <*> ((:) <$> Just 2 <*> Just [])``，也就是 ``(:) <$> Just 1 <*> Just [2]``，算出来就是 ``Just [1,2]``。
@@ -703,10 +703,10 @@ ghci> sequenceA [[1,2,3],[4,5,6],[3,4,4],[]]
 当套用在函数时，``sequenceA`` 接受装有一堆函数的 list，并回传一个回传 list 的函数。在我们的范例中，我们写了一个函数，他只接受一个数值作为参数，他会把他套用至 list 中的每一个函数，并回传一个包含结果的 list。``sequenceA [(+3),(+2),(+1)] 3`` 会将 ``3`` 喂给 ``(+3)``, ``(+2)`` 跟 ``(+1)``，然后将所有结果装在一个 list 中。
 
 
-而 ``(+) <$> (+3) <*> (*2)`` 会创见一个接受单一参数的一函数，将他同时喂给 ``(+3)`` 跟 ``(*2)``，然后呼叫 ``+`` 来将两者加起来。同样的道理，``sequenceA [(+3),(*2)]`` 是制造一个接受单一参数的函数，他会将他喂给所有包含在 list 中的函数。但他最后不是呼叫 ``+``，而是呼叫 ``:`` 跟 ``pure []`` 来把结果接成一个 list，得到最后的结果。
+而 ``(+) <$> (+3) <*> (*2)`` 会创见一个接受单一参数的一函数，将他同时喂给 ``(+3)`` 跟 ``(*2)``，然后调用 ``+`` 来将两者加起来。同样的道理，``sequenceA [(+3),(*2)]`` 是制造一个接受单一参数的函数，他会将他喂给所有包含在 list 中的函数。但他最后不是调用 ``+``，而是调用 ``:`` 跟 ``pure []`` 来把结果接成一个 list，得到最后的结果。
 
 
-当我们有一串函数，我们想要将相同的输入都喂给他们并检视结果的时候，``sequenceA`` 非常好用。例如说，我们手上有一个数值，但不知道他是否满足一串 predicate。一种实作的方式是像这样：
+当我们有一串函数，我们想要将相同的输入都喂给他们并查看结果的时候，``sequenceA`` 非常好用。例如说，我们手上有一个数值，但不知道他是否满足一串 predicate。一种实作的方式是像这样：
 
 ```haskell
 ghci> map (\f -> f 7) [(>4),(<10),odd]  
@@ -730,7 +730,7 @@ True
 ``sequenceA [(>4),(<10),odd]`` 接受一个函数，他接受一个数值并将他喂给所有的 predicate，包含 ``[(>4),(<10),odd]``。然后回传一串布林值。他将一个型别为 ``(Num a) => [a -> Bool]`` 的 list 变成一个型别为 ``(Num a) => a -> [Bool]`` 的函数，很酷吧。
 
 
-由于 list 要求里面元素的型别要一致，所以包含在 list 中的所有函数都是同样型别。你不能创造一个像是 ``[ord, (+3)]`` 这样的 list，因为 ``ord`` 接受一个字元并回传一个数值，然而 ``(+3)`` 接受一个数值并回传一个数值。
+由于 list 要求里面元素的型别要一致，所以包含在 list 中的所有函数都是同样型别。你不能创造一个像是 ``[ord, (+3)]`` 这样的 list，因为 ``ord`` 接受一个字符并回传一个数值，然而 ``(+3)`` 接受一个数值并回传一个数值。
 
 
 当跟 ``[]`` 一起使用的时候，``sequenceA`` 接受一串 list，并回传另一串 list。他实际上是创建一个包含所有可能组合的 list。为了方便说明，我们比较一下使用 ``sequenceA`` 跟 list comprehension 的差异：
@@ -803,7 +803,7 @@ ghci> [(+1),(*100),(*5)] <*> [1,2,3]
 [2,3,4,100,200,300,5,10,15]  
 ```
 
-第二种方式是将 ``<*>`` 定义成将左边的第一个函数套用至右边的第一个值，然后将左边第二个函数套用至右边第二个值。以此类推。最终，这表现得有点像将两个 list 用一个拉链拉起来一样。但由于 list 已经被定义成 ``Applicaitive`` 的 instance 了，所以我们要怎么要让 list 可以被定义成第二种方式呢？如果你还记得我们说过我们是有很好的理由定义了 ``ZipList a``，其中他里面只包含一个值构造子跟只包含一个栏位。其实他的理由就是要让 ``ZipList`` 定义成用拉链的方式来表现 applicative 行为。我们只不过用 ``ZipList`` 这个构造子将他包起来，然后用 ``getZipList`` 来解开来。
+第二种方式是将 ``<*>`` 定义成将左边的第一个函数套用至右边的第一个值，然后将左边第二个函数套用至右边第二个值。以此类推。最终，这表现得有点像将两个 list 用一个拉链拉起来一样。但由于 list 已经被定义成 ``Applicaitive`` 的 instance 了，所以我们要怎么要让 list 可以被定义成第二种方式呢？如果你还记得我们说过我们是有很好的理由定义了 ``ZipList a``，其中他里面只包含一个值构造子跟只包含一个字段。其实他的理由就是要让 ``ZipList`` 定义成用拉链的方式来表现 applicative 行为。我们只不过用 ``ZipList`` 这个构造子将他包起来，然后用 ``getZipList`` 来解开来。
 
 
 ```haskell
@@ -818,7 +818,7 @@ ghci> getZipList $ ZipList [(+1),(*100),(*5)] <*> ZipList [1,2,3]
 data ZipList a = ZipList [a]      
 ```
 
-也就是一个只有一个值构造子的型别而且那个构造子里面只有一个栏位。我们也可以用 record syntax 来定义一个解开的函数：
+也就是一个只有一个值构造子的型别而且那个构造子里面只有一个字段。我们也可以用 record syntax 来定义一个解开的函数：
 
 ```haskell
 data ZipList a = ZipList { getZipList :: [a] }      
@@ -835,7 +835,7 @@ newtype ZipList a = ZipList { getZipList :: [a] }
 这边我们不用 ``data`` 关键字反而是用 ``newtype`` 关键字。这是为什么呢？第一个理由是 ``newtype`` 比较快速。如果你用 ``data`` 关键字来包一个型别的话，在你执行的时候会有一些包起来跟解开来的成本。但如果你用 ``newtype`` 的话，Haskell 会知道你只是要将一个现有的型别包成一个新的型别，你想要内部运作完全一样但只是要一个全新的型别而已。有了这个概念，Haskell 可以将包裹跟解开来的成本都去除掉。
 
 
-那为什么我们不是一直使用 ``newtype`` 呢？当你用 ``newtype`` 来制作一个新的型别时，你只能定义单一一个值构造子，而且那个构造子只能有一个栏位。但使用 ``data`` 的话，你可以让那个型别有好几个值构造子，并且每个构造子可以有零个或多个栏位。
+那为什么我们不是一直使用 ``newtype`` 呢？当你用 ``newtype`` 来制作一个新的型别时，你只能定义单一一个值构造子，而且那个构造子只能有一个字段。但使用 ``data`` 的话，你可以让那个型别有好几个值构造子，并且每个构造子可以有零个或多个字段。
 
 ```haskell
 data Profession = Fighter | Archer | Accountant  
@@ -845,7 +845,7 @@ data Race = Human | Elf | Orc | Goblin
 data PlayerCharacter = PlayerCharacter Race Profession  
 ```
 
-当使用 ``newtype`` 的时候，你是被限制只能用一个值构造子跟单一栏位。
+当使用 ``newtype``的时候，你是被限制只能用一个值构造子跟单一字段。
 
 
 对于 ``newtype`` 我们也能使用 ``deriving`` 关键字。我们可以 derive 像是 ``Eq``, ``Ord``, ``Enum``, ``Bounded``, ``Show`` 跟 ``Read`` 的 instance。如果我们想要对新的型别做 derive，那原本的型别必须已经在那个 typeclass 中。这样很合理，毕竟 ``newtype`` 就是要将现有的型别包起来。如果我们按照下面的方式定义的话，我们就能对我们的型别做印出以及比较相等性的操作：
@@ -883,7 +883,7 @@ getCharList :: CharList -> [Char]
 
 ### Using newtype to make type class instances
 
-有好几次我们想要让我们的型别属于某个 typeclass，但型别变数并没有符合我们想要的。要把 ``Maybe`` 定义成 ``Functor`` 的 instance 很容易，因为 ``Functor`` 这个 typeclass 被定义如下：
+有好几次我们想要让我们的型别属于某个 typeclass，但型别变量并没有符合我们想要的。要把 ``Maybe`` 定义成 ``Functor`` 的 instance 很容易，因为 ``Functor`` 这个 typeclass 被定义如下：
 
 ```haskell
 class Functor f where  
@@ -896,7 +896,7 @@ class Functor f where
 instance Functor Maybe where       
 ```
 
-然后我们实作 ``fmap``。当所有的型别变数被填上时，由于 ``Maybe`` 取代了 ``Functor`` 中 ``f`` 的位置，所以如果我们看看 ``fmap`` 运作在 ``Maybe`` 上时是什么样，他会像这样：
+然后我们实作 ``fmap``。当所有的型别变量被填上时，由于 ``Maybe`` 取代了 ``Functor`` 中 ``f`` 的位置，所以如果我们看看 ``fmap`` 运作在 ``Maybe`` 上时是什么样，他会像这样：
 
 
 ```haskell
@@ -945,7 +945,7 @@ ghci> getPair $ fmap reverse (Pair ("london calling", 3))
 我们提到 ``newtype`` 一般来讲比 ``data`` 来得有效率。``newtype`` 能做的唯一一件事就是将现有的型别包成新的型别。这样 Haskell 在内部就能将新的型别的值用旧的方式来操作。只是要记住他们还是不同的型别。这代表 ``newtype`` 并不只是有效率，他也具备 lazy 的特性。我们来说明一下这是什么意思。
 
 
-就像我们之前说得，Haskell 预设是具备 lazy 的特性，这代表只有当我们要将函数的结果印出来的时候计算才会发生。或者说，只有当我们真的需要结果的时候计算才会发生。在 Haskell 中 ``undefined`` 代表会造成错误的计算。如果我们试着计算他，也就是将他印到终端中，Haskell 会丢出错误。
+就像我们之前说得，Haskell 缺省是具备 lazy 的特性，这代表只有当我们要将函数的结果印出来的时候计算才会发生。或者说，只有当我们真的需要结果的时候计算才会发生。在 Haskell 中 ``undefined`` 代表会造成错误的计算。如果我们试着计算他，也就是将他印到终端中，Haskell 会丢出错误。
 
 ```haskell
 ghci> undefined  
@@ -965,7 +965,7 @@ ghci> head [3,4,5,undefined,2,undefined]
 data CoolBool = CoolBool { getCoolBool :: Bool }      
 ```
 
-这是一个用 ``data`` 关键字定义的 algebraic data type。他有一个值建构子并只有一个型别为 ``Bool`` 的栏位。我们写一个函数来对 ``CoolBool`` 做模式匹配，并回传一个 ``"hello"`` 的值。他并不会管 ``CoolBool`` 中装的究竟是 ``True`` 或 ``False``。
+这是一个用 ``data`` 关键字定义的 algebraic data type。他有一个值建构子并只有一个型别为 ``Bool`` 的字段。我们写一个函数来对 ``CoolBool`` 做模式匹配，并回传一个 ``"hello"`` 的值。他并不会管 ``CoolBool`` 中装的究竟是 ``True`` 或 ``False``。
 
 ```haskell
 helloMe :: CoolBool -> String  
@@ -995,10 +995,10 @@ ghci> helloMe undefined
 "hello" 
 ```
 
-居然正常运作！为什么呢？正如我们说过得，当我们使用 ``newtype`` 的时候，Haskell 内部可以将新的型别用旧的型别来表示。他不必加入另一层 box 来包住旧有的型别。他只要注意他是不同的型别就好了。而且 Haskell 会知道 ``newtype`` 定义的型别一定只会有一个构造子，他不必计算喂给函数的值就能确定他是 ``(CoolBool _)`` 的形式，因为 ``newtype`` 只有一个可能的值跟单一栏位！
+居然正常运作！为什么呢？正如我们说过得，当我们使用 ``newtype`` 的时候，Haskell 内部可以将新的型别用旧的型别来表示。他不必加入另一层 box 来包住旧有的型别。他只要注意他是不同的型别就好了。而且 Haskell 会知道 ``newtype`` 定义的型别一定只会有一个构造子，他不必计算喂给函数的值就能确定他是 ``(CoolBool _)`` 的形式，因为 ``newtype`` 只有一个可能的值跟单一字段！
 
 
-这样行为的差异可能没什么关系，但实际上他非常重要。因为他让我们认知到尽管从撰写程式的观点来看没什么差异，但他们的确是两种不同的机制。尽管 ``data`` 可以让你从无到有定义型别，``newtype`` 是从一个现有的型别做出来的。对 ``newtype`` 做模式匹配并不是像从盒子中取出东西，他比较像是将一个型别转换成另一个型别。
+这样行为的差异可能没什么关系，但实际上他非常重要。因为他让我们认知到尽管从撰写程序的观点来看没什么差异，但他们的确是两种不同的机制。尽管 ``data`` 可以让你从无到有定义型别，``newtype`` 是从一个现有的型别做出来的。对 ``newtype`` 做模式匹配并不是像从盒子中取出东西，他比较像是将一个型别转换成另一个型别。
 
 
 ### type vs newtype vs data
@@ -1031,13 +1031,13 @@ newtype CharList = CharList { getCharList :: [Char] }
 我们不能用 ``++`` 来将 ``CharList`` 跟 ``[Char]`` 接在一起。我们也不能用 ``++`` 来将两个 ``CharList`` 接在一起，因为 ``++`` 只能套用在 list 上，而 ``CharList`` 并不是 list，尽管你会说他包含一个 list。但我们可以将两个 ``CharList`` 转成 list，将他们 ``++`` 然后再转回 ``CharList``。
 
 
-当我们在 ``newtype`` 宣告中使用 record syntax 的时候，我们会得到将新的型别转成旧的型别的函数，也就是我们 ``newtype`` 的值构造子，以及一个函数将他的栏位取出。新的型别并不会被自动定义成原有型别所属的 typeclass 的一个 instance，所以我们必须自己来 derive 他们。
+当我们在 ``newtype`` 宣告中使用 record syntax 的时候，我们会得到将新的型别转成旧的型别的函数，也就是我们 ``newtype`` 的值构造子，以及一个函数将他的字段取出。新的型别并不会被自动定义成原有型别所属的 typeclass 的一个 instance，所以我们必须自己来 derive 他们。
 
 
-实际上你可以将 ``newtype`` 想成是只能定义一个构造子跟一个栏位的 ``data`` 宣告。如果你碰到这种情形，可以考虑使用 ``newtype``。
+实际上你可以将 ``newtype`` 想成是只能定义一个构造子跟一个字段的 ``data`` 宣告。如果你碰到这种情形，可以考虑使用 ``newtype``。
 
 
-使用 ``data`` 关键字是为了定义自己的型别。他们可以在 algebraic data type 中放任意数量的构造子跟栏位。可以定义的东西从 list, ``Maybe`` 到 tree。
+使用 ``data`` 关键字是为了定义自己的型别。他们可以在 algebraic data type 中放任意数量的构造子跟字段。可以定义的东西从 list, ``Maybe`` 到 tree。
 
 如果你只是希望你的 type signature 看起来比较干净，你可以只需要 type synonym。如果你想要将现有的型别包起来并定义成一个 type class 的 instance，你可以尝试使用 newtype。如果你想要定义完全新的型别，那你应该使用 ``data`` 关键字。
 
@@ -1049,7 +1049,7 @@ newtype CharList = CharList { getCharList :: [Char] }
 Haskell 中 typeclass 是用来表示一个型别之间共有的行为，是一种 interface。我们介绍过 ``Eq``，他定义型别是否可以比较相等性，以及 ``Ord``，他表示可以被排序的型别。还介绍了更有趣的像是 ``Functor`` 跟 ``Applicative``。
 
 
-当我们定义一个型别时，我们会想说他应该要支援的行为。也就是表现的行为是什么，并且要让他属于哪些 typeclass。如果希望他可以比较相等与否，那我们就应该定义他成为 ``Eq`` 的一个 instance。如果我们想要看看型别是否是一种 functor，我们可以定义他是 ``Functor`` 的一个 instance。以此类推。
+当我们定义一个型别时，我们会想说他应该要支持的行为。也就是表现的行为是什么，并且要让他属于哪些 typeclass。如果希望他可以比较相等与否，那我们就应该定义他成为 ``Eq`` 的一个 instance。如果我们想要看看型别是否是一种 functor，我们可以定义他是 ``Functor`` 的一个 instance。以此类推。
 
 
 考虑 ``*`` 是一个将两个数值相乘的一个函数。如果我们将一个数值乘上 ``1``，那就会得到自身的数值。我们实际上是做 ``1 * x`` 或 ``x * 1`` 并没有差别。结果永远会是 ``x``。同样的，``++`` 是一个接受两个参数并回传新的值的一个函数。只是他不是相乘而是将两个 list 接在一起。而类似 ``*``，他也有一个特定的值，当他跟其他值使用 ``++`` 时会得到同样的值。那个值就是空的 list ``[]``。
@@ -1112,7 +1112,7 @@ class Monoid m where
 再来我们看到 ``mappend``，你可能已经猜到，他是一个接受两个相同型别的值的二元函数，并回传同样的型别。不过要注意的是他的名字不太符合他真正的意思，他的名字隐含了我们要将两个东西接在一起。尽管在 list 的情况下 ``++`` 的确将两个 list 接起来，但 ``*`` 则否。他只不过将两个数值做相乘。当我们再看到其他 ``Monoid`` 的 instance 时，我们会看到他们大部分都没有接起来的做，所以不要用接起来的概念来想像 ``mappend``，只要想像他们是接受两个 monoid 的值并回传另外一个就好了。
 
 
-在 typeclass 定义中的最后一个函数是 ``mconcat``。他接受一串 monoid 值，并将他们用 ``mappend`` 简化成单一的值。他有一个预设的实作，就是从 ``mempty`` 作为起始值，然后用 ``mappend`` 来 fold。由于对于大部分的 instance 预设的实作就没什么问题，我们不会想要实作自己的 ``mconcat``。当我们定义一个型别属于 ``Monoid`` 的时候，多半实作 ``mempty`` 跟 ``mappend`` 就可以了。而 ``mconcat`` 就是因为对于一些 instance，有可能有比较有效率的方式来实作 ``mconcat``。不过大多数情况都不需要。
+在 typeclass 定义中的最后一个函数是 ``mconcat``。他接受一串 monoid 值，并将他们用 ``mappend`` 简化成单一的值。他有一个缺省的实作，就是从 ``mempty`` 作为起始值，然后用 ``mappend`` 来 fold。由于对于大部分的 instance 缺省的实作就没什么问题，我们不会想要实作自己的 ``mconcat``。当我们定义一个型别属于 ``Monoid`` 的时候，多半实作 ``mempty`` 跟 ``mappend`` 就可以了。而 ``mconcat`` 就是因为对于一些 instance，有可能有比较有效率的方式来实作 ``mconcat``。不过大多数情况都不需要。
 
 
 
@@ -1163,7 +1163,7 @@ ghci> mempty :: [a]
 注意到最后一行我们明白地标记出型别。这是因为如果只些 ``mempty`` 的话，GHCi 不会知道他是哪一个 instance 的 ``mempty``，所以我们必须清楚说出他是 list instance 的 mempty。我们可以使用一般化的型别 ``[a]``，因为空的 list 可以看作是属于任何型别。
 
 
-由于 ``mconcat`` 有一个预设的实作，我们将某个型别定义成 ``Monoid`` 的型别时就可以自动地得到预设的实作。但对于 list 而言，``mconcat`` 其实就是 ``concat``。他接受一个装有 list 的 list，并把他用 ``++`` 来扁平化他。
+由于 ``mconcat`` 有一个缺省的实作，我们将某个型别定义成 ``Monoid`` 的型别时就可以自动地得到缺省的实作。但对于 list 而言，``mconcat`` 其实就是 ``concat``。他接受一个装有 list 的 list，并把他用 ``++`` 来扁平化他。
 
 
 list 的 instance 也遵守 monoid law。当我们有好几个 list 并且用 ``mappend`` 来把他们串起来，先后顺序并不是很重要，因为他们都是接在最后面。而且空的 list 也表现得如 identity 一样。注意到 monoid 并不要求 ``a `mappend` b`` 等于 ``b `mappend` a``。在 list 的情况下，他们明显不相等。
@@ -1195,7 +1195,7 @@ ghci> 1 + (3 + 5)
 他也遵守 monoid law，因为将 0 加上其他数值，都会是另外一者。而且加法也遵守结合律。所以现在我们有两种方式来将数值表现成 monoid，那要选哪一个呢？其实我们不必要强迫定下来，还记得当同一种型别有好几种表现成某个 typeclass 的方式时，我们可以用 ``newtype`` 来包裹现有的型别，然后再定义新的 instance。这样就行了。
 
 
-``Data.Monoid`` 这个模组汇出了两种型别，``Product`` 跟 ``Sum``。``Product`` 定义如下：
+``Data.Monoid`` 这个模块导出了两种型别，``Product`` 跟 ``Sum``。``Product`` 定义如下：
 
 ```haskell
 newtype Product a =  Product { getProduct :: a }  
@@ -1314,7 +1314,7 @@ ghci> 3 `compare` 2
 GT  
 ```
 
-针对 list，数值跟布林值而言，要找出 monoid 的行为只要去检视已经定义的函数，然后看看有没有展现出 monoid 的特性就可以了，但对于 ``Ordering``，我们就必须要更仔细一点才能看出来是否是一个 monoid，但其实他的 ``Monoid`` instance 还蛮直觉的：
+针对 list，数值跟布林值而言，要找出 monoid 的行为只要去查看已经定义的函数，然后看看有没有展现出 monoid 的特性就可以了，但对于 ``Ordering``，我们就必须要更仔细一点才能看出来是否是一个 monoid，但其实他的 ``Monoid`` instance 还蛮直觉的：
 
 ```haskell
 instance Monoid Ordering where  
@@ -1326,7 +1326,7 @@ instance Monoid Ordering where
 
 ![](bear.png)
 
-这个 instance 定义如下：当我们用 ``mappend`` 两个 ``Ordering`` 型别的值时，左边的会被保留下来。除非左边的值是 ``EQ``，那我们就会保留右边的当作结果。而 identity 就是 ``EQ``。乍看之下有点随便，但实际上他是我们比较两个英文字时所用的方法。我们先比较两个字母是否相等，如果他们不一样，那我们就知道那一个字在字典中会在前面。而如果两个字母相等，那我们就继续比较下一个字母，以此类推。
+这个 instance 定义如下：当我们用 ``mappend`` 两个 ``Ordering`` 型别的值时，左边的会被保留下来。除非左边的值是 ``EQ``，那我们就会保留右边的当作结果。而 identity 就是 ``EQ``。乍看之下有点随便，但实际上他是我们比较两个英文本时所用的方法。我们先比较两个字母是否相等，如果他们不一样，那我们就知道那一个字在字典中会在前面。而如果两个字母相等，那我们就继续比较下一个字母，以此类推。
 
 
 举例来说，如果我们字典顺序地比较 ``"ox"`` 跟 ``"on"`` 的话。我们会先比较两个字的首个字母，看看他们是否相等，然后继续比较第二个字母。我们看到 ``'x'`` 是比 ``'n'`` 要来得大，所以我们就知道如何比较两个字了。而要了解为何 ``EQ`` 是 identity，我们可以注意到如果我们在两个字中间的同样位置塞入同样的字母，那他们之间的字典顺序并不会改变。``"oix"`` 仍然比 ``"oin"`` 要大。
@@ -1376,7 +1376,7 @@ ghci> lengthCompare "zen" "ant"
 GT  
 ```
 
-要记住当我们使用 ``mappend``。他在左边不等于 ``EQ`` 的情况下都会回传左边的值。相反地则回传右边的值。这也是为什么我们将我们认为比较重要的顺序放在左边的参数。如果我们要继续延展这个函数，要让他们比较母音的顺序，并把这顺序列为第二重要，那我们可以这样修改他：
+要记住当我们使用 ``mappend``。他在左边不等于 ``EQ`` 的情况下都会回传左边的值。相反地则回传右边的值。这也是为什么我们将我们认为比较重要的顺序放在左边的参数。如果我们要继续延展这个函数，要让他们比较元音的顺序，并把这顺串行为第二重要，那我们可以这样修改他：
 
 ```haskell
 import Data.Monoid  
@@ -1388,7 +1388,7 @@ lengthCompare x y = (length x `compare` length y) `mappend`
     where vowels = length . filter (`elem` "aeiou")  
 ```
 
-我们写了一个辅助函数，他接受一个字串并回传他有多少母音。他是先用 filter 来把字母滤到剩下 ``"aeiou"``，然后再用 ``length`` 计算长度。
+我们写了一个辅助函数，他接受一个字串并回传他有多少元音。他是先用 filter 来把字母滤到剩下 ``"aeiou"``，然后再用 ``length`` 计算长度。
 
 ```haskell
 ghci> lengthCompare "zen" "anna"  
@@ -1399,7 +1399,7 @@ ghci> lengthCompare "zen" "ann"
 GT  
 ```
 
-在第一个例子中我们看到长度不同所以回传 ``LT``，明显地 ``"zen"`` 要短于 ``"anna"``。在第二个例子中，长度是一样的，但第二个字串有比较多的母音，所以结果仍然是 ``LT``。在第三个范例中，两个长度都相等，他们也有相同个数的母音，经由字典顺序比较后得到 ``"zen"`` 比较大。
+在第一个例子中我们看到长度不同所以回传 ``LT``，明显地 ``"zen"`` 要短于 ``"anna"``。在第二个例子中，长度是一样的，但第二个字串有比较多的元音，所以结果仍然是 ``LT``。在第三个范例中，两个长度都相等，他们也有相同个数的元音，经由字典顺序比较后得到 ``"zen"`` 比较大。
 
 
 ``Ordering`` 的 monoid 允许我们用不同方式比较事物，并将这些顺序也定义了依重要度不同的一个顺序。
@@ -1480,10 +1480,10 @@ Just "two"
 ### Using monoids to fold data structures
 
 
-另一种有趣的 monoid 使用方式就是让他来帮助我们 fold 一些资料结构。到目前为止我们只有 fold list。但 list 并不是唯一一种可以 fold 的资料结构。我们几乎可以 fold 任何一种资料结构。像是 tree 也是一种常见的可以 fold 的资料结构。
+另一种有趣的 monoid 使用方式就是让他来帮助我们 fold 一些数据结构。到目前为止我们只有 fold list。但 list 并不是唯一一种可以 fold 的数据结构。我们几乎可以 fold 任何一种数据结构。像是 tree 也是一种常见的可以 fold 的数据结构。
 
 
-由于有太多种资料结构可以 fold 了，所以我们定义了 ``Foldable`` 这个 typeclass。就像 ``Functor`` 是定义可以 map over 的结构。``Foldable`` 是定义可以 fold 的结构。在 ``Data.Foldable`` 中有定义了一些有用的函数，但他们名称跟 ``Prelude`` 中的名称冲突。所以最好是用 qualified 的方式 import 他们：
+由于有太多种数据结构可以 fold 了，所以我们定义了 ``Foldable`` 这个 typeclass。就像 ``Functor`` 是定义可以 map over 的结构。``Foldable`` 是定义可以 fold 的结构。在 ``Data.Foldable`` 中有定义了一些有用的函数，但他们名称跟 ``Prelude`` 中的名称冲突。所以最好是用 qualified 的方式 import 他们：
 
 ```haskell
 import qualified Foldable as F      
@@ -1508,7 +1508,7 @@ ghci> F.foldr (*) 1 [1,2,3]
 6  
 ```
 
-那有哪些资料结构支援 fold 呢？首先我们有 ``Maybe``：
+那有哪些数据结构支持 fold 呢？首先我们有 ``Maybe``：
 
 ```haskell
 ghci> F.foldl (+) 2 (Just 9)  
@@ -1518,10 +1518,10 @@ True
 ```
 
 
-但 fold 一个 ``Maybe`` 并没什么新意。毕竟当他是 ``Just`` 的时候表现得像是只有单一元素的 list，而当他是 ``Nothing`` 的时候就像是空的 list 一样。所以我们来看一些比较复杂的资料结构。
+但 fold 一个 ``Maybe`` 并没什么新意。毕竟当他是 ``Just`` 的时候表现得像是只有单一元素的 list，而当他是 ``Nothing`` 的时候就像是空的 list 一样。所以我们来看一些比较复杂的数据结构。
 
 
-还记得 Making Our Own Types and Typeclass 章节中的树状的资料结构吗？我们是这样定义的：
+还记得 Making Our Own Types and Typeclass 章节中的树状的数据结构吗？我们是这样定义的：
 
 ```haskell
 data Tree a = Empty | Node a (Tree a) (Tree a) deriving (Show, Read, Eq)      
@@ -1533,7 +1533,7 @@ data Tree a = Empty | Node a (Tree a) (Tree a) deriving (Show, Read, Eq)
 foldMap :: (Monoid m, Foldable t) => (a -> m) -> t a -> m  
 ```
 
-第一个参数是一个函数，这个函数接受 foldable 资料结构中包含的元素的型别，并回传一个 monoid。他第二个参数是一个 foldable 的结构，并包含型别 ``a`` 的元素。他将第一个函数来 map over 这个 foldable 的结构，因此得到一个包含 monoid 的 foldable 结构。然后用 ``mappend`` 来简化这些 monoid，最后得到单一的一个 monoid。这个函数听起来不太容易理解，但我们下面会看到他其实很容易实作。而且好消息是只要实作了这个函数就可以让我们的函数成为 ``Foldable``。所以我们只要实作某个型别的 ``foldMap``，我们就可以得到那个型别的 ``foldr`` 跟 ``foldl``。
+第一个参数是一个函数，这个函数接受 foldable 数据结构中包含的元素的型别，并回传一个 monoid。他第二个参数是一个 foldable 的结构，并包含型别 ``a`` 的元素。他将第一个函数来 map over 这个 foldable 的结构，因此得到一个包含 monoid 的 foldable 结构。然后用 ``mappend`` 来简化这些 monoid，最后得到单一的一个 monoid。这个函数听起来不太容易理解，但我们下面会看到他其实很容易实作。而且好消息是只要实作了这个函数就可以让我们的函数成为 ``Foldable``。所以我们只要实作某个型别的 ``foldMap``，我们就可以得到那个型别的 ``foldr`` 跟 ``foldl``。
 
 
 这就是我们如何定义 ``Tree`` 成为 ``Foldable`` 的：
@@ -1549,16 +1549,16 @@ instance F.Foldable Tree where
 
 ![](accordion.png)
 
-我们是这样思考的：如果我们写一个函数，他接受树中的一个元素并回传一个 monoid，那我们要怎么简化整棵树到只有单一一个 monoid？当我们在对树做 ``fmap`` 的时候，我们将那函数套用至节点上，并递回地套用至左子树以及右子树。这边我们不只是 map 一个函数而已，我们还要求要把结果用 ``mappend`` 简化成只有单一一个 monoid 值。首先我们考虑树为空的情形，一棵没有值也没有子树的情形。由于没有值我们也没办法将他套用上面转换成 monoid 的函数，所以当树为空的时候，结果应该要是 ``mempty``。
+我们是这样思考的：如果我们写一个函数，他接受树中的一个元素并回传一个 monoid，那我们要怎么简化整棵树到只有单一一个 monoid？当我们在对树做 ``fmap`` 的时候，我们将那函数套用至节点上，并递归地套用至左子树以及右子树。这边我们不只是 map 一个函数而已，我们还要求要把结果用 ``mappend`` 简化成只有单一一个 monoid 值。首先我们考虑树为空的情形，一棵没有值也没有子树的情形。由于没有值我们也没办法将他套用上面转换成 monoid 的函数，所以当树为空的时候，结果应该要是 ``mempty``。
 
 
-在非空节点的情形下比较有趣，他包含一个值跟两棵子树。在这种情况下，我们递回地做 ``foldMap``，用 ``f`` 来套用到左子树跟右子树上。要记住我们的 ``foldMap`` 只会得到单一的 monoid 值。我们也会套用 ``f`` 到节点中的值。这样我们就得到三个 monoid 值，有两个来自简化子树的结果，还有一个是套用 ``f`` 到节点中的值的结果。而我们需要将这三个值整合成单一个值。要达成这个目的我们使用 ``mappend``，而且自然地会想到照左子树，节点值以及右子树的顺序来简化。
+在非空节点的情形下比较有趣，他包含一个值跟两棵子树。在这种情况下，我们递归地做 ``foldMap``，用 ``f`` 来套用到左子树跟右子树上。要记住我们的 ``foldMap`` 只会得到单一的 monoid 值。我们也会套用 ``f`` 到节点中的值。这样我们就得到三个 monoid 值，有两个来自简化子树的结果，还有一个是套用 ``f`` 到节点中的值的结果。而我们需要将这三个值集成成单一个值。要达成这个目的我们使用 ``mappend``，而且自然地会想到照左子树，节点值以及右子树的顺序来简化。
 
 
 注意到我们并不一定要提供一个将普通值转成 monoid 的函数。我们只是把他当作是 ``foldMap`` 的参数，我们要决定的只是如何套用那个函数，来把得到的 monoid 们简化成单一结果。
 
 
-现在我们有树的 ``Foldable`` instance，而 ``foldr`` 跟 ``foldl`` 也有预设的实作了。考虑下面这棵树：
+现在我们有树的 ``Foldable`` instance，而 ``foldr`` 跟 ``foldl`` 也有缺省的实作了。考虑下面这棵树：
 
 
 ```haskell
