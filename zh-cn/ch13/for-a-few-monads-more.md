@@ -6,9 +6,9 @@
 
 我们也看过了 ``Maybe`` 是如何把值加上一个可能会失败的 context。我们学习到 List Monad 是如何加进多重结果的 context。我们也了解 ``IO`` Monad 如何运作，而且我们在知道什么是 Monad 之前就已经知道他了。
 
-在这个章节，我们会介绍一些其他的 Monad。他们可以把值变成 monadic value，因此可以让我们的程式更简洁清晰。多见识几个 Monad 也可以敏锐我们对 Monad 的直觉。
+在这个章节，我们会介绍一些其他的 Monad。他们可以把值变成 monadic value，因此可以让我们的程序更简洁清晰。多见识几个 Monad 也可以敏锐我们对 Monad 的直觉。
 
-我们即将要介绍的 Monad 都包含在 ``mtl`` 这个套建中。一个 Haskell package 包含了一堆模组。而 ``mtl`` 已经包含在 Haskell Platform 中，所以你可能不用另外安装。要检查你有没有这套件，你可以下 ``ghc-pkg list``。这会列出你已经安装的套件，其中应该包含 ``mtl`` 后面接着对应的版号。
+我们即将要介绍的 Monad 都包含在 ``mtl`` 这个套建中。一个 Haskell package 包含了一堆模块。而 ``mtl`` 已经包含在 Haskell Platform 中，所以你可能不用另外安装。要检查你有没有这套件，你可以下 ``ghc-pkg list``。这会列出你已经安装的套件，其中应该包含 ``mtl`` 后面接着对应的版号。
 
 
 ## 你所不知道的 Writer Monad
@@ -148,7 +148,7 @@ ghci> ("dogmeat", Sum 5) `applyLog` addDrink `applyLog` addDrink
 
 ### The Writer type
 
-我们认识了一个附加 monoid 的值其实表现出来的是一个 monad，我们来再来看看其他类似的 ``Monad`` instance。``Control.Monad.Writer`` 这模组含有 ``Writer w a`` 的一个型态，里面定义了他 ``Monad`` 的 instance，还有一些操作这些值的函数。
+我们认识了一个附加 monoid 的值其实表现出来的是一个 monad，我们来再来看看其他类似的 ``Monad`` instance。``Control.Monad.Writer`` 这模块含有 ``Writer w a`` 的一个型态，里面定义了他 ``Monad`` 的 instance，还有一些操作这些值的函数。
 
 首先，我们来看一下型态。要把一个 monoid 附加给一个值，只需要定义一个 tuple 就好了。``Writer w a`` 这型态其实是一个 ``newtype`` wrapper。他的定义很简单：
 
@@ -184,7 +184,7 @@ ghci> runWriter (return 3 :: Writer (Product Int) Int)
 
 因为 ``Writer`` 并没有定义成 ``Show`` 的 instance，我们必须用 ``runWriter`` 来把我们的 ``Writer`` 转成正常的 tuple。对于 ``String``，monoid 的值就是空字串。而对于 ``Sum`` 来说则是 ``0``，因为 ``0`` 加上其他任何值都会是对方。而对 ``Product`` 来说，则是 ``1``。
 
-这里的 ``Writer`` instance 并没有定义 ``fail``，所以如果 pattern matching 失败的话，就会呼叫 ``error``。
+这里的 ``Writer`` instance 并没有定义 ``fail``，所以如果 pattern matching 失败的话，就会调用 ``error``。
 
 
 ### Using do notation with Writer
@@ -204,14 +204,14 @@ multWithLog = do
     return (a*b)  
 ```
 
-``logNumber`` 接受一个数并把这个数做成一个 ``Writer``。我们再用一串 string 来当作我们的 monoid 值，每一个数都跟着一个只有一个元素的 list，说明我们只有一个数。``multWithLog`` 式一个 ``Writer``，他将 ``3`` 跟 ``5`` 相乘并确保相乘的纪录有写进最后的 log 中。我们用 ``return`` 来做成 ``a*b`` 的结果。我们知道 ``return`` 会接受某个值并加上某个最小的 context，我们可以确定他不会多添加额外的 log。如果我们执行程式会得到：
+``logNumber`` 接受一个数并把这个数做成一个 ``Writer``。我们再用一串 string 来当作我们的 monoid 值，每一个数都跟着一个只有一个元素的 list，说明我们只有一个数。``multWithLog`` 式一个 ``Writer``，他将 ``3`` 跟 ``5`` 相乘并确保相乘的纪录有写进最后的 log 中。我们用 ``return`` 来做成 ``a*b`` 的结果。我们知道 ``return`` 会接受某个值并加上某个最小的 context，我们可以确定他不会多添加额外的 log。如果我们执行程序会得到：
 
 ```haskell
 ghci> runWriter multWithLog  
 (15,["Got number: 3","Got number: 5"])  
 ```
 
-有时候我们就是想要在某个时间点放进某个 Monoid value。``tell`` 正是我们需要的函数。他实作了 ``MonadWriter`` 这个 type class，而且在当 ``Writer`` 用的时候也能接受一个 monoid value，好比说 ``["This is going on"]``。我们能用他来把我们的 monoid value 接到任何一个 dummy value ``()`` 上来形成一个 Writer。当我们拿到的结果是 ``()`` 的时候，我们不会把他绑定到变数上。来看一个 ``multWithLog`` 的范例：
+有时候我们就是想要在某个时间点放进某个 Monoid value。``tell`` 正是我们需要的函数。他实作了 ``MonadWriter`` 这个 type class，而且在当 ``Writer`` 用的时候也能接受一个 monoid value，好比说 ``["This is going on"]``。我们能用他来把我们的 monoid value 接到任何一个 dummy value ``()`` 上来形成一个 Writer。当我们拿到的结果是 ``()`` 的时候，我们不会把他绑定到变量上。来看一个 ``multWithLog`` 的范例：
 
 ```haskell
 multWithLog :: Writer [String] Int  
@@ -240,7 +240,7 @@ gcd' a b
     | otherwise = gcd' b (a `mod` b)  
 ```
 
-演算法的内容很简单。首先他检查第二个数字是否为零。如果是零，那就回传第一个数字。如果不是，那结果就是第二个数字跟将第一个数字除以第二个数字的余数两个数字的最大公因数。举例来说，如果我们想知道 8 跟 3 的最大公因数，首先可以注意到 3 不是 0。所以我们要求的是 3 跟 2 的最大公因数(8 除以 3 余二)。接下去我可以看到 2 不是 0，所以我们要再找 2 跟 1 的最大公因数。同样的，第二个数不是 0，所以我们再找 1 跟 0 的最大公因数。最后第二个数终于是 0 了，所以我们得到最大公因数是 1。
+算法的内容很简单。首先他检查第二个数字是否为零。如果是零，那就回传第一个数字。如果不是，那结果就是第二个数字跟将第一个数字除以第二个数字的余数两个数字的最大公因数。举例来说，如果我们想知道 8 跟 3 的最大公因数，首先可以注意到 3 不是 0。所以我们要求的是 3 跟 2 的最大公因数(8 除以 3 余二)。接下去我可以看到 2 不是 0，所以我们要再找 2 跟 1 的最大公因数。同样的，第二个数不是 0，所以我们再找 1 跟 0 的最大公因数。最后第二个数终于是 0 了，所以我们得到最大公因数是 1。
 
 ```haskell
 ghci> gcd' 8 3  
@@ -253,7 +253,7 @@ ghci> gcd' 8 3
 gcd' :: Int -> Int -> Writer [String] Int  
 ```
 
-而他的程式码会像这样：
+而他的代码会像这样：
 
 ```haskell
 import Control.Monad.Writer  
@@ -274,7 +274,7 @@ gcd' a b
 Writer (a, ["Finished with " ++ show a])  
 ```
 
-但我想 ``do`` 的表达方式是比较容易阅读的。接下来我们看看当 ``b`` 不等于 ``0`` 的时候。我们会把 ``mod`` 的使用情况写进 log。然后在 ``do`` 当中的第二行递回呼叫 ``gcd'``。``gcd'`` 现在是回传一个 ``Writer`` 的型态，所以 ``gcd' b (a `mod` b)`` 这样的写法是完全没问题的。
+但我想 ``do`` 的表达方式是比较容易阅读的。接下来我们看看当 ``b`` 不等于 ``0`` 的时候。我们会把 ``mod`` 的使用情况写进 log。然后在 ``do`` 当中的第二行递归调用 ``gcd'``。``gcd'`` 现在是回传一个 ``Writer`` 的型态，所以 ``gcd' b (a `mod` b)`` 这样的写法是完全没问题的。
 
 尽管去 trace 这个 ``gcd'`` 对于理解十分有帮助，但我想了解整个大概念，把值视为具有 context 是更加有用的。
 
@@ -295,10 +295,10 @@ ghci> mapM_ putStrLn $ snd $ runWriter (gcd' 8 3)
 Finished with 1  
 ```
 
-把普通的演算法转换成具有 log 是很棒的经验，我们不过是把普通的 value 重写成 Monadic value，剩下的就靠 ``>>=`` 跟 ``Writer`` 来帮我们处理一切。用这样的方法我们几乎可以对任何函数加上 logging 的功能。我们只要把普通的值换成 ``Writer``，然后把一般的函数呼叫换成 ``>>=`` (当然也可以用 ``do``)
+把普通的算法转换成具有 log 是很棒的经验，我们不过是把普通的 value 重写成 Monadic value，剩下的就靠 ``>>=`` 跟 ``Writer`` 来帮我们处理一切。用这样的方法我们几乎可以对任何函数加上 logging 的功能。我们只要把普通的值换成 ``Writer``，然后把一般的函数调用换成 ``>>=`` (当然也可以用 ``do``)
 
 ### Inefficient list construction
-当制作 ``Writer`` Monad 的时候，要特别注意你是使用哪种 monoid。使用 list 的话效能有时候是没办法接受的。因为 list 是使用 ``++`` 来作为 ``mappend`` 的实现。而 ``++`` 在 list 很长的时候是非常慢的。
+当制作 ``Writer`` Monad 的时候，要特别注意你是使用哪种 monoid。使用 list 的话性能有时候是没办法接受的。因为 list 是使用 ``++`` 来作为 ``mappend`` 的实现。而 ``++`` 在 list 很长的时候是非常慢的。
 
 在之前的 ``gcd'`` 中，log 并不会慢是因为 list append 的动作实际上看起来是这样：
 
@@ -306,7 +306,7 @@ Finished with 1
 a ++ (b ++ (c ++ (d ++ (e ++ f))))  
 ```
 
-list 是建立的方向是从左到右，当我们先建立左边的部份，而把另一串 list 加到右边的时候效能会不错。但如果我们不小心使用，而让 ``Writer`` monad 实际在操作 list 的时候变成像这样的话。
+list 是建立的方向是从左到右，当我们先建立左边的部份，而把另一串 list 加到右边的时候性能会不错。但如果我们不小心使用，而让 ``Writer`` monad 实际在操作 list 的时候变成像这样的话。
 
 ```haskell
 ((((a ++ b) ++ c) ++ d) ++ e) ++ f 
@@ -330,7 +330,7 @@ gcdReverse a b
       return result  
 ```
 
-他先递回呼叫，然后把结果绑定到 ``result``。然后把目前的动作写到 log，在递回的结果之后。最后呈现的就是完整的 log。
+他先递归调用，然后把结果绑定到 ``result``。然后把目前的动作写到 log，在递归的结果之后。最后呈现的就是完整的 log。
 
 ```haskell
 ghci> mapM_ putStrLn $ snd $ runWriter (gcdReverse 8 3)  
@@ -347,9 +347,9 @@ Finished with 1
 
 ![](cactus.png)
 
-由于 list 在重复 append 的时候显得低效，我们最好能使用一种支援高效 appending 的资料结构。其中一种就是 difference list。difference list 很类似 list，只是他是一个函数。他接受一个 list 并 prepend 另一串 list 到他前面。一个等价于 ``[1,2,3]`` 的 difference list 是这样一个函数 ``\xs -> [1,2,3] ++ xs``。一个等价于 ``[]`` 的 difference list 则是 ``\xs -> [] ++ xs``。
+由于 list 在重复 append 的时候显得低效，我们最好能使用一种支持高效 appending 的数据结构。其中一种就是 difference list。difference list 很类似 list，只是他是一个函数。他接受一个 list 并 prepend 另一串 list 到他前面。一个等价于 ``[1,2,3]`` 的 difference list 是这样一个函数 ``\xs -> [1,2,3] ++ xs``。一个等价于 ``[]`` 的 difference list 则是 ``\xs -> [] ++ xs``。
 
-Difference list 最酷的地方在于他支援高效的 appending。当我们用 ``++`` 来实现 appending 的时候，他必须要走到左边的 list 的尾端，然后把右边的 list 一个个从这边接上。那 difference list 是怎么作的呢？appending 两个 difference list 就像这样
+Difference list 最酷的地方在于他支持高效的 appending。当我们用 ``++`` 来实现 appending 的时候，他必须要走到左边的 list 的尾端，然后把右边的 list 一个个从这边接上。那 difference list 是怎么作的呢？appending 两个 difference list 就像这样
 
 ```haskell
 f `append` g = \xs -> f (g xs)  
@@ -438,7 +438,7 @@ finalCountDown x = do
     tell (toDiffList [show x])  
 ```
 
-如果我们喂 ``0``，他就只 log 0。如果喂其他正整数，他会先倒数到 ``0`` 然后 append 那些数到 log 中，所以如果我们呼叫 ``finalCountDown`` 并喂给他 ``100``，那 log 的最后一笔就会是 ``"100"``。
+如果我们喂 ``0``，他就只 log 0。如果喂其他正整数，他会先倒数到 ``0`` 然后 append 那些数到 log 中，所以如果我们调用 ``finalCountDown`` 并喂给他 ``100``，那 log 的最后一笔就会是 ``"100"``。
 
 如果你把这个函数 load 进 GHCi 中并喂给他一个比较大的整数 ``500000``，你会看到他无停滞地从 ``0`` 开始数起：
 
@@ -491,9 +491,9 @@ ghci> f 3
 19
 ```
 
-``(+) <$> (*2) <*> (+10)`` 代表一个函数，他接受一个数值，分别把这数值交给 ``(*2)`` 跟 ``(+10)``。然后把结果加起来。例如说，如果我们喂 ``3`` 给这个函数，他会分别对 ``3`` 做 ``(*2)`` 跟 ``(+10)`` 的动作。而得到 ``6`` 跟 ``13``。然后呼叫 ``(+)``，而得到 ``19``。
+``(+) <$> (*2) <*> (+10)`` 代表一个函数，他接受一个数值，分别把这数值交给 ``(*2)`` 跟 ``(+10)``。然后把结果加起来。例如说，如果我们喂 ``3`` 给这个函数，他会分别对 ``3`` 做 ``(*2)`` 跟 ``(+10)`` 的动作。而得到 ``6`` 跟 ``13``。然后调用 ``(+)``，而得到 ``19``。
 
-其实 ``(->) r`` 不只是一个 functor 跟一个 applicative functor，他也是一个 monad。就如其他 monadic value 一般，一个函数也可以被想做是包含一个 context 的。这个 context 是说我们期待某个值，他还没出现，但我们知道我们会把他当作函数的参数，呼叫函数来得到结果。
+其实 ``(->) r`` 不只是一个 functor 跟一个 applicative functor，他也是一个 monad。就如其他 monadic value 一般，一个函数也可以被想做是包含一个 context 的。这个 context 是说我们期待某个值，他还没出现，但我们知道我们会把他当作函数的参数，调用函数来得到结果。
 
 我们已经见识到函数是怎样可以看作 functor 或是 applicative functors 了。再来让我们看看当作 ``Monad`` 的一个 instance 时会是什么样子。你可以在 ``Control.Monad.Instances`` 里面找到，他看起来像这样：
 
@@ -542,7 +542,7 @@ addStuff x = let
 
 ![](texas.png)
 
-Haskell 是一个纯粹的语言，正因为如此，我们的程式是有一堆没办法改变全域状态或变数的函数所组成，他们只会作些处理并回传结果。这样的性质让我们很容易思考我们的程式在干嘛，因为我们不需要担心变数在某一个时间点的值是什么。然而，有一些领域的问题根本上就是依赖于随着时间而改变的状态。虽然我们也可以用 Haskell 写出这样的程式，但有时候写起来蛮痛苦的。这也是为什么 Haskell 要加进 State Monad 这个特性。这让我们在 Haskell 中可以容易地处理状态性的问题，并让其他部份的程式还是保持纯粹性。
+Haskell 是一个纯粹的语言，正因为如此，我们的程序是有一堆没办法改变全域状态或变量的函数所组成，他们只会作些处理并回传结果。这样的性质让我们很容易思考我们的程序在干嘛，因为我们不需要担心变量在某一个时间点的值是什么。然而，有一些领域的问题根本上就是依赖于随着时间而改变的状态。虽然我们也可以用 Haskell 写出这样的程序，但有时候写起来蛮痛苦的。这也是为什么 Haskell 要加进 State Monad 这个特性。这让我们在 Haskell 中可以容易地处理状态性的问题，并让其他部份的程序还是保持纯粹性。
 
 
 当我们处理乱数的时候，我们的函数接受一个 random generator 并回传一个新的乱数跟一个新的 random generator。如果我们需要很多个乱数，我们可以用前一个函数回传的 random generator 继续做下去。当我们要写一个接受 ``StdGen`` 的函数并产生丢三个硬币结果的函数，我们会这样写：
@@ -556,9 +556,9 @@ threeCoins gen =
     in  (firstCoin, secondCoin, thirdCoin)  
 ```
 
-他接受一个 ``gen`` 然后用 ``random gen`` 产生一个 ``Bool`` 型态的值以及新的 generator。要模拟丢第二个硬币的话，便使用新的 generator。在其他语言中，多半除了乱数之外不需要多回传一个 generator。那是因为我们可以对现有的进行修改。但 Haskell 是纯粹的语言，我们没办法那么做，所以我们必须要接受一个状态，产生结果然后回传一个新的状态，然后用新的状态来继续做下去。
+他接受一个 ``gen`` 然后用 ``random gen`` 产生一个 ``Bool`` 型态的值以及新的 generator。要仿真丢第二个硬币的话，便使用新的 generator。在其他语言中，多半除了乱数之外不需要多回传一个 generator。那是因为我们可以对现有的进行修改。但 Haskell 是纯粹的语言，我们没办法那么做，所以我们必须要接受一个状态，产生结果然后回传一个新的状态，然后用新的状态来继续做下去。
 
-一般来讲你应该不会喜欢这么写，在程式中有赤裸裸的状态，但我们又不想放弃 Haskell 的纯粹性质。这就是 State Monad 的好处了，他可以帮我们处理这些琐碎的事情，又让我们保持 Haskell 的纯粹性。
+一般来讲你应该不会喜欢这么写，在程序中有赤裸裸的状态，但我们又不想放弃 Haskell 的纯粹性质。这就是 State Monad 的好处了，他可以帮我们处理这些琐碎的事情，又让我们保持 Haskell 的纯粹性。
 
 为了深入理解状态性的计算，我们先来看看应该给他们什么样的型态。我们会说一个状态性的计算是一个函数，他接受一个状态，回传一个值跟一个新的状态。写起来会像这样：
 
@@ -569,9 +569,9 @@ s -> (a,s)
 ``s`` 是状态的型态，而 ``a`` 是计算结果的型态。
 
 
-    在其他的语言中，赋值大多是被当作会改变状态的操作。举例来说，当我们在命令式语言写 ``x = 5``，这通常代表的是把 ``5`` 指定给 ``x`` 这变数。而且这边 ``5`` 是一个 expression。
+    在其他的语言中，赋值大多是被当作会改变状态的操作。举例来说，当我们在命令式语言写 ``x = 5``，这通常代表的是把 ``5`` 指定给 ``x`` 这变量。而且这边 ``5`` 是一个 expression。
     
-    如果你用函数语言的角度去思考，你可以把他想做是一个函数，接受一个状态，并回传结果跟新的状态。那新的状态代表所有已指定的值与新加入的变数。
+    如果你用函数语言的角度去思考，你可以把他想做是一个函数，接受一个状态，并回传结果跟新的状态。那新的状态代表所有已指定的值与新加入的变量。
 
 这种改变状态的计算，除了想做是一个接受状态并回传结果跟新状态的函数外，也可以想做是具有 context 的值。
 实际的值是结果。然而要得到结果，我们必须要给一个初始的状态，才能得到结果跟最后的状态。
@@ -595,7 +595,7 @@ push a xs = ((),a:xs)
 
 我们用 ``()`` 来当作 pushing 的结果，毕竟推上堆叠并不需要什么回传值，他的重点是在改变堆叠。注意到 ``push`` 跟 ``pop`` 都是改变状态的计算，可以从他们的型态看出来。
 
-我们来写一段程式来模拟一个堆叠的操作。我们接受一个堆叠，把 ``3`` 推上去，然后取出两个元素。
+我们来写一段程序来仿真一个堆叠的操作。我们接受一个堆叠，把 ``3`` 推上去，然后取出两个元素。
 
 ```haskell
 stackManip :: Stack -> (Int, Stack)  
@@ -614,9 +614,9 @@ ghci> stackManip [5,8,2,1]
 
 结果就是 ``5`` 跟新的堆叠 ``[8,2,1]``。注意到 ``stackManip`` 是一个会改变状态的操作。我们把一堆会改变状态的操作绑在一起操作，有没有觉得很耳熟的感觉。
 
-``stackManip`` 的程式有点冗长，因为我们要写得太详细，必须把状态给每个操作，然后把新的状态再喂给下一个。如果我们可以不要这样作的话，那程式应该会长得像这样：
+``stackManip`` 的程序有点冗长，因为我们要写得太详细，必须把状态给每个操作，然后把新的状态再喂给下一个。如果我们可以不要这样作的话，那程序应该会长得像这样：
 
-``` 
+```haskell
 stackManip = do  
     push 3  
     a <- pop  
@@ -629,7 +629,7 @@ stackManip = do
 
 ### The State Monad
 
-``Control.Monad.State`` 这个模组提供了一个 ``newtype`` 包起来的型态。
+``Control.Monad.State`` 这个模块提供了一个 ``newtype`` 包起来的型态。
 
 ```haskell
 newtype State s a = State { runState :: s -> (a,s) }  
@@ -811,9 +811,9 @@ ghci> runState threeCoins (mkStdGen 33)
 
 ## Error Monad
 
-我们知道 ``Maybe`` 是拿来赋予一个值具有可能失败的 context。一个值可能会是 ``Just something`` 或是一个 ``Nothing``。尽管这很有用，但当我们拿到了一个 ``Nothing``，我们只知道他失败了，但我们没办法塞进一些有用的资讯，告诉我们究竟是在什么样的情况下失败了。
+我们知道 ``Maybe`` 是拿来赋予一个值具有可能失败的 context。一个值可能会是 ``Just something`` 或是一个 ``Nothing``。尽管这很有用，但当我们拿到了一个 ``Nothing``，我们只知道他失败了，但我们没办法塞进一些有用的信息，告诉我们究竟是在什么样的情况下失败了。
 
-而 ``Either e a`` 则能让我们可以加入一个可能会发生错误的 context，还可以增加些有用的讯息，这样能让我们知道究竟是什么东西出错了。一个 ``Either e a`` 的值可以是代表正确的 ``Right``，或是代表错误的 ``Left``，例如说：
+而 ``Either e a`` 则能让我们可以加入一个可能会发生错误的 context，还可以增加些有用的消息，这样能让我们知道究竟是什么东西出错了。一个 ``Either e a`` 的值可以是代表正确的 ``Right``，或是代表错误的 ``Left``，例如说：
 
 ```haskell
 ghci> :t Right 4  
@@ -822,7 +822,7 @@ ghci> :t Left "out of cheese error"
 Left "out of cheese error" :: Either [Char] b  
 ```
 
-这就像是加强版的 ``Maybe``，他看起来实在很像一个 monad，毕竟他也可以当作是一个可能会发生错误的 context，只是多了些讯息罢了。
+这就像是加强版的 ``Maybe``，他看起来实在很像一个 monad，毕竟他也可以当作是一个可能会发生错误的 context，只是多了些消息罢了。
 
 在 ``Control.Monad.Error`` 里面有他的 ``Monad`` instance。
 
@@ -836,10 +836,10 @@ instance (Error e) => Monad (Either e) where
 
 ``return`` 就是建立起一个最小的 context，由于我们用 ``Right`` 代表正确的结果，所以他把值包在一个 ``Right`` constructor 里面。就像实作 ``Maybe`` 时的 ``return`` 一样。
 
-``>>=`` 会检查两种可能的情况：也就是 ``Left`` 跟 ``Right``。如果进来的是 ``Right``，那我们就呼叫 ``f``，就像我们在写 ``Just`` 的时候一样，只是呼叫对应的函数。而在错误的情况下，``Left`` 会被传出来，而且里面保有描述失败的值。
+``>>=`` 会检查两种可能的情况：也就是 ``Left`` 跟 ``Right``。如果进来的是 ``Right``，那我们就调用 ``f``，就像我们在写 ``Just`` 的时候一样，只是调用对应的函数。而在错误的情况下，``Left`` 会被传出来，而且里面保有描述失败的值。
 
 
-``Either e`` 的 ``Monad`` instance 有一项额外的要求，就是包在 ``Left`` 中的型态，也就是 ``e``，必须是 ``Error`` typeclass 的 instance。``Error`` 这个 typeclass 描述一个可以被当作错误讯息的型态。他定义了 ``strMsg`` 这个函数，他接受一个用字串表达的错误。一个明显的范例就是 ``String`` 型态，当他是 ``String`` 的时候，``strMsg`` 只不过回传他接受到的字串。
+``Either e`` 的 ``Monad`` instance 有一项额外的要求，就是包在 ``Left`` 中的型态，也就是 ``e``，必须是 ``Error`` typeclass 的 instance。``Error`` 这个 typeclass 描述一个可以被当作错误消息的型态。他定义了 ``strMsg`` 这个函数，他接受一个用字串表达的错误。一个明显的范例就是 ``String`` 型态，当他是 ``String`` 的时候，``strMsg`` 只不过回传他接受到的字串。
 
 ```haskell
 ghci> :t strMsg  
@@ -848,7 +848,7 @@ ghci> strMsg "boom!" :: String
 "boom!"  
 ```
 
-但因为我们通常在用 ``Either`` 来描述错误的时候，是用 ``String`` 来装错误讯息，所以我们也不用担心这一点。当在 ``do`` 里面做 pattern match 失败的时候，``Left`` 的值会拿来代表失败。
+但因为我们通常在用 ``Either`` 来描述错误的时候，是用 ``String`` 来装错误消息，所以我们也不用担心这一点。当在 ``do`` 里面做 pattern match 失败的时候，``Left`` 的值会拿来代表失败。
 
 总之来看看一个范例吧：
 
@@ -894,7 +894,7 @@ Right 103
 
 ![](wolf.png)
 
-当我们开始学习 Monad 的时候，我们是先学习 functors，他代表可以被 map over 的事物。接着我们学了 functors 的加强版，也就是 applicative functors，他可以对 applicative values 做函数的套用，也可以把一个一般值放到一个预设的 context 中。最后，我们介绍在 applicative functors 上更进一步的 monad，他让这些具有 context 的值可以被喂进一般函数中。 
+当我们开始学习 Monad 的时候，我们是先学习 functors，他代表可以被 map over 的事物。接着我们学了 functors 的加强版，也就是 applicative functors，他可以对 applicative values 做函数的套用，也可以把一个一般值放到一个缺省的 context 中。最后，我们介绍在 applicative functors 上更进一步的 monad，他让这些具有 context 的值可以被喂进一般函数中。 
 
 也就是说每一个 monad 都是个 applicative functor，而每一个 applicative functor 也都是一个 functor。``Applicative`` typeclass 中有加入限制，让每一个 ``Applicative`` 都是 ``Functor``。但 ``Monad`` 却没有这样的限制，让每个 ``Monad`` 都是 ``Applicative``。这是因为 ``Monad`` 这个 typeclass 是在 ``Applicative`` 引入前就存在的缘故。
 
@@ -944,7 +944,7 @@ liftM f m = do
     return (f x)  
 ```
 
-我们喂一个 monadic value ``m`` 给函数，我们套用那个函数然后把结果放进一个预设的 context。由于遵守 monad laws，这保证这操作不会改变 context，只会呈现最后的结果。我们可以看到实作中 ``liftM`` 也没有用到 ``Functor`` 的性质。这代表我们能只用 monad 提供给我们的就实作完 ``fmap``。这特性让我们可以得到 monad 比 functor 性质要强的结论。
+我们喂一个 monadic value ``m`` 给函数，我们套用那个函数然后把结果放进一个缺省的 context。由于遵守 monad laws，这保证这操作不会改变 context，只会呈现最后的结果。我们可以看到实作中 ``liftM`` 也没有用到 ``Functor`` 的性质。这代表我们能只用 monad 提供给我们的就实作完 ``fmap``。这特性让我们可以得到 monad 比 functor 性质要强的结论。
 
 ``Applicative`` 让我们可以操作具有 context 的值就像操作一般的值一样。
 就像这样：
@@ -963,7 +963,7 @@ Nothing
 (<*>) :: (Applicative f) => f (a -> b) -> f a -> f b  
 ```
 
-他有点像 ``fmap``，只是函数本身有一个 context。我们必须把他从 context 中抽出，对 ``f a`` 做 map over 的东做，然后再放回 context 中。由于在 Haskel 中函数预设都是 curried，我们便能用 ``<$>`` 以及 ``<*>`` 来让接受多个参数的函数也能接受 applicative 种类的值。
+他有点像 ``fmap``，只是函数本身有一个 context。我们必须把他从 context 中抽出，对 ``f a`` 做 map over 的东做，然后再放回 context 中。由于在 Haskel 中函数缺省都是 curried，我们便能用 ``<$>`` 以及 ``<*>`` 来让接受多个参数的函数也能接受 applicative 种类的值。
 
 总之 ``<*>`` 跟 ``fmap`` 很类似，他也能只用 ``Monad`` 保证的性质实作出来。``ap`` 这个函数基本上就是 ``<*>``，只是他是限制在 ``Monad`` 上而不是 ``Applicative`` 上。这边是他的定义：
 
@@ -1001,7 +1001,7 @@ liftA2 f x y = f <$> x <*> y
 
 ``liftM2`` 也是做差不多的事情，只是多了 ``Monad`` 的限制。在函式库中其实也有 ``liftM3``，``liftM4`` 跟 ``liftM5``。
 
-我们看到了 monad 相较于 applicative 跟 functor 有比较强的性质。尽管 moand 有 functor 跟 applicative functor 的性质，但他们不见得有 ``Functor`` 跟 ``Applicative`` 的 instance 定义。所以我们检视了一些在 monad 中定义，且等价于 functor 或 applicative functor 所具有的函数。
+我们看到了 monad 相较于 applicative 跟 functor 有比较强的性质。尽管 moand 有 functor 跟 applicative functor 的性质，但他们不见得有 ``Functor`` 跟 ``Applicative`` 的 instance 定义。所以我们查看了一些在 monad 中定义，且等价于 functor 或 applicative functor 所具有的函数。
 
 
 ### The join function
@@ -1041,7 +1041,7 @@ ghci> runWriter $ join (Writer (Writer (1,"aaa"),"bbb"))
 (1,"bbbaaa")  
 ```
 
-``"bbb"`` 先被加到 monoid 中，接着 ``"aaa"`` 被附加上去。你想要检视 ``Writer`` 中的值的话，必须先把值写进去才行。
+``"bbb"`` 先被加到 monoid 中，接着 ``"aaa"`` 被附加上去。你想要查看 ``Writer`` 中的值的话，必须先把值写进去才行。
 
 要对 ``Either`` 做 ``join`` 跟对 ``Maybe`` 做 ``join`` 是很类似的：
 
@@ -1224,18 +1224,18 @@ ghci> foldM binSmalls 0 [2,11,3,1]
 Nothing  
 ```
 
-由于这串 list 中有一个数值大于 ``9``，所以整个结果会是 ``Nothing``。另外你也可以尝试 fold 一个回传 ``Writer`` 的 binary 函数，他会在 fold 的过程中纪录你想纪录的资讯。
+由于这串 list 中有一个数值大于 ``9``，所以整个结果会是 ``Nothing``。另外你也可以尝试 fold 一个回传 ``Writer`` 的 binary 函数，他会在 fold 的过程中纪录你想纪录的信息。
 
 
 ### Making a safe RPN calculator
 
 ![](miner.png)
 
-之前的章节我们实作了一个 RPN 计算机，但我们没有做错误的处理。他只有在输入是合法的时候才会运算正确。假如有东西出错了，整个程式便会当掉。我们在这章看到了要怎样把程式码转换成 monadic 的版本，我们先尝适用 ``Maybe`` monad 来帮我们的 RPN 计算机加上些错误处理。
+之前的章节我们实作了一个 RPN 计算机，但我们没有做错误的处理。他只有在输入是合法的时候才会运算正确。假如有东西出错了，整个程序便会当掉。我们在这章看到了要怎样把代码转换成 monadic 的版本，我们先尝适用 ``Maybe`` monad 来帮我们的 RPN 计算机加上些错误处理。
 
 我们的 RPN 计算机接受一个像 ``"1 3 + 2 *"`` 这样的字串，把他断成 word，变成 ``["1","3","+","2","*"]`` 这样。然后用一个 binary 函数，跟一个空的堆叠，从左边开始或是将数值推进堆叠中，或是操作堆叠最上层的两个元素。
 
-以下便是程式的核心部份：
+以下便是程序的核心部份：
 
 ```haskell
 import Data.List  
@@ -1491,7 +1491,7 @@ instance Monad Prob where
 
 ![](ride.png)
 
-由于我们已经把所有苦工的做完了，定义这个 instance 显得格外轻松。我们也定义了 ``fail``，我们定义他的方式跟定义 list 一样。如果在 ``do`` 中发生了失败的 pattern match，那就会呼叫 ``fail``。
+由于我们已经把所有苦工的做完了，定义这个 instance 显得格外轻松。我们也定义了 ``fail``，我们定义他的方式跟定义 list 一样。如果在 ``do`` 中发生了失败的 pattern match，那就会调用 ``fail``。
 
 检查我们定义的 instance 是否遵守 monad law 也是很重要的。monad law 的第一个定律是 ``return x >>= f`` 应该要等价于 ``f x``。要写出严格的证明会很麻烦，但我们可以观察到下列事实：首先用 ``return`` 做一个最小的 context，然后用 ``fmap`` 将一个函数 map over 这个 context，再将他打平。这样做出来的 probability list，每一个机率值都相当于将我们最初放到 minimal context 中的值乘上 ``1%1``。同样的逻辑，也可以看出 ``m >>= return`` 是等价于 ``m``。第三个定律是 ``f <=< (g <=< h)`` 应该要等价于 ``(f <=< g) <=< h``。我们可以从乘法有结合律的性质，以及 list monad 的特性上推出 probability monad 也符合这个定律。``1%2 * (1%3 * 1%5)`` 等于 ``(1%2 * 1%3) * 1%5``。
 
