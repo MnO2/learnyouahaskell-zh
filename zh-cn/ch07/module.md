@@ -1,16 +1,16 @@
-# 模组 (Modules) 
+# 模块 (Modules) 
 
-## 装载模组
+## 装载模块
 
 ![](modules.png)
 
-Haskell 中的模组是含有一组相关的函数，型别和型别类的组合。而 Haskell 程序的本质便是从主模组中引用其它模组并呼叫其中的函数来执行操作。这样可以把程式码分成多块，只要一个模组足够的独立，它里面的函数便可以被不同的程序反复重用。这就让不同的程式码各司其职，提高了程式码的健壮性。
+Haskell 中的模块是含有一组相关的函数，型别和型别类的组合。而 Haskell 进程的本质便是从主模块中引用其它模块并调用其中的函数来执行操作。这样可以把代码分成多块，只要一个模块足够的独立，它里面的函数便可以被不同的进程反复重用。这就让不同的代码各司其职，提高了代码的健壮性。
 
-Haskell 的标准库就是一组模组，每个模组都含有一组功能相近或相关的函数和型别。有处理 List 的模组，有处理并发的模组，也有处理复数的模组，等等。目前为止我们谈及的所有函数,型别以及型别类都是 ``Prelude`` 模组的一部分，它预设自动装载。在本章，我们看一下几个常用的模组，在开始浏览其中的函数之前，我们先得知道如何装载模组.
+Haskell 的标准库就是一组模块，每个模块都含有一组功能相近或相关的函数和型别。有处理 List 的模块，有处理并发的模块，也有处理复数的模块，等等。目前为止我们谈及的所有函数,型别以及型别类都是 ``Prelude`` 模块的一部分，它缺省自动装载。在本章，我们看一下几个常用的模块，在开始浏览其中的函数之前，我们先得知道如何装载模块.
 
-在 Haskell中，装载模组的语法为 ``import``，这必须得在函数的定义之前，所以一般都是将它置于程式码的顶部。无疑，一段程式码中可以装载很多模组，只要将 ``import`` 语句分行写开即可。装载 ``Data.List`` 试下，它里面有很多实用的 List 处理函数.
+在 Haskell中，装载模块的语法为 ``import``，这必须得在函数的定义之前，所以一般都是将它置于代码的顶部。无疑，一段代码中可以装载很多模块，只要将 ``import`` 语句分行写开即可。装载 ``Data.List`` 试下，它里面有很多实用的 List 处理函数.
 
-执行 ``import Data.List``，这样一来 ``Data.List`` 中包含的所有函数就都进入了全局命名空间。也就是说，你可以在程式码的任意位置呼叫这些函数.``Data.List`` 模组中有个 ``nub`` 函数，它可以筛掉一个 List 中的所有重复元素。用点号将 ``length`` 和 ``nub`` 组合: ``length . nub ``，即可得到一个与 ``(\xs -> length (nub xs))`` 等价的函数。
+执行 ``import Data.List``，这样一来 ``Data.List`` 中包含的所有函数就都进入了全局命名空间。也就是说，你可以在代码的任意位置调用这些函数.``Data.List`` 模块中有个 ``nub`` 函数，它可以筛掉一个 List 中的所有重复元素。用点号将 ``length`` 和 ``nub`` 组合: ``length . nub ``，即可得到一个与 ``(\xs -> length (nub xs))`` 等价的函数。
 
 ```haskell
 import Data.List  
@@ -19,49 +19,49 @@ numUniques :: (Eq a) => [a] -> Int
 numUniques = length . nub  
 ```
 
-你也可以在 ghci 中装载模组，若要呼叫 ``Data.List`` 中的函数，就这样:
+你也可以在 ghci 中装载模块，若要调用 ``Data.List`` 中的函数，就这样:
 
 ```haskell
 ghci> :m Data.List  
 ```
 
-若要在 ghci 中装载多个模组，不必多次 ``:m`` 命令，一下就可以全部搞定:
+若要在 ghci 中装载多个模块，不必多次 ``:m`` 命令，一下就可以全部搞定:
 
 ```haskell
 ghci> :m Data.List Data.Map Data.Set  
 ```
 
-而你的程序中若已经有包含的程式码，就不必再用 ``:m`` 了.
+而你的进程中若已经有包含的代码，就不必再用 ``:m`` 了.
 
-如果你只用得到某模组的两个函数，大可仅包含它俩。若仅装载 ``Data.List`` 模组 ``nub`` 和 ``sort``，就这样:
+如果你只用得到某模块的两个函数，大可仅包含它俩。若仅装载 ``Data.List`` 模块 ``nub`` 和 ``sort``，就这样:
 
 ```haskell
 import Data.List (nub，sort)  
 ```
 
-也可以只包含除去某函数之外的其它函数，这在避免多个模组中函数的命名冲突很有用。假设我们的程式码中已经有了一个叫做 ``nub`` 的函数，而装入 ``Data.List`` 模组时就要把它里面的 ``nub`` 除掉.
+也可以只包含除去某函数之外的其它函数，这在避免多个模块中函数的命名冲突很有用。假设我们的代码中已经有了一个叫做 ``nub`` 的函数，而装入 ``Data.List`` 模块时就要把它里面的 ``nub`` 除掉.
 
 ```haskell
 import Data.List hiding (nub) 
 ```
 
-避免命名冲突还有个方法，便是 ``qualified import``，``Data.Map`` 模组提供一了一个按键索值的资料结构，它里面有几个和 ``Prelude`` 模组重名的函数。如 ``filter`` 和 ``null``，装入 ``Data.Map`` 模组之后再呼叫 ``filter``，Haskell 就不知道它究竟是哪个函数。如下便是解决的方法:
+避免命名冲突还有个方法，便是 ``qualified import``，``Data.Map`` 模块提供一了一个按键索值的数据结构，它里面有几个和 ``Prelude`` 模块重名的函数。如 ``filter`` 和 ``null``，装入 ``Data.Map`` 模块之后再调用 ``filter``，Haskell 就不知道它究竟是哪个函数。如下便是解决的方法:
 
 ```haskell
 import qualified Data.Map  
 ```
 
-这样一来，再呼叫 ``Data.Map`` 中的 ``filter`` 函数，就必须得 ``Data.Map.filter``，而 ``filter`` 依然是为我们熟悉喜爱的样子。但是要在每个函数前面都加 ``个Data.Map`` 实在是太烦人了! 那就给它起个别名，让它短些:
+这样一来，再调用 ``Data.Map`` 中的 ``filter`` 函数，就必须得 ``Data.Map.filter``，而 ``filter`` 依然是为我们熟悉喜爱的样子。但是要在每个函数前面都加 ``个Data.Map`` 实在是太烦人了! 那就给它起个别名，让它短些:
 
 ```haskell
 import qualified Data.Map as M  
 ```
 
-好，再呼叫 ``Data.Map`` 模组的 ``filter`` 函数的话仅需 ``M.filter`` 就行了
+好，再调用 ``Data.Map`` 模块的 ``filter`` 函数的话仅需 ``M.filter`` 就行了
 
-要浏览所有的标准库模组，参考这个手册。翻阅标准库中的模组和函数是提升个人 Haskell 水平的重要途径。你也可以各个模组的原始码，这对 Haskell 的深入学习及掌握都是大有好处的.
+要浏览所有的标准库模块，参考这个手册。翻阅标准库中的模块和函数是提升个人 Haskell 水平的重要途径。你也可以各个模块的源代码，这对 Haskell 的深入学习及掌握都是大有好处的.
 
-检索函数或搜寻函数位置就用 [http://www.Haskell.org/hoogle/ Hoogle]，相当了不起的 Haskell 搜索引擎! 你可以用函数名，模组名甚至型别声明来作为检索的条件.
+检索函数或搜索函数字置就用 [http://www.Haskell.org/hoogle/ Hoogle]，相当了不起的 Haskell 搜索引擎! 你可以用函数名，模块名甚至型别声明来作为检索的条件.
 
 
 
@@ -69,7 +69,7 @@ import qualified Data.Map as M
 ##  Data.List
 
  
-显而易见，``Data.List`` 是关于 List 操作的模组，它提供了一组非常有用的 List 处理函数。在前面我们已经见过了其中的几个函数(如 ``map`` 和 ``filter``)，这是 ``Prelude`` 模组出于方便起见，导出了几个 ``Data.List`` 里的函数。因为这几个函数是直接引用自 ``Data.List``，所以就无需使用 ``qualified import``。在下面，我们来看看几个以前没见过的函数:
+显而易见，``Data.List`` 是关于 List 操作的模块，它提供了一组非常有用的 List 处理函数。在前面我们已经见过了其中的几个函数(如 ``map`` 和 ``filter``)，这是 ``Prelude`` 模块出于方便起见，导出了几个 ``Data.List`` 里的函数。因为这几个函数是直接引用自 ``Data.List``，所以就无需使用 ``qualified import``。在下面，我们来看看几个以前没见过的函数:
 
 **intersperse** 取一个元素与 List 作参数，并将该元素置于 List 中每对元素的中间。如下是个例子:
 
@@ -160,7 +160,7 @@ ghci> any (`elem` ['A'..'Z']) "HEYGUYSwhatsup"
 True  
 ```
 
-**iterate** 取一个函数和一个值作参数。它会用该值去呼叫该函数并用所得的结果再次呼叫该函数，产生一个无限的 List.
+**iterate** 取一个函数和一个值作参数。它会用该值去调用该函数并用所得的结果再次调用该函数，产生一个无限的 List.
 
 ```haskell
 ghci> take 10 $ iterate (*2) 1  
@@ -217,7 +217,7 @@ ghci> head (dropWhile (\(val,y,m,d) -> val < 1000) stock)
 (1001.4,2008,9,4)  
 ```
 
-**span** 与 ``takeWhile`` 有点像，只是它返回两个 List。第一个 List 与同参数呼叫 ``takeWhile`` 所得的结果相同，第二个 List 就是原 List 中余下的部分。
+**span** 与 ``takeWhile`` 有点像，只是它返回两个 List。第一个 List 与同参数调用 ``takeWhile`` 所得的结果相同，第二个 List 就是原 List 中余下的部分。
 
 ```haskell
 ghci> let (fw，rest) = span (/=' ') "This is a sentence" in "First word:" ++ fw ++ "，the rest:" ++ rest  
@@ -258,7 +258,7 @@ ghci> map (\l@(x:xs) -> (x,length l)) . group . sort $ [1,1,1,1,2,2,2,2,3,3,2,2,
 [(1,4),(2,7),(3,2),(5,1),(6,1),(7,1)]  
 ```
 
-**inits** 和 **tails** 与 ``init`` 和 ``tail`` 相似，只是它们会递归地呼叫自身直到什么都不剩，看:
+**inits** 和 **tails** 与 ``init`` 和 ``tail`` 相似，只是它们会递归地调用自身直到什么都不剩，看:
 
 ```haskell
 ghci> inits "w00t"  
@@ -278,7 +278,7 @@ search needle haystack =
   in foldl (\acc x -> if take nlen x == needle then True else acc) False (tails haystack)  
 ```
 
-首先，对搜索的 List 呼叫 ``tails``，然后遍历每个 List 来检查它是不是我们想要的.
+首先，对搜索的 List 调用 ``tails``，然后遍历每个 List 来检查它是不是我们想要的.
 
 由此我们便实现了一个类似 **isInfixOf** 的函数，**isInfixOf** 从一个 List 中搜索一个子 List，若该 List 包含子 List，则返回 ``True``.
 
@@ -324,7 +324,7 @@ ghci> span (`elem` ['A'..'Z']) "BOBsidneyMORGANeddy"
 
 ``span`` 和 ``break`` 会在遇到第一个符合或不符合条件的元素处断开，而 ``partition`` 则会遍历整个 List。
 
-**find** 取一个 List 和限制条件作参数，并返回首个符合该条件的元素，而这个元素是个 ``Maybe`` 值。在下章，我们将深入地探讨相关的算法和资料结构，但在这里你只需了解 ``Maybe`` 值是 ``Just something`` 或 ``Nothing`` 就够了。与一个 List 可以为空也可以包含多个元素相似，一个 ``Maybe`` 可以为空，也可以是单一元素。同样与 List 类似，一个 Int 型的 List 可以写作 ``[Int]``，``Maybe``有个 Int 型可以写作 ``Maybe Int``。先试一下 ``find`` 函数再说.
+**find** 取一个 List 和限制条件作参数，并返回首个符合该条件的元素，而这个元素是个 ``Maybe`` 值。在下章，我们将深入地探讨相关的算法和数据结构，但在这里你只需了解 ``Maybe`` 值是 ``Just something`` 或 ``Nothing`` 就够了。与一个 List 可以为空也可以包含多个元素相似，一个 ``Maybe`` 可以为空，也可以是单一元素。同样与 List 类似，一个 Int 型的 List 可以写作 ``[Int]``，``Maybe``有个 Int 型可以写作 ``Maybe Int``。先试一下 ``find`` 函数再说.
 
 ```haskell
 ghci> find (>4) [1,2,3,4,5,6]  
@@ -337,7 +337,7 @@ find :: (a -> Bool) -> [a] -> Maybe a
 
 注意一下 ``find`` 的型别，它的返回结果为 ``Maybe a``，这与 ``[a]`` 的写法有点像，只是 ``Maybe`` 型的值只能为空或者单一元素，而 List 可以为空,一个元素，也可以是多个元素.
 
-想想前面那段找股票的程式码，``head (dropWhile (\(val,y,m,d) -> val < 1000) stock)`` 。但 ``head`` 并不安全! 如果我们的股票没涨过 $1000 会怎样? ``dropWhile`` 会返回一个空 List，而对空 List 取 ``head`` 就会引发一个错误。把它改成 ``find (\(val,y,m,d) -> val > 1000) stock`` 就安全多啦，若存在合适的结果就得到它, 像 ``Just (1001.4,2008,9,4)``，若不存在合适的元素(即我们的股票没有涨到过 $1000)，就会得到一个 ``Nothing``.
+想想前面那段找股票的代码，``head (dropWhile (\(val,y,m,d) -> val < 1000) stock)`` 。但 ``head`` 并不安全! 如果我们的股票没涨过 $1000 会怎样? ``dropWhile`` 会返回一个空 List，而对空 List 取 ``head`` 就会引发一个错误。把它改成 ``find (\(val,y,m,d) -> val > 1000) stock`` 就安全多啦，若存在合适的结果就得到它, 像 ``Just (1001.4,2008,9,4)``，若不存在合适的元素(即我们的股票没有涨到过 $1000)，就会得到一个 ``Nothing``.
 
 **elemIndex** 与 ``elem`` 相似，只是它返回的不是布林值，它只是'可能' (Maybe)返回我们找的元素的索引，若这一元素不存在，就返回 ``Nothing``。
 
@@ -379,14 +379,14 @@ ghci> zip4 [2,3,3] [2,2,2] [5,5,3] [2,2,2]
 
 与普通的 ``zip`` 操作相似，以返回的 List 中长度最短的那个为准.
 
-在处理来自档案或其它地方的输入时，**lines** 会非常有用。它取一个字串作参数。并返回由其中的每一行组成的 List.
+在处理来自文件或其它地方的输入时，**lines** 会非常有用。它取一个字串作参数。并返回由其中的每一行组成的 List.
 
 ```haskell
 ghci> lines "first line\nsecond line\nthird line"  
 ["first line","second line","third line"]  
 ```
 
-``'\n'`` 表示unix下的换行符，在 Haskell 的字元中，反斜杠表示特殊字元.
+``'\n'`` 表示unix下的换行符，在 Haskell 的字符中，反斜杠表示特殊字符.
 
 **unlines** 是 ``lines`` 的反函数，它取一组字串的 List，并将其通过 ``'\n'``合并到一块.
 
@@ -462,7 +462,7 @@ ghci> insert 3 [1,2,4,3,2,1]
 [1,2,3,4,3,2,1]  
 ```
 
-``length``，``take``，``drop``，``splitAt``，``!!`` 和 ``replicate`` 之类的函数有个共同点。那就是它们的参数中都有个 Int 值（或者返回Int值），我觉得使用 Intergal 或 Num 型别类会更好，但出于历史原因，修改这些会破坏掉许多既有的程式码。在 ``Data.List`` 中包含了更通用的替代版，如: ``genericLength，genericTake，genericDrop，genericSplitAt，genericIndex`` 和 ``genericReplicate``。``length`` 的型别声明为 `` length :: [a] -> Int``，而我们若要像这样求它的平均值，``let xs = [1..6] in sum xs / length xs`` ，就会得到一个型别错误，因为 ``/`` 运算符不能对 Int 型使用! 而 ``genericLength`` 的型别声明则为 ``genericLength :: (Num a) => [b] -> a``，Num 既可以是整数又可以是浮点数，``let xs = [1..6] in sum xs / genericLength xs`` 这样再求平均数就不会有问题了.
+``length``，``take``，``drop``，``splitAt``，``!!`` 和 ``replicate`` 之类的函数有个共同点。那就是它们的参数中都有个 Int 值（或者返回Int值），我觉得使用 Intergal 或 Num 型别类会更好，但出于历史原因，修改这些会破坏掉许多既有的代码。在 ``Data.List`` 中包含了更通用的替代版，如: ``genericLength，genericTake，genericDrop，genericSplitAt，genericIndex`` 和 ``genericReplicate``。``length`` 的型别声明为 `` length :: [a] -> Int``，而我们若要像这样求它的平均值，``let xs = [1..6] in sum xs / length xs`` ，就会得到一个型别错误，因为 ``/`` 运算符不能对 Int 型使用! 而 ``genericLength`` 的型别声明则为 ``genericLength :: (Num a) => [b] -> a``，Num 既可以是整数又可以是浮点数，``let xs = [1..6] in sum xs / genericLength xs`` 这样再求平均数就不会有问题了.
 
 ``nub``, ``delete``, ``union``, ``intsect`` 和 ``group`` 函数也有各自的通用替代版 ``nubBy``，``deleteBy``，``unionBy``，``intersectBy`` 和 ``groupBy``，它们的区别就是前一组函数使用 ``(==)`` 来测试是否相等，而带 ``By`` 的那组则取一个函数作参数来判定相等性，``group`` 就与 ``groupBy (==)`` 等价.
 
@@ -508,34 +508,34 @@ ghci> sortBy (compare `on` length) xs
 ##  Data.Char
 
 
-如其名，``Data.Char`` 模组包含了一组用于处理字元的函数。由于字串的本质就是一组字元的 List，所以往往会在 ``filter`` 或是 ``map`` 字串时用到它.
+如其名，``Data.Char`` 模块包含了一组用于处理字符的函数。由于字串的本质就是一组字符的 List，所以往往会在 ``filter`` 或是 ``map`` 字串时用到它.
 
-``Data.Char``模组中含有一系列用于判定字元范围的函数，如下:
+``Data.Char``模块中含有一系列用于判定字符范围的函数，如下:
 
 ![](legochar.png)
 
-**isControl** 判断一个字元是否是控制字元。
-**isSpace** 判断一个字元是否是空格字元，包括空格，tab，换行符等.
-**isLower** 判断一个字元是否为小写.
-**isUper** 判断一个字元是否为大写。
-**isAlpha** 判断一个字元是否为字母.
-**isAlphaNum** 判断一个字元是否为字母或数字.
-**isPrint** 判断一个字元是否是可打印的.
-**isDigit** 判断一个字元是否为数字.
-**isOctDigit** 判断一个字元是否为八进制数字.
-**isHexDigit** 判断一个字元是否为十六进制数字.
-**isLetter** 判断一个字元是否为字母.
-**isMark** 判断是否为 unicode 注音字元，你如果是法国人就会经常用到的.
-**isNumber** 判断一个字元是否为数字.
-**isPunctuation** 判断一个字元是否为标点符号.
-**isSymbol**判断一个字元是否为货币符号.
-**isSeperater** 判断一个字元是否为 unicode 空格或分隔符.
-**isAscii** 判断一个字元是否在 unicode 字母表的前 128 位。
-**isLatin1** 判断一个字元是否在 unicode 字母表的前 256 位.
-**isAsciiUpper** 判断一个字元是否为大写的 ascii 字元.
-**isAsciiLower** 判断一个字元是否为小写的 ascii 字元.
+**isControl** 判断一个字符是否是控制字符。
+**isSpace** 判断一个字符是否是空格字符，包括空格，tab，换行符等.
+**isLower** 判断一个字符是否为小写.
+**isUper** 判断一个字符是否为大写。
+**isAlpha** 判断一个字符是否为字母.
+**isAlphaNum** 判断一个字符是否为字母或数字.
+**isPrint** 判断一个字符是否是可打印的.
+**isDigit** 判断一个字符是否为数字.
+**isOctDigit** 判断一个字符是否为八进制数字.
+**isHexDigit** 判断一个字符是否为十六进制数字.
+**isLetter** 判断一个字符是否为字母.
+**isMark** 判断是否为 unicode 注音字符，你如果是法国人就会经常用到的.
+**isNumber** 判断一个字符是否为数字.
+**isPunctuation** 判断一个字符是否为标点符号.
+**isSymbol**判断一个字符是否为货币符号.
+**isSeperater** 判断一个字符是否为 unicode 空格或分隔符.
+**isAscii** 判断一个字符是否在 unicode 字母表的前 128 位。
+**isLatin1** 判断一个字符是否在 unicode 字母表的前 256 位.
+**isAsciiUpper** 判断一个字符是否为大写的 ascii 字符.
+**isAsciiLower** 判断一个字符是否为小写的 ascii 字符.
 
-以上所有判断函数的型别声明皆为 ``Char -> Bool``，用到它们的绝大多数情况都无非就是过滤字串或类似操作。假设我们在写个程序，它需要一个由字元和数字组成的用户名。要实现对用户名的检验，我们可以结合使用 ``Data.List`` 模组的 ``all`` 函数与 ``Data.Char`` 的判断函数.
+以上所有判断函数的型别声明皆为 ``Char -> Bool``，用到它们的绝大多数情况都无非就是过滤字串或类似操作。假设我们在写个进程，它需要一个由字符和数字组成的用户名。要实现对用户名的检验，我们可以结合使用 ``Data.List`` 模块的 ``all`` 函数与 ``Data.Char`` 的判断函数.
 
 ```haskell
 ghci> all isAlphaNum "bobby283"  
@@ -565,7 +565,7 @@ ghci> filter (not . any isSpace) . groupBy ((==) `on` isSpace) $ "hey guys its m
 
 啊哈.
 
-``Data.Char`` 中也含有与 ``Ordering`` 相似的型别。``Ordering`` 可以有三个值，``LT``，``GT`` 和 ``EQ``。这就是个枚举，它表示了两个元素作比较可能的结果. ``GeneralCategory`` 型别也是个枚举，它表示了一个字元可能所在的分类。而得到一个字元所在分类的主要方法就是使用  ``generalCategory``  函数.它的型别为: ``generalCategory :: Char -> GeneralCategory``。那 31 个分类就不在此一一列出了，试下这个函数先:
+``Data.Char`` 中也含有与 ``Ordering`` 相似的型别。``Ordering`` 可以有三个值，``LT``，``GT`` 和 ``EQ``。这就是个枚举，它表示了两个元素作比较可能的结果. ``GeneralCategory`` 型别也是个枚举，它表示了一个字符可能所在的分类。而得到一个字符所在分类的主要方法就是使用  ``generalCategory``  函数.它的型别为: ``generalCategory :: Char -> GeneralCategory``。那 31 个分类就不在此一一列出了，试下这个函数先:
 
 ```haskell
 ghci> generalCategory ' '  
@@ -582,12 +582,12 @@ ghci> map generalCategory " \t\nA9?|"
 [Space,Control,Control,UppercaseLetter,DecimalNumber,OtherPunctuation,MathSymbol]
 ```
 
-由于 ``GeneralCategory`` 型别是 ``Eq`` 型别类的一部分，使用类似 ``generalCategory c == Space`` 的程式码也是可以的.
+由于 ``GeneralCategory`` 型别是 ``Eq`` 型别类的一部分，使用类似 ``generalCategory c == Space`` 的代码也是可以的.
 
-**toUpper** 将一个字元转为大写字母，若该字元不是小写字母，就按原值返回.
-**toLower** 将一个字元转为小写字母，若该字元不是大写字母，就按原值返回.
-**toTitle** 将一个字元转为 title-case，对大多数字元而言，title-case 就是大写.
-**digitToInt** 将一个字元转为 Int 值，而这一字元必须得在 ``'1'..'9','a'..'f'``或``'A'..'F'`` 的范围之内.
+**toUpper** 将一个字符转为大写字母，若该字符不是小写字母，就按原值返回.
+**toLower** 将一个字符转为小写字母，若该字符不是大写字母，就按原值返回.
+**toTitle** 将一个字符转为 title-case，对大多数字元而言，title-case 就是大写.
+**digitToInt** 将一个字符转为 Int 值，而这一字符必须得在 ``'1'..'9','a'..'f'``或``'A'..'F'`` 的范围之内.
 
 ```haskell
 ghci> map digitToInt "34538"  
@@ -596,7 +596,7 @@ ghci> map digitToInt "FF85AB"
 [15,15,8,5,10,11]  
 ```
 
-``intToDigit`` 是 ``digitToInt`` 的反函数。它取一个 ``0`` 到 ``15`` 的 ``Int`` 值作参数，并返回一个小写的字元.
+``intToDigit`` 是 ``digitToInt`` 的反函数。它取一个 ``0`` 到 ``15`` 的 ``Int`` 值作参数，并返回一个小写的字符.
 
 ```haskell
 ghci> intToDigit 15  
@@ -605,7 +605,7 @@ ghci> intToDigit 5
 '5'  
 ```
 
-**ord** 与 **char** 函数可以将字元与其对应的数字相互转换.
+**ord** 与 **char** 函数可以将字符与其对应的数字相互转换.
 
 ```haskell
 ghci> ord 'a'  
@@ -616,9 +616,9 @@ ghci> map ord "abcdefgh"
 [97,98,99,100,101,102,103,104] 
 ```
 
-两个字元的 ``ord`` 值之差就是它们在 unicode 字元表上的距离.
+两个字符的 ``ord`` 值之差就是它们在 unicode 字符表上的距离.
 
-*Caesar ciphar* 是加密的基础算法，它将消息中的每个字元都按照特定的字母表进行替换。它的实现非常简单，我们这里就先不管字母表了.
+*Caesar ciphar* 是加密的基础算法，它将消息中的每个字符都按照特定的字母表进行替换。它的实现非常简单，我们这里就先不管字母表了.
 
 ```haskell
 encode :: Int -> String -> String  
@@ -663,7 +663,7 @@ ghci> decode 5 . encode 5 $ "This is a sentence"
 ##  Data.Map
 
 
-关联列表(也叫做字典)是按照键值对排列而没有特定顺序的一种 List。例如，我们用关联列表储存电话号码，号码就是值，人名就是键。我们并不关心它们的存储顺序，只要能按人名得到正确的号码就好.在 Haskell 中表示关联列表的最简单方法就是弄一个二元组的 List，而这二元组就首项为键，后项为值。如下便是个表示电话号码的关联列表: 
+关联列表(也叫做字典)是按照键值对排列而没有特定顺序的一种 List。例如，我们用关联列表保存电话号码，号码就是值，人名就是键。我们并不关心它们的存储顺序，只要能按人名得到正确的号码就好.在 Haskell 中表示关联列表的最简单方法就是弄一个二元组的 List，而这二元组就首项为键，后项为值。如下便是个表示电话号码的关联列表: 
 
 ```haskell
 phoneBook = [("betty","555-2938") ,
@@ -683,7 +683,7 @@ findKey key xs = snd . head . filter (\(k,v) -> key == k) $ xs
 
 ![](legomap.png)
 
-简洁漂亮。这个函数取一个键和 List 做参数，过滤这一 List 仅保留键匹配的项，并返回首个键值对。但若该关联列表中不存在这个键那会怎样? 哼，那就会在试图从空 List 中取 ``head`` 时引发一个运行时错误。无论如何也不能让程序就这么轻易地崩溃吧，所以就应该用 ``Maybe`` 型别。如果没找到相应的键，就返回 ``Nothing``。而找到了就返回 ``Just something``。而这 ``something`` 就是键对应的值。
+简洁漂亮。这个函数取一个键和 List 做参数，过滤这一 List 仅保留键匹配的项，并返回首个键值对。但若该关联列表中不存在这个键那会怎样? 哼，那就会在试图从空 List 中取 ``head`` 时引发一个运行时错误。无论如何也不能让进程就这么轻易地崩溃吧，所以就应该用 ``Maybe`` 型别。如果没找到相应的键，就返回 ``Nothing``。而找到了就返回 ``Just something``。而这 ``something`` 就是键对应的值。
 
 ```haskell
 findKey :: (Eq k) => k -> [(k,v)] -> Maybe v 
@@ -695,7 +695,7 @@ findKey key ((k,v):xs) =
          findKey key xs
 ```
 
-看这型别声明，它取一个可判断相等性的键和一个关联列表做参数，可能 (Maybe) 得到一个值。听起来不错.这便是个标准的处理 List 的递归函数，边界条件，分割 List，递归呼叫，都有了 -- 经典的 ``fold`` 模式。
+看这型别声明，它取一个可判断相等性的键和一个关联列表做参数，可能 (Maybe) 得到一个值。听起来不错.这便是个标准的处理 List 的递归函数，边界条件，分割 List，递归调用，都有了 -- 经典的 ``fold`` 模式。
 看看用 ``fold`` 怎样实现吧。
 
 ```haskell
@@ -703,7 +703,7 @@ findKey :: (Eq k) => k -> [(k,v)] -> Maybe v
 findKey key = foldr (\(k,v) acc -> if key == k then Just v else acc) Nothing
 ```
 
-    *Note*: 通常，使用 ``fold`` 来替代类似的递归函数会更好些。用 ``fold`` 的程式码让人一目了然，而看明白递归则得多花点脑子。
+    *Note*: 通常，使用 ``fold`` 来替代类似的递归函数会更好些。用 ``fold`` 的代码让人一目了然，而看明白递归则得多花点脑子。
 
 ```haskell
 ghci> findKey "penny" phoneBook 
@@ -714,7 +714,7 @@ ghci> findKey "wilma" phoneBook
 Nothing
 ```
 
-如魔咒般灵验! 只要我们有这姑娘的号码就 ``Just`` 可以得到，否则就是 ``Nothing``. 方才我们实现的函数便是 ``Data.List`` 模组的 ``lookup``，如果要按键去寻找相应的值，它就必须得遍历整个 List，直到找到为止。而 ``Data.Map`` 模组提供了更高效的方式(通过树实现)，并提供了一组好用的函数。从现在开始，我们扔掉关联列表，改用map.由于``Data.Map``中的一些函数与Prelude和``Data.List`` 模组存在命名冲突，所以我们使用 ``qualified import``。``import qualified Data.Map as Map`` 在程式码中加上这句，并 ``load`` 到 ghci 中.继续前进，看看 ``Data.Map`` 是如何的一座宝库! 
+如魔咒般灵验! 只要我们有这姑娘的号码就 ``Just`` 可以得到，否则就是 ``Nothing``. 方才我们实现的函数便是 ``Data.List`` 模块的 ``lookup``，如果要按键去寻找相应的值，它就必须得遍历整个 List，直到找到为止。而 ``Data.Map`` 模块提供了更高效的方式(通过树实现)，并提供了一组好用的函数。从现在开始，我们扔掉关联列表，改用map.由于``Data.Map``中的一些函数与Prelude和``Data.List`` 模块存在命名冲突，所以我们使用 ``qualified import``。``import qualified Data.Map as Map`` 在代码中加上这句，并 ``load`` 到 ghci 中.继续前进，看看 ``Data.Map`` 是如何的一座宝库! 
 如下便是其中函数的一瞥:
 
 **fromList** 取一个关联列表，返回一个与之等价的 Map。
@@ -732,7 +732,7 @@ fromList [(1,2),(3,2),(5,5)]
 Map.fromList :: (Ord k) => [(k，v)] -> Map.Map k v
 ```
 
-这表示它取一组键值对的 List，并返回一个将 ``k`` 映射为 ``v`` 的 ``map``。注意一下，当使用普通的关联列表时，只需要键的可判断相等性就行了。而在这里，它还必须得是可排序的。这在 ``Data.Map`` 模组中是强制的。因为它会按照某顺序将其组织在一棵树中.在处理键值对时，只要键的型别属于 ``Ord`` 型别类，就应该尽量使用``Data.Map``.``empty`` 返回一个空 ``map``.
+这表示它取一组键值对的 List，并返回一个将 ``k`` 映射为 ``v`` 的 ``map``。注意一下，当使用普通的关联列表时，只需要键的可判断相等性就行了。而在这里，它还必须得是可排序的。这在 ``Data.Map`` 模块中是强制的。因为它会按照某顺序将其组织在一棵树中.在处理键值对时，只要键的型别属于 ``Ord`` 型别类，就应该尽量使用``Data.Map``.``empty`` 返回一个空 ``map``.
 
 ```haskell
 ghci> Map.empty 
@@ -848,7 +848,7 @@ ghci> Map.lookup "betty" $ phoneBookToMap phoneBook
 "342-2492，555-2938"
 ```
 
-一旦出现重复键，这个函数会将不同的值组在一起，同样，也可以预设地将每个值放到一个单元素的 List 中，再用 ``++`` 将他们都连接在一起。
+一旦出现重复键，这个函数会将不同的值组在一起，同样，也可以缺省地将每个值放到一个单元素的 List 中，再用 ``++`` 将他们都连接在一起。
 
 ```haskell
 phoneBookToMap :: (Ord k) => [(k，a)] -> Map.Map k [a] 
@@ -885,11 +885,11 @@ fromList [(3,104),(5,103),(6,339)]
 
 ![](legosets.png)
 
-``Data.Set`` 模组提供了对数学中集合的处理。集合既像 List 也像 ``Map``: 它里面的每个元素都是唯一的，且内部的数据由一棵树来组织(这和 ``Data.Map`` 模组的 ``map`` 很像)，必须得是可排序的。同样是插入,删除,判断从属关系之类的操作，使用集合要比 List 快得多。对一个集合而言，最常见的操作莫过于并集，判断从属或是将集合转为 List.
+``Data.Set`` 模块提供了对数学中集合的处理。集合既像 List 也像 ``Map``: 它里面的每个元素都是唯一的，且内部的数据由一棵树来组织(这和 ``Data.Map`` 模块的 ``map`` 很像)，必须得是可排序的。同样是插入,删除,判断从属关系之类的操作，使用集合要比 List 快得多。对一个集合而言，最常见的操作莫过于并集，判断从属或是将集合转为 List.
 
-由于 ``Data.Set`` 模组与 ``Prelude`` 模组和 ``Data.List`` 模组中存在大量的命名冲突，所以我们使用 ``qualified import``
+由于 ``Data.Set`` 模块与 ``Prelude`` 模块和 ``Data.List`` 模块中存在大量的命名冲突，所以我们使用 ``qualified import``
 
-将 ``import`` 语句至于程式码之中:
+将 ``import`` 语句至于代码之中:
 
 ```haskell
 import qualified Data.Set as Set  
@@ -897,7 +897,7 @@ import qualified Data.Set as Set
 
 然后在 ghci 中装载
 
-假定我们有两个字串，要找出同时存在于两个字串的字元
+假定我们有两个字串，要找出同时存在于两个字串的字符
 
 ```haskell
 text1 = "I just had an anime dream. Anime... Reality... Are they so different?"  
@@ -980,7 +980,7 @@ ghci> Set.map (+1) $ Set.fromList [3,4,5,6,7,2,3,4]
 fromList [3,4,5,6,7,8]  
 ```
 
-集合有一常见用途，那就是先 ``fromList`` 删掉重复元素后再 ``toList`` 转回去。尽管 ``Data.List`` 模组的 ``nub`` 函数完全可以完成这一工作，但在对付大 List 时则会明显的力不从心。使用集合则会快很多，``nub`` 函数只需 List 中的元素属于 ``Eq`` 型别类就行了，而若要使用集合，它必须得属于 ``Ord`` 型别类  
+集合有一常见用途，那就是先 ``fromList`` 删掉重复元素后再 ``toList`` 转回去。尽管 ``Data.List`` 模块的 ``nub`` 函数完全可以完成这一工作，但在对付大 List 时则会明显的力不从心。使用集合则会快很多，``nub`` 函数只需 List 中的元素属于 ``Eq`` 型别类就行了，而若要使用集合，它必须得属于 ``Ord`` 型别类  
 
 ```haskell
 ghci> let setNub xs = Set.toList $ Set.fromList xs  
@@ -994,13 +994,13 @@ ghci> nub "HEY WHATS CRACKALACKIN"
 
 
 
-##  建立自己的模组
+##  建立自己的模块
 
-我们已经见识过了几个很酷的模组，但怎样才能构造自己的模组呢? 几乎所有的编程语言都允许你将程式码分成多个档案，Haskell 也不例外。在编程时，将功能相近的函数和型别至于同一模组中会是个很好的习惯。这样一来，你就可以轻松地一个 ``import`` 来重用其中的函数.
+我们已经见识过了几个很酷的模块，但怎样才能构造自己的模块呢? 几乎所有的编程语言都允许你将代码分成多个文件，Haskell 也不例外。在编程时，将功能相近的函数和型别至于同一模块中会是个很好的习惯。这样一来，你就可以轻松地一个 ``import`` 来重用其中的函数.
 
-接下来我们将构造一个由计算机几何图形体积和面积组成的模组，先从新建一个 ``Geometry.hs`` 的档案开始.
+接下来我们将构造一个由计算机几何图形体积和面积组成的模块，先从新建一个 ``Geometry.hs`` 的文件开始.
 
-在模组的开头定义模组的名称，如果档案名叫做 ``Geometry.hs`` 那它的名字就得是 ``Geometry``。在声明出它含有的函数名之后就可以编写函数的实现啦，就这样写:
+在模块的开头定义模块的名称，如果文件名叫做 ``Geometry.hs`` 那它的名字就得是 ``Geometry``。在声明出它含有的函数名之后就可以编写函数的实现啦，就这样写:
 
 ```haskell
 module Geometry  
@@ -1049,23 +1049,23 @@ rectangleArea a b = a * b
 
 ![](making_modules.png)
 
-标准的几何公式。有几个地方需要注意一下，由于立方体只是长方体的特殊形式，所以在求它面积和体积的时候我们就将它当作是边长相等的长方体。在这里还定义了一个 ``helper``函数，``rectangleArea`` 它可以通过长方体的两条边计算出长方体的面积。它仅仅是简单的相乘而已，份量不大。但请注意我们可以在这一模组中呼叫这个函数，而它不会被导出! 因为我们这个模组只与三维图形打交道.
+标准的几何公式。有几个地方需要注意一下，由于立方体只是长方体的特殊形式，所以在求它面积和体积的时候我们就将它当作是边长相等的长方体。在这里还定义了一个 ``helper``函数，``rectangleArea`` 它可以通过长方体的两条边计算出长方体的面积。它仅仅是简单的相乘而已，份量不大。但请注意我们可以在这一模块中调用这个函数，而它不会被导出! 因为我们这个模块只与三维图形打交道.
 
-当构造一个模组的时候，我们通常只会导出那些行为相近的函数，而其内部的实现则是隐蔽的。如果有人用到了 ``Geometry`` 模组，就不需要关心它的内部实现是如何。我们作为编写者，完全可以随意修改这些函数甚至将其删掉，没有人会注意到里面的变动，因为我们并不把它们导出.
+当构造一个模块的时候，我们通常只会导出那些行为相近的函数，而其内部的实现则是隐蔽的。如果有人用到了 ``Geometry`` 模块，就不需要关心它的内部实现是如何。我们作为编写者，完全可以随意修改这些函数甚至将其删掉，没有人会注意到里面的变动，因为我们并不把它们导出.
 
-要使用我们的模组，只需:
+要使用我们的模块，只需:
 
 ```haskell
 import Geometry  
 ```
 
-将 ``Geometry.hs`` 档案至于用到它的程序档案的同一目录之下.
+将 ``Geometry.hs`` 文件至于用到它的进程文件的同一目录之下.
 
-模组也可以按照分层的结构来组织，每个模组都可以含有多个子模组。而子模组还可以有自己的子模组。我们可以把 ``Geometry`` 分成三个子模组，而一个模组对应各自的图形对象.
+模块也可以按照分层的结构来组织，每个模块都可以含有多个子模块。而子模块还可以有自己的子模块。我们可以把 ``Geometry`` 分成三个子模块，而一个模块对应各自的图形对象.
 
-首先，建立一个 ``Geometry`` 档案夹，注意首字母要大写，在里面新建三个档案
+首先，建立一个 ``Geometry`` 文件夹，注意首字母要大写，在里面新建三个文件
 
-如下就是各个档案的内容:
+如下就是各个文件的内容:
 
 sphere.hs
 
@@ -1118,13 +1118,13 @@ area :: Float -> Float
 area side = Cuboid.area side side side  
 ```
 
-好的! 先是 ``Geometry.Sphere``。注意，我们将它置于 ``Geometry`` 档案夹之中并将它的名字定为 ``Geometry.Sphere``。对 Cuboid 也是同样，也注意下，在三个模组中我们定义了许多名称相同的函数，因为所在模组不同，所以不会产生命名冲突。若要在 ``Geometry.Cube`` 使用 ``Geometry.Cuboid`` 中的函数，就不能直接 ``import Geometry.Cuboid``，而必须得 ``qualified import``。因为它们中间的函数名完全相同.
+好的! 先是 ``Geometry.Sphere``。注意，我们将它置于 ``Geometry`` 文件夹之中并将它的名字定为 ``Geometry.Sphere``。对 Cuboid 也是同样，也注意下，在三个模块中我们定义了许多名称相同的函数，因为所在模块不同，所以不会产生命名冲突。若要在 ``Geometry.Cube`` 使用 ``Geometry.Cuboid`` 中的函数，就不能直接 ``import Geometry.Cuboid``，而必须得 ``qualified import``。因为它们中间的函数名完全相同.
 
 ```haskell
 import Geometry.Sphere  
 ```
 
-然后，呼叫 ``area`` 和 ``volume``，就可以得到球体的面积和体积，而若要用到两个或更多此类模组，就必须得 ``qualified import`` 来避免重名。所以就得这样写:
+然后，调用 ``area`` 和 ``volume``，就可以得到球体的面积和体积，而若要用到两个或更多此类模块，就必须得 ``qualified import`` 来避免重名。所以就得这样写:
 
 ```haskell
 import qualified Geometry.Sphere as Sphere  
@@ -1132,7 +1132,7 @@ import qualified Geometry.Cuboid as Cuboid
 import qualified Geometry.Cube as Cube  
 ```
 
-然后就可以呼叫 ``Sphere.area``，``Sphere.volume``，``Cuboid.area`` 了，而每个函数都只计算其对应物体的面积和体积.
+然后就可以调用 ``Sphere.area``，``Sphere.volume``，``Cuboid.area`` 了，而每个函数都只计算其对应物体的面积和体积.
 
-以后你若发现自己的程式码体积庞大且函数众多，就应该试着找找目的相近的函数能否装入各自的模组，也方便日后的重用.
+以后你若发现自己的代码体积庞大且函数众多，就应该试着找找目的相近的函数能否装入各自的模块，也方便日后的重用.
 

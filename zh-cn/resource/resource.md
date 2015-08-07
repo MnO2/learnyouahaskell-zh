@@ -1,16 +1,16 @@
 # Resource
 
-网路上 Haskell 的资源虽不少，但由于目前社群的人力有限。所以比较没能整理成一套能循序渐进的学习方式。常常会在 Haskell Wiki 上撞到对初学者太过于深入的东西。或是觉得奇怪怎么不断有之前没看过的东西冒出来。造成学习 Haskell 很大的撞墙期。这边译者会渐渐补充一些自己觉得有用的资源，尝试找到一些中阶的教材能够衔接初学跟进阶。
+网络上 Haskell 的资源虽不少，但由于目前社区的人力有限。所以比较没能整理成一套能循序渐进的学习方式。常常会在 Haskell Wiki 上撞到对初学者太过于深入的东西。或是觉得奇怪怎么不断有之前没看过的东西冒出来。造成学习 Haskell 很大的撞墙期。这边译者会渐渐补充一些自己觉得有用的资源，尝试找到一些中阶的教材能够衔接初学跟高端。
 
 ## Specification
-* [Haskell 98 Report](http://www.haskell.org/onlinereport/):  Haskell 的标准，目前 GHC 如果不用任何 Extension，写出来的程式是符合 Haskell 98 的标准。
+* [Haskell 98 Report](http://www.haskell.org/onlinereport/):  Haskell 的标准，目前 GHC 如果不用任何 Extension，写出来的程序是符合 Haskell 98 的标准。
 * [Haskell 2010 Report](http://www.haskell.org/onlinereport/haskell2010/):，最新的标准，有许多已经实作但要开 Extension 才能用。
 
 ## Tools
-* [Hoogle](http://www.haskell.org/hoogle/): Haskell 函数的搜寻引擎，不只可以用函数的名称搜寻，也可以用函数的型态来搜寻。
+* [Hoogle](http://www.haskell.org/hoogle/): Haskell 函数的搜索引擎，不只可以用函数的名称搜索，也可以用函数的型态来搜索。
 * [Hayoo](http://holumbus.fh-wedel.de/hayoo/hayoo.html): 跟 Hoogle 同样功能。
-* [hdiff](http://hdiff.luite.com/): 可以方便查询 package 不同版号之间的差异。
-* [packdeps](http://packdeps.haskellers.com/): 方便查询 Hackage 上面 package 之间的相依性。
+* [hdiff](http://hdiff.luite.com/): 可以方便查找 package 不同版号之间的差异。
+* [packdeps](http://packdeps.haskellers.com/): 方便查找 Hackage 上面 package 之间的相依性。
 
 
 ## Lectures & Articles
@@ -56,5 +56,5 @@
 
 ## Taiwan Functional Programming User Group
 * [TW-FPUG on Vimeo](http://vimeo.com/groups/140878)
-* [Haskell 进阶运算元件介绍](https://docs.google.com/file/d/0BzqwG7n2gs71blE5V2pzR29WUDQ/edit?pli=1)
+* [Haskell 高端算子件介绍](https://docs.google.com/file/d/0BzqwG7n2gs71blE5V2pzR29WUDQ/edit?pli=1)
 
