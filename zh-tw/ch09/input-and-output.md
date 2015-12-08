@@ -1203,7 +1203,7 @@ randoms' gen = let (value, newGen) = random gen in value:randoms' newGen
 我們可以寫一個函數，他會回傳有限個亂數跟一個新的 generator
 
 ```haskell
-finiteRandoms :: (RandomGen g, Random a, Num n) => n -> g -> ([a], g)
+finiteRandoms :: (RandomGen g, Random a, Num n, Eq n) => n -> g -> ([a], g)
 finiteRandoms 0 gen = ([], gen)
 finiteRandoms n gen =
     let (value, newGen) = random gen
