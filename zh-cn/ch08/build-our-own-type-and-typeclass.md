@@ -741,7 +741,7 @@ Right "QOTSA"
 
 考虑一下 List: ``[5]``。他其实是 ``5:[]`` 的语法糖。在 ``:`` 的左边是一个普通值，而在右边是一串 List。只是在这个案例中是空的 List。再考虑 ``[4,5]``。他可以看作 ``4:(5:[])``。看看第一个 ``:``，我们看到他也有一个元素在左边，一串 List ``5:[]`` 在右边。同样的道理 ``3:(4:(5:6:[]))`` 也是这样。
 
-我们可以说一个 List 的定义是要码是空的 List 或是一个元素，后面用 ``:`` 接了另一串 List。
+我们可以说一个 List 的定义是要么是空的 List 或是一个元素，后面用 ``:`` 接了另一串 List。
 
 我们用 algebraic data type 来实作我们自己的 List！
 
@@ -749,7 +749,7 @@ Right "QOTSA"
 data List a = Empty | Cons a (List a) deriving (Show, Read, Eq, Ord)
 ```
 
-这读起来好像我们前一段提及的定义。他要码是空的 List，或是一个元素跟一串 List 的结合。如果你被搞混了，看看用 record syntax 定义的可能比较清楚。
+这读起来好像我们前一段提及的定义。他要么是空的 List，或是一个元素跟一串 List 的结合。如果你被搞混了，看看用 record syntax 定义的可能比较清楚。
 
 ```haskell
 data List a = Empty | Cons { listHead :: a, listTail :: List a} deriving (Show, Read, Eq, Ord)
