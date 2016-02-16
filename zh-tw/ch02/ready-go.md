@@ -473,7 +473,7 @@ ghci> [ x | x <- [50..100], x `mod` 7 == 3]
 [52,59,66,73,80,87,94]
 ```
 
-成功！從一個 List 中篩選出符合特定限制條件的操作也可以稱為過濾 (flitering)。即取一組數並且按照一定的限制條件過濾它們。再舉個例子 吧，假如我們想要一個 comprehension，它能夠使 List 中所有大於 10 的奇數變為 ``"BANG"``，小於 10 的奇數變為 ``"BOOM"``，其他則統統扔掉。方便重用起見，我們將這個 comprehension 置於一個函數之中。
+成功！從一個 List 中篩選出符合特定限制條件的操作也可以稱為過濾 (filtering)。即取一組數並且按照一定的限制條件過濾它們。再舉個例子 吧，假如我們想要一個 comprehension，它能夠使 List 中所有大於 10 的奇數變為 ``"BANG"``，小於 10 的奇數變為 ``"BOOM"``，其他則統統扔掉。方便重用起見，我們將這個 comprehension 置於一個函數之中。
 
 ```haskell
 boomBangs xs = [ if x < 10 then "BOOM!" else "BANG!" | x <- xs, odd x]
