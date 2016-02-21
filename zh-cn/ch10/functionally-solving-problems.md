@@ -1,3 +1,11 @@
+<!-- TOC depthFrom:1 depthTo:6 withLinks:1 updateOnSave:1 orderedList:0 -->
+
+- [函数式地思考来解决问题](#函数式地思考来解决问题)
+	- [运算逆波兰表示法(Reverse Polish notation form)](#运算逆波兰表示法reverse-polish-notation-form)
+	- [路径规划](#路径规划)
+
+<!-- /TOC -->
+
 # 函数式地思考来解决问题
 
 在这一章中，我们会查看几个有趣的问题，并尝试用函数式的方式来漂亮地解决他们。我们并不会介绍新的概念，我们只是练习我们刚学到的写程序的技巧。每一节都会探讨不同的问题。会先描述问题，然后用最好的方式解决他。
@@ -43,11 +51,11 @@
 来看看我们的实作：
 
 ```haskell
-import Data.List  
-  
-solveRPN :: (Num a) => String -> a  
-solveRPN expression = head (foldl foldingFunction [] (words expression))  
-    where   foldingFunction stack item = ...  
+import Data.List
+
+solveRPN :: (Num a) => String -> a
+solveRPN expression = head (foldl foldingFunction [] (words expression))
+    where   foldingFunction stack item = ...
 ```
 
 我们接受一个运算式并把他断成一串 List。然后我们用一个 folding 函数来 fold 这串 list。注意到我们用 ``[]`` 来当作起始的 accumulator。这个 accumulator 就是我们的堆叠，所以 ``[]`` 代表一个空的堆叠。在运算之后我们得到一个只有一个元素的堆叠，我们调用 ``head`` 来取出他并用 ``read`` 来转换他。
@@ -55,22 +63,22 @@ solveRPN expression = head (foldl foldingFunction [] (words expression))
 所以我们现在只缺一个接受堆叠的 folding 函数，像是可以接受 ``[4,10]`` 跟 ``"3"``，然后得到 ``[3,4,10]``。如果是 ``[4,10]`` 跟 ``"*"``，那就会得到 ``[40]``。但在实作之前，我们先把我们的函数改写成 point-free style，这样可以省下许多括号。
 
 ```haskell
-import Data.List  
-  
-solveRPN :: (Num a) => String -> a  
-solveRPN = head . foldl foldingFunction [] . words  
-      where   foldingFunction stack item = ...  
+import Data.List
+
+solveRPN :: (Num a) => String -> a
+solveRPN = head . foldl foldingFunction [] . words
+      where   foldingFunction stack item = ...
 ```
 
 看起来好多了。我们的 folding 函数会接受一个堆叠、新的项，并回传一个新的堆叠。我们使用模式匹配的方式来取出堆叠最上层的元素，然后对 ``"*"`` 跟 ``"-"`` 做匹配。
 
 ```haskell
-solveRPN :: (Num a, Read a) => String -> a  
-solveRPN = head . foldl foldingFunction [] . words  
-    where   foldingFunction (x:y:ys) "*" = (x * y):ys  
-            foldingFunction (x:y:ys) "+" = (x + y):ys  
-            foldingFunction (x:y:ys) "-" = (y - x):ys  
-            foldingFunction xs numberString = read numberString:xs  
+solveRPN :: (Num a, Read a) => String -> a
+solveRPN = head . foldl foldingFunction [] . words
+    where   foldingFunction (x:y:ys) "*" = (x * y):ys
+            foldingFunction (x:y:ys) "+" = (x + y):ys
+            foldingFunction (x:y:ys) "-" = (y - x):ys
+            foldingFunction xs numberString = read numberString:xs
 ```
 
 我们用展开成四个模式匹配。模式会从第一个开始尝试匹配。所以 folding 函数会看看目前的项是否是 ``"*"``。如果是，那就会将 ``[3,4,9,3]`` 的头两个元素绑定到 ``x``，``y`` 两个名称。所以 ``x`` 会是 ``3`` 而 ``y`` 等于 ``4``。``ys`` 便会是 ``[9,3]``。他会回传一个 list，只差在 ``x`` 跟 ``y`` 相乘的结果为第一个元素。也就是说会把最上层两个元素取出，相乘后再放回去。如果第一个元素不是 ``"*"``，那模式匹配就会比对到 ``"+"``，以此类推。
@@ -85,18 +93,18 @@ solveRPN = head . foldl foldingFunction [] . words
 
 
 ```haskell
-ghci> solveRPN "10 4 3 + 2 * -"  
--4  
-ghci> solveRPN "2 3 +"  
-5  
-ghci> solveRPN "90 34 12 33 55 66 + * - +"  
--3947  
-ghci> solveRPN "90 34 12 33 55 66 + * - + -"  
-4037  
-ghci> solveRPN "90 34 12 33 55 66 + * - + -"  
-4037  
-ghci> solveRPN "90 3 -"  
-87  
+ghci> solveRPN "10 4 3 + 2 * -"
+-4
+ghci> solveRPN "2 3 +"
+5
+ghci> solveRPN "90 34 12 33 55 66 + * - +"
+-3947
+ghci> solveRPN "90 34 12 33 55 66 + * - + -"
+4037
+ghci> solveRPN "90 34 12 33 55 66 + * - + -"
+4037
+ghci> solveRPN "90 3 -"
+87
 ```
 
 看起来运作良好。这个函数有一个特色就是他很容易改写来支持额外的运算子。他们也不一定要是二元运算子。例如说我们可以写一个运算子叫做 ``"log"``，他会从堆叠取出一个数值算出他的 log 后推回堆叠。我们也可以用三元运算子来从堆叠取出三个数值，并把结果放回堆叠。甚至是像是 ``"sum"`` 这样的运算子，取出所有数值并把他们的和推回堆叠。
@@ -105,38 +113,38 @@ ghci> solveRPN "90 3 -"
 我们来改写一下我们的函数让他多支持几个运算子。为了简单起见，我们改写宣告让他回传 ``Float`` 型别。
 
 ```haskell
-import Data.List  
-  
-solveRPN :: String -> Float  
-solveRPN = head . foldl foldingFunction [] . words  
-where   foldingFunction (x:y:ys) "*" = (x * y):ys  
-        foldingFunction (x:y:ys) "+" = (x + y):ys  
-        foldingFunction (x:y:ys) "-" = (y - x):ys  
-        foldingFunction (x:y:ys) "/" = (y / x):ys  
-        foldingFunction (x:y:ys) "^" = (y ** x):ys  
-        foldingFunction (x:xs) "ln" = log x:xs  
-        foldingFunction xs "sum" = [sum xs]  
-        foldingFunction xs numberString = read numberString:xs  
+import Data.List
+
+solveRPN :: String -> Float
+solveRPN = head . foldl foldingFunction [] . words
+where   foldingFunction (x:y:ys) "*" = (x * y):ys
+        foldingFunction (x:y:ys) "+" = (x + y):ys
+        foldingFunction (x:y:ys) "-" = (y - x):ys
+        foldingFunction (x:y:ys) "/" = (y / x):ys
+        foldingFunction (x:y:ys) "^" = (y ** x):ys
+        foldingFunction (x:xs) "ln" = log x:xs
+        foldingFunction xs "sum" = [sum xs]
+        foldingFunction xs numberString = read numberString:xs
 ```
 
 看起来不错，没有疑问地 ``/`` 是除法而 ``**`` 是取 exponential。至于 log 运算子，我们只需要模式匹配一个元素，毕竟 log 只需要一个元素。而 sum 运算子，我们只回传一个仅有一个元素的堆叠，包含了所有元素的和。
 
 ```haskell
-ghci> solveRPN "2.7 ln"  
-0.9932518  
-ghci> solveRPN "10 10 10 10 sum 4 /"  
-10.0  
-ghci> solveRPN "10 10 10 10 10 sum 4 /"  
-12.5  
-ghci> solveRPN "10 2 ^"  
-100.0  
+ghci> solveRPN "2.7 ln"
+0.9932518
+ghci> solveRPN "10 10 10 10 sum 4 /"
+10.0
+ghci> solveRPN "10 10 10 10 10 sum 4 /"
+12.5
+ghci> solveRPN "10 2 ^"
+100.0
 ```
 
 由于 ``read`` 知道如何转换浮点数，我们也可在运算适中使用他。
 
 ```haskell
-ghci> solveRPN "43.2425 0.5 ^"  
-6.575903  
+ghci> solveRPN "43.2425 0.5 ^"
+6.575903
 ```
 
 有这样一个容易拓展到浮点数而且动到的代码又在十行以内的函数，我想是非常棒的。
@@ -159,18 +167,18 @@ ghci> solveRPN "43.2425 0.5 ^"
 我们任务就是要写一个程序，他接受道路配置的输入，然后印出对应的最短路径。我们的输入看起来像是这样：
 
 ```haskell
-50  
-10  
-30  
-5  
-90  
-20  
-40  
-2  
-25  
-10  
-8  
-0  
+50
+10
+30
+5
+90
+20
+40
+2
+25
+10
+8
+0
 ```
 
 我们在心中可以把输入的数值三个三个看作一组。每一组由道路 A,道路 B,还有交叉的小路组成。而要能够这样组成，我们必须让最后有一条虚拟的交叉小路，只需要走 0 分钟就可以穿越他。因为我们并不会在意在伦敦里面开车的成本，毕竟我们已经到达伦敦了。
@@ -198,7 +206,7 @@ ghci> solveRPN "43.2425 0.5 ^"
 
 我们来看看到达 A2 的最短路径是什么。要到达 A2，我们必须要从 A1 走到 A2 或是从 B1 走小路。由于我们知道到达 A1 跟 B1 的成本，我们可以很容易的想出到达 A2 的最佳路径。到达 A1 要花费 40，而从 A1 到 A2 需要 5。所以 ``B, C, A`` 总共要 45。而要到达 B1 只要 10，但需要额外花费 110 分钟来到达 B2 然后走小路到达 A2。所以最佳路径就是 ``B, C, A``。同样地到达 B2 最好的方式就是走 A1 然后走小路。
 
-	
+
 	也许你会问如果先在 B1 跨到道路 A 然后走到 A2 的情况呢？我们已经考虑过了从 B1 到 A1 的情况，所以我们不需要再把他考虑进去。
 
 现在我们有了至 A2 跟 B2 的最佳路径，我们可以一直重复这个过程直到最右边。一旦我们到达了 A4 跟 B4，那其中比较短的就是我们的最佳路径了。
@@ -214,8 +222,8 @@ ghci> solveRPN "43.2425 0.5 ^"
 
 
 ```haskell
-data Node = Node Road Road | EndNode Road  
-data Road = Road Int Node 
+data Node = Node Road Road | EndNode Road
+data Road = Road Int Node
 ```
 
 一个节点要码是一个普通的节点，他包含有通往下一个交叉点的路径信息，还有往对面道路的信息。或是一个终端点，只包含往对面节点的道路信息。一条道路包含他多长，还有他指向哪里。例如说，道路 A 的第一个部份就可写成 ``Road 50 a1``。其中 ``a1`` 是 ``Node x y`` 这样一个节点。而 ``x`` 跟 ``y`` 则分别指向 B1 跟 A2。
@@ -223,8 +231,8 @@ data Road = Road Int Node
 另一种方式就是用 ``Maybe`` 来代表往下一个交叉点走的路。每个节点有指到对面节点的路径部份，但只有不是终端节点的节点才有指向下一个交叉点的路。
 
 ```haskell
-data Node = Node Road (Maybe Road)  
-data Road = Road Int Node  
+data Node = Node Road (Maybe Road)
+data Road = Road Int Node
 ```
 
 这些是用 Haskell 来代表道路系统的方式，而我们也能靠他们来解决问题。但也许我们可以想出更简单的模型？如果我们想想之前手算的方式，我们每次检查都只有检查三条路径的长度而已。在道路 A 的部份，跟在道路 B 的部份，还有接触两个部份并将他们连接起来的部份。当我们观察到 A1 跟 B1 的最短路径时，我们只考虑第一组的三个部份，他们分别花费 50, 10 跟 30。所以道路系统可以用四组来表示：``50, 10, 30``，``5, 90, 20``，``40, 2, 25`` 跟 ``10, 8, 0``。
@@ -232,8 +240,8 @@ data Road = Road Int Node
 让我们数据型别越简单越好，不过这样已经是极限了。
 
 ```haskell
-data Section = Section { getA :: Int, getB :: Int, getC :: Int } deriving (Show)  
-type RoadSystem = [Section]  
+data Section = Section { getA :: Int, getB :: Int, getC :: Int } deriving (Show)
+type RoadSystem = [Section]
 ```
 
 这样很完美，而且对于我们的实作也有帮助。``Section`` 是一个 algebraic data type，包含三个整数，分别代表三个不同部份的道路长。我们也定义了型别同义字，说 ``RoadSystem`` 代表包含 section 的 list。
@@ -245,21 +253,21 @@ type RoadSystem = [Section]
 从希思罗机场到伦敦的道路系统便可以这样表示：
 
 ```haskell
-heathrowToLondon :: RoadSystem  
-heathrowToLondon = [Section 50 10 30, Section 5 90 20, Section 40 2 25, Section 10 8 0]  
+heathrowToLondon :: RoadSystem
+heathrowToLondon = [Section 50 10 30, Section 5 90 20, Section 40 2 25, Section 10 8 0]
 ```
 
 我们现在要做的就是用 Haskell 实作我们先前的解法。所以我们应该怎样宣告我们计算最短路径函数的型别呢？他应该接受一个道路系统作为参数，然后回传一个路径。我们会用一个 list 来代表我们的路径。我们定义了 ``Label`` 来表示 ``A``, ``B`` 或 ``C``。并且也定义一个同义词 ``Path``：
 
 ```haskell
-data Label = A | B | C deriving (Show)  
-type Path = [(Label, Int)] 
+data Label = A | B | C deriving (Show)
+type Path = [(Label, Int)]
 ```
 
 而我们的函数 ``optimalPath`` 应该要有 ``optimalPath :: RoadSystem -> Path`` 这样的型别。如果被喂给 ``heathrowToLondon`` 这样的道路系统，他应该要回传下列的路径：
 
 ```haskell
-[(B,10),(C,30),(A,5),(C,20),(B,2),(B,8)]      
+[(B,10),(C,30),(A,5),(C,20),(B,2),(B,8)]
 ```
 
 我们接下来就从左至右来走一遍 list，并沿路上记下 A 的最佳路径跟 B 的最佳路径。我们会 accumulate 我们的最佳路径。这听起来有没有很熟悉？没错！就是 left fold。
@@ -272,21 +280,21 @@ type Path = [(Label, Int)]
 
 
 ```haskell
-roadStep :: (Path, Path) -> Section -> (Path, Path)  
-roadStep (pathA, pathB) (Section a b c) =   
-    let priceA = sum $ map snd pathA  
-        priceB = sum $ map snd pathB  
-        forwardPriceToA = priceA + a  
-        crossPriceToA = priceB + b + c  
-        forwardPriceToB = priceB + b  
-        crossPriceToB = priceA + a + c  
-        newPathToA = if forwardPriceToA <= crossPriceToA  
-                        then (A,a):pathA  
-                        else (C,c):(B,b):pathB  
-        newPathToB = if forwardPriceToB <= crossPriceToB  
-                        then (B,b):pathB  
-                        else (C,c):(A,a):pathA  
-    in  (newPathToA, newPathToB)  
+roadStep :: (Path, Path) -> Section -> (Path, Path)
+roadStep (pathA, pathB) (Section a b c) =
+    let priceA = sum $ map snd pathA
+        priceB = sum $ map snd pathB
+        forwardPriceToA = priceA + a
+        crossPriceToA = priceB + b + c
+        forwardPriceToB = priceB + b
+        crossPriceToB = priceA + a + c
+        newPathToA = if forwardPriceToA <= crossPriceToA
+                        then (A,a):pathA
+                        else (C,c):(B,b):pathB
+        newPathToB = if forwardPriceToB <= crossPriceToB
+                        then (B,b):pathB
+                        else (C,c):(A,a):pathA
+    in  (newPathToA, newPathToB)
 ```
 
 ![](guycar.png)
@@ -304,8 +312,8 @@ roadStep (pathA, pathB) (Section a b c) =
 
 
 ```haskell
-ghci> roadStep ([], []) (head heathrowToLondon)  
-([(C,30),(B,10)],[(B,10)])  
+ghci> roadStep ([], []) (head heathrowToLondon)
+([(C,30),(B,10)],[(B,10)])
 ```
 
 要记住包含的路径是反过来的，要从右边往左边读。所以到 A 的最佳路径可以解读成从 B 出发，然后穿越到道路 A。而 B 的最佳路径则是直接从 B 出发走到下一个交叉点。
@@ -318,12 +326,12 @@ ghci> roadStep ([], []) (head heathrowToLondon)
 
 
 ```haskell
-optimalPath :: RoadSystem -> Path  
-optimalPath roadSystem = 
-    let (bestAPath, bestBPath) = foldl roadStep ([],[]) roadSystem  
-    in  if sum (map snd bestAPath) <= sum (map snd bestBPath)  
-                then reverse bestAPath  
-                else reverse bestBPath  
+optimalPath :: RoadSystem -> Path
+optimalPath roadSystem =
+    let (bestAPath, bestBPath) = foldl roadStep ([],[]) roadSystem
+    in  if sum (map snd bestAPath) <= sum (map snd bestBPath)
+                then reverse bestAPath
+                else reverse bestBPath
 ```
 
 我们对 ``roadSystem`` 做 left fold。而用的起始 accumulator 是一对空的路径。fold 的结果也是一对路径，我们用模式匹配的方式来把路径从结果取出。然后我们检查哪一个路径比较短便回传他。而且在回传之前也顺便把整个结果反过来。因为我们先前提到的我们是用接在前头的方式来构造结果的。
@@ -331,8 +339,8 @@ optimalPath roadSystem =
 我们来测试一下吧！
 
 ```haskell
-ghci> optimalPath heathrowToLondon  
-[(B,10),(C,30),(A,5),(C,20),(B,2),(B,8),(C,0)]  
+ghci> optimalPath heathrowToLondon
+[(B,10),(C,30),(A,5),(C,20),(B,2),(B,8),(C,0)]
 ```
 
 这正是我们应该得到的结果！不过跟我们预期的结果仍有点差异，在最后有一步 ``(C,0)``，那代表我们已经在伦敦了仍然跨越小路。不过由于他的成本是 0，所以依然可以算做正确的结果。
@@ -344,26 +352,26 @@ ghci> optimalPath heathrowToLondon
 首先，我们写一个函数，他接受一串 list 并把他切成同样大小的 group。我们命名他为 ``groupOf``。当参数是 ``[1..10]`` 时，``groupOf 3`` 应该回传 ``[[1,2,3],[4,5,6],[7,8,9],[10]]``。
 
 ```haskell
-groupsOf :: Int -> [a] -> [[a]]  
-groupsOf 0 _ = undefined  
-groupsOf _ [] = []  
+groupsOf :: Int -> [a] -> [[a]]
+groupsOf 0 _ = undefined
+groupsOf _ [] = []
 groupsOf n xs = take n xs : groupsOf n (drop n xs)
 ```
 
 一个标准的递归函数。对于 ``xs`` 等于 ``[1..10]`` 且 ``n`` 等于 ``3``，这可以写成 ``[1,2,3] : groupsOf 3 [4,5,6,7,8,9,10]``。当这个递归结束的时候，我们的 list 就三个三个分好组。而下列是我们的 ``main`` 函数，他从标准输入读取数据，构造 ``RoadSystem`` 并印出最短路径。
 
 ```haskell
-import Data.List  
-  
-main = do  
-    contents <- getContents  
-    let threes = groupsOf 3 (map read $ lines contents)  
-        roadSystem = map (\[a,b,c] -> Section a b c) threes  
-        path = optimalPath roadSystem  
-        pathString = concat $ map (show . fst) path  
-        pathPrice = sum $ map snd path  
-    putStrLn $ "The best path to take is: " ++ pathString  
-    putStrLn $ "The price is: " ++ show pathPrice  
+import Data.List
+
+main = do
+    contents <- getContents
+    let threes = groupsOf 3 (map read $ lines contents)
+        roadSystem = map (\[a,b,c] -> Section a b c) threes
+        path = optimalPath roadSystem
+        pathString = concat $ map (show . fst) path
+        pathPrice = sum $ map snd path
+    putStrLn $ "The best path to take is: " ++ pathString
+    putStrLn $ "The price is: " ++ show pathPrice
 ```
 
 首先，我们从标准输入获取所有的数据。然后我们调用 ``lines`` 来把 ``"50\n10\n30\n...`` 转换成 ``["50","10","30"..``，然后我们 map ``read`` 来把这些转成包含数值的 list。我们调用 ``groupsOf 3`` 来把 list 的 list，其中子 list 长度为 3。我们接着对这个 list 来 map 一个 lambda ``(\[a,b,c] -> Section a b c)``。正如你看到的，这个 lambda 接受一个长度为 3 的 list 然后把他变成 Section。所以 ``roadSystem`` 现在就是我们的道路配置，而且是正确的型别 ``RoadSystem``。我们调用 ``optimalPath`` 而得到一个路径跟对应的代价，之后再印出来。
@@ -372,28 +380,27 @@ main = do
 
 
 ```haskell
-50  
-10  
-30  
-5  
-90  
-20  
-40  
-2  
-25  
-10  
-8  
-0  
+50
+10
+30
+5
+90
+20
+40
+2
+25
+10
+8
+0
 ```
 
 
 存成一个叫 ``paths.txt`` 的文件然后喂给我们的程序。
 
 ```haskell
-$ cat paths.txt | runhaskell heathrow.hs  
-The best path to take is: BCACBBC  
-The price is: 75  
+$ cat paths.txt | runhaskell heathrow.hs
+The best path to take is: BCACBBC
+The price is: 75
 ```
 
 执行成功！你可以用你对 ``Data.Random`` 的了解来产生一个比较大的路径配置，然后你可以把产生的乱数数据喂给你的程序。如果你碰到堆叠溢出，试试看用 ``foldl'`` 而不要用 ``foldl``。``foldl'`` 是 strict 的可以减少内存消耗。
-

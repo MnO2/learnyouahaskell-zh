@@ -1,3 +1,19 @@
+<!-- TOC depthFrom:1 depthTo:6 withLinks:1 updateOnSave:1 orderedList:0 -->
+
+- [构造我们自己的 Types 和 Typeclasses](#构造我们自己的-types-和-typeclasses)
+	- [Algebraic Data Types 入门](#algebraic-data-types-入门)
+	- [Record Syntax](#record-syntax)
+	- [Type parameters](#type-parameters)
+	- [Derived instances](#derived-instances)
+	- [Type synonyms](#type-synonyms)
+	- [Recursive data structures (递归地定义数据结构)](#recursive-data-structures-递归地定义数据结构)
+	- [Typeclasses 的第二堂课](#typeclasses-的第二堂课)
+	- [yes-no typeclass](#yes-no-typeclass)
+	- [Functor typeclass](#functor-typeclass)
+	- [Kind](#kind)
+
+<!-- /TOC -->
+
 # 构造我们自己的 Types 和 Typeclasses
 
 ## Algebraic Data Types 入门
@@ -1437,5 +1453,3 @@ instance Functor (Barry a b) where
 
 
 在这一个章节中，我们看到型别参数是怎么运作的，以及正如我们用型别来定义出函数的参数，我们也用 kind 是来定义他。我们看到函数跟型别构造子有许多彼此相像的地方。然而他们是两个完全不同的东西。当我们在写一般实用的 Haskell 程序时，你几乎不会碰到需要动到 kind 的东西，也不需要动脑去推敲 kind。通常你只需要在定义 instance 时 partially apply 你自己的 ``* -> *`` 或是 ``*`` 型别，但知道背后运作的原理也是很好的。知道型别本身也有自己的型别也是很有趣的。如果你实在不懂这边讲的东西，也可以继续阅读下去。但如果你能理解，那你就会理解 Haskell 型别系统的一大部份。
-
-

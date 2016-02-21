@@ -1,3 +1,15 @@
+<!-- TOC depthFrom:1 depthTo:6 withLinks:1 updateOnSave:1 orderedList:0 -->
+
+- [从零开始](#从零开始)
+	- [准备好了吗？](#准备好了吗)
+	- [初学者的第一个函数](#初学者的第一个函数)
+	- [List 入门](#list-入门)
+	- [使用 Range](#使用-range)
+	- [List Comprehension](#list-comprehension)
+	- [Tuple](#tuple)
+
+<!-- /TOC -->
+
 # 从零开始
 
 ## 准备好了吗？
@@ -640,4 +652,3 @@ ghci> rightTriangles'
 ```
 
 得到正确结果！这便是函数式编程语言的一般思路：先取一个初始的集合并将其变形，执行过滤条件，最终取得正确的结果。
-

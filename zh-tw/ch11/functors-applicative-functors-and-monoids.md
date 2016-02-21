@@ -1,3 +1,22 @@
+<!-- TOC depthFrom:1 depthTo:6 withLinks:1 updateOnSave:1 orderedList:0 -->
+
+- [Functors, Applicative Functors 與 Monoids](#functors-applicative-functors-與-monoids)
+	- [溫習 Functors](#溫習-functors)
+	- [Applicative functors](#applicative-functors)
+	- [關鍵字"newtype"](#關鍵字newtype)
+		- [Using newtype to make type class instances](#using-newtype-to-make-type-class-instances)
+		- [On newtype laziness](#on-newtype-laziness)
+		- [type vs newtype vs data](#type-vs-newtype-vs-data)
+	- [Monoids](#monoids)
+		- [Lists are monoids](#lists-are-monoids)
+		- [Product and Sum](#product-and-sum)
+		- [Any and ALL](#any-and-all)
+		- [The Ordering monoid](#the-ordering-monoid)
+		- [Maybe the monoid](#maybe-the-monoid)
+		- [Using monoids to fold data structures](#using-monoids-to-fold-data-structures)
+
+<!-- /TOC -->
+
 # Functors, Applicative Functors 與 Monoids
 
 Haskell 的一些特色，像是純粹性，高階函數，algebraic data types，typeclasses，這些讓我們可以從更高的角度來看到 polymorphism 這件事。不像 OOP 當中需要從龐大的型態階層來思考。我們只需要看看手邊的型態的行為，將他們跟適當地 typeclass 對應起來就可以了。像 ``Int`` 的行為跟很多東西很像。好比說他可以比較相不相等，可以從大到小排列，也可以將他們一一窮舉出來。
@@ -35,19 +54,19 @@ instance Functor IO where
 我們可以再多實驗一下來找到些感覺。來看看這段 code：
 
 ```haskell
-main = do line <- getLine   
-        let line' = reverse line  
-        putStrLn $ "You said " ++ line' ++ " backwards!"  
-        putStrLn $ "Yes, you really said" ++ line' ++ " backwards!"  
+main = do line <- getLine
+        let line' = reverse line
+        putStrLn $ "You said " ++ line' ++ " backwards!"
+        putStrLn $ "Yes, you really said" ++ line' ++ " backwards!"
 ```
 
 這程式要求使用者輸入一行文字，然後印出一行反過來的。
 我們可以用 ``fmap`` 來改寫：
 
 ```haskell
-main = do line <- fmap reverse getLine  
-            putStrLn $ "You said " ++ line ++ " backwards!"  
-            putStrLn $ "Yes, you really said" ++ line ++ " backwards!"  
+main = do line <- fmap reverse getLine
+            putStrLn $ "You said " ++ line ++ " backwards!"
+            putStrLn $ "Yes, you really said" ++ line ++ " backwards!"
 ```
 
 ![](alien.png)
@@ -61,17 +80,17 @@ main = do line <- fmap reverse getLine
 如果你曾經注意到你想要將一個 I/O action 綁定到一個名稱上，只是為了要 apply 一個 function。你可以考慮使用 ``fmap``，那會更漂亮地表達這件事。或者你想要對 functor 中的資料做 transformation，你可以先將你要用的 function 寫在 top level，或是把他作成一個 lambda function，甚至用 function composition。
 
 ```haskell
-import Data.Char  
-import Data.List  
-  
-main = do line <- fmap (intersperse '-' . reverse . map toUpper) getLine  
-          putStrLn line  
+import Data.Char
+import Data.List
+
+main = do line <- fmap (intersperse '-' . reverse . map toUpper) getLine
+          putStrLn line
 ```
 
 ```haskell
-$ runhaskell fmapping_io.hs  
-hello there  
-E-R-E-H-T- -O-L-L-E-H  
+$ runhaskell fmapping_io.hs
+hello there
+E-R-E-H-T- -O-L-L-E-H
 ```
 
 正如你想的，``intersperse '-' . reverse . map toUpper`` 合成了一個 function，他接受一個字串，將他轉成大寫，然後反過來，再用 ``intersperse '-'`` 安插'-'。他是比較漂亮版本的 ``(\xs -> intersperse '-' (reverse (map toUpper xs)))``。
@@ -81,15 +100,15 @@ E-R-E-H-T- -O-L-L-E-H
     我們通常說一個接受任何東西以及回傳隨便一個東西的函數型態是 ``a -> b``。``r -> a`` 是同樣意思，只是把符號代換了一下。
 
 ```haskell
-instance Functor ((->) r) where  
-    fmap f g = (\x -> f (g x))  
+instance Functor ((->) r) where
+    fmap f g = (\x -> f (g x))
 ```
 
 如果語法允許的話，他可以被寫成
 
 ```haskell
-instance Functor (r ->) where  
-    fmap f g = (\x -> f (g x))  
+instance Functor (r ->) where
+    fmap f g = (\x -> f (g x))
 ```
 
 但其實是不允許的，所以我們必須寫成第一種的樣子。
@@ -99,23 +118,23 @@ instance Functor (r ->) where
 從上面的結果看到將一個 function map over 一個 function 會得到另一個 function，就如 map over 一個 function 到 ``Maybe`` 會得到一個 ``Maybe``，而 map over 一個 function 到一個 list 會得到一個 list。而 ``fmap :: (a -> b) -> (r -> a) -> (r -> b)`` 告訴我們什麼？他接受一個從 ``a`` 到 ``b`` 的 function，跟一個從 ``r`` 到 ``a`` 的 function，並回傳一個從 ``r`` 到 ``b`` 的 function。這根本就是 function composition。把 ``r -> a`` 的輸出接到 ``a -> b`` 的輸入，的確是 function composition 在做的事。如果你再仔細看看 instance 的定義，會發現真的就是一個 function composition。
 
 ```haskell
-instance Functor ((->) r) where  
-    fmap = (.)  
+instance Functor ((->) r) where
+    fmap = (.)
 ```
 
 這很明顯就是把 ``fmap`` 當 composition 在用。可以用 ``:m + Control.Monad.Instances`` 把模組裝載進來，並做一些嘗試。
 
 ```haskell
-ghci> :t fmap (*3) (+100)  
-fmap (*3) (+100) :: (Num a) => a -> a  
-ghci> fmap (*3) (+100) 1  
-303  
-ghci> (*3) `fmap` (+100) $ 1  
-303  
-ghci> (*3) . (+100) $ 1  
-303  
-ghci> fmap (show . (*3)) (*100) 1  
-"300"  
+ghci> :t fmap (*3) (+100)
+fmap (*3) (+100) :: (Num a) => a -> a
+ghci> fmap (*3) (+100) 1
+303
+ghci> (*3) `fmap` (+100) $ 1
+303
+ghci> (*3) . (+100) $ 1
+303
+ghci> fmap (show . (*3)) (*100) 1
+"300"
 ```
 
 我們呼叫 ``fmap`` 的方式是 infix 的方式，這跟 ``.`` 很像。在第二行，我們把 ``(*3)`` map over 到 ``(+100)`` 上，這會回傳一個先把輸入值 ``(+100)`` 再 ``(*3)`` 的 function，我們再用 ``1`` 去呼叫他。
@@ -131,10 +150,10 @@ ghci> fmap (show . (*3)) (*100) 1
 同樣的，我們可以不要把 ``fmap`` 想成是一個接受 function 跟 functor 並回傳一個 function 的 function。而是想成一個接受 function 並回傳一個新的 function 的 function，回傳的 function 接受一個 functor 並回傳一個 functor。他接受 ``a -> b`` 並回傳 ``f a -> f b``。這動作叫做 lifting。我們用 GHCI 的 ``:t`` 來做的實驗。
 
 ```haskell
-ghci> :t fmap (*2)  
-fmap (*2) :: (Num a, Functor f) => f a -> f a  
-ghci> :t fmap (replicate 3)  
-fmap (replicate 3) :: (Functor f) => f a -> f [a]  
+ghci> :t fmap (*2)
+fmap (*2) :: (Num a, Functor f) => f a -> f a
+ghci> :t fmap (replicate 3)
+fmap (replicate 3) :: (Functor f) => f a -> f [a]
 ```
 
 ``fmap (*2)`` 接受一個 functor ``f``，並回傳一個基於數字的 functor。那個 functor 可以是 list，可以是 ``Maybe``，可以是 ``Either String``。``fmap (replicate 3)`` 可以接受一個基於任何型態的 functor，並回傳一個基於 list 的 functor。
@@ -148,16 +167,16 @@ fmap (replicate 3) :: (Functor f) => f a -> f [a]
 ``fmap (replicate 3) :: (Functor f) => f a -> f [a]`` 這樣的型態代表這個函數可以運作在任何 functor 上。至於確切的行為則要看究竟我們操作的是什麼樣的 functor。如果我們是用 ``fmap (replicate 3)`` 對一個 list 操作，那我們會選擇 ``fmap`` 針對 list 的實作，也就是只是一個 ``map``。如果我們是碰到 ``Maybe a``。那他在碰到 ``Just`` 型態的時候，會對裡面的值套用 ``replicate 3``。而碰到 ``Nothing`` 的時候就回傳 ``Nothing``。
 
 ```haskell
-ghci> fmap (replicate 3) [1,2,3,4]  
-[[1,1,1],[2,2,2],[3,3,3],[4,4,4]]  
-ghci> fmap (replicate 3) (Just 4)  
-Just [4,4,4]  
-ghci> fmap (replicate 3) (Right "blah")  
-Right ["blah","blah","blah"]  
-ghci> fmap (replicate 3) Nothing  
-Nothing  
-ghci> fmap (replicate 3) (Left "foo")  
-Left "foo"  
+ghci> fmap (replicate 3) [1,2,3,4]
+[[1,1,1],[2,2,2],[3,3,3],[4,4,4]]
+ghci> fmap (replicate 3) (Just 4)
+Just [4,4,4]
+ghci> fmap (replicate 3) (Right "blah")
+Right ["blah","blah","blah"]
+ghci> fmap (replicate 3) Nothing
+Nothing
+ghci> fmap (replicate 3) (Left "foo")
+Left "foo"
 ```
 
 
@@ -168,26 +187,26 @@ functor law 的第一條說明，如果我們對 functor 做 map ``id``，那得
 我們來看看這個定律的幾個案例：
 
 ```haskell
-ghci> fmap id (Just 3)  
-Just 3  
-ghci> id (Just 3)  
-Just 3  
-ghci> fmap id [1..5]  
-[1,2,3,4,5]  
-ghci> id [1..5]  
-[1,2,3,4,5]  
-ghci> fmap id []  
-[]  
-ghci> fmap id Nothing  
-Nothing  
+ghci> fmap id (Just 3)
+Just 3
+ghci> id (Just 3)
+Just 3
+ghci> fmap id [1..5]
+[1,2,3,4,5]
+ghci> id [1..5]
+[1,2,3,4,5]
+ghci> fmap id []
+[]
+ghci> fmap id Nothing
+Nothing
 ```
 
 如果我們看看 ``Maybe`` 的 ``fmap`` 的實作，我們不難發現第一定律為何被遵守。
 
 ```haskell
-instance Functor Maybe where  
-    fmap f (Just x) = Just (f x)  
-    fmap f Nothing = Nothing  
+instance Functor Maybe where
+    fmap f (Just x) = Just (f x)
+    fmap f Nothing = Nothing
 ```
 
 我們可以想像在 ``f`` 的位置擺上 ``id``。我們看到 ``fmap id`` 拿到 ``Just x`` 的時候，結果只不過是 ``Just (id x)``，而 ``id`` 有只回傳他拿到的東西，所以可以知道 ``Just (id x)`` 等價於 ``Just x``。所以說我們可以知道對 ``Maybe`` 中的 ``Just`` 用 ``id`` 去做 map over 的動作，會拿回一樣的值。
@@ -211,43 +230,43 @@ instance Functor Maybe where
 我們來看一些經典的例子。這些型別建構子雖然是 ``Functor`` 的 instance，但實際上他們並不是 functor，因為他們並不遵守這些定律。我們來看看其中一個型別。
 
 ```haskell
-data CMaybe a = CNothing | CJust Int a deriving (Show)      
+data CMaybe a = CNothing | CJust Int a deriving (Show)
 ```
 
 C 這邊代表的是計數器。他是一種看起來像是 ``Maybe a`` 的型別，只差在 ``Just`` 包含了兩個 field 而不是一個。在 ``CJust`` 中的第一個 field 是 ``Int``，他是扮演計數器用的。而第二個 field 則為型別 ``a``，他是從型別參數來的，而他確切的型別當然會依據我們選定的 ``CMaybe a`` 而定。我們來對他作些操作來獲得些操作上的直覺吧。
 
 ```haskell
-ghci> CNothing  
-CNothing  
-ghci> CJust 0 "haha"  
-CJust 0 "haha"  
-ghci> :t CNothing  
-CNothing :: CMaybe a  
-ghci> :t CJust 0 "haha"  
-CJust 0 "haha" :: CMaybe [Char]  
-ghci> CJust 100 [1,2,3]  
-CJust 100 [1,2,3]  
+ghci> CNothing
+CNothing
+ghci> CJust 0 "haha"
+CJust 0 "haha"
+ghci> :t CNothing
+CNothing :: CMaybe a
+ghci> :t CJust 0 "haha"
+CJust 0 "haha" :: CMaybe [Char]
+ghci> CJust 100 [1,2,3]
+CJust 100 [1,2,3]
 ```
 
 
 如果我們使用 ``CNothing``，就代表不含有 field。如果我們用的是 ``CJust``，那第一個 field 是整數，而第二個 field 可以為任何型別。我們來定義一個 ``Functor`` 的 instance，這樣每次我們使用 ``fmap`` 的時候，函數會被套用在第二個 field，而第一個 field 會被加一。
 
 ```haskell
-instance Functor CMaybe where  
-    fmap f CNothing = CNothing  
-    fmap f (CJust counter x) = CJust (counter+1) (f x)  
+instance Functor CMaybe where
+    fmap f CNothing = CNothing
+    fmap f (CJust counter x) = CJust (counter+1) (f x)
 ```
 
 這種定義方式有點像是 ``Maybe`` 的定義方式，只差在當我們使用 ``fmap`` 的時候，如果碰到的不是空值，那我們不只會套用函數，還會把計數器加一。我們可以來看一些範例操作。
 
 
 ```haskell
-ghci> fmap (++"ha") (CJust 0 "ho")  
-CJust 1 "hoha"  
-ghci> fmap (++"he") (fmap (++"ha") (CJust 0 "ho"))  
-CJust 2 "hohahe"  
-ghci> fmap (++"blah") CNothing  
-CNothing  
+ghci> fmap (++"ha") (CJust 0 "ho")
+CJust 1 "hoha"
+ghci> fmap (++"he") (fmap (++"ha") (CJust 0 "ho"))
+CJust 2 "hohahe"
+ghci> fmap (++"blah") CNothing
+CNothing
 ```
 
 
@@ -255,10 +274,10 @@ CNothing
 
 
 ```haskell
-ghci> fmap id (CJust 0 "haha")  
-CJust 1 "haha"  
-ghci> id (CJust 0 "haha")  
-CJust 0 "haha"  
+ghci> fmap id (CJust 0 "haha")
+CJust 1 "haha"
+ghci> id (CJust 0 "haha")
+CJust 0 "haha"
 ```
 
 
@@ -287,14 +306,14 @@ CJust 0 "haha"
 到目前為止，當我們要對 functor map over 一個函數的時候，我們用的函數都是只接受一個參數的。但如果我們要 map 一個接受兩個參數的函數呢？我們來看幾個具體的例子。如果我們有 ``Just 3`` 然後我們做 ``fmap (*) (Just 3)``，那我們會獲得什麼樣的結果？從 ``Maybe`` 對 ``Functor`` 的 instance 實作來看，我們知道如果他是 ``Just something``，他會對在 ``Just`` 中的 ``something`` 做映射。因此當 ``fmap (*) (Just 3)`` 會得到 ``Just ((*) 3)``，也可以寫做 ``Just (* 3)``。我們得到了一個包在 ``Just`` 中的函數。
 
 ```haskell
-ghci> :t fmap (++) (Just "hey")  
-fmap (++) (Just "hey") :: Maybe ([Char] -> [Char])  
-ghci> :t fmap compare (Just 'a')  
-fmap compare (Just 'a') :: Maybe (Char -> Ordering)  
-ghci> :t fmap compare "A LIST OF CHARS"  
-fmap compare "A LIST OF CHARS" :: [Char -> Ordering]  
-ghci> :t fmap (\x y z -> x + y / z) [3,4,5,6]  
-fmap (\x y z -> x + y / z) [3,4,5,6] :: (Fractional a) => [a -> a -> a]  
+ghci> :t fmap (++) (Just "hey")
+fmap (++) (Just "hey") :: Maybe ([Char] -> [Char])
+ghci> :t fmap compare (Just 'a')
+fmap compare (Just 'a') :: Maybe (Char -> Ordering)
+ghci> :t fmap compare "A LIST OF CHARS"
+fmap compare "A LIST OF CHARS" :: [Char -> Ordering]
+ghci> :t fmap (\x y z -> x + y / z) [3,4,5,6]
+fmap (\x y z -> x + y / z) [3,4,5,6] :: (Fractional a) => [a -> a -> a]
 ```
 
 如果我們 map ``compare`` 到一個包含許多字元的 list 呢？他的型別是 ``(Ord a) => a -> a -> Ordering``，我們會得到包含許多 ``Char -> Ordering`` 型別函數的 list，因為 ``compare`` 被 partially apply 到 list 中的字元。他不是包含許多 ``(Ord a) => a -> Ordering`` 的函數，因為第一個 ``a`` 碰到的型別是 ``Char``，所以第二個 ``a`` 也必須是 ``Char``。
@@ -303,11 +322,11 @@ fmap (\x y z -> x + y / z) [3,4,5,6] :: (Fractional a) => [a -> a -> a]
 我們看到如何用一個多參數的函數來 map functor，我們會得到一個包含了函數的 functor。那現在我們能對這個包含了函數的 functor 做什麼呢？我們能用一個吃這些函數的函數來 map over 這個 functor，這些在 functor 中的函數都會被當作參數丟給我們的函數。
 
 ```haskell
-ghci> let a = fmap (*) [1,2,3,4]  
-ghci> :t a  
-a :: [Integer -> Integer]  
-ghci> fmap (\f -> f 9) a  
-[9,18,27,36]  
+ghci> let a = fmap (*) [1,2,3,4]
+ghci> :t a
+a :: [Integer -> Integer]
+ghci> fmap (\f -> f 9) a
+[9,18,27,36]
 ```
 
 但如果我們的有一個 functor 裡面是 ``Just (3 *)`` 還有另一個 functor 裡面是 ``Just 5``，但我們想要把第一個 ``Just (3 *)`` map over ``Just 5`` 呢？如果是普通的 functor，那就沒救了。因為他們只允許 map 一個普通的函數。即使我們用 ``\f -> f 9`` 來 map 一個裝了很多函數的 functor，我們也是使用了普通的函數。我們是無法單純用 ``fmap`` 來把包在一個 functor 的函數 map 另一個包在 functor 中的值。我們能用模式匹配 ``Just`` 來把函數從裡面抽出來，然後再 map ``Just 5``，但我們是希望有一個一般化的作法，對任何 functor 都有效。
@@ -315,9 +334,9 @@ ghci> fmap (\f -> f 9) a
 我們來看看 ``Applicative`` 這個 typeclass。他位在 ``Control.Applicative`` 中，在其中定義了兩個函數 ``pure`` 跟 ``<*>``。他並沒有提供預設的實作，如果我們想使用他必須要為他們 applicative functor 的實作。typeclass 定義如下：
 
 ```haskell
-class (Functor f) => Applicative f where  
-    pure :: a -> f a  
-    (<*>) :: f (a -> b) -> f a -> f b  
+class (Functor f) => Applicative f where
+    pure :: a -> f a
+    (<*>) :: f (a -> b) -> f a -> f b
 ```
 
 這簡簡單單的三行可以讓我們學到不少。首先來看第一行。他開啟了 ``Applicative`` 的定義，並加上 class contraint。描述了一個型別構造子要是 ``Applicative``，他必須也是 ``Functor``。這就是為什麼我們說一個型別構造子屬於 ``Applicative`` 的話，他也會是 ``Functor``，因此我們能對他使用 ``fmap``。
@@ -331,10 +350,10 @@ class (Functor f) => Applicative f where
 我們來看看 ``Maybe`` 的 ``Applicative`` 實作：
 
 ```haskell
-instance Applicative Maybe where  
-    pure = Just  
-    Nothing <*> _ = Nothing  
-    (Just f) <*> something = fmap f something  
+instance Applicative Maybe where
+    pure = Just
+    Nothing <*> _ = Nothing
+    (Just f) <*> something = fmap f something
 ```
 
 從 class 的定義我們可以看到 ``f`` 作為 applicative functor 會接受一個具體型別當作參數，所以我們是寫成 ``instance Applicative Maybe where`` 而不是寫成 ``instance Applicative (Maybe a) where``。
@@ -348,16 +367,16 @@ instance Applicative Maybe where
 來試試看吧！
 
 ```haskell
-ghci> Just (+3) <*> Just 9  
-Just 12  
-ghci> pure (+3) <*> Just 10  
-Just 13  
-ghci> pure (+3) <*> Just 9  
-Just 12  
-ghci> Just (++"hahah") <*> Nothing  
-Nothing  
-ghci> Nothing <*> Just "woot"  
-Nothing  
+ghci> Just (+3) <*> Just 9
+Just 12
+ghci> pure (+3) <*> Just 10
+Just 13
+ghci> pure (+3) <*> Just 9
+Just 12
+ghci> Just (++"hahah") <*> Nothing
+Nothing
+ghci> Nothing <*> Just "woot"
+Nothing
 ```
 
 我們看到 ``pure (+3)`` 跟 ``Just (+3)`` 在這個 case 下是一樣的。如果你是在 applicative context 底下跟 ``Maybe`` 打交道的話請用 ``pure``，要不然就用 ``Just``。前四個輸入展示了函數是如何被取出並做 map 的動作，但在這個 case 底下，他們同樣也可以用 unwrap 函數來 map over functors。最後一行比較有趣，因為我們試著從 ``Nothing`` 取出函數並將他 map 到某個值。結果當然是 ``Nothing``。
@@ -365,12 +384,12 @@ Nothing
 對於普通的 functors，你可以用一個函數 map over 一個 functors，但你可能沒辦法拿到結果。而 applicative functors 則讓你可以用單一一個函數操作好幾個 functors。看看下面一段程式碼：
 
 ```haskell
-ghci> pure (+) <*> Just 3 <*> Just 5  
-Just 8  
-ghci> pure (+) <*> Just 3 <*> Nothing  
-Nothing  
-ghci> pure (+) <*> Nothing <*> Just 5  
-Nothing  
+ghci> pure (+) <*> Just 3 <*> Just 5
+Just 8
+ghci> pure (+) <*> Just 3 <*> Nothing
+Nothing
+ghci> pure (+) <*> Nothing <*> Just 5
+Nothing
 ```
 
 ![](whale.png)
@@ -384,11 +403,11 @@ Nothing
 如果我們考慮到 ``pure f <*> x`` 等於 ``fmap f x`` 的話，這樣的用法就更方便了。這是 applicative laws 的其中一條。我們稍後會更仔細地檢視這條定律。現在我們先依直覺來使用他。就像我們先前所說的，``pure`` 把一個值放進一個預設的 context 中。如果我們要把一個函數放在一個預設的 context，然後把他取出並套用在放在另一個 applicative functor 的值。我們會做的事就是把函數 map over 那個 applicative functor。但我們不會寫成 ``pure f <*> x <*> y <*> ...``，而是寫成 ``fmap f x <*> y <*> ...``。這也是為什麽 ``Control.Applicative`` 會 export 一個函數 ``<$>``，他基本上就是中綴版的 ``fmap``。他是這麼被定義的：
 
 ```haskell
-(<$>) :: (Functor f) => (a -> b) -> f a -> f b  
-f <$> x = fmap f x  
+(<$>) :: (Functor f) => (a -> b) -> f a -> f b
+f <$> x = fmap f x
 ```
-	
-    
+
+
     要記住型別變數跟參數的名字還有值綁定的名稱不衝突。``f`` 在函數的型別宣告中是型別變數，說明 ``f`` 應該要滿足 ``Functor`` typeclass 的條件。而在函數本體中的 ``f`` 則表示一個函數，我們將他 map over x。我們同樣用 ``f`` 來表示他們並代表他們是相同的東西。
 
 
@@ -397,15 +416,15 @@ f <$> x = fmap f x
 我們再仔細看看他是如何運作的。我們有一個 ``Just "johntra"`` 跟 ``Just "volta"`` 這樣的值，我們希望將他們結合成一個 ``String``，並且包含在 ``Maybe`` 中。我們會這樣做：
 
 ```haskell
-ghci> (++) <$> Just "johntra" <*> Just "volta"  
-Just "johntravolta"  
+ghci> (++) <$> Just "johntra" <*> Just "volta"
+Just "johntravolta"
 ```
 
 可以將上面的跟下面這行比較一下：
 
 ```haskell
-ghci> (++) "johntra" "volta"  
-"johntravolta"  
+ghci> (++) "johntra" "volta"
+"johntravolta"
 ```
 
 可以將一個普通的函數套用在 applicative functor 上真不錯。只要稍微寫一些 ``<$>`` 跟 ``<*>`` 就可以把函數變成 applicative style，可以操作 applicatives 並回傳 applicatives。
@@ -420,33 +439,33 @@ ghci> (++) "johntra" "volta"
 List 也是 applicative functor。很驚訝嗎？來看看我們是怎麼定義 ``[]`` 為 ``Applicative`` 的 instance 的。
 
 ```haskell
-instance Applicative [] where  
-    pure x = [x]  
-    fs <*> xs = [f x | f <- fs, x <- xs]  
+instance Applicative [] where
+    pure x = [x]
+    fs <*> xs = [f x | f <- fs, x <- xs]
 ```
 
 
 早先我們說過 ``pure`` 是把一個值放進預設的 context 中。換種說法就是一個會產生那個值的最小 context。而對 list 而言最小 context 就是 ``[]``，但由於空的 list 並不包含一個值，所以我們沒辦法把他當作 ``pure``。這也是為什麼 ``pure`` 其實是接受一個值然後回傳一個包含單元素的 list。同樣的，``Maybe`` 的最小 context 是 ``Nothing``，但他其實表示的是沒有值。所以 ``pure`` 其實是被實作成 ``Just`` 的。
 
 ```haskell
-ghci> pure "Hey" :: [String]  
-["Hey"]  
-ghci> pure "Hey" :: Maybe String  
-Just "Hey"  
+ghci> pure "Hey" :: [String]
+["Hey"]
+ghci> pure "Hey" :: Maybe String
+Just "Hey"
 ```
 
 至於 ``<*>`` 呢？如果我們假定 ``<*>`` 的型別是限制在 list 上的話，我們會得到 ``(<*>) :: [a -> b] -> [a] -> [b]``。他是用 list comprehension 來實作的。``<*>`` 必須要從左邊的參數取出函數，將他 map over 右邊的參數。但左邊的 list 有可能不包含任何函數，也可能包含一個函數，甚至是多個函數。而右邊的 list 有可能包含多個值。這也是為什麼我們用 list comprehension 的方式來從兩個 list 取值。我們要對左右任意的組合都做套用的動作。而得到的結果就會是左右兩者任意組合的結果。
 
 ```haskell
-ghci> [(*0),(+100),(^2)] <*> [1,2,3]  
-[0,0,0,101,102,103,1,4,9]  
+ghci> [(*0),(+100),(^2)] <*> [1,2,3]
+[0,0,0,101,102,103,1,4,9]
 ```
 
 左邊的 list 包含三個函數，而右邊的 list 有三個值。所以結果會是有九個元素的 list。在左邊 list 中的每一個函數都被套用到右邊的值。如果我們今天在 list 中的函數是接收兩個參數的，我們也可以套用到兩個 list 上。
 
 ```haskell
-ghci> [(+),(*)] <*> [1,2] <*> [3,4]  
-[4,5,5,6,3,4,6,8]  
+ghci> [(+),(*)] <*> [1,2] <*> [3,4]
+[4,5,5,6,3,4,6,8]
 ```
 
 由於 ``<*>`` 是 left-associative，也就是說 ``[(+),(*)] <*> [1,2]`` 會先運作，產生 ``[(1+),(2+),(1*),(2*)]``。由於左邊的每一個函數都套用至右邊的每一個值。也就產生 ``[(1+),(2+),(1*),(2*)] <*> [3,4]``，其便是最終結果。
@@ -454,8 +473,8 @@ ghci> [(+),(*)] <*> [1,2] <*> [3,4]
 list 的 applicative style 是相當有趣的：
 
 ```haskell
-ghci> (++) <$> ["ha","heh","hmm"] <*> ["?","!","."]  
-["ha?","ha!","ha.","heh?","heh!","heh.","hmm?","hmm!","hmm."] 
+ghci> (++) <$> ["ha","heh","hmm"] <*> ["?","!","."]
+["ha?","ha!","ha.","heh?","heh!","heh.","hmm?","hmm!","hmm."]
 ```
 
 看看我們是如何將一個接受兩個字串參數的函數套用到兩個 applicative functor 上的，只要用適當的 applicative 運算子就可以達成。
@@ -466,22 +485,22 @@ ghci> (++) <$> ["ha","heh","hmm"] <*> ["?","!","."]
 Applicative style 對於 list 而言是一個取代 list comprehension 的好方式。在第二章中，我們想要看到 ``[2,5,10]`` 跟 ``[8,10,11]`` 相乘的結果，所以我們這樣做：
 
 ```haskell
-ghci> [ x*y | x <- [2,5,10], y <- [8,10,11]]     
-[16,20,22,40,50,55,80,100,110]     
+ghci> [ x*y | x <- [2,5,10], y <- [8,10,11]]
+[16,20,22,40,50,55,80,100,110]
 ```
 
 我們只是從兩個 list 中取出元素，並將一個函數套用在任何元素的組合上。這也可以用 applicative style 的方式來寫：
 
 ```haskell
-ghci> (*) <$> [2,5,10] <*> [8,10,11]  
-[16,20,22,40,50,55,80,100,110]  
+ghci> (*) <$> [2,5,10] <*> [8,10,11]
+[16,20,22,40,50,55,80,100,110]
 ```
 
 這寫法對我來說比較清楚。可以清楚表達我們是要對兩個 non-deterministic 的計算做 ``*``。如果我們想要所有相乘大於 50 可能的計算結果，我們會這樣寫：
 
 ```haskell
-ghci> filter (>50) $ (*) <$> [2,5,10] <*> [8,10,11]  
-[55,80,100,110]  
+ghci> filter (>50) $ (*) <$> [2,5,10] <*> [8,10,11]
+[55,80,100,110]
 ```
 
 很容易看到 ``pure f <*> xs`` 等價於 ``fmap f xs``。而 ``pure f`` 就是 ``[f]``，而且 ``[f] <*> xs`` 可將左邊的每個函數套用至右邊的每個值。但左邊其實只有一個函數，所以他做起來就像是 mapping。
@@ -489,12 +508,12 @@ ghci> filter (>50) $ (*) <$> [2,5,10] <*> [8,10,11]
 另一個我們已經看過的 ``Applicative`` 的 instance 是 ``IO``，來看看他是怎麼實作的：
 
 ```haskell
-instance Applicative IO where  
-    pure = return  
-    a <*> b = do  
-        f <- a  
-        x <- b  
-        return (f x)  
+instance Applicative IO where
+    pure = return
+    a <*> b = do
+        f <- a
+        x <- b
+        return (f x)
 ```
 
 ![](knight.png)
@@ -508,19 +527,19 @@ instance Applicative IO where
 考慮下面這個範例：
 
 ```haskell
-myAction :: IO String  
-myAction = do  
-    a <- getLine  
-    b <- getLine  
-    return $ a ++ b  
+myAction :: IO String
+myAction = do
+    a <- getLine
+    b <- getLine
+    return $ a ++ b
 ```
 
 
 這是一個提示使用者輸入兩行並產生將兩行輸入串接在一起結果的一個 I/O action。我們先把兩個 ``getLine`` 黏在一起，然後用一個 ``return``，這是因為我們想要這個黏成的 I/O action 包含 ``a ++ b`` 的結果。我們也可以用 applicative style 的方式來描述：
 
 ```haskell
-myAction :: IO String  
-myAction = (++) <$> getLine <*> getLine  
+myAction :: IO String
+myAction = (++) <$> getLine <*> getLine
 ```
 
 我們先前的作法是將兩個 I/O action 的結果餵給函數。還記得 ``getLine`` 的型別是 ``getLine :: IO String``。當我們對 applicative functor 使用 ``<*>`` 的時候，結果也會是 applicative functor。
@@ -530,9 +549,9 @@ myAction = (++) <$> getLine <*> getLine
 ``(++) <$> getLine <*> getLine`` 的型別是 ``IO String``，他代表這個表達式式一個再普通不過的 I/O action，他裡面也裝著某種值。這也是為什麼我們可以這樣寫：
 
 ```haskell
-main = do  
-    a <- (++) <$> getLine <*> getLine  
-    putStrLn $ "The two lines concatenated turn out to be: " ++ a  
+main = do
+    a <- (++) <$> getLine <*> getLine
+    putStrLn $ "The two lines concatenated turn out to be: " ++ a
 ```
 
 如果你發現你是在做 binding I/O action 的動作，而且在 binding 之後還呼叫一些函數，最後用 ``return`` 來將結果包起來。
@@ -543,40 +562,40 @@ main = do
 	如果你忘記 ``(->) r`` 的意思，回去翻翻前一章節我們介紹 ``(->) r`` 作為一個 functor 的範例。
 
 ```haskell
-instance Applicative ((->) r) where  
-    pure x = (\_ -> x)  
-    f <*> g = \x -> f x (g x)  
+instance Applicative ((->) r) where
+    pure x = (\_ -> x)
+    f <*> g = \x -> f x (g x)
 ```
 
 當我們用 ``pure`` 將一個值包成 applicative functor 的時候，他產生的結果永遠都會是那個值。也就是最小的 context。那也是為什麼對於 function 的 ``pure`` 實作來講，他就是接受一個值，然後造一個函數永遠回傳那個值，不管他被餵了什麼參數。如果你限定 ``pure`` 的型別至 ``(->) r`` 上，他就會是 ``pure :: a -> (r -> a)``。
 
 ```haskell
-ghci> (pure 3) "blah"  
-3  
+ghci> (pure 3) "blah"
+3
 ```
 
 由於 currying 的關係，函數套用是 left-associative，所以我們忽略掉括弧。
 
 ```haskell
-ghci> pure 3 "blah"  
-3  
+ghci> pure 3 "blah"
+3
 ```
 
 而 ``<*>`` 的實作是比較不容易瞭解的，我們最好看一下怎麼用 applicative style 的方式來使用作為 applicative functor 的 function。
 
 ```haskell
-ghci> :t (+) <$> (+3) <*> (*100)  
-(+) <$> (+3) <*> (*100) :: (Num a) => a -> a  
-ghci> (+) <$> (+3) <*> (*100) $ 5  
-508 
+ghci> :t (+) <$> (+3) <*> (*100)
+(+) <$> (+3) <*> (*100) :: (Num a) => a -> a
+ghci> (+) <$> (+3) <*> (*100) $ 5
+508
 ```
 
 將兩個 applicative functor 餵給 ``<*>`` 可以產生一個新的 applicative functor，所以如果我們丟給他兩個函數，我們能得到一個新的函數。所以是怎麼一回事呢？當我們做 ``(+) <$> (+3) <*> (*100)``，我們是在實作一個函數，他會將 ``(+3)`` 跟 ``(*100)`` 的結果再套用 ``+``。要看一個實際的範例的話，可以看一下 ``(+) <$> (+3) <*> (*100) $ 5`` 首先 ``5`` 被丟給 ``(+3)`` 跟 ``(*100)``，產生 ``8`` 跟 ``500``。然後 ``+`` 被套用到 ``8`` 跟 ``500``，得到 ``508``。
 
 
 ```haskell
-ghci> (\x y z -> [x,y,z]) <$> (+3) <*> (*2) <*> (/2) $ 5  
-[8.0,10.0,2.5]  
+ghci> (\x y z -> [x,y,z]) <$> (+3) <*> (*2) <*> (/2) $ 5
+[8.0,10.0,2.5]
 ```
 
 ![](jazzb.png)
@@ -602,9 +621,9 @@ ghci> (\x y z -> [x,y,z]) <$> (+3) <*> (*2) <*> (/2) $ 5
 由於一個型別不能對同一個 typeclass 定義兩個 instance，所以才會定義了 ``ZipList a``，他只有一個構造子 ``ZipList``，他只包含一個欄位，他的型別是 list。
 
 ```haskell
-instance Applicative ZipList where  
-        pure x = ZipList (repeat x)  
-        ZipList fs <*> ZipList xs = ZipList (zipWith (\f x -> f x) fs xs)  
+instance Applicative ZipList where
+        pure x = ZipList (repeat x)
+        ZipList fs <*> ZipList xs = ZipList (zipWith (\f x -> f x) fs xs)
 ```
 
 ``<*>`` 做的就是我們之前說的。他將第一個函數套用至第一個值，第二個函數套用第二個值。這也是 ``zipWith (\f x -> f x) fs xs`` 做的事。由於 ``zipWith`` 的特性，所以結果會跟 list 中比較短的那個一樣長。
@@ -617,14 +636,14 @@ instance Applicative ZipList where
 
 
 ```haskell
-ghci> getZipList $ (+) <$> ZipList [1,2,3] <*> ZipList [100,100,100]  
-[101,102,103]  
-ghci> getZipList $ (+) <$> ZipList [1,2,3] <*> ZipList [100,100..]  
-[101,102,103]  
-ghci> getZipList $ max <$> ZipList [1,2,3,4,5,3] <*> ZipList [5,3,1,2]  
-[5,3,3,4]  
-ghci> getZipList $ (,,) <$> ZipList "dog" <*> ZipList "cat" <*> ZipList "rat"  
-[('d','c','r'),('o','a','a'),('g','t','t')]  
+ghci> getZipList $ (+) <$> ZipList [1,2,3] <*> ZipList [100,100,100]
+[101,102,103]
+ghci> getZipList $ (+) <$> ZipList [1,2,3] <*> ZipList [100,100..]
+[101,102,103]
+ghci> getZipList $ max <$> ZipList [1,2,3,4,5,3] <*> ZipList [5,3,1,2]
+[5,3,3,4]
+ghci> getZipList $ (,,) <$> ZipList "dog" <*> ZipList "cat" <*> ZipList "rat"
+[('d','c','r'),('o','a','a'),('g','t','t')]
 ```
 
     ``(,,)`` 函數跟 ``\x y z -> (x,y,z)`` 是等價的，而 ``(,)`` 跟 ``\x y -> (x,y)`` 是等價的。
@@ -636,8 +655,8 @@ ghci> getZipList $ (,,) <$> ZipList "dog" <*> ZipList "cat" <*> ZipList "rat"
 
 
 ```haskell
-liftA2 :: (Applicative f) => (a -> b -> c) -> f a -> f b -> f c  
-liftA2 f a b = f <$> a <*> b  
+liftA2 :: (Applicative f) => (a -> b -> c) -> f a -> f b -> f c
+liftA2 f a b = f <$> a <*> b
 ```
 
 並沒有太難理解的東西，他不過就是對兩個 applicatives 套用函數而已，而不用我們剛剛熟悉的 applicative style。我們提及他的理由只是要展示為什麼 applicative functors 比起一般的普通 functor 要強。如果只是普通的 functor 的話，我們只能將一個函數 map over 這個 functor。但有了 applicative functor，我們可以對好多個 functor 套用一個函數。看看這個函數的型別，他會是 ``(a -> b -> c) -> (f a -> f b -> f c)``。當我們從這樣的角度來看他的話，我們可以說 ``liftA2`` 接受一個普通的二元函數，並將他升級成一個函數可以運作在兩個 functor 之上。
@@ -645,25 +664,25 @@ liftA2 f a b = f <$> a <*> b
 另外一個有趣的概念是，我們可以接受兩個 applicative functor 並把他們結合成一個 applicative functor，這個新的將這兩個 applicative functor 裝在 list 中。舉例來說，我們現在有 ``Just 3`` 跟 ``Just 4``。我們假設後者是一個只包含單元素的 list。
 
 ```haskell
-ghci> fmap (\x -> [x]) (Just 4)  
-Just [4]  
+ghci> fmap (\x -> [x]) (Just 4)
+Just [4]
 ```
 
 所以假設我們有 ``Just 3`` 跟 ``Just [4]``。我們有怎麼得到 ``Just [3,4]`` 呢？很簡單。
 
 ```haskell
-ghci> liftA2 (:) (Just 3) (Just [4])  
-Just [3,4]  
-ghci> (:) <$> Just 3 <*> Just [4]  
-Just [3,4]  
+ghci> liftA2 (:) (Just 3) (Just [4])
+Just [3,4]
+ghci> (:) <$> Just 3 <*> Just [4]
+Just [3,4]
 ```
 
 還記得 ``:`` 是一個函數，他接受一個元素跟一個 list，並回傳一個新的 list，其中那個元素已經接在前面。現在我們有了 ``Just [3,4]``，我們能夠將他跟 ``Just 2`` 綁在一起變成 ``Just [2,3,4]`` 嗎？當然可以。我們可以將任意數量的 applicative 綁在一起變成一個 applicative，裡面包含一個裝有結果的 list。我們試著實作一個函數，他接受一串裝有 applicative 的 list，然後回傳一個 applicative 裡面有一個裝有結果的 list。我們稱呼他為 ``sequenceA``。
 
 ```haskell
-sequenceA :: (Applicative f) => [f a] -> f [a]  
-sequenceA [] = pure []  
-sequenceA (x:xs) = (:) <$> x <*> sequenceA xs  
+sequenceA :: (Applicative f) => [f a] -> f [a]
+sequenceA [] = pure []
+sequenceA (x:xs) = (:) <$> x <*> sequenceA xs
 ```
 
 居然用到了遞迴！首先我們來看一下他的型別。他將一串 applicative 的 list 轉換成一個 applicative 裝有一個 list。從這個資訊我們可以推測出邊界條件。如果我們要將一個空的 list 變成一個裝有 list 的 applicative。我們只要把這個空的 list 放進一個預設的 context。現在來看一下我們怎麼用遞迴的。如果們有一個可以分成頭跟尾的 list（``x`` 是一個 applicative 而 ``xs`` 是一串 applicatve），我們可以對尾巴呼叫 ``sequenceA``，便會得到一個裝有 list 的 applicative。然後我們只要將在 ``x`` 中的值把他接到裝有 list 的 applicative 前面就可以了。
@@ -675,8 +694,8 @@ sequenceA (x:xs) = (:) <$> x <*> sequenceA xs
 另一種實作 ``sequenceA`` 的方式是用 fold。要記得幾乎任何需要走遍整個 list 並 accumulate 成一個結果的都可以用 fold 來實作。
 
 ```haskell
-sequenceA :: (Applicative f) => [f a] -> f [a]  
-sequenceA = foldr (liftA2 (:)) (pure [])  
+sequenceA :: (Applicative f) => [f a] -> f [a]
+sequenceA = foldr (liftA2 (:)) (pure [])
 ```
 
 我們從右往左走，並且起始的 accumulator 是用 ``pure []``。我們是用 ``liftA2 (:)`` 來結合 accumulator 跟 list 中最後的元素，而得到一個 applicative，裡面裝有一個單一元素的一個 list。然後我們再用 ``liftA2 (:)`` 來結合 accumulator 跟最後一個元素，直到我們只剩下 accumulator 為止，而得到一個 applicative，裡面裝有所有結果。
@@ -685,16 +704,16 @@ sequenceA = foldr (liftA2 (:)) (pure [])
 我們來試試看套用在不同 applicative 上。
 
 ```haskell
-ghci> sequenceA [Just 3, Just 2, Just 1]  
-Just [3,2,1]  
-ghci> sequenceA [Just 3, Nothing, Just 1]  
-Nothing  
-ghci> sequenceA [(+3),(+2),(+1)] 3  
-[6,5,4]  
-ghci> sequenceA [[1,2,3],[4,5,6]]  
-[[1,4],[1,5],[1,6],[2,4],[2,5],[2,6],[3,4],[3,5],[3,6]]  
-ghci> sequenceA [[1,2,3],[4,5,6],[3,4,4],[]]  
-[]  
+ghci> sequenceA [Just 3, Just 2, Just 1]
+Just [3,2,1]
+ghci> sequenceA [Just 3, Nothing, Just 1]
+Nothing
+ghci> sequenceA [(+3),(+2),(+1)] 3
+[6,5,4]
+ghci> sequenceA [[1,2,3],[4,5,6]]
+[[1,4],[1,5],[1,6],[2,4],[2,5],[2,6],[3,4],[3,5],[3,6]]
+ghci> sequenceA [[1,2,3],[4,5,6],[3,4,4],[]]
+[]
 ```
 
 很酷吧。當我們套用在 ``Maybe`` 上時，``sequenceA`` 創造一個新的 ``Maybe``，他包含了一個 list 裝有所有結果。如果其中一個值是 ``Nothing``，那整個結果就會是 ``Nothing``。如果你有一串 ``Maybe`` 型別的值，但你只在乎當結果不包含任何 ``Nothing`` 的情況，這樣的特性就很方便。
@@ -709,10 +728,10 @@ ghci> sequenceA [[1,2,3],[4,5,6],[3,4,4],[]]
 當我們有一串函數，我們想要將相同的輸入都餵給他們並檢視結果的時候，``sequenceA`` 非常好用。例如說，我們手上有一個數值，但不知道他是否滿足一串 predicate。一種實作的方式是像這樣：
 
 ```haskell
-ghci> map (\f -> f 7) [(>4),(<10),odd]  
-[True,True,True]  
-ghci> and $ map (\f -> f 7) [(>4),(<10),odd]  
-True  
+ghci> map (\f -> f 7) [(>4),(<10),odd]
+[True,True,True]
+ghci> and $ map (\f -> f 7) [(>4),(<10),odd]
+True
 ```
 
 
@@ -721,10 +740,10 @@ True
 
 
 ```haskell
-ghci> sequenceA [(>4),(<10),odd] 7  
-[True,True,True]  
-ghci> and $ sequenceA [(>4),(<10),odd] 7  
-True  
+ghci> sequenceA [(>4),(<10),odd] 7
+[True,True,True]
+ghci> and $ sequenceA [(>4),(<10),odd] 7
+True
 ```
 
 ``sequenceA [(>4),(<10),odd]`` 接受一個函數，他接受一個數值並將他餵給所有的 predicate，包含 ``[(>4),(<10),odd]``。然後回傳一串布林值。他將一個型別為 ``(Num a) => [a -> Bool]`` 的 list 變成一個型別為 ``(Num a) => a -> [Bool]`` 的函數，很酷吧。
@@ -736,18 +755,18 @@ True
 當跟 ``[]`` 一起使用的時候，``sequenceA`` 接受一串 list，並回傳另一串 list。他實際上是創建一個包含所有可能組合的 list。為了方便說明，我們比較一下使用 ``sequenceA`` 跟 list comprehension 的差異：
 
 ```haskell
-ghci> sequenceA [[1,2,3],[4,5,6]]  
-[[1,4],[1,5],[1,6],[2,4],[2,5],[2,6],[3,4],[3,5],[3,6]]  
-ghci> [[x,y] | x <- [1,2,3], y <- [4,5,6]]  
-[[1,4],[1,5],[1,6],[2,4],[2,5],[2,6],[3,4],[3,5],[3,6]]  
-ghci> sequenceA [[1,2],[3,4]]  
-[[1,3],[1,4],[2,3],[2,4]]  
-ghci> [[x,y] | x <- [1,2], y <- [3,4]]  
-[[1,3],[1,4],[2,3],[2,4]]  
-ghci> sequenceA [[1,2],[3,4],[5,6]]  
-[[1,3,5],[1,3,6],[1,4,5],[1,4,6],[2,3,5],[2,3,6],[2,4,5],[2,4,6]]  
-ghci> [[x,y,z] | x <- [1,2], y <- [3,4], z <- [5,6]]  
-[[1,3,5],[1,3,6],[1,4,5],[1,4,6],[2,3,5],[2,3,6],[2,4,5],[2,4,6]]  
+ghci> sequenceA [[1,2,3],[4,5,6]]
+[[1,4],[1,5],[1,6],[2,4],[2,5],[2,6],[3,4],[3,5],[3,6]]
+ghci> [[x,y] | x <- [1,2,3], y <- [4,5,6]]
+[[1,4],[1,5],[1,6],[2,4],[2,5],[2,6],[3,4],[3,5],[3,6]]
+ghci> sequenceA [[1,2],[3,4]]
+[[1,3],[1,4],[2,3],[2,4]]
+ghci> [[x,y] | x <- [1,2], y <- [3,4]]
+[[1,3],[1,4],[2,3],[2,4]]
+ghci> sequenceA [[1,2],[3,4],[5,6]]
+[[1,3,5],[1,3,6],[1,4,5],[1,4,6],[2,3,5],[2,3,6],[2,4,5],[2,4,6]]
+ghci> [[x,y,z] | x <- [1,2], y <- [3,4], z <- [5,6]]
+[[1,3,5],[1,3,6],[1,4,5],[1,4,6],[2,3,5],[2,3,6],[2,4,5],[2,4,6]]
 ```
 
 這可能有點難以理解，但如果你多做點嘗試，你會比較能看出來些眉目。假設我們在做 ``sequenceA [[1,2],[3,4]]``。要知道這是怎麼回事，我們首先用 ``sequenceA`` 的定義 ``sequenceA (x:xs) = (:) <$> x <*> sequenceA xs`` 還有邊界條件 ``sequenceA [] = pure []`` 來看看。你不需要實際計算，但他可以幫助你理解 ``sequenceA`` 是怎麼運作在一串 list 上，畢竟這有點複雜。
@@ -766,11 +785,11 @@ ghci> [[x,y,z] | x <- [1,2], y <- [3,4], z <- [5,6]]
 當使用在 I/O action 上的時候，``sequenceA`` 跟 ``sequence`` 是等價的。他接受一串 I/O action 並回傳一個 I/O action，這個 I/O action 會計算 list 中的每一個 I/O action，並把結果放在一個 list 中。要將型別為 ``[IO a]`` 的值轉換成 ``IO [a]`` 的值，也就是會產生一串 list 的一個 I/O action，那這些 I/O action 必須要一個一個地被計算，畢竟對於這些 I/O action 你沒辦法不計算就得到結果。
 
 ```haskell
-ghci> sequenceA [getLine, getLine, getLine]  
-heyh  
-ho  
-woo  
-["heyh","ho","woo"]  
+ghci> sequenceA [getLine, getLine, getLine]
+heyh
+ho
+woo
+["heyh","ho","woo"]
 ```
 
 
@@ -799,29 +818,29 @@ woo
 
 
 ```haskell
-ghci> [(+1),(*100),(*5)] <*> [1,2,3]  
-[2,3,4,100,200,300,5,10,15]  
+ghci> [(+1),(*100),(*5)] <*> [1,2,3]
+[2,3,4,100,200,300,5,10,15]
 ```
 
 第二種方式是將 ``<*>`` 定義成將左邊的第一個函數套用至右邊的第一個值，然後將左邊第二個函數套用至右邊第二個值。以此類推。最終，這表現得有點像將兩個 list 用一個拉鍊拉起來一樣。但由於 list 已經被定義成 ``Applicaitive`` 的 instance 了，所以我們要怎麼要讓 list 可以被定義成第二種方式呢？如果你還記得我們說過我們是有很好的理由定義了 ``ZipList a``，其中他裡面只包含一個值構造子跟只包含一個欄位。其實他的理由就是要讓 ``ZipList`` 定義成用拉鍊的方式來表現 applicative 行為。我們只不過用 ``ZipList`` 這個構造子將他包起來，然後用 ``getZipList`` 來解開來。
 
 
 ```haskell
-ghci> getZipList $ ZipList [(+1),(*100),(*5)] <*> ZipList [1,2,3]  
-[2,200,15]  
+ghci> getZipList $ ZipList [(+1),(*100),(*5)] <*> ZipList [1,2,3]
+[2,200,15]
 ```
 
 所以這跟 newtype 這個關鍵字有什麽關係呢？想想看我們是怎麼宣告我們的 ``ZipList a`` 的，一種方式是像這樣：
 
 
 ```haskell
-data ZipList a = ZipList [a]      
+data ZipList a = ZipList [a]
 ```
 
 也就是一個只有一個值構造子的型別而且那個構造子裡面只有一個欄位。我們也可以用 record syntax 來定義一個解開的函數：
 
 ```haskell
-data ZipList a = ZipList { getZipList :: [a] }      
+data ZipList a = ZipList { getZipList :: [a] }
 ```
 
 這樣聽起來不錯。這樣我們就有兩種方式來讓一個型別來表現一個 typeclass，我們可以用 ``data`` 關鍵字來把一個型別包在另一個裡面，然後再將他定義成第二種表現方式。
@@ -829,7 +848,7 @@ data ZipList a = ZipList { getZipList :: [a] }
 而在 Haskell 中 ``newtype`` 正是為了這種情形，我們想將一個型別包在另一個型別中。在實際的函式庫中 ``ZipList a`` 是這樣定義了：
 
 ```haskell
-newtype ZipList a = ZipList { getZipList :: [a] }      
+newtype ZipList a = ZipList { getZipList :: [a] }
 ```
 
 這邊我們不用 ``data`` 關鍵字反而是用 ``newtype`` 關鍵字。這是為什麽呢？第一個理由是 ``newtype`` 比較快速。如果你用 ``data`` 關鍵字來包一個型別的話，在你執行的時候會有一些包起來跟解開來的成本。但如果你用 ``newtype`` 的話，Haskell 會知道你只是要將一個現有的型別包成一個新的型別，你想要內部運作完全一樣但只是要一個全新的型別而已。有了這個概念，Haskell 可以將包裹跟解開來的成本都去除掉。
@@ -838,11 +857,11 @@ newtype ZipList a = ZipList { getZipList :: [a] }
 那為什麽我們不是一直使用 ``newtype`` 呢？當你用 ``newtype`` 來製作一個新的型別時，你只能定義單一一個值構造子，而且那個構造子只能有一個欄位。但使用 ``data`` 的話，你可以讓那個型別有好幾個值構造子，並且每個構造子可以有零個或多個欄位。
 
 ```haskell
-data Profession = Fighter | Archer | Accountant  
-  
-data Race = Human | Elf | Orc | Goblin  
+data Profession = Fighter | Archer | Accountant
 
-data PlayerCharacter = PlayerCharacter Race Profession  
+data Race = Human | Elf | Orc | Goblin
+
+data PlayerCharacter = PlayerCharacter Race Profession
 ```
 
 當使用 ``newtype``的時候，你是被限制只能用一個值構造子跟單一欄位。
@@ -852,30 +871,30 @@ data PlayerCharacter = PlayerCharacter Race Profession
 
 
 ```haskell
-newtype CharList = CharList { getCharList :: [Char] } deriving (Eq, Show)      
+newtype CharList = CharList { getCharList :: [Char] } deriving (Eq, Show)
 ```
 
 我們來跑跑看：
 
 ```haskell
-ghci> CharList "this will be shown!"  
-CharList {getCharList = "this will be shown!"}  
-ghci> CharList "benny" == CharList "benny"  
-True  
-ghci> CharList "benny" == CharList "oisters"  
-False  
+ghci> CharList "this will be shown!"
+CharList {getCharList = "this will be shown!"}
+ghci> CharList "benny" == CharList "benny"
+True
+ghci> CharList "benny" == CharList "oisters"
+False
 ```
 
 對於這個 ``newtype``，他的值構造子有下列型別：
 
 ```haskell
-CharList :: [Char] -> CharList      
+CharList :: [Char] -> CharList
 ```
 
 他接受一個 ``[Char]`` 的值，例如 ``"my sharona"`` 並回傳一個 ``CharList`` 的值。從上面我們使用 ``CharList`` 的值構造子的範例中，我們可以看到的確是這樣。相反地，``getCharList`` 具有下列的型別。
 
 ```haskell
-getCharList :: CharList -> [Char]      
+getCharList :: CharList -> [Char]
 ```
 
 他接受一個 ``CharList`` 的值並將他轉成 ``[Char]``。你可以將這個想成包裝跟解開的動作，但你也可以將他想成從一個型別轉成另一個型別。
@@ -886,21 +905,21 @@ getCharList :: CharList -> [Char]
 有好幾次我們想要讓我們的型別屬於某個 typeclass，但型別變數並沒有符合我們想要的。要把 ``Maybe`` 定義成 ``Functor`` 的 instance 很容易，因為 ``Functor`` 這個 typeclass 被定義如下：
 
 ```haskell
-class Functor f where  
-    fmap :: (a -> b) -> f a -> f b  
+class Functor f where
+    fmap :: (a -> b) -> f a -> f b
 ```
 
 我們先定義如下：
 
 ```haskell
-instance Functor Maybe where       
+instance Functor Maybe where
 ```
 
 然後我們實作 ``fmap``。當所有的型別變數被填上時，由於 ``Maybe`` 取代了 ``Functor`` 中 ``f`` 的位置，所以如果我們看看 ``fmap`` 運作在 ``Maybe`` 上時是什麽樣，他會像這樣：
 
 
 ```haskell
-fmap :: (a -> b) -> Maybe a -> Maybe b      
+fmap :: (a -> b) -> Maybe a -> Maybe b
 ```
 
 ![](shamrock.png)
@@ -908,36 +927,36 @@ fmap :: (a -> b) -> Maybe a -> Maybe b
 看起來不錯吧？現在我們想要 tuple 成為 ``Functor`` 的一個 instance，所以當我們用 ``fmap`` 來 map over 一個 tuple 時，他會先套用到 tuple 中的第一個元素。這樣當我們做 ``fmap (+3) (1,1)`` 會得到 ``(4,1)``。不過要定義出這樣的 instance 有些困難。對於 ``Maybe``，我們只要寫 ``instance Functor Maybe where``，這是因為對於只吃一個參數的型別構造子我們很容易定義成 ``Functor`` 的 instance。但對於 ``(a,b)`` 這樣的就沒辦法。要繞過這樣的困境，我們可以用 ``newtype`` 來重新定義我們的 tuple，這樣第二個型別參數就代表了 tuple 中的第一個元素部份。
 
 ```haskell
-newtype Pair b a = Pair { getPair :: (a,b) }      
+newtype Pair b a = Pair { getPair :: (a,b) }
 ```
 
 現在我們可以將他定義成 ``Functor`` 的 instance，所以函數被 map over tuple 中的第一個部份。
 
 ```haskell
-instance Functor (Pair c) where  
-    fmap f (Pair (x,y)) = Pair (f x, y)  
+instance Functor (Pair c) where
+    fmap f (Pair (x,y)) = Pair (f x, y)
 ```
 
 正如你看到的，我們可以對 newtype 定義的型別做模式匹配。我們用模式匹配來拿到底層的 tuple，然後我們將 ``f`` 來套用至 tuple 的第一個部份，然後我們用 ``Pair`` 這個值構造子來將 tuple 轉換成 ``Pair b a``。如果我們問 ``fmap`` 的型別究竟是什麽，他會是：
 
 ```haskell
-fmap :: (a -> b) -> Pair c a -> Pair c b      
+fmap :: (a -> b) -> Pair c a -> Pair c b
 ```
 
 我們說過 ``instance Functor (Pair c) where`` 跟 ``Pair c`` 取代了 ``Functor`` 中 ``f`` 的位置：
 
 ```haskell
-class Functor f where  
-    fmap :: (a -> b) -> f a -> f b  
+class Functor f where
+    fmap :: (a -> b) -> f a -> f b
 ```
 
 如果我們將一個 tuple 轉換成 ``Pair b a``，我們可以用 ``fmap`` 來 map over 第一個部份。
 
 ```haskell
-ghci> getPair $ fmap (*100) (Pair (2,3))  
-(200,3)  
-ghci> getPair $ fmap reverse (Pair ("london calling", 3))  
-("gnillac nodnol",3)  
+ghci> getPair $ fmap (*100) (Pair (2,3))
+(200,3)
+ghci> getPair $ fmap reverse (Pair ("london calling", 3))
+("gnillac nodnol",3)
 ```
 
 ### On newtype laziness
@@ -948,34 +967,34 @@ ghci> getPair $ fmap reverse (Pair ("london calling", 3))
 就像我們之前說得，Haskell 預設是具備 lazy 的特性，這代表只有當我們要將函數的結果印出來的時候計算才會發生。或者說，只有當我們真的需要結果的時候計算才會發生。在 Haskell 中 ``undefined`` 代表會造成錯誤的計算。如果我們試著計算他，也就是將他印到終端中，Haskell 會丟出錯誤。
 
 ```haskell
-ghci> undefined  
-*** Exception: Prelude.undefined  
+ghci> undefined
+*** Exception: Prelude.undefined
 ```
 
 然而，如果我們做一個 list，其中包含一些 ``undefined`` 的值，但卻要求一個不是 ``undefined`` 的 head，那一切都會順利地被計算，因為 Haskell 並不需要 list 中其他元素來得到結果。我們僅僅需要看到第一個元素而已。
 
 ```haskell
-ghci> head [3,4,5,undefined,2,undefined]  
-3  
+ghci> head [3,4,5,undefined,2,undefined]
+3
 ```
 
 現在們考慮下面的型別：
 
 ```haskell
-data CoolBool = CoolBool { getCoolBool :: Bool }      
+data CoolBool = CoolBool { getCoolBool :: Bool }
 ```
 
 這是一個用 ``data`` 關鍵字定義的 algebraic data type。他有一個值建構子並只有一個型別為 ``Bool`` 的欄位。我們寫一個函數來對 ``CoolBool`` 做模式匹配，並回傳一個 ``"hello"`` 的值。他並不會管 ``CoolBool`` 中裝的究竟是 ``True`` 或 ``False``。
 
 ```haskell
-helloMe :: CoolBool -> String  
-helloMe (CoolBool _) = "hello"  
+helloMe :: CoolBool -> String
+helloMe (CoolBool _) = "hello"
 ```
 
 這次我們不餵給這個函數一個普通的 ``CoolBool``，而是丟給他一個 ``undefined``。
 
-``` 
-ghci> helloMe undefined  
+```
+ghci> helloMe undefined
 "*** Exception: Prelude.undefined  "
 ```
 
@@ -985,14 +1004,14 @@ ghci> helloMe undefined
 我們不用 ``data`` 來定義 ``CoolBool`` 而用 ``newtype``：
 
 ```haskell
-newtype CoolBool = CoolBool { getCoolBool :: Bool }      
+newtype CoolBool = CoolBool { getCoolBool :: Bool }
 ```
 
 我們不用修改 ``helloMe`` 函數，因為對於模式匹配使用 ``newtype`` 或 ``data`` 都是一樣。我們再來將 ``undefined`` 餵給 ``helloMe``。
 
 ```haskell
-ghci> helloMe undefined  
-"hello" 
+ghci> helloMe undefined
+"hello"
 ```
 
 居然正常運作！為什麽呢？正如我們說過得，當我們使用 ``newtype`` 的時候，Haskell 內部可以將新的型別用舊的型別來表示。他不必加入另一層 box 來包住舊有的型別。他只要注意他是不同的型別就好了。而且 Haskell 會知道 ``newtype`` 定義的型別一定只會有一個構造子，他不必計算餵給函數的值就能確定他是 ``(CoolBool _)`` 的形式，因為 ``newtype`` 只有一個可能的值跟單一欄位！
@@ -1009,23 +1028,23 @@ ghci> helloMe undefined
 ``type`` 關鍵字是讓我們定義 type synonyms。他代表我們只是要給一個現有的型別另一個名字，假設我們這樣做：
 
 ```haskell
-type IntList = [Int]      
+type IntList = [Int]
 ```
 
 這樣做可以允許我們用 ``IntList`` 的名稱來指稱 ``[Int]``。我們可以交換地使用他們。但我們並不會因此有一個 ``IntList`` 的值構造子。因為 ``[Int]`` 跟 ``IntList`` 只是兩種指稱同一個型別的方式。我們在指稱的時候用哪一個並無所謂。
 
 ```haskell
-ghci> ([1,2,3] :: IntList) ++ ([1,2,3] :: [Int])  
-[1,2,3,1,2,3]  
+ghci> ([1,2,3] :: IntList) ++ ([1,2,3] :: [Int])
+[1,2,3,1,2,3]
 ```
 
 當我們想要讓 type signature 更清楚一些，給予我們更瞭解函數的 context 的時候，我們會定義 type synonyms。舉例來說，當我們用一個型別為 ``[(String,String)]`` 的 association list 來代表一個電話簿的時候，我們可以定義一個 ``PhoneBook`` 的 type synonym，這樣 type signature 會比較容易讀。
 
- 
+
 ``newtype`` 關鍵字將現有的型別包成一個新的型別，大部分是為了要讓他們可以是特定 typeclass 的 instance 而這樣做。當我們使用 ``newtype`` 來包裹一個現有的型別時，這個型別跟原有的型別是分開的。如果我們將下面的型別用 ``newtype`` 定義：
 
 ```haskell
-newtype CharList = CharList { getCharList :: [Char] }      
+newtype CharList = CharList { getCharList :: [Char] }
 ```
 
 我們不能用 ``++`` 來將 ``CharList`` 跟 ``[Char]`` 接在一起。我們也不能用 ``++`` 來將兩個 ``CharList`` 接在一起，因為 ``++`` 只能套用在 list 上，而 ``CharList`` 並不是 list，儘管你會說他包含一個 list。但我們可以將兩個 ``CharList`` 轉成 list，將他們 ``++`` 然後再轉回 ``CharList``。
@@ -1056,14 +1075,14 @@ Haskell 中 typeclass 是用來表示一個型別之間共有的行為，是一�
 
 
 ```haskell
-ghci> 4 * 1  
-4  
-ghci> 1 * 9  
-9  
-ghci> [1,2,3] ++ []  
-[1,2,3]  
-ghci> [] ++ [0.5, 2.5]  
-[0.5,2.5]  
+ghci> 4 * 1
+4
+ghci> 1 * 9
+9
+ghci> [1,2,3] ++ []
+[1,2,3]
+ghci> [] ++ [0.5, 2.5]
+[0.5,2.5]
 ```
 
 看起來 ``*`` 之於 ``1`` 跟 ``++`` 之於 ``[]`` 有類似的性質：
@@ -1075,14 +1094,14 @@ ghci> [] ++ [0.5, 2.5]
 關於這兩種操作還有另一個比較難察覺的性質就是，當我們對這個二元函數對三個以上的值操作並化簡，函數套用的順序並不會影響到結果。不論是 ``(3 * 4) * 5`` 或是 ``3 * (4 * 5)``，兩種方式都會得到 ``60``。而 ``++`` 也是相同的。
 
 ```haskell
-ghci> (3 * 2) * (8 * 5)  
-240  
-ghci> 3 * (2 * (8 * 5))  
-240  
-ghci> "la" ++ ("di" ++ "da")  
-"ladida"  
-ghci> ("la" ++ "di") ++ "da"  
-"ladida"  
+ghci> (3 * 2) * (8 * 5)
+240
+ghci> 3 * (2 * (8 * 5))
+240
+ghci> "la" ++ ("di" ++ "da")
+"ladida"
+ghci> ("la" ++ "di") ++ "da"
+"ladida"
 ```
 
 我們稱呼這樣的性質為結合律(associativity)。``*`` 遵守結合律，``++`` 也是。但 ``-`` 就不遵守。``(5 - 3) - 4`` 跟 ``5 - (3 - 4)`` 得到的結果是不同的。
@@ -1091,11 +1110,11 @@ ghci> ("la" ++ "di") ++ "da"
 注意到這些性質並具體地寫下來，就可以得到 monoid。一個 monoid 是你有一個遵守結合律的二元函數還有一個可以相對於那個函數作為 identity 的值。當某個值相對於一個函數是一個 identity，他表示當我們將這個值丟給函數時，結果永遠會是另外一邊的那個值本身。``1`` 是相對於 ``*`` 的 identity，而 ``[]`` 是相對於 ``++`` 的 identity。在 Haskell 中還有許多其他的 monoid，這也是為什麽我們定義了 ``Monoid`` 這個 typeclass。他描述了表現成 monoid 的那些型別。我們來看看這個 typeclass 是怎麼被定義的：
 
 ```haskell
-class Monoid m where  
-    mempty :: m  
-    mappend :: m -> m -> m  
-    mconcat :: [m] -> m  
-    mconcat = foldr mappend mempty  
+class Monoid m where
+    mempty :: m
+    mappend :: m -> m -> m
+    mconcat :: [m] -> m
+    mconcat = foldr mappend mempty
 ```
 
 ![](balloondog.png)
@@ -1132,9 +1151,9 @@ class Monoid m where
 
 
 ```haskell
-instance Monoid [a] where  
-    mempty = []  
-    mappend = (++)  
+instance Monoid [a] where
+    mempty = []
+    mappend = (++)
 ```
 
 list 是 ``Monoid`` typeclass 的一個 instance，這跟他們裝的元素的型別無關。注意到我們寫 ``instance Monoid [a]`` 而非 ``instance Monoid []``，這是因為 ``Monoid`` 要求 instance 必須是具體型別。
@@ -1142,20 +1161,20 @@ list 是 ``Monoid`` typeclass 的一個 instance，這跟他們裝的元素的�
 我們試著跑跑看，得到我們預期中的結果：
 
 ```haskell
-ghci> [1,2,3] `mappend` [4,5,6]  
-[1,2,3,4,5,6]  
-ghci> ("one" `mappend` "two") `mappend` "tree"  
-"onetwotree"  
-ghci> "one" `mappend` ("two" `mappend` "tree")  
-"onetwotree"  
-ghci> "one" `mappend` "two" `mappend` "tree"  
-"onetwotree"  
-ghci> "pang" `mappend` mempty  
-"pang"  
-ghci> mconcat [[1,2],[3,6],[9]]  
-[1,2,3,6,9]  
-ghci> mempty :: [a]  
-[]  
+ghci> [1,2,3] `mappend` [4,5,6]
+[1,2,3,4,5,6]
+ghci> ("one" `mappend` "two") `mappend` "tree"
+"onetwotree"
+ghci> "one" `mappend` ("two" `mappend` "tree")
+"onetwotree"
+ghci> "one" `mappend` "two" `mappend` "tree"
+"onetwotree"
+ghci> "pang" `mappend` mempty
+"pang"
+ghci> mconcat [[1,2],[3,6],[9]]
+[1,2,3,6,9]
+ghci> mempty :: [a]
+[]
 ```
 
 ![](smug.png)
@@ -1169,10 +1188,10 @@ ghci> mempty :: [a]
 list 的 instance 也遵守 monoid law。當我們有好幾個 list 並且用 ``mappend`` 來把他們串起來，先後順序並不是很重要，因為他們都是接在最後面。而且空的 list 也表現得如 identity 一樣。注意到 monoid 並不要求 ``a `mappend` b`` 等於 ``b `mappend` a``。在 list 的情況下，他們明顯不相等。
 
 ```haskell
-ghci> "one" `mappend` "two"  
-"onetwo"  
-ghci> "two" `mappend` "one"  
-"twoone"  
+ghci> "one" `mappend` "two"
+"onetwo"
+ghci> "two" `mappend` "one"
+"twoone"
 ```
 
 這樣並沒有關系。``3 * 5`` 跟 ``5 * 3`` 會相等只不過是乘法的性質而已，但沒有保證所有 monoid 都要遵守。
@@ -1182,14 +1201,14 @@ ghci> "two" `mappend` "one"
 我們已經描述過將數值表現成一種 monoid 的方式。只要將 ``*`` 當作二元函數而 ``1`` 當作 identity 就好了。而且這不是唯一一種方式，另一種方式是將 ``+`` 作為二元函數而 ``0`` 作為 identity。
 
 ```haskell
-ghci> 0 + 4  
-4  
-ghci> 5 + 0  
-5  
-ghci> (1 + 3) + 5  
-9  
-ghci> 1 + (3 + 5)  
-9  
+ghci> 0 + 4
+4
+ghci> 5 + 0
+5
+ghci> (1 + 3) + 5
+9
+ghci> 1 + (3 + 5)
+9
 ```
 
 他也遵守 monoid law，因為將 0 加上其他數值，都會是另外一者。而且加法也遵守結合律。所以現在我們有兩種方式來將數值表現成 monoid，那要選哪一個呢？其實我們不必要強迫定下來，還記得當同一種型別有好幾種表現成某個 typeclass 的方式時，我們可以用 ``newtype`` 來包裹現有的型別，然後再定義新的 instance。這樣就行了。
@@ -1198,29 +1217,29 @@ ghci> 1 + (3 + 5)
 ``Data.Monoid`` 這個模組匯出了兩種型別，``Product`` 跟 ``Sum``。``Product`` 定義如下：
 
 ```haskell
-newtype Product a =  Product { getProduct :: a }  
-    deriving (Eq, Ord, Read, Show, Bounded)  
+newtype Product a =  Product { getProduct :: a }
+    deriving (Eq, Ord, Read, Show, Bounded)
 ```
 
 簡單易懂，就是一個單一型別參數的 ``newtype``，並 derive 一些性質。他的 ``Monoid`` 的 instance 長得像這樣：
 
 ```haskell
-instance Num a => Monoid (Product a) where  
-    mempty = Product 1  
-    Product x `mappend` Product y = Product (x * y)  
+instance Num a => Monoid (Product a) where
+    mempty = Product 1
+    Product x `mappend` Product y = Product (x * y)
 ```
 
 ``mempty`` 只不過是將 ``1`` 包在 ``Product`` 中。``mappend`` 則對 ``Product`` 的構造子做模式匹配，將兩個取出的數值相乘後再將結果放回去。就如你看到的，typeclass 定義前面有 ``Num a`` 的條件限制。所以他代表 ``Product a`` 對於所有屬於 ``Num`` 的 ``a`` 是一個 ``Monoid``。要將 ``Product a`` 作為一個 monoid 使用，我們需要用 newtype 來做包裹跟解開的動作。
 
 ```haskell
-ghci> getProduct $ Product 3 `mappend` Product 9  
-27  
-ghci> getProduct $ Product 3 `mappend` mempty  
-3  
-ghci> getProduct $ Product 3 `mappend` Product 4 `mappend` Product 2  
-24  
-ghci> getProduct . mconcat . map Product $ [3,4,2]  
-24  
+ghci> getProduct $ Product 3 `mappend` Product 9
+27
+ghci> getProduct $ Product 3 `mappend` mempty
+3
+ghci> getProduct $ Product 3 `mappend` Product 4 `mappend` Product 2
+24
+ghci> getProduct . mconcat . map Product $ [3,4,2]
+24
 ```
 
 這當作 ``Monoid`` 的一個演練還不錯，但並不會有人覺得這會比 ``3 * 9`` 跟 ``3 * 1`` 這種方式來做乘法要好。但我們稍後會說明儘管像這種顯而易見的定義還是有他方便的地方。
@@ -1228,12 +1247,12 @@ ghci> getProduct . mconcat . map Product $ [3,4,2]
 ``Sum`` 跟 ``Product`` 定義的方式類似，我們也可以用類似的方式操作：
 
 ```haskell
-ghci> getSum $ Sum 2 `mappend` Sum 9  
-11  
-ghci> getSum $ mempty `mappend` Sum 3  
-3  
-ghci> getSum . mconcat . map Sum $ [1,2,3]  
-6  
+ghci> getSum $ Sum 2 `mappend` Sum 9
+11
+ghci> getSum $ mempty `mappend` Sum 3
+3
+ghci> getSum . mconcat . map Sum $ [1,2,3]
+6
 ```
 
 
@@ -1242,58 +1261,58 @@ ghci> getSum . mconcat . map Sum $ [1,2,3]
 另一種可以有兩種表示成 monoid 方式的型別是 ``Bool``。第一種方式是將 ``||`` 當作二元函數，而 ``False`` 作為 identity。這樣的意思是只要有任何一個參數是 ``True`` 他就回傳 ``True``，否則回傳 ``False``。所以如果我們使用 ``False`` 作為 identity，他會在跟 ``False`` 做 OR 時回傳 ``False``，跟 ``True`` 做 OR 時回傳 ``True``。``Any`` 這個 newtype 是 ``Monoid`` 的一個 instance，並定義如下：
 
 ```haskell
-newtype Any = Any { getAny :: Bool }  
-    deriving (Eq, Ord, Read, Show, Bounded)  
+newtype Any = Any { getAny :: Bool }
+    deriving (Eq, Ord, Read, Show, Bounded)
 ```
 
 他的 instance 長得像這樣：
 
 ```haskell
-instance Monoid Any where  
-    mempty = Any False  
-    Any x `mappend` Any y = Any (x || y)  
+instance Monoid Any where
+    mempty = Any False
+    Any x `mappend` Any y = Any (x || y)
 ```
 
 他叫做 ``Any`` 的理由是 ``x `mappend` y`` 當有任何一個是 ``True`` 時就會是 ``True``。就算是更多個用 ``mappend`` 串起來的 ``Any``，他也會在任何一個是 ``True`` 回傳 ``True``。
 
 
 ```haskell
-ghci> getAny $ Any True `mappend` Any False  
-True  
-ghci> getAny $ mempty `mappend` Any True  
-True  
-ghci> getAny . mconcat . map Any $ [False, False, False, True]  
-True  
-ghci> getAny $ mempty `mappend` mempty  
-False  
+ghci> getAny $ Any True `mappend` Any False
+True
+ghci> getAny $ mempty `mappend` Any True
+True
+ghci> getAny . mconcat . map Any $ [False, False, False, True]
+True
+ghci> getAny $ mempty `mappend` mempty
+False
 ```
 
 另一種 ``Bool`` 表現成 ``Monoid`` 的方式是用 ``&&`` 作為二元函數，而 ``True`` 作為 identity。只有當所有都是 ``True`` 的時候才會回傳 ``True``。下面是他的 newtype 定義：
 
 ```haskell
-newtype All = All { getAll :: Bool }  
-        deriving (Eq, Ord, Read, Show, Bounded)  
+newtype All = All { getAll :: Bool }
+        deriving (Eq, Ord, Read, Show, Bounded)
 ```
 
 而這是他的 instance：
 
 ```haskell
-instance Monoid All where  
-        mempty = All True  
-        All x `mappend` All y = All (x && y)  
+instance Monoid All where
+        mempty = All True
+        All x `mappend` All y = All (x && y)
 ```
 
 當我們用 ``mappend`` 來串起 ``All`` 型別的值時，結果只有當所有 ``mappend`` 的值是 ``True`` 時才會是 ``True``：
 
 ```haskell
-ghci> getAll $ mempty `mappend` All True  
-True  
-ghci> getAll $ mempty `mappend` All False  
-False  
-ghci> getAll . mconcat . map All $ [True, True, True]  
-True  
-ghci> getAll . mconcat . map All $ [True, True, False]  
-False  
+ghci> getAll $ mempty `mappend` All True
+True
+ghci> getAll $ mempty `mappend` All False
+False
+ghci> getAll . mconcat . map All $ [True, True, True]
+True
+ghci> getAll . mconcat . map All $ [True, True, False]
+False
 ```
 
 
@@ -1306,22 +1325,22 @@ False
 還記得 ``Ordering`` 型別嗎?他是比較運算之後得到的結果，包含三個值：``LT``，``EQ`` 跟 ``GT``，分別代表小於，等於跟大於：
 
 ```haskell
-ghci> 1 `compare` 2  
-LT  
-ghci> 2 `compare` 2  
-EQ  
-ghci> 3 `compare` 2  
-GT  
+ghci> 1 `compare` 2
+LT
+ghci> 2 `compare` 2
+EQ
+ghci> 3 `compare` 2
+GT
 ```
 
 針對 list，數值跟布林值而言，要找出 monoid 的行為只要去檢視已經定義的函數，然後看看有沒有展現出 monoid 的特性就可以了，但對於 ``Ordering``，我們就必須要更仔細一點才能看出來是否是一個 monoid，但其實他的 ``Monoid`` instance 還蠻直覺的：
 
 ```haskell
-instance Monoid Ordering where  
-    mempty = EQ  
-    LT `mappend` _ = LT  
-    EQ `mappend` y = y  
-    GT `mappend` _ = GT  
+instance Monoid Ordering where
+    mempty = EQ
+    LT `mappend` _ = LT
+    EQ `mappend` y = y
+    GT `mappend` _ = GT
 ```
 
 ![](bear.png)
@@ -1335,24 +1354,24 @@ instance Monoid Ordering where
 很重要的一件事是在 ``Ordering`` 的 ``Monoid`` 定義裡 ``x `mappend` y`` 並不等於 ``y `mappend` x``。因為除非第一個參數是 ``EQ``，不然結果就會是第一個參數。所以 ``LT `mappend` GT`` 等於 ``LT``，然而 ``GT `mappend` LT`` 等於 ``GT``。
 
 ```haskell
-ghci> LT `mappend` GT  
-LT  
-ghci> GT `mappend` LT  
-GT  
-ghci> mempty `mappend` LT  
-LT  
-ghci> mempty `mappend` GT  
-GT  
+ghci> LT `mappend` GT
+LT
+ghci> GT `mappend` LT
+GT
+ghci> mempty `mappend` LT
+LT
+ghci> mempty `mappend` GT
+GT
 ```
 
 所以這個 monoid 在什麽情況下會有用呢？假設你要寫一個比較兩個字串長度的函數，並回傳 ``Ordering``。而且當字串一樣長的時候，我們不直接回傳 ``EQ``，反而繼續用字典順序比較他們。一種實作的方式如下：
 
 
 ```haskell
-lengthCompare :: String -> String -> Ordering  
-lengthCompare x y = let a = length x `compare` length y   
-                        b = x `compare` y  
-                    in  if a == EQ then b else a  
+lengthCompare :: String -> String -> Ordering
+lengthCompare x y = let a = length x `compare` length y
+                        b = x `compare` y
+                    in  if a == EQ then b else a
 ```
 
 我們稱呼比較長度的結果為 ``a``，而比較字典順序的結果為 ``b``，而當長度一樣時，我們就回傳字典順序。
@@ -1362,41 +1381,41 @@ lengthCompare x y = let a = length x `compare` length y
 ```haskell
 import Data.Monoid
 
-lengthCompare :: String -> String -> Ordering  
-lengthCompare x y = (length x `compare` length y) `mappend`  
-                    (x `compare` y)  
+lengthCompare :: String -> String -> Ordering
+lengthCompare x y = (length x `compare` length y) `mappend`
+                    (x `compare` y)
 ```
 
 我們可以試著跑跑看：
 
 ```haskell
-ghci> lengthCompare "zen" "ants"  
-LT  
-ghci> lengthCompare "zen" "ant"  
-GT  
+ghci> lengthCompare "zen" "ants"
+LT
+ghci> lengthCompare "zen" "ant"
+GT
 ```
 
 要記住當我們使用 ``mappend``。他在左邊不等於 ``EQ`` 的情況下都會回傳左邊的值。相反地則回傳右邊的值。這也是為什麽我們將我們認為比較重要的順序放在左邊的參數。如果我們要繼續延展這個函數，要讓他們比較母音的順序，並把這順序列為第二重要，那我們可以這樣修改他：
 
 ```haskell
-import Data.Monoid  
-  
-lengthCompare :: String -> String -> Ordering  
-lengthCompare x y = (length x `compare` length y) `mappend`  
-                    (vowels x `compare` vowels y) `mappend`  
-                    (x `compare` y)  
-    where vowels = length . filter (`elem` "aeiou")  
+import Data.Monoid
+
+lengthCompare :: String -> String -> Ordering
+lengthCompare x y = (length x `compare` length y) `mappend`
+                    (vowels x `compare` vowels y) `mappend`
+                    (x `compare` y)
+    where vowels = length . filter (`elem` "aeiou")
 ```
 
 我們寫了一個輔助函數，他接受一個字串並回傳他有多少母音。他是先用 filter 來把字母濾到剩下 ``"aeiou"``，然後再用 ``length`` 計算長度。
 
 ```haskell
-ghci> lengthCompare "zen" "anna"  
-LT  
-ghci> lengthCompare "zen" "ana"  
-LT  
-ghci> lengthCompare "zen" "ann"  
-GT  
+ghci> lengthCompare "zen" "anna"
+LT
+ghci> lengthCompare "zen" "ana"
+LT
+ghci> lengthCompare "zen" "ann"
+GT
 ```
 
 在第一個例子中我們看到長度不同所以回傳 ``LT``，明顯地 ``"zen"`` 要短於 ``"anna"``。在第二個例子中，長度是一樣的，但第二個字串有比較多的母音，所以結果仍然是 ``LT``。在第三個範例中，兩個長度都相等，他們也有相同個數的母音，經由字典順序比較後得到 ``"zen"`` 比較大。
@@ -1408,26 +1427,26 @@ GT
 ### Maybe the monoid
 
 
-我們來看一下 ``Maybe a`` 是怎樣有多種方式來表現成 ``Monoid`` 的，並且說明哪些是比較有用的。一種將 ``Maybe a`` 當作 monoid 的方式就是他的 ``a`` 也是一個 monoid，而我們將 ``mappend`` 實作成使用包在 ``Just`` 裡面的值對應的 ``mappend``。並且用 ``Nothing`` 當作 identity。所以如果我 ``mappend`` 兩個參數中有一個是 ``Nothing``。那結果就會是另一邊的值。他的 instance 定義如下：	
+我們來看一下 ``Maybe a`` 是怎樣有多種方式來表現成 ``Monoid`` 的，並且說明哪些是比較有用的。一種將 ``Maybe a`` 當作 monoid 的方式就是他的 ``a`` 也是一個 monoid，而我們將 ``mappend`` 實作成使用包在 ``Just`` 裡面的值對應的 ``mappend``。並且用 ``Nothing`` 當作 identity。所以如果我 ``mappend`` 兩個參數中有一個是 ``Nothing``。那結果就會是另一邊的值。他的 instance 定義如下：
 
 
 ```haskell
-instance Monoid a => Monoid (Maybe a) where  
-    mempty = Nothing  
-    Nothing `mappend` m = m  
-    m `mappend` Nothing = m  
-    Just m1 `mappend` Just m2 = Just (m1 `mappend` m2)  
+instance Monoid a => Monoid (Maybe a) where
+    mempty = Nothing
+    Nothing `mappend` m = m
+    m `mappend` Nothing = m
+    Just m1 `mappend` Just m2 = Just (m1 `mappend` m2)
 ```
 
 留意到 class constraint。他說明 ``Maybe a`` 只有在 ``a`` 是 ``Monoid`` 的情況下才會是一個 ``Monoid``。如果我們 ``mappend`` 某個東西跟 ``Nothing``。那結果就會是某個東西。如果我們 ``mappend`` 兩個 ``Just``，那 ``Just`` 包住的結果就會 ``mappended`` 在一起並放回 ``Just``。我們能這麼做是因為 class constraint 保證了在 ``Just`` 中的值是 ``Monoid``。
 
 ```haskell
-ghci> Nothing `mappend` Just "andy"  
-Just "andy"  
-ghci> Just LT `mappend` Nothing  
-Just LT  
-ghci> Just (Sum 3) `mappend` Just (Sum 4)  
-Just (Sum {getSum = 7})  
+ghci> Nothing `mappend` Just "andy"
+Just "andy"
+ghci> Just LT `mappend` Nothing
+Just LT
+ghci> Just (Sum 3) `mappend` Just (Sum 4)
+Just (Sum {getSum = 7})
 ```
 
 這當你在處理有可能失敗的 monoid 的時候比較有用。有了這個 instance，我們就不必一一去檢查他們是否失敗，是否是 ``Nothing`` 或是 ``Just``，我們可以直接將他們當作普通的 monoid。
@@ -1436,44 +1455,44 @@ Just (Sum {getSum = 7})
 但如果在 ``Maybe`` 中的型別不是 ``Monoid`` 呢？注意到在先前的 instance 定義中，唯一有依賴於 monoid 限制的情況就是在 ``mappend`` 兩個 ``Just`` 的時候。但如果我們不知道包在 ``Just`` 裡面的值究竟是不是 monoid，我們根本無法用 ``mappend`` 操作他們，所以該怎麼辦呢？一種方式就是直接丟掉第二個值而留下第一個值。這就是 ``First a`` 存在的目的，而這是他的定義：
 
 ```haskell
-newtype First a = First { getFirst :: Maybe a }  
-    deriving (Eq, Ord, Read, Show) 
+newtype First a = First { getFirst :: Maybe a }
+    deriving (Eq, Ord, Read, Show)
 ```
 
 我們接受一個 ``Maybe a`` 並把他包成 newtype，``Monoid`` 的定義如下：
 
 ```haskell
-instance Monoid (First a) where  
-    mempty = First Nothing  
-    First (Just x) `mappend` _ = First (Just x)  
-    First Nothing `mappend` x = x  
+instance Monoid (First a) where
+    mempty = First Nothing
+    First (Just x) `mappend` _ = First (Just x)
+    First Nothing `mappend` x = x
 ```
 
-正如我們說過得，``mempty`` 就是包在 ``First`` 中的 ``Nothing``。如果 ``mappend`` 的第一個參數是 ``Just``，我們就直接忽略第二個參數。如果第一個參數是 ``Nothing``，那我們就將第二個參數當作結果。並不管他究竟是 ``Just`` 或是 ``Nothing``：	
+正如我們說過得，``mempty`` 就是包在 ``First`` 中的 ``Nothing``。如果 ``mappend`` 的第一個參數是 ``Just``，我們就直接忽略第二個參數。如果第一個參數是 ``Nothing``，那我們就將第二個參數當作結果。並不管他究竟是 ``Just`` 或是 ``Nothing``：
 
 ```haskell
-ghci> getFirst $ First (Just 'a') `mappend` First (Just 'b')  
-Just 'a'  
-ghci> getFirst $ First Nothing `mappend` First (Just 'b')  
-Just 'b'  
-ghci> getFirst $ First (Just 'a') `mappend` First Nothing  
-Just 'a'  
+ghci> getFirst $ First (Just 'a') `mappend` First (Just 'b')
+Just 'a'
+ghci> getFirst $ First Nothing `mappend` First (Just 'b')
+Just 'b'
+ghci> getFirst $ First (Just 'a') `mappend` First Nothing
+Just 'a'
 ```
 
 ``First`` 在我們有一大串 ``Maybe`` 而且想知道他們之中就竟有沒有 ``Just`` 的時候很有用。可以利用 ``mconcat``：
 
 ```haskell
-ghci> getFirst . mconcat . map First $ [Nothing, Just 9, Just 10]  
-Just 9  
+ghci> getFirst . mconcat . map First $ [Nothing, Just 9, Just 10]
+Just 9
 ```
 
 如果我們希望定義一個 ``Maybe a`` 的 monoid，讓他當 ``mappend`` 的兩個參數都是 ``Just`` 的時候將第二個參數當作結果。``Data.Monoid`` 中有一個現成的 ``Last a``，他很像是 ``First a``，只差在 ``mappend`` 跟 ``mconcat`` 會保留最後一個非 ``Nothing`` 的值。
 
 ```haskell
-ghci> getLast . mconcat . map Last $ [Nothing, Just 9, Just 10]  
-Just 10  
-ghci> getLast $ Last (Just "one") `mappend` Last (Just "two")  
-Just "two" 
+ghci> getLast . mconcat . map Last $ [Nothing, Just 9, Just 10]
+Just 10
+ghci> getLast $ Last (Just "one") `mappend` Last (Just "two")
+Just "two"
 ```
 
 
@@ -1486,35 +1505,35 @@ Just "two"
 由於有太多種資料結構可以 fold 了，所以我們定義了 ``Foldable`` 這個 typeclass。就像 ``Functor`` 是定義可以 map over 的結構。``Foldable`` 是定義可以 fold 的結構。在 ``Data.Foldable`` 中有定義了一些有用的函數，但他們名稱跟 ``Prelude`` 中的名稱衝突。所以最好是用 qualified 的方式 import 他們：
 
 ```haskell
-import qualified Foldable as F      
+import qualified Foldable as F
 ```
 
 為了少打一些字，我們將他們 import qualified 成 ``F``。所以這個 typeclass 中定義了哪些函數呢？有 ``foldr``，``foldl``，``foldr1`` 跟 ``foldl1``。你會說我們已經知道這些函數了，他們有什麽不一樣的地方嗎？我們來比較一下 ``Foldable`` 中的 ``foldr`` 跟 ``Prelude`` 中的 ``foldr`` 的型別異同：
 
 ```haskell
-ghci> :t foldr  
-foldr :: (a -> b -> b) -> b -> [a] -> b  
-ghci> :t F.foldr  
-F.foldr :: (F.Foldable t) => (a -> b -> b) -> b -> t a -> b  
+ghci> :t foldr
+foldr :: (a -> b -> b) -> b -> [a] -> b
+ghci> :t F.foldr
+F.foldr :: (F.Foldable t) => (a -> b -> b) -> b -> t a -> b
 ```
 
 儘管 ``foldr`` 接受一個 list 並將他 fold 起來，``Data.Foldable`` 中的 ``foldr`` 接受任何可以 fold 的型別。並不只是 list。
 而兩個 ``foldr`` 對於 list 的結果是相同的：
 
 ```haskell
-ghci> foldr (*) 1 [1,2,3]  
-6  
-ghci> F.foldr (*) 1 [1,2,3]  
-6  
+ghci> foldr (*) 1 [1,2,3]
+6
+ghci> F.foldr (*) 1 [1,2,3]
+6
 ```
 
 那有哪些資料結構支援 fold 呢？首先我們有 ``Maybe``：
 
 ```haskell
-ghci> F.foldl (+) 2 (Just 9)  
-11  
-ghci> F.foldr (||) False (Just True)  
-True 
+ghci> F.foldl (+) 2 (Just 9)
+11
+ghci> F.foldr (||) False (Just True)
+True
 ```
 
 
@@ -1524,13 +1543,13 @@ True
 還記得 Making Our Own Types and Typeclass 章節中的樹狀的資料結構嗎？我們是這樣定義的：
 
 ```haskell
-data Tree a = Empty | Node a (Tree a) (Tree a) deriving (Show, Read, Eq)      
+data Tree a = Empty | Node a (Tree a) (Tree a) deriving (Show, Read, Eq)
 ```
 
 我們說一棵樹要不就是一棵空的樹要不然就是一個包含值的節點，並且還指向另外兩棵樹。定義他之後，我們將他定義成 ``Functor`` 的 instance，因此可以 ``fmap`` 他。現在我們要將他定義成 ``Foldable`` 的 instance，這樣我們就可以 fold 他。要定義成 ``Foldable`` 的一種方式就是實作 ``foldr``。但另一種比較簡單的方式就是實作 ``foldMap``，他也屬於 ``Foldable`` typeclass。``foldMap`` 的型別如下：
 
 ```haskell
-foldMap :: (Monoid m, Foldable t) => (a -> m) -> t a -> m  
+foldMap :: (Monoid m, Foldable t) => (a -> m) -> t a -> m
 ```
 
 第一個參數是一個函數，這個函數接受 foldable 資料結構中包含的元素的型別，並回傳一個 monoid。他第二個參數是一個 foldable 的結構，並包含型別 ``a`` 的元素。他將第一個函數來 map over 這個 foldable 的結構，因此得到一個包含 monoid 的 foldable 結構。然後用 ``mappend`` 來簡化這些 monoid，最後得到單一的一個 monoid。這個函數聽起來不太容易理解，但我們下面會看到他其實很容易實作。而且好消息是只要實作了這個函數就可以讓我們的函數成為 ``Foldable``。所以我們只要實作某個型別的 ``foldMap``，我們就可以得到那個型別的 ``foldr`` 跟 ``foldl``。
@@ -1539,11 +1558,11 @@ foldMap :: (Monoid m, Foldable t) => (a -> m) -> t a -> m
 這就是我們如何定義 ``Tree`` 成為 ``Foldable`` 的：
 
 ```haskell
-instance F.Foldable Tree where  
-    foldMap f Empty = mempty  
-    foldMap f (Node x l r) = F.foldMap f l `mappend`  
-                                f x           `mappend`  
-                                F.foldMap f r  
+instance F.Foldable Tree where
+    foldMap f Empty = mempty
+    foldMap f (Node x l r) = F.foldMap f l `mappend`
+                                f x           `mappend`
+                                F.foldMap f r
 ```
 
 
@@ -1562,38 +1581,38 @@ instance F.Foldable Tree where
 
 
 ```haskell
-testTree = Node 5  
-            (Node 3  
-             (Node 1 Empty Empty)  
-             (Node 6 Empty Empty)  
-            )  
-            (Node 9  
-             (Node 8 Empty Empty)  
-             (Node 10 Empty Empty)  
-            )  
+testTree = Node 5
+            (Node 3
+             (Node 1 Empty Empty)
+             (Node 6 Empty Empty)
+            )
+            (Node 9
+             (Node 8 Empty Empty)
+             (Node 10 Empty Empty)
+            )
 ```
 
 他的 root 是 ``5``，而他左邊下來分別是 ``3``，再來是 ``1`` 跟 ``6``。而右邊下來是 ``9``，再來是 ``8`` 跟 ``10``。有了 ``Foldable`` 的定義，我們就能像對 list 做 fold 一樣對樹做 fold：
 
 ```haskell
-ghci> F.foldl (+) 0 testTree  
-42  
-ghci> F.foldl (*) 1 testTree  
-64800  
+ghci> F.foldl (+) 0 testTree
+42
+ghci> F.foldl (*) 1 testTree
+64800
 ```
 
 ``foldMap`` 不只是定義 ``Foldable`` 新的 instance 有用。他也對簡化我們的結構至單一 monoid 值有用。舉例來說，如果我們想要知道我們的樹中有沒有 ``3``，我們可以這樣做：
 
 ```haskell
-ghci> getAny $ F.foldMap (\x -> Any $ x == 3) testTree  
-True 
+ghci> getAny $ F.foldMap (\x -> Any $ x == 3) testTree
+True
 ```
 
 這邊 ``\x -> Any $ x == 3`` 是一個接受一個數值並回傳一個 monoid 的函數，也就是一個包在 ``Any`` 中的 ``Bool``。``foldMap`` 將這個函數套用至樹的每一個節點，並把結果用 ``mappend`` 簡化成單一 monoid。如果我們這樣做：
 
 ```haskell
-ghci> getAny $ F.foldMap (\x -> Any $ x > 15) testTree  
-False 
+ghci> getAny $ F.foldMap (\x -> Any $ x > 15) testTree
+False
 ```
 
 經過套用 lambda 之後我們所有的節點都會是 ``Any False``。但 ``mappend`` 必須要至少吃到一個 ``True`` 才能讓最後的結果變成 ``True``。這也是為什麽結果會是 ``False``，因為我們樹中所有的值都大於 ``15``。
@@ -1602,8 +1621,8 @@ False
 我們也能將 ``foldMap`` 配合 ``\x -> [x]`` 使用來將我們的樹轉成 list。經過套用那個函數後，所有節點都變成包含單一元素的 list。最後用 ``mappend`` 將這些單一元素的 list 轉成一個裝有全部元素的 list：
 
 ```haskell
-ghci> F.foldMap (\x -> [x]) testTree  
-[1,3,6,5,8,9,10] 
+ghci> F.foldMap (\x -> [x]) testTree
+[1,3,6,5,8,9,10]
 ```
 
 這個小技巧並不限於樹而已，他可以被套用在任何 ``Foldable`` 上。

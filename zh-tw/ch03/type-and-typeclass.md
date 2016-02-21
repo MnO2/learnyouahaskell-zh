@@ -1,3 +1,12 @@
+<!-- TOC depthFrom:1 depthTo:6 withLinks:1 updateOnSave:1 orderedList:0 -->
+
+- [Types and Typeclasses](#types-and-typeclasses)
+	- [Type](#type)
+	- [Type variables](#type-variables)
+	- [Typeclasses入門](#typeclasses入門)
+
+<!-- /TOC -->
+
 # Types and Typeclasses
 
 ## Type
@@ -13,15 +22,15 @@
 可以使用 ghci 來檢測表達式的型別。使用 ``:t`` 命令後跟任何可用的表達式，即可得到該表達式的型別，先試一下：
 
 ```haskell
-ghci> :t 'a'  
-'a' :: Char  
-ghci> :t True  
-True :: Bool  
-ghci> :t "HELLO!"  
-"HELLO!" :: [Char]  
-ghci> :t (True, 'a')  
-(True, 'a') :: (Bool, Char)  
-ghci> :t 4 == 5  
+ghci> :t 'a'
+'a' :: Char
+ghci> :t True
+True :: Bool
+ghci> :t "HELLO!"
+"HELLO!" :: [Char]
+ghci> :t (True, 'a')
+(True, 'a') :: (Bool, Char)
+ghci> :t 4 == 5
 4 == 5 :: Bool
 ```
 
@@ -32,15 +41,15 @@ ghci> :t 4 == 5
 同樣，函數也有型別。編寫函數時，給它一個明確的型別聲明是個好習慣，比較短的函數就不用多此一舉了。還記得前面那個過濾大寫字母的 List Comprehension 嗎？給它加上型別聲明便是這個樣子：
 
 ```haskell
-removeNonUppercase :: [Char] -> [Char]  
-removeNonUppercase st = [ c | c <- st, c `elem` ['A'..'Z']]   
+removeNonUppercase :: [Char] -> [Char]
+removeNonUppercase st = [ c | c <- st, c `elem` ['A'..'Z']]
 ```
 
  ``removeNonUppercase`` 的型別為 ``[Char]->[Char]``，從它的參數和回傳值的型別上可以看出，它將一個字串映射為另一個字串。``[Char]`` 與 ``String`` 是等價的，但使用 ``String`` 會更清晰：``removeNonUppercase :: String -> String``。編譯器會自動檢測出它的型別，我們還是標明了它的型別聲明。要是多個參數的函數該怎樣？如下便是一個將三個整數相加的簡單函數。
 
 ```haskell
-addThree :: Int -> Int -> Int -> Int  
-addThree x y z = x + y + z  
+addThree :: Int -> Int -> Int -> Int
+addThree x y z = x + y + z
 ```
 
 參數之間由 ``->`` 分隔，而與回傳值之間並無特殊差異。回傳值是最後一項，參數就是前三項。稍後，我們將講解為何只用 ``->`` 而不是 ``Int,Int,Int->Int`` 之類"更好看"的方式來分隔參數。
@@ -54,37 +63,37 @@ addThree x y z = x + y + z
 **Integer** 表示...厄...也是整數，但它是無界的。這就意味着可以用它存放非常非常大的數，我是說非常大。它的效率不如 Int 高。
 
 ```haskell
-factorial :: Integer -> Integer  
-factorial n = product [1..n]  
+factorial :: Integer -> Integer
+factorial n = product [1..n]
 ```
 
 ```haskell
-ghci> factorial 50  
-30414093201713378043612608166064768844377641568960512000000000000  
+ghci> factorial 50
+30414093201713378043612608166064768844377641568960512000000000000
 ```
 
 **Float** 表示單精度的浮點數。
 
 ```haskell
-circumference :: Float -> Float  
-circumference r = 2 * pi * r  
+circumference :: Float -> Float
+circumference r = 2 * pi * r
 ```
 
 ```haskell
-ghci> circumference 4.0  
-25.132742  
+ghci> circumference 4.0
+25.132742
 ```
 
 **Double** 表示雙精度的浮點數。
 
 ```haskell
-circumference' :: Double -> Double  
-circumference' r = 2 * pi * r  
+circumference' :: Double -> Double
+circumference' r = 2 * pi * r
 ```
 
 ```haskell
-ghci> circumference' 4.0  
-25.132741228718345  
+ghci> circumference' 4.0
+25.132741228718345
 ```
 
 
@@ -100,8 +109,8 @@ Tuple 的型別取決於它的長度及其中項的型別。注意，空 Tuple �
 你覺得 ``head`` 函數的型別是啥？它可以取任意型別的 List 的首項，是怎麼做到的呢？我們查一下！
 
 ```haskell
-ghci> :t head  
-head :: [a] -> a  
+ghci> :t head
+head :: [a] -> a
 ```
 
 ![](box.png)
@@ -113,8 +122,8 @@ head :: [a] -> a
 還記得 ``fst``？我們查一下它的型別：
 
 ```haskell
-ghci> :t fst  
-fst :: (a, b) -> a  
+ghci> :t fst
+fst :: (a, b) -> a
 ```
 
 可以看到``fst``取一個包含兩個型別的 Tuple 作參數，並以第一個項的型別作為回傳值。這便是 ``fst`` 可以處理一個含有兩種型別項的 pair 的原因。注意，``a`` 和 ``b`` 是不同的型別變數，但它們不一定非得是不同的型別，它只是標明了首項的型別與回傳值的型別相同。
@@ -129,7 +138,7 @@ fst :: (a, b) -> a
 ``==`` 函數的型別聲明是怎樣的？
 
 ```haskell
-ghci> :t (==)  
+ghci> :t (==)
 (==) :: (Eq a) => a -> a -> Bool
 ```
 
@@ -140,16 +149,16 @@ ghci> :t (==)
 **Eq** 這一 Typeclass 提供了判斷相等性的介面，凡是可比較相等性的型別必屬於 ``Eq`` class。
 
 ```haskell
-ghci> 5 == 5   
-True   
-ghci> 5 /= 5   
-False   
-ghci> 'a' == 'a'   
-True   
-ghci> "Ho Ho" == "Ho Ho"   
-True   
-ghci> 3.432 == 3.432   
-True 
+ghci> 5 == 5
+True
+ghci> 5 /= 5
+False
+ghci> 'a' == 'a'
+True
+ghci> "Ho Ho" == "Ho Ho"
+True
+ghci> 3.432 == 3.432
+True
 ```
 
 ``elem`` 函數的型別為: ``(Eq a)=>a->[a]->Bool``。這是它在檢測值是否存在於一個 List 時使用到了==的緣故。
@@ -161,77 +170,77 @@ True
 **Ord** 包含可比較大小的型別。除了函數以外，我們目前所談到的所有型別都屬於 ``Ord`` 類。``Ord`` 包中包含了``<, >, <=, >=`` 之類用於比較大小的函數。``compare`` 函數取兩個 ``Ord`` 類中的相同型別的值作參數，回傳比較的結果。這個結果是如下三種型別之一：``GT, LT, EQ``。
 
 ```haskell
-ghci> :t (>)  
-(>) :: (Ord a) => a -> a -> Bool  
+ghci> :t (>)
+(>) :: (Ord a) => a -> a -> Bool
 ```
 
 型別若要成為Ord的成員，必先加入Eq家族。
 
 ```haskell
-ghci> "Abrakadabra" < "Zebra"  
-True  
-ghci> "Abrakadabra" `compare` "Zebra"  
-LT  
-ghci> 5 >= 2  
-True  
-ghci> 5 `compare` 3  
-GT  
+ghci> "Abrakadabra" < "Zebra"
+True
+ghci> "Abrakadabra" `compare` "Zebra"
+LT
+ghci> 5 >= 2
+True
+ghci> 5 `compare` 3
+GT
 ```
 
 **Show** 的成員為可用字串表示的型別。目前為止，除函數以外的所有型別都是 ``Show`` 的成員。操作 Show Typeclass，最常用的函數表示 ``show``。它可以取任一Show的成員型別並將其轉為字串。
 
 ```haskell
-ghci> show 3  
-"3"  
-ghci> show 5.334  
-"5.334"  
-ghci> show True  
-"True"  
+ghci> show 3
+"3"
+ghci> show 5.334
+"5.334"
+ghci> show True
+"True"
 ```
 
 **Read** 是與 ``Show`` 相反的 Typeclass。``read`` 函數可以將一個字串轉為 ``Read`` 的某成員型別。
 
 ```haskell
-ghci> read "True" || False  
-True  
-ghci> read "8.2" + 3.8  
-12.0  
-ghci> read "5" - 2  
-3  
-ghci> read "[1,2,3,4]" ++ [3]  
-[1,2,3,4,3]  
+ghci> read "True" || False
+True
+ghci> read "8.2" + 3.8
+12.0
+ghci> read "5" - 2
+3
+ghci> read "[1,2,3,4]" ++ [3]
+[1,2,3,4,3]
 ```
 
 一切良好，如上的所有型別都屬於這一 Typeclass。嘗試 ``read "4"`` 又會怎樣？
 
 ```haskell
-ghci> read "4"  
-< interactive >:1:0:  
-    Ambiguous type variable `a' in the constraint:  
-      `Read a' arising from a use of `read' at <interactive>:1:0-7  
-    Probable fix: add a type signature that fixes these type variable(s)  
+ghci> read "4"
+< interactive >:1:0:
+    Ambiguous type variable `a' in the constraint:
+      `Read a' arising from a use of `read' at <interactive>:1:0-7
+    Probable fix: add a type signature that fixes these type variable(s)
 ```
 
 ghci 跟我們說它搞不清楚我們想要的是什麼樣的回傳值。注意呼叫 ``read`` 後跟的那部分，ghci 通過它來辨認其型別。若要一個 ``boolean`` 值，他就知道必須得回傳一個 ``Bool`` 型別的值。但在這裡它只知道我們要的型別屬於 Read Typeclass，而不能明確到底是哪個。看一下 ``read`` 函數的型別聲明吧：
 
 ```haskell
-ghci> :t read  
-read :: (Read a) => String -> a  
+ghci> :t read
+read :: (Read a) => String -> a
 ```haskell
- 
+
 看，它的回傳值屬於 ReadTypeclass，但我們若用不到這個值，它就永遠都不會得知該表達式的型別。所以我們需要在一個表達式後跟``::`` 的*型別註釋*，以明確其型別。如下：
 
 ```haskell
-ghci> read "5" :: Int  
-5  
-ghci> read "5" :: Float  
-5.0  
-ghci> (read "5" :: Float) * 4  
-20.0  
-ghci> read "[1,2,3,4]" :: [Int]  
-[1,2,3,4]  
-ghci> read "(3, 'a')" :: (Int, Char)  
-(3, 'a')  
+ghci> read "5" :: Int
+5
+ghci> read "5" :: Float
+5.0
+ghci> (read "5" :: Float) * 4
+20.0
+ghci> read "[1,2,3,4]" :: [Int]
+[1,2,3,4]
+ghci> read "(3, 'a')" :: (Int, Char)
+(3, 'a')
 ```
 
 編譯器可以辨認出大部分表達式的型別，但遇到 ``read "5"`` 的時候它就搞不清楚究竟該是 Int 還是 Float 了。只有經過運算，Haskell 才會明確其型別；同時由於 Haskell 是靜態的，它還必須得在 編譯前搞清楚所有值的型別。所以我們就最好提前給它打聲招呼："嘿，這個表達式應該是這個型別，省的你認不出來！"
@@ -239,27 +248,27 @@ ghci> read "(3, 'a')" :: (Int, Char)
 **Enum** 的成員都是連續的型別 -- 也就是可枚舉。``Enum`` 類存在的主要好處就在於我們可以在 ``Range`` 中用到它的成員型別：每個值都有後繼子 (successer) 和前置子 (predecesor)，分別可以通過 ``succ`` 函數和 ``pred`` 函數得到。該 Typeclass 包含的型別有：``()``, ``Bool``, ``Char``, ``Ordering``, ``Int``, ``Integer``, ``Float`` 和 ``Double``。
 
 ```haskell
-ghci> ['a'..'e']  
-"abcde"  
-ghci> [LT .. GT]  
-[LT,EQ,GT]  
-ghci> [3 .. 5]  
-[3,4,5]  
-ghci> succ 'B'  
-'C'  
+ghci> ['a'..'e']
+"abcde"
+ghci> [LT .. GT]
+[LT,EQ,GT]
+ghci> [3 .. 5]
+[3,4,5]
+ghci> succ 'B'
+'C'
 ```
 
 **Bounded** 的成員都有一個上限和下限。
 
 ```haskell
-ghci> minBound :: Int  
--2147483648  
-ghci> maxBound :: Char  
-'\1114111'  
-ghci> maxBound :: Bool  
-True  
-ghci> minBound :: Bool  
-False  
+ghci> minBound :: Int
+-2147483648
+ghci> maxBound :: Char
+'\1114111'
+ghci> maxBound :: Bool
+True
+ghci> minBound :: Bool
+False
 ```
 
 ``minBound`` 和 ``maxBound`` 函數很有趣，它們的型別都是 ``(Bounded a) => a``。可以說，它們都是多態常量。
@@ -267,22 +276,22 @@ False
 如果其中的項都屬於 ``Bounded`` Typeclass，那麼該 Tuple 也屬於 ``Bounded``
 
 ```haskell
-ghci> maxBound :: (Bool, Int, Char)  
-(True,2147483647,'\1114111')  
+ghci> maxBound :: (Bool, Int, Char)
+(True,2147483647,'\1114111')
 ```
 
 **Num** 是表示數字的 Typeclass，它的成員型別都具有數字的特徵。檢查一個數字的型別：
 
 ```haskell
-ghci> :t 20  
-20 :: (Num t) => t  
+ghci> :t 20
+20 :: (Num t) => t
 ```
 
 看樣子所有的數字都是多態常量，它可以作為所有 ``Num`` Typeclass中的成員型別。以上便是 ``Num`` Typeclass 中包含的所有型別，檢測 `*` 運算子的型別，可以發現它可以處理一切的數字：
 
 ```haskell
-ghci> :t (*)  
-(*) :: (Num a) => a -> a -> a  
+ghci> :t (*)
+(*) :: (Num a) => a -> a -> a
 ```
 
 它只取兩個相同型別的參數。所以 ``(5 :: Int) * (6 :: Integer)`` 會引發一個型別錯誤，而 ``5 * (6 :: Integer)`` 就不會有問題。

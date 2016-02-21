@@ -1,3 +1,15 @@
+<!-- TOC depthFrom:1 depthTo:6 withLinks:1 updateOnSave:1 orderedList:0 -->
+
+- [输入与输出](#输入与输出)
+	- [Hello, world!](#hello-world)
+	- [文件与字符流](#文件与字符流)
+	- [命令行引数](#命令行引数)
+	- [乱数](#乱数)
+	- [Bytestrings](#bytestrings)
+	- [Exceptions (例外)](#exceptions-例外)
+
+<!-- /TOC -->
+
 # 输入与输出
 
 ![](dognap.png)
@@ -1646,4 +1658,3 @@ main = do toTry `catch` handler1
 这边 ``toTry`` 使用 ``handler1`` 当作 handler，而 ``thenTryThis`` 用了 ``handler2``。``launchRockets`` 并不是 ``catch`` 的参数，所以如果有任何一个 exception 被丢出都会让我们的程序当掉，除非 ``launchRockets`` 使用 ``catch`` 来处理 exception。当然 ``toTry``，``thenTryThis`` 跟 ``launchRockets`` 都是 I/O actions，而且被 do syntax 绑在一起。这很像其他语言中的 try-catch blocks，你可以把一小段程序用 try-catch 包住，你可以自己调整该包多少进去。
 
 现在你知道如何处理 I/O exception 了。我们并没有提到如何从 pure code 中丢出 exception，这是因为正如我们先前提到的，Haskell 提供了更好的办法来处理错误。就算是在可能会失败的 I/O action 中，我也倾向用 ``IO (Either a b)``，代表他们是 I/O action，但当他们被执行，他们结果的型态是 ``Either a b``，意思是不是 ``Left a`` 就是 ``Right b``。
-
