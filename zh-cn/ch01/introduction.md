@@ -1,11 +1,5 @@
-<!-- TOC depthFrom:1 depthTo:6 withLinks:1 updateOnSave:1 orderedList:0 -->
-
-- [简介](#简介)
-	- [关于这份教学](#关于这份教学)
-	- [什么是 Haskell？](#什么是-haskell)
-	- [要使用 Haskell 有哪些要求呢？](#要使用-haskell-有哪些要求呢)
-
-<!-- /TOC -->
+<!-- toc -->
+<!-- tocstop -->
 
 # 简介
 
