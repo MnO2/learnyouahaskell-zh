@@ -1,3 +1,12 @@
+<!-- TOC depthFrom:1 depthTo:6 withLinks:1 updateOnSave:1 orderedList:0 -->
+
+- [簡介](#簡介)
+	- [關於這份教學](#關於這份教學)
+	- [什麼是 Haskell？](#什麼是-haskell)
+	- [要使用 Haskell 有哪些要求呢？](#要使用-haskell-有哪些要求呢)
+
+<!-- /TOC -->
+
 # 簡介
 
 ## 關於這份教學

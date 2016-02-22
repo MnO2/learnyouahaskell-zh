@@ -1,3 +1,14 @@
+<!-- TOC depthFrom:1 depthTo:6 withLinks:1 updateOnSave:1 orderedList:0 -->
+
+- [函數的語法](#函數的語法)
+	- [模式匹配 (Pattern matching)](#模式匹配-pattern-matching)
+	- [什麼是 Guards](#什麼是-guards)
+	- [關鍵字 Where](#關鍵字-where)
+	- [關鍵字 Let](#關鍵字-let)
+	- [Case expressions](#case-expressions)
+
+<!-- /TOC -->
+
 # 函數的語法
 
 ## 模式匹配 (Pattern matching)
@@ -57,7 +68,7 @@ ghci> charName 'b'  
 ghci> charName 'h'  
 "*** Exception: tut.hs:(53,0)-(55,21): Non-exhaustive patterns in function charName  
 ```
- 
+
 它告訴我們說，這個模式不夠全面。因此，在定義模式時，一定要留一個萬能匹配的模式，這樣我們的程序就不會為了不可預料的輸入而崩潰了。
 
 對 Tuple 同樣可以使用模式匹配。寫個函數，將二維空間中的向量相加該如何？將它們的 ``x`` 項和 ``y`` 項分別相加就是了。如果不瞭解模式匹配，我們很可能會寫出這樣的程式碼：
@@ -66,7 +77,7 @@ ghci> charName 'h'  
 addVectors :: (Num a) => (a, a) -> (a, a) -> (a, a)  
 addVectors a b = (fst a + fst b, snd a + snd b)  
 ```
- 
+
 嗯，可以運行。但有更好的方法，上模式匹配：
 
 ```haskell
@@ -94,9 +105,9 @@ third (_, _, z) = z  
 說到 List Comprehension，我想起來在 List Comprehension 中也能用模式匹配：
 
 ```haskell
-ghci> let xs = [(1,3), (4,3), (2,4), (5,3), (5,6), (3,1)]  
-ghci> [a+b | (a,b) <- xs]  
-[4,7,6,8,11,4]   
+ghci> let xs = [(1,3), (4,3), (2,4), (5,3), (5,6), (3,1)]
+ghci> [a+b | (a,b) <- xs]
+[4,7,6,8,11,4]
 ```
 
 一旦模式匹配失敗，它就簡單挪到下個元素。
@@ -184,11 +195,11 @@ ghci> capital "Dracula"  
 在講解它的語法前，我們先看一個用到 guard 的函數。它會依據你的 BMI 值 (body mass index，身體質量指數)來不同程度地侮辱你。BMI 值即為體重除以身高的平方。如果小於 18.5，就是太瘦；如果在 18.5 到 25 之間，就是正常；25 到 30 之間，超重；如果超過 30，肥胖。這就是那個函數(我們目前暫不為您計算 BMI，它只是直接取一個 BMI 值)。
 
 ```haskell
-bmiTell :: (RealFloat a) => a -> String  
-bmiTell bmi  
-    | bmi <= 18.5 = "You're underweight, you emo, you!"  
-    | bmi <= 25.0 = "You're supposedly normal. Pffft, I bet you're ugly!"  
-    | bmi <= 30.0 = "You're fat! Lose some weight, fatty!"  
+bmiTell :: (RealFloat a) => a -> String
+bmiTell bmi
+    | bmi <= 18.5 = "You're underweight, you emo, you!"
+    | bmi <= 25.0 = "You're supposedly normal. Pffft, I bet you're ugly!"
+    | bmi <= 30.0 = "You're fat! Lose some weight, fatty!"
     | otherwise   = "You're a whale, congratulations!"  
 ```
 
@@ -201,11 +212,11 @@ guard 由跟在函數名及參數後面的豎綫標誌，通常他們都是靠�
 當然，guard 可以在含有任意數量參數的函數中使用。省得用戶在使用這函數之前每次都自己計算 ``bmi``。我們修改下這個函數，讓它取身高體重為我們計算。
 
 ```haskell
-bmiTell :: (RealFloat a) => a -> a -> String  
-bmiTell weight height  
-    | weight / height ^ 2 <= 18.5 = "You're underweight, you emo, you!"  
-    | weight / height ^ 2 <= 25.0 = "You're supposedly normal. Pffft, I bet you're ugly!"  
-    | weight / height ^ 2 <= 30.0 = "You're fat! Lose some weight, fatty!"  
+bmiTell :: (RealFloat a) => a -> a -> String
+bmiTell weight height
+    | weight / height ^ 2 <= 18.5 = "You're underweight, you emo, you!"
+    | weight / height ^ 2 <= 25.0 = "You're supposedly normal. Pffft, I bet you're ugly!"
+    | weight / height ^ 2 <= 30.0 = "You're fat! Lose some weight, fatty!"
     | otherwise                 = "You're a whale, congratulations!"    
 ```
 
@@ -261,39 +272,39 @@ GT  
 前一節中我們寫了這個 ``bmi`` 計算函數：
 
 ```haskell
-bmiTell :: (RealFloat a) => a -> a -> String  
-bmiTell weight height  
-    | weight / height ^ 2 <= 18.5 = "You're underweight, you emo, you!"  
-    | weight / height ^ 2 <= 25.0 = "You're supposedly normal. Pffft, I bet you're ugly!"  
-    | weight / height ^ 2 <= 30.0 = "You're fat! Lose some weight, fatty!"  
-    | otherwise                   = "You're a whale, congratulations!"  
+bmiTell :: (RealFloat a) => a -> a -> String
+bmiTell weight height
+    | weight / height ^ 2 <= 18.5 = "You're underweight, you emo, you!"
+    | weight / height ^ 2 <= 25.0 = "You're supposedly normal. Pffft, I bet you're ugly!"
+    | weight / height ^ 2 <= 30.0 = "You're fat! Lose some weight, fatty!"
+    | otherwise                   = "You're a whale, congratulations!"
 ```
 
 注意，我們重複了 3 次。我們重複了 3 次。程式設計師的字典裡不應該有"重複"這個詞。既然發現有重複，那麼給它一個名字來代替這三個表達式會更好些。嗯，我們可以這樣修改：
 
 ```haskell
-bmiTell :: (RealFloat a) => a -> a -> String  
-bmiTell weight height  
-    | bmi <= 18.5 = "You're underweight, you emo, you!"  
-    | bmi <= 25.0 = "You're supposedly normal. Pffft, I bet you're ugly!"  
-    | bmi <= 30.0 = "You're fat! Lose some weight, fatty!"  
-    | otherwise   = "You're a whale, congratulations!"  
-    where bmi = weight / height ^ 2  
+bmiTell :: (RealFloat a) => a -> a -> String
+bmiTell weight height
+    | bmi <= 18.5 = "You're underweight, you emo, you!"
+    | bmi <= 25.0 = "You're supposedly normal. Pffft, I bet you're ugly!"
+    | bmi <= 30.0 = "You're fat! Lose some weight, fatty!"
+    | otherwise   = "You're a whale, congratulations!"
+    where bmi = weight / height ^ 2
 ```
 
 我們的 ``where`` 關鍵字跟在 guard 後面(最好是與豎綫縮進一致)，可以定義多個名字和函數。這些名字對每個 guard 都是可見的，這一來就避免了重複。如果我們打算換種方式計算 ``bmi``，只需進行一次修改就行了。通過命名，我們提升了程式碼的可讀性，並且由於 ``bmi`` 只計算了一次，函數的執行效率也有所提升。我們可以再做下修改：
 
 ```haskell
-bmiTell :: (RealFloat a) => a -> a -> String  
-bmiTell weight height  
-    | bmi <= skinny = "You're underweight, you emo, you!"  
-    | bmi <= normal = "You're supposedly normal. Pffft, I bet you're ugly!"  
-    | bmi <= fat    = "You're fat! Lose some weight, fatty!"  
-    | otherwise     = "You're a whale, congratulations!"  
-    where bmi = weight / height ^ 2  
-          skinny = 18.5  
-          normal = 25.0  
-          fat = 30.0  
+bmiTell :: (RealFloat a) => a -> a -> String
+bmiTell weight height
+    | bmi <= skinny = "You're underweight, you emo, you!"
+    | bmi <= normal = "You're supposedly normal. Pffft, I bet you're ugly!"
+    | bmi <= fat    = "You're fat! Lose some weight, fatty!"
+    | otherwise     = "You're a whale, congratulations!"
+    where bmi = weight / height ^ 2
+          skinny = 18.5
+          normal = 25.0
+          fat = 30.0
 ```
 
 函數在 ``where`` 綁定中定義的名字只對本函數可見，因此我們不必擔心它會污染其他函數的命名空間。注意，其中的名字都是一列垂直排開，如果不這樣規範，Haskell 就搞不清楚它們在哪個地方了。
@@ -323,7 +334,7 @@ initials firstname lastname = [f] ++ ". " ++ [l] ++ "."  
 
 ```haskell
 calcBmis :: (RealFloat a) => [(a, a)] -> [a]  
-calcBmis xs = [bmi w h | (w, h) <- xs] 
+calcBmis xs = [bmi w h | (w, h) <- xs]
     where bmi weight height = weight / height ^ 2  
 ```
 
@@ -392,15 +403,15 @@ ghci> (let (a,b,c) = (1,2,3) in a+b+c) * 100  
 你也可以把 ``let`` 綁定放到 List Comprehension 中。我們重寫下那個計算 ``bmi`` 值的函數，用個 ``let`` 替換掉原先的 ``where``。
 
 ```haskell
-calcBmis :: (RealFloat a) => [(a, a)] -> [a]  
-calcBmis xs = [bmi | (w, h) <- xs, let bmi = w / h ^ 2]  
+calcBmis :: (RealFloat a) => [(a, a)] -> [a]
+calcBmis xs = [bmi | (w, h) <- xs, let bmi = w / h ^ 2]
 ```
 
 List Comprehension 中 ``let`` 綁定的樣子和限制條件差不多，只不過它做的不是過濾，而是綁定名字。``let`` 中綁定的名字在輸出函數及限制條件中都可見。這一來我們就可以讓我們的函數隻返回胖子的 ``bmi`` 值：
 
 ```haskell
-calcBmis :: (RealFloat a) => [(a, a)] -> [a]  
-calcBmis xs = [bmi | (w, h) <- xs, let bmi = w / h ^ 2, bmi >= 25.0] 
+calcBmis :: (RealFloat a) => [(a, a)] -> [a]
+calcBmis xs = [bmi | (w, h) <- xs, let bmi = w / h ^ 2, bmi >= 25.0]
 ```
 
 在 ``(w, h) <- xs`` 這裡無法使用 ``bmi`` 這名字，因為它在 ``let`` 綁定的前面。
@@ -408,13 +419,13 @@ calcBmis xs = [bmi | (w, h) <- xs, let bmi = w / h ^ 2, bmi >= 25.0]
 在 List Comprehension 中我們忽略了 ``let`` 綁定的 ``in`` 部分，因為名字的可見性已經預先定義好了。不過，把一個 ``let...in`` 放到限制條件中也是可以的，這樣名字只對這個限制條件可見。在 ghci 中 ``in`` 部分也可以省略，名字的定義就在整個交互中可見。
 
 ```haskell
-ghci> let zoot x y z = x * y + z  
-ghci> zoot 3 9 2  
-29  
-ghci> let boot x y z = x * y + z in boot 3 4 2  
-14  
-ghci> boot  
-< interactive>:1:0: Not in scope: `boot'  
+ghci> let zoot x y z = x * y + z
+ghci> zoot 3 9 2
+29
+ghci> let boot x y z = x * y + z in boot 3 4 2
+14
+ghci> boot
+< interactive>:1:0: Not in scope: `boot'
 ```
 
 你說既然 ``let`` 已經這麼好了，還要 ``where`` 幹嘛呢？嗯，``let`` 是個表達式，定義域限制的相當小，因此不能在多個 guard 中使用。一些朋友更喜歡 ``where``，因為它是跟在函數體後面，把主函數體距離型別聲明近一些會更易讀。

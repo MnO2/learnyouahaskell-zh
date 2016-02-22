@@ -1,3 +1,15 @@
+<!-- TOC depthFrom:1 depthTo:6 withLinks:1 updateOnSave:1 orderedList:0 -->
+
+- [從零開始](#從零開始)
+	- [準備好了嗎？](#準備好了嗎)
+	- [初學者的第一個函數](#初學者的第一個函數)
+	- [List 入門](#list-入門)
+	- [使用 Range](#使用-range)
+	- [List Comprehension](#list-comprehension)
+	- [Tuple](#tuple)
+
+<!-- /TOC -->
+
 # 從零開始
 
 ## 準備好了嗎？

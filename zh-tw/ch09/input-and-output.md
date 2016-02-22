@@ -1,3 +1,15 @@
+<!-- TOC depthFrom:1 depthTo:6 withLinks:1 updateOnSave:1 orderedList:0 -->
+
+- [輸入與輸出](#輸入與輸出)
+	- [Hello, world!](#hello-world)
+	- [檔案與字符流](#檔案與字符流)
+	- [命令列引數](#命令列引數)
+	- [亂數](#亂數)
+	- [Bytestrings](#bytestrings)
+	- [Exceptions (例外)](#exceptions-例外)
+
+<!-- /TOC -->
+
 # 輸入與輸出
 
 ![](dognap.png)

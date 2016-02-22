@@ -1,3 +1,19 @@
+<!-- TOC depthFrom:1 depthTo:6 withLinks:1 updateOnSave:1 orderedList:0 -->
+
+- [Zippers 数据结构](#zippers-数据结构)
+	- [来走二元树吧!](#来走二元树吧)
+	- [凡走过必留下痕迹](#凡走过必留下痕迹)
+		- [Going back up](#going-back-up)
+		- [Manipulating trees under focus](#manipulating-trees-under-focus)
+		- [I'm going straight to top, oh yeah, up where the air is fresh and clean!](#im-going-straight-to-top-oh-yeah-up-where-the-air-is-fresh-and-clean)
+	- [来看串列](#来看串列)
+	- [阳春的文件系统](#阳春的文件系统)
+		- [A zipper for our file system](#a-zipper-for-our-file-system)
+		- [Manipulating our file system](#manipulating-our-file-system)
+	- [小心每一步](#小心每一步)
+
+<!-- /TOC -->
+
 # Zippers 数据结构
 
 ![](60sdude.png)
@@ -10,35 +26,35 @@
 我们在生物课中学过，树有非常多种。所以我们来自己发明棵树吧！
 
 ```haskell
-data Tree a = Empty | Node a (Tree a) (Tree a) deriving (Show)      
+data Tree a = Empty | Node a (Tree a) (Tree a) deriving (Show)
 ```
 
 这边我们的树不是空的就是有两棵子树。来看看一个范例：
 
 ```haskell
-freeTree :: Tree Char  
-freeTree =   
-    Node 'P'  
-        (Node 'O'  
-             (Node 'L'  
-              (Node 'N' Empty Empty)  
-              (Node 'T' Empty Empty)  
-             )  
-             (Node 'Y'  
-              (Node 'S' Empty Empty)  
-              (Node 'A' Empty Empty)  
-             )  
-        )  
-        (Node 'L'  
-             (Node 'W'  
-                  (Node 'C' Empty Empty)  
-                  (Node 'R' Empty Empty)  
-             )  
-             (Node 'A'  
-                  (Node 'A' Empty Empty)  
-                  (Node 'C' Empty Empty)  
-             )  
-        )  
+freeTree :: Tree Char
+freeTree =
+    Node 'P'
+        (Node 'O'
+             (Node 'L'
+              (Node 'N' Empty Empty)
+              (Node 'T' Empty Empty)
+             )
+             (Node 'Y'
+              (Node 'S' Empty Empty)
+              (Node 'A' Empty Empty)
+             )
+        )
+        (Node 'L'
+             (Node 'W'
+                  (Node 'C' Empty Empty)
+                  (Node 'R' Empty Empty)
+             )
+             (Node 'A'
+                  (Node 'A' Empty Empty)
+                  (Node 'C' Empty Empty)
+             )
+        )
 ```
 
 画成图的话就是像这样：
@@ -48,8 +64,8 @@ freeTree =
 注意到 ``W`` 这个节点了吗？如果我们想要把他变成 ``P``。我们会怎么做呢？一种方式是用 pattern match 的方式做，直到我们找到那个节点为止。要先往右走再往左走，再改变元素内容，像是这样：
 
 ```haskell
-changeToP :: Tree Char -> Tree Char  
-changeToP (Node x l (Node y (Node _ m n) r)) = Node x l (Node y (Node 'P' m n) r)  
+changeToP :: Tree Char -> Tree Char
+changeToP (Node x l (Node y (Node _ m n) r)) = Node x l (Node y (Node 'P' m n) r)
 ```
 
 这不只看起来很丑，而且很不容易阅读。这到底是怎么回事？我们使用 pattern match 来拆开我们的树，我们把 root 绑定成 ``x``，把左子树绑定成 ``l``。对于右子树我们继续使用 pattern match。直到我们碰到一个子树他的 root 是 ``'W'``。到此为止我们再重建整棵树，新的树只差在把 ``'W'`` 改成了 ``'P'``。
@@ -57,13 +73,13 @@ changeToP (Node x l (Node y (Node _ m n) r)) = Node x l (Node y (Node 'P' m n) r
 有没有比较好的作法呢？有一种作法是我们写一个函数，他接受一个树跟一串 list，里面包含有行走整个树时的方向。方向可以是 ``L`` 或是 ``R``，分别代表向左走或向右走。我们只要跟随指令就可以走达指定的位置：
 
 ```haskell
-data Direction = L | R deriving (Show)  
-type Directions = [Direction]  
-  
-changeToP :: Directions-> Tree Char -> Tree Char  
-changeToP (L:ds) (Node x l r) = Node x (changeToP ds l) r  
-changeToP (R:ds) (Node x l r) = Node x l (changeToP ds r)  
-changeToP [] (Node _ l r) = Node 'P' l r  
+data Direction = L | R deriving (Show)
+type Directions = [Direction]
+
+changeToP :: Directions-> Tree Char -> Tree Char
+changeToP (L:ds) (Node x l r) = Node x (changeToP ds l) r
+changeToP (R:ds) (Node x l r) = Node x l (changeToP ds r)
+changeToP [] (Node _ l r) = Node 'P' l r
 ```
 
 如果在 list 中的第一个元素是 ``L``，我们会建构一个左子树变成 ``'P'`` 的新树。当我们递归地调用 ``changeToP``，我们只会传给他剩下的部份，因为前面的部份已经看过了。对于 ``R`` 的 case 也一样。如果 list 已经消耗完了，那表示我们已经走到我们的目的地，所以我们就回传一个新的树，他的 root 被修改成 ``'P'``。
@@ -71,19 +87,19 @@ changeToP [] (Node _ l r) = Node 'P' l r
 要避免印出整棵树，我们要写一个函数告诉我们目的地究竟是什么元素。
 
 ```haskell
-elemAt :: Directions -> Tree a -> a  
-elemAt (L:ds) (Node _ l _) = elemAt ds l  
-elemAt (R:ds) (Node _ _ r) = elemAt ds r  
-elemAt [] (Node x _ _) = x  
+elemAt :: Directions -> Tree a -> a
+elemAt (L:ds) (Node _ l _) = elemAt ds l
+elemAt (R:ds) (Node _ _ r) = elemAt ds r
+elemAt [] (Node x _ _) = x
 ```
 
 这函数跟 ``changeToP`` 很像，只是他不会记下沿路上的信息，他只会记住目的地是什么。我们把 ``'W'`` 变成 ``'P'``，然后用他来查看。
 
 
 ```haskell
-ghci> let newTree = changeToP [R,L] freeTree  
-ghci> elemAt [R,L] newTree  
-'P' 
+ghci> let newTree = changeToP [R,L] freeTree
+ghci> elemAt [R,L] newTree
+'P'
 ```
 
 看起来运作正常。在这些函数里面，包含方向的 list 比较像是一种"focus"，因为他特别指出了一棵子树。一个像 ``[R]`` 这样的 list 是聚焦在 root 的右子树。一个空的 list 代表的是主树本身。
@@ -114,15 +130,15 @@ goLeft (Node _ l _, bs) = (l, L:bs)
 我们忽略 root 跟右子树，直接回传左子树以及面包屑，只是在现有的面包屑前面加上 ``L``。再来看看往右走的函数：
 
 ```haskell
-goRight :: (Tree a, Breadcrumbs) -> (Tree a, Breadcrumbs)  
-goRight (Node _ _ r, bs) = (r, R:bs)  
+goRight :: (Tree a, Breadcrumbs) -> (Tree a, Breadcrumbs)
+goRight (Node _ _ r, bs) = (r, R:bs)
 ```
 
 几乎是一模一样。我们再来做一个先往右走再往左走的函数，让他来走我们的 ``freeTree``
 
 ```haskell
-ghci> goLeft (goRight (freeTree, []))  
-(Node 'W' (Node 'C' Empty Empty) (Node 'R' Empty Empty),[L,R])  
+ghci> goLeft (goRight (freeTree, []))
+(Node 'W' (Node 'C' Empty Empty) (Node 'R' Empty Empty),[L,R])
 ```
 
 ![](almostzipper.png)
@@ -138,8 +154,8 @@ x -: f = f x
 他让我们可以将值喂给函数这件事反过来写，先写值，再来是 ``-:``，最后是函数。所以我们可以写成 ``(freeTree, []) -: goRight`` 而不是 ``goRight (freeTree, [])``。我们便可以把上面的例子改写地更清楚。
 
 ```haskell
-ghci> (freeTree, []) -: goRight -: goLeft  
-(Node 'W' (Node 'C' Empty Empty) (Node 'R' Empty Empty),[L,R])  
+ghci> (freeTree, []) -: goRight -: goLeft
+(Node 'W' (Node 'C' Empty Empty) (Node 'R' Empty Empty),[L,R])
 ```
 
 ### Going back up
@@ -180,16 +196,16 @@ goLeft (Node x l r, bs) = (l, LeftCrumb x r:bs)
 ``goRight`` 也是类似：
 
 ```haskell
-goRight :: (Tree a, Breadcrumbs a) -> (Tree a, Breadcrumbs a)  
-goRight (Node x l r, bs) = (r, RightCrumb x l:bs)  
+goRight :: (Tree a, Breadcrumbs a) -> (Tree a, Breadcrumbs a)
+goRight (Node x l r, bs) = (r, RightCrumb x l:bs)
 ```
 
 在之前我们只能向左或向右走，现在我们由于纪录了关于父节点的信息以及我们选择不走的路的信息，而获得向上走的能力。来看看 ``goUp`` 函数：
 
 ```haskell
-goUp :: (Tree a, Breadcrumbs a) -> (Tree a, Breadcrumbs a)  
-goUp (t, LeftCrumb x r:bs) = (Node x t r, bs)  
-goUp (t, RightCrumb x l:bs) = (Node x l t, bs)  
+goUp :: (Tree a, Breadcrumbs a) -> (Tree a, Breadcrumbs a)
+goUp (t, LeftCrumb x r:bs) = (Node x t r, bs)
+goUp (t, RightCrumb x l:bs) = (Node x l t, bs)
 ```
 
 ![](asstronaut.png)
@@ -213,9 +229,9 @@ type Zipper a = (Tree a, Breadcrumbs a)
 现在我们具备了移动的能力，我们再来写一个改变元素的函数，他能改变我们目前锁定的子树的 root。
 
 ```haskell
-modify :: (a -> a) -> Zipper a -> Zipper a  
-modify f (Node x l r, bs) = (Node (f x) l r, bs)  
-modify f (Empty, bs) = (Empty, bs) 
+modify :: (a -> a) -> Zipper a -> Zipper a
+modify f (Node x l r, bs) = (Node (f x) l r, bs)
+modify f (Empty, bs) = (Empty, bs)
 ```
 
 如果我们锁定一个节点，我们用 ``f`` 改变他的 root。如果我们锁定一棵空的树，那就什么也不做。我们可以移来移去并走到我们想要改变的节点，改变元素后并锁定在那个节点，之后我们可以很方便的移上移下。
@@ -247,15 +263,15 @@ ghci> let newFocus2 = newFocus -: goUp -: modify (\_ -> 'X')
 每个节点有两棵子树，即使子树是空的也是视作有树。所以如果我们锁定的是一棵空的子树我们可以做的事就是把他变成非空的，也就是叶节点。
 
 ```haskell
-attach :: Tree a -> Zipper a -> Zipper a  
-attach t (_, bs) = (t, bs)  
+attach :: Tree a -> Zipper a -> Zipper a
+attach t (_, bs) = (t, bs)
 ```
 
 我们接受一棵树跟一个 zipper，回传一个新的 zipper，锁定的目标被换成了提供的树。我们不只可以用这招把空的树换成新的树，我们也能把现有的子树给换掉。让我们来用一棵树换掉我们 ``freeTree`` 的最左边：
 
 ```haskell
-ghci> let farLeft = (freeTree,[]) -: goLeft -: goLeft -: goLeft -: goLeft  
-ghci> let newFocus = farLeft -: attach (Node 'Z' Empty Empty)  
+ghci> let farLeft = (freeTree,[]) -: goLeft -: goLeft -: goLeft -: goLeft
+ghci> let newFocus = farLeft -: attach (Node 'Z' Empty Empty)
 ```
 
 ``newFocus`` 现在锁定在我们刚刚接上的树上，剩下部份的信息都放在面包屑里。如果我们用 ``goUp`` 走到树的最上层，就会得到跟原来 ``freeTree`` 很像的树，只差在最左边多了 ``'Z'``。
@@ -266,9 +282,9 @@ ghci> let newFocus = farLeft -: attach (Node 'Z' Empty Empty)
 写一个函数走到树的最顶端是很简单的：
 
 ```haskell
-topMost :: Zipper a -> Zipper a  
-topMost (t,[]) = (t,[])  
-topMost z = topMost (goUp z)  
+topMost :: Zipper a -> Zipper a
+topMost (t,[]) = (t,[])
+topMost z = topMost (goUp z)
 ```
 
 如果我们的面包屑都没了，就表示我们已经在树的 root，我们便回传目前的锁定目标。晡然，我们便往上走来锁定到父节点，然后递归地调用 ``topMost``。我们现在可以在我们的树上四处移动，调用 ``modify`` 或 ``attach`` 进行我们要的修改。我们用 ``topMost`` 来锁定到 root，便可以满意地欣赏我们的成果。
@@ -300,11 +316,11 @@ type ListZipper a = ([a],[a])
 第一个 list 代表现在锁定的 list，而第二个代表面包屑。让我们写一下往前跟往后走的函数：
 
 ```haskell
-goForward :: ListZipper a -> ListZipper a  
-goForward (x:xs, bs) = (xs, x:bs)  
-  
-goBack :: ListZipper a -> ListZipper a  
-goBack (xs, b:bs) = (b:xs, bs)  
+goForward :: ListZipper a -> ListZipper a
+goForward (x:xs, bs) = (xs, x:bs)
+
+goBack :: ListZipper a -> ListZipper a
+goBack (xs, b:bs) = (b:xs, bs)
 ```
 
 当往前走的时候，我们锁定了 list 的 tail，而把 head 当作是面包屑。当我们往回走，我们把最近的面包屑欻来然后摆到 list 的最前头。
@@ -312,15 +328,15 @@ goBack (xs, b:bs) = (b:xs, bs)
 来看看两个函数如何运作：
 
 ```haskell
-ghci> let xs = [1,2,3,4]  
-ghci> goForward (xs,[])  
-([2,3,4],[1])  
-ghci> goForward ([2,3,4],[1])  
-([3,4],[2,1])  
-ghci> goForward ([3,4],[2,1])  
-([4],[3,2,1])  
-ghci> goBack ([4],[3,2,1])  
-([3,4],[2,1])  
+ghci> let xs = [1,2,3,4]
+ghci> goForward (xs,[])
+([2,3,4],[1])
+ghci> goForward ([2,3,4],[1])
+([3,4],[2,1])
+ghci> goForward ([3,4],[2,1])
+([4],[3,2,1])
+ghci> goBack ([4],[3,2,1])
+([3,4],[2,1])
 ```
 
 我们看到在这个案例中面包屑只不过是一部分反过来的 list。所有我们走过的元素都被丢进面包屑里面，所以要往回走很容易，只要把信息从面包屑里面捡回来就好。
@@ -337,9 +353,9 @@ ghci> goBack ([4],[3,2,1])
 这边我们采用一个比较简化的版本，文件系统只有文件跟文件夹。文件是数据的基本单位，只是他有一个名字。而文件夹就是用来让这些文件比较有结构，并且能包含其他文件夹与文件。所以说文件系统中的组件不是一个文件就是一个文件夹，所以我们便用如下的方法定义型态：
 
 ```haskell
-type Name = String  
-type Data = String  
-data FSItem = File Name Data | Folder Name [FSItem] deriving (Show)  
+type Name = String
+type Data = String
+data FSItem = File Name Data | Folder Name [FSItem] deriving (Show)
 ```
 
 一个文件是由两个字串组成，代表他的名字跟他的内容。一个文件夹由一个字串跟一个 list 组成，字串代表名字，而 list 是装有的组件，如果 list 是空的，就代表他是一个空的文件夹。
@@ -347,27 +363,27 @@ data FSItem = File Name Data | Folder Name [FSItem] deriving (Show)
 这边是一个装有些文件与文件夹的文件夹：
 
 ```haskell
-myDisk :: FSItem  
-    myDisk = 
-        Folder "root"   
-            [ File "goat_yelling_like_man.wmv" "baaaaaa"  
-            , File "pope_time.avi" "god bless"  
-            , Folder "pics"  
-                [ File "ape_throwing_up.jpg" "bleargh"  
-                , File "watermelon_smash.gif" "smash!!"  
-                , File "skull_man(scary).bmp" "Yikes!"  
-                ]  
-            , File "dijon_poupon.doc" "best mustard"  
-            , Folder "programs"  
-                [ File "fartwizard.exe" "10gotofart"  
-                , File "owl_bandit.dmg" "mov eax, h00t"  
-                , File "not_a_virus.exe" "really not a virus"  
-                , Folder "source code"  
-                    [ File "best_hs_prog.hs" "main = print (fix error)"  
-                    , File "random.hs" "main = print 4"  
-                    ]  
-                ]  
-            ]  
+myDisk :: FSItem
+    myDisk =
+        Folder "root"
+            [ File "goat_yelling_like_man.wmv" "baaaaaa"
+            , File "pope_time.avi" "god bless"
+            , Folder "pics"
+                [ File "ape_throwing_up.jpg" "bleargh"
+                , File "watermelon_smash.gif" "smash!!"
+                , File "skull_man(scary).bmp" "Yikes!"
+                ]
+            , File "dijon_poupon.doc" "best mustard"
+            , Folder "programs"
+                [ File "fartwizard.exe" "10gotofart"
+                , File "owl_bandit.dmg" "mov eax, h00t"
+                , File "not_a_virus.exe" "really not a virus"
+                , Folder "source code"
+                    [ File "best_hs_prog.hs" "main = print (fix error)"
+                    , File "random.hs" "main = print 4"
+                    ]
+                ]
+            ]
 ```
 
 这就是目前我的磁盘的内容。
@@ -386,20 +402,20 @@ myDisk :: FSItem
 来看看我们面包屑的型态：
 
 ```haskell
-data FSCrumb = FSCrumb Name [FSItem] [FSItem] deriving (Show)      
+data FSCrumb = FSCrumb Name [FSItem] [FSItem] deriving (Show)
 ```
 
 这是我们 Zipper 的 type synonym：
 
 ```haskell
-type FSZipper = (FSItem, [FSCrumb])      
+type FSZipper = (FSItem, [FSCrumb])
 ```
 
 要往上走是很容易的事。我们只要拿现有的面包屑来组出现有的锁定跟面包屑：
 
 ```haskell
-fsUp :: FSZipper -> FSZipper  
-fsUp (item, FSCrumb name ls rs:bs) = (Folder name (ls ++ [item] ++ rs), bs) 
+fsUp :: FSZipper -> FSZipper
+fsUp (item, FSCrumb name ls rs:bs) = (Folder name (ls ++ [item] ++ rs), bs)
 ```
 
 由于我们的面包屑有上一层文件夹的名字，跟文件夹中之前跟之后的元素，要往上走不费吹灰之力。
@@ -409,16 +425,16 @@ fsUp (item, FSCrumb name ls rs:bs) = (Folder name (ls ++ [item] ++ rs), bs)
 这边有一个函数，给他一个名字，他会锁定在在现有文件夹中的一个文件：
 
 ```haskell
-import Data.List (break)  
-  
-fsTo :: Name -> FSZipper -> FSZipper  
-fsTo name (Folder folderName items, bs) =   
-  let (ls, item:rs) = break (nameIs name) items  
-  in  (item, FSCrumb folderName ls rs:bs)  
-    
-nameIs :: Name -> FSItem -> Bool  
-nameIs name (Folder folderName _) = name == folderName  
-nameIs name (File fileName _) = name == fileName  
+import Data.List (break)
+
+fsTo :: Name -> FSZipper -> FSZipper
+fsTo name (Folder folderName items, bs) =
+  let (ls, item:rs) = break (nameIs name) items
+  in  (item, FSCrumb folderName ls rs:bs)
+
+nameIs :: Name -> FSItem -> Bool
+nameIs name (Folder folderName _) = name == folderName
+nameIs name (File fileName _) = name == fileName
 ```
 
 ``fsTo`` 接受一个 ``Name`` 跟 ``FSZipper``，回传一个新的 ``FSZipper`` 锁定在某个文件上。那个文件必须在现在身处的文件夹才行。这函数不会四处找寻这文件，他只会看现在的文件夹。
@@ -434,22 +450,22 @@ nameIs name (File fileName _) = name == fileName
 现在我们有能力在我们的文件系统中移上移下，我们就来尝试从 root 走到 ``"skull_man(scary).bmp"`` 这个文件吧：
 
 ```haskell
-ghci> let newFocus = (myDisk,[]) -: fsTo "pics" -: fsTo "skull_man(scary).bmp"      
+ghci> let newFocus = (myDisk,[]) -: fsTo "pics" -: fsTo "skull_man(scary).bmp"
 ```
 
 ``newFocus`` 现在是一个锁定在 ``"skull_man(scary).bmp"`` 的 Zipper。我们把 zipper 的第一个部份拿出来看看：
 
 ```haskell
-ghci> fst newFocus  
-File "skull_man(scary).bmp" "Yikes!"  
+ghci> fst newFocus
+File "skull_man(scary).bmp" "Yikes!"
 ```
 
 我们接着往上移动并锁定在一个邻近的文件 ``"watermelon_smash.gif"``：
 
 ```haskell
-ghci> let newFocus2 = newFocus -: fsUp -: fsTo "watermelon_smash.gif"  
-ghci> fst newFocus2  
-File "watermelon_smash.gif" "smash!!"  
+ghci> let newFocus2 = newFocus -: fsUp -: fsTo "watermelon_smash.gif"
+ghci> fst newFocus2
+File "watermelon_smash.gif" "smash!!"
 ```
 
 
@@ -458,15 +474,15 @@ File "watermelon_smash.gif" "smash!!"
 现在我们知道如何遍历我们的文件系统，因此操作也并不是难事。这边便来写个重命名目前锁定文件或文件夹的函数：
 
 ```haskell
-fsRename :: Name -> FSZipper -> FSZipper  
-fsRename newName (Folder name items, bs) = (Folder newName items, bs)  
-fsRename newName (File name dat, bs) = (File newName dat, bs)  
+fsRename :: Name -> FSZipper -> FSZipper
+fsRename newName (Folder name items, bs) = (Folder newName items, bs)
+fsRename newName (File name dat, bs) = (File newName dat, bs)
 ```
 
 我们可以重命名 ``"pics"`` 文件夹为 ``"cspi"``：
 
 ```haskell
-ghci> let newFocus = (myDisk,[]) -: fsTo "pics" -: fsRename "cspi" -: fsUp      
+ghci> let newFocus = (myDisk,[]) -: fsTo "pics" -: fsRename "cspi" -: fsUp
 ```
 
 我们走到 ``"pics"`` 这个文件夹，重命名他然后再往回走。
@@ -474,9 +490,9 @@ ghci> let newFocus = (myDisk,[]) -: fsTo "pics" -: fsRename "cspi" -: fsUp
 那写一个新的元素在我们目前的文件夹呢？
 
 ```haskell
-fsNewFile :: FSItem -> FSZipper -> FSZipper  
-fsNewFile item (Folder folderName items, bs) =   
-    (Folder folderName (item:items), bs)  
+fsNewFile :: FSItem -> FSZipper -> FSZipper
+fsNewFile item (Folder folderName items, bs) =
+    (Folder folderName (item:items), bs)
 ```
 
 注意这个函数会没办法处理当我们在锁定在一个文件却要添加元素的情况。
@@ -484,7 +500,7 @@ fsNewFile item (Folder folderName items, bs) =
 现在要在 ``"pics"`` 文件夹中加一个文件然后走回 root：
 
 ```haskell
-ghci> let newFocus = (myDisk,[]) -: fsTo "pics" -: fsNewFile (File "heh.jpg" "lol") -: fsUp      
+ghci> let newFocus = (myDisk,[]) -: fsTo "pics" -: fsNewFile (File "heh.jpg" "lol") -: fsUp
 ```
 
 当我们修改我们的文件系统，他不会真的修改原本的文件系统，而是回传一份新的文件系统。这样我们就可以访问我们旧有的系统（也就是 ``myDisk``）跟新的系统（``newFocus`` 的第一个部份）使用一个 Zippers，我们就能自动获得版本控制，代表我们能访问到旧的数据结构。这也不仅限于 Zippers，也是由于 Haskell 的数据结构有 immutable 的特性。但有了 Zipper，对于操作会变得更容易，我们可以自由地在数据结构中走动。
@@ -494,8 +510,8 @@ ghci> let newFocus = (myDisk,[]) -: fsTo "pics" -: fsNewFile (File "heh.jpg" "lo
 到目前为止，我们并没有特别留意我们在走动时是否会超出界线。不论数据结构是二元树，List 或文件系统。举例来说，我们的 ``goLeft`` 函数接受一个二元树的 Zipper 并锁定到他的左子树：
 
 ```haskell
-goLeft :: Zipper a -> Zipper a  
-goLeft (Node x l r, bs) = (l, LeftCrumb x r:bs)  
+goLeft :: Zipper a -> Zipper a
+goLeft (Node x l r, bs) = (l, LeftCrumb x r:bs)
 ```
 
 ![](bigtree.png)
@@ -507,39 +523,39 @@ goLeft (Node x l r, bs) = (l, LeftCrumb x r:bs)
 我们用 ``Maybe`` monad 来加入可能失败的 context。我们要把原本接受 Zipper 的函数都改成 monadic 的版本。首先，我们来处理 ``goLeft`` 跟 ``goRight``。函数的失败有可能反应在他们的结果，这个情况也不利外。所以来看下面的版本：
 
 ```haskell
-goLeft :: Zipper a -> Maybe (Zipper a)  
-goLeft (Node x l r, bs) = Just (l, LeftCrumb x r:bs)  
-goLeft (Empty, _) = Nothing  
-  
-goRight :: Zipper a -> Maybe (Zipper a)  
-goRight (Node x l r, bs) = Just (r, RightCrumb x l:bs)  
-goRight (Empty, _) = Nothing  
+goLeft :: Zipper a -> Maybe (Zipper a)
+goLeft (Node x l r, bs) = Just (l, LeftCrumb x r:bs)
+goLeft (Empty, _) = Nothing
+
+goRight :: Zipper a -> Maybe (Zipper a)
+goRight (Node x l r, bs) = Just (r, RightCrumb x l:bs)
+goRight (Empty, _) = Nothing
 ```
 
 然后我们试着在一棵空的树往左走，我们会得到 ``Nothing``:
 
 ```haskell
-ghci> goLeft (Empty, [])  
-Nothing  
-ghci> goLeft (Node 'A' Empty Empty, [])  
-Just (Empty,[LeftCrumb 'A' Empty])  
+ghci> goLeft (Empty, [])
+Nothing
+ghci> goLeft (Node 'A' Empty Empty, [])
+Just (Empty,[LeftCrumb 'A' Empty])
 ```
 
 看起来不错。之前的问题是我们在面包屑用完的情形下想往上走，那代表我们已经在树的 root。如果我们不注意的话那 ``goUp`` 函数就会丢出错误。
 
 ```haskell
-goUp :: Zipper a -> Zipper a  
-goUp (t, LeftCrumb x r:bs) = (Node x t r, bs)  
-goUp (t, RightCrumb x l:bs) = (Node x l t, bs) 
+goUp :: Zipper a -> Zipper a
+goUp (t, LeftCrumb x r:bs) = (Node x t r, bs)
+goUp (t, RightCrumb x l:bs) = (Node x l t, bs)
 ```
 
 我们改一改让他可以失败得好看些：
 
 ```haskell
-goUp :: Zipper a -> Maybe (Zipper a)  
-goUp (t, LeftCrumb x r:bs) = Just (Node x t r, bs)  
-goUp (t, RightCrumb x l:bs) = Just (Node x l t, bs)  
-goUp (_, []) = Nothing  
+goUp :: Zipper a -> Maybe (Zipper a)
+goUp (t, LeftCrumb x r:bs) = Just (Node x t r, bs)
+goUp (t, RightCrumb x l:bs) = Just (Node x l t, bs)
+goUp (_, []) = Nothing
 ```
 
 如果我们有面包屑，那我们就能成功锁定新的节点，如果没有，就造成一个失败。
@@ -555,13 +571,13 @@ gchi> let newFocus = (freeTree,[]) -: goLeft -: goRight
 幸运的是我们可以从之前的经验中学习，也就是使用 ``>>=``，他接受一个有 context 的值（也就是 ``Maybe (Zipper a)``），会把值喂进函数并保持其他 context 的。所以就像之前的例子，我们把 ``-:`` 换成 ``>>=``。
 
 ```haskell
-ghci> let coolTree = Node 1 Empty (Node 3 Empty Empty)  
-ghci> return (coolTree,[]) >>= goRight  
-Just (Node 3 Empty Empty,[RightCrumb 1 Empty])  
-ghci> return (coolTree,[]) >>= goRight >>= goRight  
-Just (Empty,[RightCrumb 3 Empty,RightCrumb 1 Empty])  
-ghci> return (coolTree,[]) >>= goRight >>= goRight >>= goRight  
-Nothing  
+ghci> let coolTree = Node 1 Empty (Node 3 Empty Empty)
+ghci> return (coolTree,[]) >>= goRight
+Just (Node 3 Empty Empty,[RightCrumb 1 Empty])
+ghci> return (coolTree,[]) >>= goRight >>= goRight
+Just (Empty,[RightCrumb 3 Empty,RightCrumb 1 Empty])
+ghci> return (coolTree,[]) >>= goRight >>= goRight >>= goRight
+Nothing
 ```
 
 我们用 ``return`` 来把 Zipper 放到一个 ``Just`` 里面。然后用 ``>>=`` 来喂到 ``goRight`` 的函数中。首先我们做了一棵树他的左子树是空的，而右边是有两颗空子树的一个节点。当我们尝试往右走一步，便会得到成功的结果。往右走两步也还可以，只是会锁定在一棵空的子树上。但往右走三步就没办法了，因为我们不能在一棵空子树上往右走，这也是为什么结果会是 ``Nothing``。
@@ -569,4 +585,3 @@ Nothing
 现在我们具备了安全网，能够在出错的时候通知我们。
 
 我们的文件系统仍有许多情况会造成错误，例如试着锁定一个文件，或是不存在的文件夹。剩下的就留作习题。
-

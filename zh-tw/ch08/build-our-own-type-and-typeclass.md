@@ -1,3 +1,19 @@
+<!-- TOC depthFrom:1 depthTo:6 withLinks:1 updateOnSave:1 orderedList:0 -->
+
+- [構造我們自己的 Types 和 Typeclasses](#構造我們自己的-types-和-typeclasses)
+	- [Algebraic Data Types 入門](#algebraic-data-types-入門)
+	- [Record Syntax](#record-syntax)
+	- [Type parameters](#type-parameters)
+	- [Derived instances](#derived-instances)
+	- [Type synonyms](#type-synonyms)
+	- [Recursive data structures (遞迴地定義資料結構)](#recursive-data-structures-遞迴地定義資料結構)
+	- [Typeclasses 的第二堂課](#typeclasses-的第二堂課)
+	- [yes-no typeclass](#yes-no-typeclass)
+	- [Functor typeclass](#functor-typeclass)
+	- [Kind](#kind)
+
+<!-- /TOC -->
+
 # 構造我們自己的 Types 和 Typeclasses
 
 ## Algebraic Data Types 入門
@@ -1437,4 +1453,3 @@ instance Functor (Barry a b) where
 
 
 在這一個章節中，我們看到型別參數是怎麼運作的，以及正如我們用型別來定義出函數的參數，我們也用 kind 是來定義他。我們看到函數跟型別構造子有許多彼此相像的地方。然而他們是兩個完全不同的東西。當我們在寫一般實用的 Haskell 程式時，你幾乎不會碰到需要動到 kind 的東西，也不需要動腦去推敲 kind。通常你只需要在定義 instance 時 partially apply 你自己的 ``* -> *`` 或是 ``*`` 型別，但知道背後運作的原理也是很好的。知道型別本身也有自己的型別也是很有趣的。如果你實在不懂這邊講的東西，也可以繼續閱讀下去。但如果你能理解，那你就會理解 Haskell 型別系統的一大部份。
-

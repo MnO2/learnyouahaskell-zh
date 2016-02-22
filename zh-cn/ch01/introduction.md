@@ -1,3 +1,12 @@
+<!-- TOC depthFrom:1 depthTo:6 withLinks:1 updateOnSave:1 orderedList:0 -->
+
+- [简介](#简介)
+	- [关于这份教学](#关于这份教学)
+	- [什么是 Haskell？](#什么是-haskell)
+	- [要使用 Haskell 有哪些要求呢？](#要使用-haskell-有哪些要求呢)
+
+<!-- /TOC -->
+
 # 简介
 
 ## 关于这份教学
@@ -38,4 +47,3 @@ Haskell 这语言是一群非常聪明的人设计的 (他们每个人都有 PhD
 一句话版本的答案是：你只需要一个编辑器和一个编译器。在这里我们不会对编辑器多加着墨，你可以用任何你喜欢的编辑器。至于编译器，在这份教学中我们会使用目前最流行的版本：GHC。而安装 GHC 最方便的方法就是去下载 Haskell Platform，他包含了许多现成 Runtime Library 让你方便写程序。(译注：Ubuntu 的用户有现成的套件可以使用，可以直接 ``apt-get install Haskell-platform`` 来安装。但套件的版本有可能比较旧。)
 
 GHC 可以解释执行 Haskell Script （通常是以 ``.hs`` 作为结尾），也可以编译。它还有个交互模式，你可以在里面调用 Script 里定义的函数，即时得到结果。 对于学习而言，这比每次修改都编译执行要方便的多。想进入交互模式，只要打开控制台输入 ``ghci`` 即可。假设你在 ``myfunctions.hs`` 里定义了一些函数，在 ghci 中输入 ``:l myfunctions.hs``，ghci 便会加载 ``myfunctions.hs``。之后你便可以调用你定义的函数。一旦修改了这个 ``.hs`` 文件的内容，再次执行 ``:l myfunctions.hs`` 或者相同作用的 ``:r`` ，都可以重新加载该文件。我自己通常就是在 ``.hs`` 文件中定义几个函数，再到 ghci 加载，调用看看，再修改再重新加载。这也正是我们往后的基本流程。
-
