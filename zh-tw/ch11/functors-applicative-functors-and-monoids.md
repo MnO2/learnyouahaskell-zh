@@ -1596,7 +1596,7 @@ ghci> getAny $ F.foldMap (\x -> Any $ x > 15) testTree
 False 
 ```
 
-經過套用 lambda 之後我們所有的節點都會是 ``Any False``。但 ``mappend`` 必須要至少吃到一個 ``True`` 才能讓最後的結果變成 ``True``。這也是為什麽結果會是 ``False``，因為我們樹中所有的值都大於 ``15``。
+經過套用 lambda 之後我們所有的節點都會是 ``Any False``。但 ``mappend`` 必須要至少吃到一個 ``True`` 才能讓最後的結果變成 ``True``。這也是為什麽結果會是 ``False``，因為我們樹中所有的值都小於等於 ``15``。
 
 
 我們也能將 ``foldMap`` 配合 ``\x -> [x]`` 使用來將我們的樹轉成 list。經過套用那個函數後，所有節點都變成包含單一元素的 list。最後用 ``mappend`` 將這些單一元素的 list 轉成一個裝有全部元素的 list：
