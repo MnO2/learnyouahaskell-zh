@@ -411,7 +411,7 @@ data Person = Person { firstName :: String
                      }
 ```
 
-这描述了一个人。我们先假定世界上没有重名重姓又同龄的人存在，好，假如有两个 record，有没有可能是描述同一个人呢？当然可能，我么可以判定姓名年龄的相等性，来判断它俩是否相等。这一来，让这个型别成为 ``Eq`` 的成员就很靠谱了。直接 derive 这个 instance：
+这描述了一个人。我们先假定世界上没有重名重姓又同龄的人存在，好，假如有两个 record，有没有可能是描述同一个人呢？当然可能，我们可以判定姓名年龄的相等性，来判断它俩是否相等。这一来，让这个型别成为 ``Eq`` 的成员就很靠谱了。直接 derive 这个 instance：
 
 ```haskell
 data Person = Person { firstName :: String
