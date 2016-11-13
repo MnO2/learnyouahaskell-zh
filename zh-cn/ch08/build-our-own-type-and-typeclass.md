@@ -20,7 +20,7 @@ data Int = -2147483648 | -2147483647 | ... | -1 | 0 | 1 | 2 | ... | 2147483647
 
 ![](caveman.png)
 
-头尾两个值构造子分别表示了 ``Int`` 型别的最小值和最大值，注意到真正的型别宣告不是长这个样子的，这样写只是为了便于理解。我们用省略号表示中间省略的一大段数字。
+头尾两个值构造子分别表示了 ``Int`` 型别的最小值和最大值，注意到真正的型别声明不是长这个样子的，这样写只是为了便于理解。我们用省略号表示中间省略的一大段数字。
 
 我们想想 Haskell 中图形的表示方法。表示圆可以用一个 Tuple，如 ``(43.1,55.0,10.4)``，前两项表示圆心的位置，末项表示半径。听着不错，不过三维矢量或其它什么东西也可能是这种形式！更好的方法就是自己构造一个表示图形的型别。假定图形可以是圆 (Circle) 或长方形 (Rectangle)：
 
@@ -777,7 +777,7 @@ infixr 5 :-:
 data List a = Empty | a :-: (List a) deriving (Show, Read, Eq, Ord)
 ```
 
-首先我们留意新的语法结构：fixity 宣告。当我们定义函数成 operator，我们能同时指定 fixity (但并不是必须的)。fixity 指定了他应该是 left-associative 或是 right-associative，还有他的优先级。例如说，``*`` 的 fixity 是 ``infixl 7 *``，而 ``+`` 的 fixity 是 ``infixl 6``。代表他们都是 left-associative。``(4 * 3 * 2)`` 等于 ``((4 * 3) * 2)``。但 ``*`` 拥有比 ``+`` 更高的优先级。所以 ``5 * 4 + 3`` 会是 ``(5 * 4) + 3``。
+首先我们留意新的语法结构：fixity 声明。当我们定义函数成 operator，我们能同时指定 fixity (但并不是必须的)。fixity 指定了他应该是 left-associative 或是 right-associative，还有他的优先级。例如说，``*`` 的 fixity 是 ``infixl 7 *``，而 ``+`` 的 fixity 是 ``infixl 6``。代表他们都是 left-associative。``(4 * 3 * 2)`` 等于 ``((4 * 3) * 2)``。但 ``*`` 拥有比 ``+`` 更高的优先级。所以 ``5 * 4 + 3`` 会是 ``(5 * 4) + 3``。
 
 这样我们就可以写成 ``a :-: (List a)`` 而不是 ``Cons a (List a)``：
 
@@ -789,7 +789,7 @@ ghci> 100 :-: a
 (:-:) 100 ((:-:) 3 ((:-:) 4 ((:-:) 5 Empty)))
 ```
 
-Haskell 在宣告 ``deriving Show`` 的时候，他会仍视构造子为前缀函数，因此必须要用括号括起来。
+Haskell 在声明 ``deriving Show`` 的时候，他会仍视构造子为前缀函数，因此必须要用括号括起来。
 
 我们在来写个函数来把两个 List 连起来。一般 ``++`` 在操作普通 List 的时候是这样的：
 
@@ -919,7 +919,7 @@ class Eq a where
     x /= y = not (x == y)
 ```
 
-我们在这边看到了一些奇怪的语法跟关键字。别担心，你一下子就会了解他们的。首先，我们看到 ``class Eq a where``，那代表我们定义了一个新的 typeclass 叫做 ``Eq``。``a`` 是一个型别变量，他代表 ``a`` 是任何我们在定义 instance 时的型别。他不一定要叫做 ``a``。他也不一定非要一个字母不可，只要他是小写就好。然后我们又定义了几个函数。我们并不一定要实作函数的本体，不过必须要写出函数的型别宣告。
+我们在这边看到了一些奇怪的语法跟关键字。别担心，你一下子就会了解他们的。首先，我们看到 ``class Eq a where``，那代表我们定义了一个新的 typeclass 叫做 ``Eq``。``a`` 是一个型别变量，他代表 ``a`` 是任何我们在定义 instance 时的型别。他不一定要叫做 ``a``。他也不一定非要一个字母不可，只要他是小写就好。然后我们又定义了几个函数。我们并不一定要实作函数的本体，不过必须要写出函数的型别声明。
 
 
 如果我们写成 ``class Eq equatable where`` 还有 ``(==) :: equatable -> equatable -> Bool`` 这样的形式，对一些人可能比较容易理解。
@@ -998,7 +998,7 @@ ghci> [Red, Yellow, Green]
 如果我们用 ``derive`` 来自动产生 ``Eq`` 的话，效果是一样的。不过用 ``derive`` 来产生 ``show`` 的话，他会把值构造子转换成字串。但我们这边要的不太一样，我们希望印出像 ``"Red light"`` 这样的字串，所以我们就必须手动来写出 instance。
 
 
-你也可以把 typeclass 定义成其他 typeclass 的 subclass。像是 ``Num`` 的 class 宣告就有点冗长，但我们先看个雏型。
+你也可以把 typeclass 定义成其他 typeclass 的 subclass。像是 ``Num`` 的 class 声明就有点冗长，但我们先看个雏型。
 
 ```haskell
 class (Eq a) => Num a where
@@ -1022,7 +1022,7 @@ class Eq a where
 ```
 
 
-从型别宣告来看，可以看到 ``a`` 必须是一个具体型别，因为所有在函数中的型别都必须是具体型别。(你没办法写一个函数，他的型别是 ``a -> Maybe``，但你可以写一个函数，他的型别是 ``a -> Maybe a``，或是 ``Maybe Int -> Maybe String``) 这就是为什么我们不能写成像这样：
+从型别声明来看，可以看到 ``a`` 必须是一个具体型别，因为所有在函数中的型别都必须是具体型别。(你没办法写一个函数，他的型别是 ``a -> Maybe``，但你可以写一个函数，他的型别是 ``a -> Maybe a``，或是 ``Maybe Int -> Maybe String``) 这就是为什么我们不能写成像这样：
 
 
 ```haskell
@@ -1052,17 +1052,17 @@ instance (Eq m) => Eq (Maybe m) where
     _ == _ = False
 ```
 
-这边我们必须要加上限制。在这个 instance 的宣告中，我们希望所有 ``Maybe m`` 形式的型别都属于 ``Eq``，但只有当 ``m`` 也属于 ``Eq`` 的时候。这也是 Haskell 在 derive 的时候做的事。
+这边我们必须要加上限制。在这个 instance 的声明中，我们希望所有 ``Maybe m`` 形式的型别都属于 ``Eq``，但只有当 ``m`` 也属于 ``Eq`` 的时候。这也是 Haskell 在 derive 的时候做的事。
 
-在大部份情形下，在 typeclass 宣告中的 class constraints 都是要让一个 typeclass 成为另一个 typeclass 的 subclass。而在 instance 宣告中的 class constraint 则是要表达型别的要求限制。举里来说，我们要求 ``Maybe`` 的内容物也要属于 ``Eq``。
+在大部份情形下，在 typeclass 声明中的 class constraints 都是要让一个 typeclass 成为另一个 typeclass 的 subclass。而在 instance 声明中的 class constraint 则是要表达型别的要求限制。举里来说，我们要求 ``Maybe`` 的内容物也要属于 ``Eq``。
 
 当定义 instance 的时候，如果你需要提供具体型别（像是在 ``a -> a -> Bool`` 中的 ``a``），那你必须要加上括号跟型别参数来构造一个具体型别。
 
 
-要知道你在定义 instance 的时候，型别参数会被取代。``class Eq a where`` 中的 ``a`` 会被取代成真实的型别。所以试着想像把型别放进型别宣告中。``(==) :: Maybe -> Maybe -> Bool`` 并非合法。但 ``(==) :: (Eq m) => Maybe m -> Maybe m -> Bool`` 则是。这是不论我们要定义什么，通用的型别宣告都是 ``(==) :: (Eq a) => a -> a -> Bool``
+要知道你在定义 instance 的时候，型别参数会被取代。``class Eq a where`` 中的 ``a`` 会被取代成真实的型别。所以试着想像把型别放进型别声明中。``(==) :: Maybe -> Maybe -> Bool`` 并非合法。但 ``(==) :: (Eq m) => Maybe m -> Maybe m -> Bool`` 则是。这是不论我们要定义什么，通用的型别声明都是 ``(==) :: (Eq a) => a -> a -> Bool``
 
 
-还有一件事要确认。如果你想看看一个 typeclass 有定义哪些 instance。可以在 ghci 中输入 ``:info YourTypeClass``。所以输入 ``:info Num`` 会告诉你这个 typeclass 定义了哪些函数，还有哪些型别属于这个 typeclass。``:info`` 也可以查找型别跟型别构造子的信息。如果你输入 ``:info Maybe``。他会显示 ``Maybe`` 所属的所有 typeclass。``:info`` 也能告诉你函数的型别宣告。
+还有一件事要确认。如果你想看看一个 typeclass 有定义哪些 instance。可以在 ghci 中输入 ``:info YourTypeClass``。所以输入 ``:info Num`` 会告诉你这个 typeclass 定义了哪些函数，还有哪些型别属于这个 typeclass。``:info`` 也可以查找型别跟型别构造子的信息。如果你输入 ``:info Maybe``。他会显示 ``Maybe`` 所属的所有 typeclass。``:info`` 也能告诉你函数的型别声明。
 
 
 
@@ -1075,7 +1075,7 @@ instance (Eq m) => Eq (Maybe m) where
 ``if (false) alert("YEAH") else alert("NO!)`` 等等，
 而上述所有的片段执行后都会跳出 ``NO!``。如果你写 ``if ("WHAT") alert ("YEAH") else alert("NO!")``，他会跳出 ``YEAH!``，因为 Javascript 认为非空字串会是 true。
 
-尽管使用 ``Bool`` 来表达布林的语意是比较好的作法。为了有趣起见，我们来试试看模仿 Javascript 的行为。我们先从 typeclass 宣告开始看：
+尽管使用 ``Bool`` 来表达布林的语意是比较好的作法。为了有趣起见，我们来试试看模仿 Javascript 的行为。我们先从 typeclass 声明开始看：
 
 ```haskell
 class YesNo a where
@@ -1198,7 +1198,7 @@ class Functor f where
 
 我们看到他定义了一个函数 ``fmap``，而且并没有提供一个缺省的实作。``fmap`` 的型别蛮有趣的。到目前为止的我们看过的 typeclass 中的型别变量都是具体型别。就像是 ``(==) :: (Eq a) => a -> a -> Bool`` 中的 ``a`` 一样。但现在碰到的 ``f`` 并不是一个具体型别（一个像是 ``Int``, ``Bool`` 或 ``Maybe String``的型别），而是接受一个型别参数的型别构造子。如果要快速回顾的话可以看一下 ``Maybe Int`` 是一个具体型别，而 ``Maybe`` 是一个型别构造子，可接受一个型别作为参数。总之，我们知道 ``fmap`` 接受一个函数，这个函数从一个型别映射到另一个型别，还接受一个 functor 装有原始的型别，然后会回传一个 functor 装有映射后的型别。
 
-如果听不太懂也没关系。当我们看几个范例之后会比较好懂。不过这边 ``fmap`` 的型别宣告让我们想起类似的东西，就是 ``map :: (a -> b) -> [a] -> [b]``。
+如果听不太懂也没关系。当我们看几个范例之后会比较好懂。不过这边 ``fmap`` 的型别声明让我们想起类似的东西，就是 ``map :: (a -> b) -> [a] -> [b]``。
 
 他接受一个函数，这函数把一个型别的东西映射成另一个。还有一串装有某个型别的 List 变成装有另一个型别的 List。到这边听起来实在太像 functor 了。实际上，``map`` 就是针对 List 的 ``fmap``。来看看 List 是如何被定义成 ``Functor`` 的 instance 的。
 
@@ -1251,7 +1251,7 @@ Nothing
 ```
 
 
-另外 ``Tree a`` 的型别也可以被 map over 且被定义成 ``Functor`` 的一个 instance。他可以被想成是一个盒子，而 ``Tree`` 的型别构造子也刚好接受单一一个型别参数。如果你把 ``fmap`` 看作是一个特别为 ``Tree`` 写的函数，他的型别宣告会长得像这样 ``(a -> b) -> Tree a -> Tree b``。不过我们在这边会用到递归。map over 一棵空的树会得到一棵空的树。map over 一棵非空的树会得到一棵被函数映射过的树，他的 root 会先被映射，然后左右子树都分别递归地被函数映射。
+另外 ``Tree a`` 的型别也可以被 map over 且被定义成 ``Functor`` 的一个 instance。他可以被想成是一个盒子，而 ``Tree`` 的型别构造子也刚好接受单一一个型别参数。如果你把 ``fmap`` 看作是一个特别为 ``Tree`` 写的函数，他的型别声明会长得像这样 ``(a -> b) -> Tree a -> Tree b``。不过我们在这边会用到递归。map over 一棵空的树会得到一棵空的树。map over 一棵非空的树会得到一棵被函数映射过的树，他的 root 会先被映射，然后左右子树都分别递归地被函数映射。
 
 ```haskell
 instance Functor Tree where
@@ -1275,7 +1275,7 @@ instance Functor (Either a) where
     fmap f (Left x) = Left x
 ```
 
-我们在这边做了些什么？你可以看到我们把 ``Either a`` 定义成一个 instance，而不是 ``Either``。那是因为 ``Either a`` 是一个接受单一型别参数的型别构造子，而 ``Either`` 则接受两个。如果 ``fmap`` 是针对 ``Either a``，那他的型别宣告就会像是 ``(b -> c) -> Either a b -> Either a c``，他又等价于 ``(b -> c) -> (Either a) b -> (Either a) c``。在实作中，我们碰到一个 ``Right`` 的时候会做 ``map``，但在碰到 ``Left`` 的时候却不这样做，为什么呢？如果我们回头看看 ``Either a b`` 是怎么定义的：
+我们在这边做了些什么？你可以看到我们把 ``Either a`` 定义成一个 instance，而不是 ``Either``。那是因为 ``Either a`` 是一个接受单一型别参数的型别构造子，而 ``Either`` 则接受两个。如果 ``fmap`` 是针对 ``Either a``，那他的型别声明就会像是 ``(b -> c) -> Either a b -> Either a c``，他又等价于 ``(b -> c) -> (Either a) b -> (Either a) c``。在实作中，我们碰到一个 ``Right`` 的时候会做 ``map``，但在碰到 ``Left`` 的时候却不这样做，为什么呢？如果我们回头看看 ``Either a b`` 是怎么定义的：
 
 
 ```haskell
