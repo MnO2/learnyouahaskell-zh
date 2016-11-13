@@ -1169,7 +1169,7 @@ yesnoIf yesnoVal yesResult noResult =
     if yesno yesnoVal then yesResult else noResult
 ```
 
-很直觉吧！他接受一个 yes or no 的值还有两个部份，如果值是代表 "yes"，那第一个部份就会被执行，而如果值是 "no"，那第二个部份就会执行。
+很直观吧！他接受一个 yes or no 的值还有两个部份，如果值是代表 "yes"，那第一个部份就会被执行，而如果值是 "no"，那第二个部份就会执行。
 
 ```haskell
 ghci> yesnoIf [] "YEAH!" "NO!"
