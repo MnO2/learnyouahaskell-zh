@@ -161,7 +161,7 @@ class Monad m where
 
 ![](kid.png)
 
-我们从第一行开始看。他说 ``class Monad m where``。但我们之前不是提到 monad 是 applicative functors 的加强版吗？不是应该有一个限制说一个型态必须先是一个 applicative functor 才可能是一个 monad 吗？像是 ``class (Applicative m) = > Monad m where``。他的确应该要有，但当 Haskell 被创造的早期，人们没有想到 applicative functor 适合被放进语言中，所以最后没有这个限制。但的确每个 monad 都是 applicative functor，即使 ``Monad`` 并没有这么宣告。
+我们从第一行开始看。他说 ``class Monad m where``。但我们之前不是提到 monad 是 applicative functors 的加强版吗？不是应该有一个限制说一个型态必须先是一个 applicative functor 才可能是一个 monad 吗？像是 ``class (Applicative m) = > Monad m where``。他的确应该要有，但当 Haskell 被创造的早期，人们没有想到 applicative functor 适合被放进语言中，所以最后没有这个限制。但的确每个 monad 都是 applicative functor，即使 ``Monad`` 并没有这么声明。
 
 在 ``Monad`` typeclass 中定义的第一个函数是 ``return``。他其实等价于 ``pure``，只是名字不同罢了。他的型态是 ``(Monad m) => a -> m a``。他接受一个普通值并把他放进一个最小的 context 中。也就是说他把普通值包进一个 monad 里面。他跟 ``Applicative`` 里面 ``pure`` 函数做的事情一样，所以说其实我们已经认识了 ``return``。我们已经用过 ``return`` 来处理一些 I/O。我们用他来做一些假的 I/O，印出一些值。对于 ``Maybe`` 来说他就是接受一个普通值然后包进 ``Just``。
 

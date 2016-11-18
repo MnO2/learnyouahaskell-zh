@@ -2,7 +2,7 @@
 
 Haskell 的一些特色，像是纯粹性，高端函数，algebraic data types，typeclasses，这些让我们可以从更高的角度来看到 polymorphism 这件事。不像 OOP 当中需要从庞大的型态阶层来思考。我们只需要看看手边的型态的行为，将他们跟适当地 typeclass 对应起来就可以了。像 ``Int`` 的行为跟很多东西很像。好比说他可以比较相不相等，可以从大到小排列，也可以将他们一一穷举出来。
 
-Typeclass 的运用是很随意的。我们可以定义自己的数据型态，然后描述他可以怎样被操作，跟 typeclass 关联起来便定义了他的行为。由于 Haskell 强大的型态系统，这让我们只要读函数的型态宣告就可以知道很多信息。typeclass 可以定义得很抽象很 general。我们之前有看过 typeclass 定义了可以比较两个东西是否相等，或是定义了可以比较两个东西的大小。这些是既抽象但又描述简洁的行为，但我们不会认为他们有什么特别之处，因为我们时常碰到他们。最近我们看过了 functor，基本上他们是一群可以被 map over 的对象。这是其中一个例子能够抽象但又漂亮地描述行为。在这一章中，我们会详加阐述 functors，并会提到比较强一些的版本，也就是 applicative functors。我们也会提到 monoids。
+Typeclass 的运用是很随意的。我们可以定义自己的数据型态，然后描述他可以怎样被操作，跟 typeclass 关联起来便定义了他的行为。由于 Haskell 强大的型态系统，这让我们只要读函数的型态声明就可以知道很多信息。typeclass 可以定义得很抽象很 general。我们之前有看过 typeclass 定义了可以比较两个东西是否相等，或是定义了可以比较两个东西的大小。这些是既抽象但又描述简洁的行为，但我们不会认为他们有什么特别之处，因为我们时常碰到他们。最近我们看过了 functor，基本上他们是一群可以被 map over 的对象。这是其中一个例子能够抽象但又漂亮地描述行为。在这一章中，我们会详加阐述 functors，并会提到比较强一些的版本，也就是 applicative functors。我们也会提到 monoids。
 
 
 ## 温习 Functors
@@ -322,7 +322,7 @@ class (Functor f) => Applicative f where
 
 这简简单单的三行可以让我们学到不少。首先来看第一行。他开启了 ``Applicative`` 的定义，并加上 class contraint。描述了一个型别构造子要是 ``Applicative``，他必须也是 ``Functor``。这就是为什么我们说一个型别构造子属于 ``Applicative`` 的话，他也会是 ``Functor``，因此我们能对他使用 ``fmap``。
 
-第一个定义的是 ``pure``。他的型别宣告是 ``pure :: a -> f a``。``f`` 代表 applicative functor 的 instance。由于 Haskell 有一个优秀的型别系统，其中函数又是将一些参数映射成结果，我们可以从型别宣告中读出许多消息。``pure`` 应该要接受一个值，然后回传一个包含那个值的 applicative functor。我们这边是用盒子来作比喻，即使有一些比喻不完全符合现实的情况。尽管这样，``a -> f a`` 仍有许多丰富的信息，他确实告诉我们他会接受一个值并回传一个 applicative functor，里面装有结果。
+第一个定义的是 ``pure``。他的型别声明是 ``pure :: a -> f a``。``f`` 代表 applicative functor 的 instance。由于 Haskell 有一个优秀的型别系统，其中函数又是将一些参数映射成结果，我们可以从型别声明中读出许多消息。``pure`` 应该要接受一个值，然后回传一个包含那个值的 applicative functor。我们这边是用盒子来作比喻，即使有一些比喻不完全符合现实的情况。尽管这样，``a -> f a`` 仍有许多丰富的信息，他确实告诉我们他会接受一个值并回传一个 applicative functor，里面装有结果。
 
 对于 ``pure`` 比较好的说法是把一个普通值放到一个缺省的 context 下，一个最小的 context 但仍然包含这个值。
 
@@ -389,7 +389,7 @@ f <$> x = fmap f x
 ```
 	
     
-    要记住型别变量跟参数的名字还有值绑定的名称不冲突。``f`` 在函数的型别宣告中是型别变量，说明 ``f`` 应该要满足 ``Functor`` typeclass 的条件。而在函数本体中的 ``f`` 则表示一个函数，我们将他 map over x。我们同样用 ``f`` 来表示他们并代表他们是相同的东西。
+    要记住型别变量跟参数的名字还有值绑定的名称不冲突。``f`` 在函数的型别声明中是型别变量，说明 ``f`` 应该要满足 ``Functor`` typeclass 的条件。而在函数本体中的 ``f`` 则表示一个函数，我们将他 map over x。我们同样用 ``f`` 来表示他们并代表他们是相同的东西。
 
 
 ``<$>`` 的使用显示了 applicative style 的好处。如果我们想要将 ``f`` 套用三个 applicative functor。我们可以写成 ``f <$> x <*> y <*> z``。如果参数不是 applicative functor 而是普通值的话。我们则写成 ``f x y z``。
@@ -811,7 +811,7 @@ ghci> getZipList $ ZipList [(+1),(*100),(*5)] <*> ZipList [1,2,3]
 [2,200,15]  
 ```
 
-所以这跟 newtype 这个关键字有什么关系呢？想想看我们是怎么宣告我们的 ``ZipList a`` 的，一种方式是像这样：
+所以这跟 newtype 这个关键字有什么关系呢？想想看我们是怎么声明我们的 ``ZipList a`` 的，一种方式是像这样：
 
 
 ```haskell
@@ -1031,10 +1031,10 @@ newtype CharList = CharList { getCharList :: [Char] }
 我们不能用 ``++`` 来将 ``CharList`` 跟 ``[Char]`` 接在一起。我们也不能用 ``++`` 来将两个 ``CharList`` 接在一起，因为 ``++`` 只能套用在 list 上，而 ``CharList`` 并不是 list，尽管你会说他包含一个 list。但我们可以将两个 ``CharList`` 转成 list，将他们 ``++`` 然后再转回 ``CharList``。
 
 
-当我们在 ``newtype`` 宣告中使用 record syntax 的时候，我们会得到将新的型别转成旧的型别的函数，也就是我们 ``newtype`` 的值构造子，以及一个函数将他的字段取出。新的型别并不会被自动定义成原有型别所属的 typeclass 的一个 instance，所以我们必须自己来 derive 他们。
+当我们在 ``newtype`` 声明中使用 record syntax 的时候，我们会得到将新的型别转成旧的型别的函数，也就是我们 ``newtype`` 的值构造子，以及一个函数将他的字段取出。新的型别并不会被自动定义成原有型别所属的 typeclass 的一个 instance，所以我们必须自己来 derive 他们。
 
 
-实际上你可以将 ``newtype`` 想成是只能定义一个构造子跟一个字段的 ``data`` 宣告。如果你碰到这种情形，可以考虑使用 ``newtype``。
+实际上你可以将 ``newtype`` 想成是只能定义一个构造子跟一个字段的 ``data`` 声明。如果你碰到这种情形，可以考虑使用 ``newtype``。
 
 
 使用 ``data`` 关键字是为了定义自己的型别。他们可以在 algebraic data type 中放任意数量的构造子跟字段。可以定义的东西从 list, ``Maybe`` 到 tree。

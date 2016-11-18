@@ -95,7 +95,7 @@ ghci> B.pack [99,104,105] `mappend` B.pack [104,117,97,104,117,97]
 Chunk "chi" (Chunk "huahua" Empty)  
 ```
 
-修改后我们的 ``applyLog`` 可以运作在任何 monoid 上。我们必须要修改型态宣告来表示这件事，同时也要在实作中把 ``++`` 改成 ``mappend``：
+修改后我们的 ``applyLog`` 可以运作在任何 monoid 上。我们必须要修改型态声明来表示这件事，同时也要在实作中把 ``++`` 改成 ``mappend``：
 
 ```haskell
 applyLog :: (Monoid m) => (a,m) -> (a -> (b,m)) -> (b,m)  
