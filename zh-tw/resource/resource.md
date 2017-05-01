@@ -17,7 +17,7 @@
 * [Wikibook Haskell](http://en.wikibooks.org/wiki/Haskell): 豐富的 Wikibook 資源
 * [CS240h](http://www.scs.stanford.edu/11au-cs240h/notes/): David Mazières 跟 Bryan O'Sullivan 在 Stanford 開的課。
 * [本物のプログラマはHaskellを使う](http://itpro.nikkeibp.co.jp/article/COLUMN/20060915/248215/): Haskell 專欄
-* [Write Yourself a Scheme in 48 Hours](http://en.wikibooks.org/wiki/Write_Yourself_a_Scheme_in_48_Hours)，Audrey Tang 寫的教學，教你如何用 Haskell 寫出一個 Scheme。
+* [Write Yourself a Scheme in 48 Hours](http://en.wikibooks.org/wiki/Write_Yourself_a_Scheme_in_48_Hours)，Jonathan Tang 寫的教學，教你如何用 Haskell 寫出一個 Scheme。
 * [德國大學的 Functional Programming 課程，語言是用 FP （英文授課）](http://video.s-inf.de/*FP.2005-SS-Giesl.(COt).HD_Videoaufzeichnung) 
 * [Simon Marlow 講解 parallel haskell 的投影片](http://community.haskell.org/~simonmar/slides/cadarache2012/) 
 * [FLOLAC 2012](http://flolac.iis.sinica.edu.tw/flolac12/doku.php?id=zh-tw:start)
