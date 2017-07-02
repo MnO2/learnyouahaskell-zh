@@ -262,7 +262,7 @@ CJust 0 "haha"
 ```
 
 
-我們知道 functor law 的第一定律描述當我們用 ``id`` 來 map over 一個 functor 的時候，他的結果應該跟只對 functor 呼叫 ``id`` 的結果一樣。但我們可以看到這個例子中，這對於 ``CMaybe`` 並不遵守。儘管他的確是 ``Functor`` typeclass 的一個 instace。但他並不遵守 functor law 因此不是一個 functor。如果有人使用我們的 ``CMaybe`` 型別，把他當作 functor 用，那他就會期待 functor laws 會被遵守。但 ``CMaybe`` 並沒辦法滿足，便會造成錯誤的程式。當我們使用一個 functor 的時候，函數合成跟 map over 的先後順序不應該有影響。但對於 ``CMaybe`` 他是有影響的，因為他紀錄了被 map over 的次數。如果我們希望 ``CMaybe`` 遵守 functor law，我們必須要讓 ``Int`` 欄位在做 ``fmap`` 的時候維持不變。
+我們知道 functor law 的第一定律描述當我們用 ``id`` 來 map over 一個 functor 的時候，他的結果應該跟只對 functor 呼叫 ``id`` 的結果一樣。但我們可以看到這個例子中，這對於 ``CMaybe`` 並不遵守。儘管他的確是 ``Functor`` typeclass 的一個 instance。但他並不遵守 functor law 因此不是一個 functor。如果有人使用我們的 ``CMaybe`` 型別，把他當作 functor 用，那他就會期待 functor laws 會被遵守。但 ``CMaybe`` 並沒辦法滿足，便會造成錯誤的程式。當我們使用一個 functor 的時候，函數合成跟 map over 的先後順序不應該有影響。但對於 ``CMaybe`` 他是有影響的，因為他紀錄了被 map over 的次數。如果我們希望 ``CMaybe`` 遵守 functor law，我們必須要讓 ``Int`` 欄位在做 ``fmap`` 的時候維持不變。
 
 
 乍看之下 functor laws 看起來不是很必要，也容易讓人搞不懂，但我們知道如果一個型別遵守 functor laws，那我們就能對他作些基本的假設。如果遵守了 functor laws，我們知道對他做 ``fmap`` 不會做多餘的事情，只是用一個函數做映射而已。這讓寫出來的程式碼足夠抽象也容易擴展。因為我們可以用定律來推論型別的行為。
