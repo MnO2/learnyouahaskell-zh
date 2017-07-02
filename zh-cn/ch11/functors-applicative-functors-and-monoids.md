@@ -17,7 +17,7 @@ Typeclass 的运用是很随意的。我们可以定义自己的数据型态，�
 
 如果一个 type constructor 要是 ``Functor`` 的 instance，那他的 kind 必须是 ``* -> *``，这代表他必须刚好接受一个 type 当作 type parameter。像是 ``Maybe`` 可以是 Functor 的一个 instance，因为他接受一个 type parameter，来做成像是 ``Maybe Int``，或是 ``Maybe String``。如果一个 type constructor 接受两个参数，像是 ``Either``，我们必须给他两个 type parameter。所以我们不能这样写：``instance Functor Either where``，但我们可以写 ``instance Functor (Either a) where``，如果我们把 ``fmap`` 限缩成只是 ``Either a`` 的，那他的型态就是 ``fmap :: (b -> c) -> Either a b -> Either a c``。就像你看到的，``Either a`` 的是固定的一部分，因为 ``Either a`` 只恰好接受一个 type parameter，但 ``Either`` 则要接受两个 type parameters。这样 fmap 的型态变成 ``fmap :: (b -> c) -> Either b -> Either c``，这不太合理。
 
-我们知道有许多态态都是 ``Functor`` 的 instance，像是 ``[]``，``Maybe``，``Either a`` 以及我们自己写的 ``Tree``。我们也看到了如何用一个函数 map 他们。在这一章节，我们再多举两个例子，也就是 ``IO`` 跟 ``(->) r``。
+我们知道有许多型态都是 ``Functor`` 的 instance，像是 ``[]``，``Maybe``，``Either a`` 以及我们自己写的 ``Tree``。我们也看到了如何用一个函数 map 他们。在这一章节，我们再多举两个例子，也就是 ``IO`` 跟 ``(->) r``。
 
 如果一个值的型态是 ``IO String``，他代表的是一个会被计算成 String 结果的 I/O action。我们可以用 do syntax 来把结果绑定到某个名称。我们之前把 I/O action 比喻做长了脚的盒子，会到真实世界帮我们取一些值回来。我们可以查看他们取了什么值，但一旦看过，我们必须要把值放回盒子中。用这个比喻，``IO`` 的行为就像是一个 functor。
 

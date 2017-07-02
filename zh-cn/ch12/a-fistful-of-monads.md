@@ -6,7 +6,7 @@
 
 ![](smugpig.png)
 
-我们介绍到 Functor 是因为我们观察到有许多态态都可以被 function 给 map over，了解到这个目的，便抽象化了 ``Functor`` 这个 typeclass 出来。但这让我们想问：如果给定一个 ``a -> b`` 的函数以及 ``f a`` 的型态，我们要如何将函数 map over 这个型态而得到 ``f b``？我们知道要如何 map over ``Maybe a``，``[a]`` 以及 ``IO a``。我们甚至还知道如何用 ``a -> b`` map over ``r -> a``，并且会得到 ``r -> b``。要回答这个问题，我们只需要看 ``fmap`` 的型态就好了：
+我们介绍到 Functor 是因为我们观察到有许多型态都可以被 function 给 map over，了解到这个目的，便抽象化了 ``Functor`` 这个 typeclass 出来。但这让我们想问：如果给定一个 ``a -> b`` 的函数以及 ``f a`` 的型态，我们要如何将函数 map over 这个型态而得到 ``f b``？我们知道要如何 map over ``Maybe a``，``[a]`` 以及 ``IO a``。我们甚至还知道如何用 ``a -> b`` map over ``r -> a``，并且会得到 ``r -> b``。要回答这个问题，我们只需要看 ``fmap`` 的型态就好了：
 
 ```haskell
 fmap :: (Functor f) => (a -> b) -> f a -> f b      
