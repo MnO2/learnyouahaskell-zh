@@ -17,7 +17,7 @@ Typeclass 的运用是很随意的。我们可以定义自己的数据型态，�
 
 如果一个 type constructor 要是 ``Functor`` 的 instance，那他的 kind 必须是 ``* -> *``，这代表他必须刚好接受一个 type 当作 type parameter。像是 ``Maybe`` 可以是 Functor 的一个 instance，因为他接受一个 type parameter，来做成像是 ``Maybe Int``，或是 ``Maybe String``。如果一个 type constructor 接受两个参数，像是 ``Either``，我们必须给他两个 type parameter。所以我们不能这样写：``instance Functor Either where``，但我们可以写 ``instance Functor (Either a) where``，如果我们把 ``fmap`` 限缩成只是 ``Either a`` 的，那他的型态就是 ``fmap :: (b -> c) -> Either a b -> Either a c``。就像你看到的，``Either a`` 的是固定的一部分，因为 ``Either a`` 只恰好接受一个 type parameter，但 ``Either`` 则要接受两个 type parameters。这样 fmap 的型态变成 ``fmap :: (b -> c) -> Either b -> Either c``，这不太合理。
 
-我们知道有许多态态都是 ``Functor`` 的 instance，像是 ``[]``，``Maybe``，``Either a`` 以及我们自己写的 ``Tree``。我们也看到了如何用一个函数 map 他们。在这一章节，我们再多举两个例子，也就是 ``IO`` 跟 ``(->) r``。
+我们知道有许多型态都是 ``Functor`` 的 instance，像是 ``[]``，``Maybe``，``Either a`` 以及我们自己写的 ``Tree``。我们也看到了如何用一个函数 map 他们。在这一章节，我们再多举两个例子，也就是 ``IO`` 跟 ``(->) r``。
 
 如果一个值的型态是 ``IO String``，他代表的是一个会被计算成 String 结果的 I/O action。我们可以用 do syntax 来把结果绑定到某个名称。我们之前把 I/O action 比喻做长了脚的盒子，会到真实世界帮我们取一些值回来。我们可以查看他们取了什么值，但一旦看过，我们必须要把值放回盒子中。用这个比喻，``IO`` 的行为就像是一个 functor。
 
@@ -262,7 +262,7 @@ CJust 0 "haha"
 ```
 
 
-我们知道 functor law 的第一定律描述当我们用 ``id`` 来 map over 一个 functor 的时候，他的结果应该跟只对 functor 调用 ``id`` 的结果一样。但我们可以看到这个例子中，这对于 ``CMaybe`` 并不遵守。尽管他的确是 ``Functor`` typeclass 的一个 instace。但他并不遵守 functor law 因此不是一个 functor。如果有人使用我们的 ``CMaybe`` 型别，把他当作 functor 用，那他就会期待 functor laws 会被遵守。但 ``CMaybe`` 并没办法满足，便会造成错误的程序。当我们使用一个 functor 的时候，函数合成跟 map over 的先后顺序不应该有影响。但对于 ``CMaybe`` 他是有影响的，因为他纪录了被 map over 的次数。如果我们希望 ``CMaybe`` 遵守 functor law，我们必须要让 ``Int`` 字段在做 ``fmap`` 的时候维持不变。
+我们知道 functor law 的第一定律描述当我们用 ``id`` 来 map over 一个 functor 的时候，他的结果应该跟只对 functor 调用 ``id`` 的结果一样。但我们可以看到这个例子中，这对于 ``CMaybe`` 并不遵守。尽管他的确是 ``Functor`` typeclass 的一个 instance。但他并不遵守 functor law 因此不是一个 functor。如果有人使用我们的 ``CMaybe`` 型别，把他当作 functor 用，那他就会期待 functor laws 会被遵守。但 ``CMaybe`` 并没办法满足，便会造成错误的程序。当我们使用一个 functor 的时候，函数合成跟 map over 的先后顺序不应该有影响。但对于 ``CMaybe`` 他是有影响的，因为他纪录了被 map over 的次数。如果我们希望 ``CMaybe`` 遵守 functor law，我们必须要让 ``Int`` 字段在做 ``fmap`` 的时候维持不变。
 
 
 乍看之下 functor laws 看起来不是很必要，也容易让人搞不懂，但我们知道如果一个型别遵守 functor laws，那我们就能对他作些基本的假设。如果遵守了 functor laws，我们知道对他做 ``fmap`` 不会做多余的事情，只是用一个函数做映射而已。这让写出来的代码足够抽象也容易扩展。因为我们可以用定律来推论型别的行为。
