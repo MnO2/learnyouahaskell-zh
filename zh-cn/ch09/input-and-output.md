@@ -1314,8 +1314,9 @@ askForNumber gen = do
         let number = read numberString
         if randNumber == number
             then putStrLn "You are correct!"
-            else putStrLn $ "Sorry, it was " ++ show randNumber
-            askForNumber newGen
+            else do
+                putStrLn $ "Sorry, it was " ++ show randNumber
+                askForNumber newGen
 ```
 
 ![](jackofdiamonds.png)
