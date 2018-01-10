@@ -58,7 +58,7 @@ ghci> surface $ Rectangle 0 0 100 100
 10000.0
 ```
 
-Yay，it works！不過我們若嘗試輸出 ``Circle 10 20`` 到控制台，就會得到一個錯誤。這是因為 Haskell 還不知道該型別的字元串表示方法。想想，當我們往控制台輸出值的時候，Haskell 會先呼叫 ``show`` 函數得到這個值的字元串表示才會輸出。因此要讓我們的 ``Shape`` 型別成為 Show 型別類的成員。可以這樣修改：
+Yay，it works！不過我們若嘗試輸出 ``Circle 10 20 5`` 到控制台，就會得到一個錯誤。這是因為 Haskell 還不知道該型別的字元串表示方法。想想，當我們往控制台輸出值的時候，Haskell 會先呼叫 ``show`` 函數得到這個值的字元串表示才會輸出。因此要讓我們的 ``Shape`` 型別成為 Show 型別類的成員。可以這樣修改：
 
 ```haskell
 data Shape = Circle Float Float Float | Rectangle Float Float Float Float deriving (Show)
