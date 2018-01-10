@@ -149,7 +149,7 @@ module Shapes
 ) where
 ```
 
-一個 ``Shape`` (..)，我們就導出了 ``Shape`` 的所有值構造子。這一來無論誰導入我們的模組，都可以用 ``Rectangle`` 和 ``Circle`` 值構造子來構造 ``Shape`` 了。這與寫 ``Shape(Rectangle,Circle)`` 等價。
+一個 ``Shape`` (..)，我們就導出了 ``Shape`` 的所有值構造子。這一來無論誰導入我們的模組，都可以用 ``Rectangle`` 和 ``Circle`` 值構造子來構造 ``Shape`` 了。這與寫 ``Shape(Rectangle, Circle)`` 等價。
 
 我們可以選擇不導出任何 ``Shape`` 的值構造子，這一來使用我們模組的人就只能用輔助函數 ``baseCircle`` 和 ``baseRect`` 來得到 ``Shape`` 了。``Data.Map`` 就是這一套，沒有 ``Map.Map [(1,2),(3,4)]``，因為它沒有導出任何一個值構造子。但你可以用，像 ``Map.fromList`` 這樣的輔助函數得到 ``map``。應該記住，值構造子只是函數而已，如果不導出它們，就拒絶了使用我們模組的人呼叫它們。但可以使用其他返回該型別的函數，來取得這一型別的值。
 
