@@ -119,7 +119,7 @@ ghci> nudge (Circle (Point 34 34) 10) 5 10
 Circle (Point 39.0 44.0) 10.0
 ```
 
-如果不想直接處理 ``Point``，我們可以搞個輔助函數 (auxilliary function)，初始從原點創建圖形，再移動它們。
+如果不想直接處理 ``Point``，我們可以搞個輔助函數 (auxiliary function)，初始從原點創建圖形，再移動它們。
 
 ```haskell
 baseCircle :: Float -> Shape
