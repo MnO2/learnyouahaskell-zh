@@ -1067,7 +1067,7 @@ import Geometry
 
 如下就是各個檔案的內容:
 
-sphere.hs
+Sphere.hs
 
 ```haskell
 module Geometry.Sphere  
@@ -1082,7 +1082,7 @@ area :: Float -> Float
 area radius = 4 * pi * (radius ^ 2)  
 ```
 
-cuboid.hs
+Cuboid.hs
 
 ```haskell
 module Geometry.Cuboid  
@@ -1101,7 +1101,7 @@ rectangleArea a b = a * b
 
 ```
 
-cube.hs
+Cube.hs
 
 ```haskell
 module Geometry.Cube  

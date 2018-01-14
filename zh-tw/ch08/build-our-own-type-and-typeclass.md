@@ -58,7 +58,7 @@ ghci> surface $ Rectangle 0 0 100 100
 10000.0
 ```
 
-Yay，it works！不過我們若嘗試輸出 ``Circle 10 20`` 到控制台，就會得到一個錯誤。這是因為 Haskell 還不知道該型別的字元串表示方法。想想，當我們往控制台輸出值的時候，Haskell 會先呼叫 ``show`` 函數得到這個值的字元串表示才會輸出。因此要讓我們的 ``Shape`` 型別成為 Show 型別類的成員。可以這樣修改：
+Yay，it works！不過我們若嘗試輸出 ``Circle 10 20 5`` 到控制台，就會得到一個錯誤。這是因為 Haskell 還不知道該型別的字元串表示方法。想想，當我們往控制台輸出值的時候，Haskell 會先呼叫 ``show`` 函數得到這個值的字元串表示才會輸出。因此要讓我們的 ``Shape`` 型別成為 Show 型別類的成員。可以這樣修改：
 
 ```haskell
 data Shape = Circle Float Float Float | Rectangle Float Float Float Float deriving (Show)
@@ -119,7 +119,7 @@ ghci> nudge (Circle (Point 34 34) 10) 5 10
 Circle (Point 39.0 44.0) 10.0
 ```
 
-如果不想直接處理 ``Point``，我們可以搞個輔助函數 (auxilliary function)，初始從原點創建圖形，再移動它們。
+如果不想直接處理 ``Point``，我們可以搞個輔助函數 (auxiliary function)，初始從原點創建圖形，再移動它們。
 
 ```haskell
 baseCircle :: Float -> Shape
@@ -149,7 +149,7 @@ module Shapes
 ) where
 ```
 
-一個 ``Shape`` (..)，我們就導出了 ``Shape`` 的所有值構造子。這一來無論誰導入我們的模組，都可以用 ``Rectangle`` 和 ``Circle`` 值構造子來構造 ``Shape`` 了。這與寫 ``Shape(Rectangle,Circle)`` 等價。
+一個 ``Shape`` (..)，我們就導出了 ``Shape`` 的所有值構造子。這一來無論誰導入我們的模組，都可以用 ``Rectangle`` 和 ``Circle`` 值構造子來構造 ``Shape`` 了。這與寫 ``Shape(Rectangle, Circle)`` 等價。
 
 我們可以選擇不導出任何 ``Shape`` 的值構造子，這一來使用我們模組的人就只能用輔助函數 ``baseCircle`` 和 ``baseRect`` 來得到 ``Shape`` 了。``Data.Map`` 就是這一套，沒有 ``Map.Map [(1,2),(3,4)]``，因為它沒有導出任何一個值構造子。但你可以用，像 ``Map.fromList`` 這樣的輔助函數得到 ``map``。應該記住，值構造子只是函數而已，如果不導出它們，就拒絶了使用我們模組的人呼叫它們。但可以使用其他返回該型別的函數，來取得這一型別的值。
 
@@ -296,7 +296,7 @@ Just 10.0
 
 ![](meekrat.png)
 
-注意下，``Nothing`` 的型別為 ``Maybe a``。它是多態的，若有函數取 ``Maybe Int`` 型別的參數，就一概可以傳給它一個 ``Nothing``，因為 ``Nothing`` 中不包含任何值。``Maybe a`` 型別可以有 ``Maybe Int`` 的行為，正如 ``5`` 可以是 ``Int`` 也可以是 ``Double``。與之相似，空 List 的型別是 ``[a]``，可以與一切 List 打交道。因此，我們可以 ``[1,2,3]++[]``，也可以 ``["ha","ha,","ha"]++[]``。
+注意下，``Nothing`` 的型別為 ``Maybe a``。它是多態的，若有函數取 ``Maybe Int`` 型別的參數，就一概可以傳給它一個 ``Nothing``，因為 ``Nothing`` 中不包含任何值。``Maybe a`` 型別可以有 ``Maybe Int`` 的行為，正如 ``5`` 可以是 ``Int`` 也可以是 ``Double``。與之相似，空 List 的型別是 ``[a]``，可以與一切 List 打交道。因此，我們可以 ``[1,2,3]++[]``，也可以 ``["ha","ha","ha"]++[]``。
 
 型別參數有很多好處，但前提是用對了地方才行。一般都是不關心型別裡面的內容，如 ``Maybe a``。一個型別的行為若有點像是容器，那麼使用型別參數會是個不錯的選擇。我們完全可以把我們的``Car``型別從
 
@@ -357,7 +357,7 @@ Car "Ford" "Mustang" "nineteen sixty seven" :: Car [Char] [Char] [Char]
 data (Ord k) => Map k v = ...
 ```
 
-然而 Haskell 中有一個嚴格的約定，那就是永遠不要在 ``data`` 聲明中添加型別約束。為啥？嗯，因為這樣沒好處，反而得寫更多不必要的型別約束。``Map k v`` 要是有 ``Ord k`` 的約束，那就相當於假定每個 Map 的相關函數都認為 ``k`` 是可排序的。若不給數據型別加約束，我們就不必給那些不關心鍵是否可排序的函數另加約束了。這類函數的一個例子就是 ``toList``，它只是把一個 Map 轉換為關聯 List 罷了，型別聲明為 ``toList :: Map k v -> [(k, v)]``。要是加上型別約束，就只能是 ``toList :: (Ord k) =>Map k a -> [(k,v)]``，明顯沒必要嘛。
+然而 Haskell 中有一個嚴格的約定，那就是永遠不要在 ``data`` 聲明中添加型別約束。為啥？嗯，因為這樣沒好處，反而得寫更多不必要的型別約束。``Map k v`` 要是有 ``Ord k`` 的約束，那就相當於假定每個 Map 的相關函數都認為 ``k`` 是可排序的。若不給數據型別加約束，我們就不必給那些不關心鍵是否可排序的函數另加約束了。這類函數的一個例子就是 ``toList``，它只是把一個 Map 轉換為關聯 List 罷了，型別聲明為 ``toList :: Map k v -> [(k, v)]``。要是加上型別約束，就只能是 ``toList :: (Ord k) =>Map k v -> [(k,v)]``，明顯沒必要嘛。
 
 所以說，永遠不要在 ``data`` 聲明中加型別約束 --- 即便看起來沒問題。免得在函數聲明中寫出過多無謂的型別約束。
 
