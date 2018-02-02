@@ -660,10 +660,10 @@ instance Monad (State s) where
 import Control.Monad.State  
   
 pop :: State Stack Int  
-pop = State $ \(x:xs) -> (x,xs)  
+pop = state $ \(x:xs) -> (x,xs)  
 
 push :: Int -> State Stack ()  
-push a = State $ \xs -> ((),a:xs)  
+push a = state $ \xs -> ((),a:xs)  
 ```
 
 ``pop`` 已經滿足我們的條件，而 ``push`` 要先接受一個 ``Int`` 才會回傳我們要的操作。所以我們可以改寫先前的範例如下：
