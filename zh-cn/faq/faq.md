@@ -1,5 +1,6 @@
 # FAQ
-![]($img/turtle.png)
+
+![](https://github.com/MnO2/learnyouahaskell-zh/tree/e47e717ed1af92c4e38a596af5347e7d1434c454/zh-cn/faq/$img/turtle.png)
 
 ## 我能把这份教学放在我的网站吗？我可以更改里面的内容吗？
 
@@ -19,10 +20,7 @@
 
 ## 关于作者
 
-我的名字是 Miran Lipovača，住在斯洛文尼亚的 Ljubljana。
-大部分时间我都闲闲没事，不过当我认真的时候我不是在写程序，绘画，练格斗技，或弹 bass。
-我甚至弄了一个讨论 bass 的网站。
-我甚至搜集一堆猫头鹰玩偶，有时候我会对他们自言自语。
+我的名字是 Miran Lipovača，住在斯洛文尼亚的 Ljubljana。 大部分时间我都闲闲没事，不过当我认真的时候我不是在写程序，绘画，练格斗技，或弹 bass。 我甚至弄了一个讨论 bass 的网站。 我甚至搜集一堆猫头鹰玩偶，有时候我会对他们自言自语。
 
 ## 关于简体译者
 

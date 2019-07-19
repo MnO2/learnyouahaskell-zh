@@ -1,5 +1,6 @@
 # FAQ
-![]($img/turtle.png)
+
+![](https://github.com/mno2/learnyouahaskell-zh/tree/689e7bcf954b5c0011bf6a515895f6c9a4706017/zh-tw/faq/$img/turtle.png)
 
 ## 我能把這份教學放在我的網站嗎？我可以更改裡面的內容嗎？
 
@@ -19,10 +20,7 @@
 
 ## 關於作者
 
-我的名字是 Miran Lipovača，住在斯洛文尼亞的 Ljubljana。
-大部分時間我都閒閒沒事，不過當我認真的時候我不是在寫程式，繪畫，練格鬥技，或彈 bass。
-我甚至弄了一個討論 bass 的網站。
-我甚至蒐集一堆貓頭鷹玩偶，有時候我會對他們自言自語。
+我的名字是 Miran Lipovača，住在斯洛文尼亞的 Ljubljana。 大部分時間我都閒閒沒事，不過當我認真的時候我不是在寫程式，繪畫，練格鬥技，或彈 bass。 我甚至弄了一個討論 bass 的網站。 我甚至蒐集一堆貓頭鷹玩偶，有時候我會對他們自言自語。
 
 ## 關於簡體譯者
 
@@ -31,3 +29,4 @@
 ## 關於繁體譯者
 
 我是[MnO2](http://blog.mno2.org)，Haskell 愛好者，
+
