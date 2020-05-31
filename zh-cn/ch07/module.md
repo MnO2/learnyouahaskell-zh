@@ -967,11 +967,11 @@ ghci> nub "HEY WHATS CRACKALACKIN"
 ```haskell
 module Geometry  
 ( sphereVolume  
-，sphereArea  
-，cubeVolume  
-，cubeArea  
-，cuboidArea  
-，cuboidVolume  
+, sphereArea  
+, cubeVolume  
+, cubeArea  
+, cuboidArea  
+, cuboidVolume  
 ) where
 ```
 
@@ -980,11 +980,11 @@ module Geometry
 ```haskell
 module Geometry  
 ( sphereVolume  
-,sphereArea  
-,cubeVolume  
-,cubeArea  
-,cuboidArea  
-,cuboidVolume  
+, sphereArea  
+, cubeVolume  
+, cubeArea  
+, cuboidArea  
+, cuboidVolume  
 ) where  
 
 sphereVolume :: Float -> Float  
@@ -1034,7 +1034,7 @@ Sphere.hs
 ```haskell
 module Geometry.Sphere  
 ( volume  
-,area  
+, area  
 ) where  
 
 volume :: Float -> Float  
@@ -1049,7 +1049,7 @@ Cuboid.hs
 ```haskell
 module Geometry.Cuboid  
 ( volume  
-,area  
+, area  
 ) where  
 
 volume :: Float -> Float -> Float -> Float  
@@ -1067,7 +1067,7 @@ Cube.hs
 ```haskell
 module Geometry.Cube  
 ( volume  
-,area  
+, area  
 ) where  
 
 import qualified Geometry.Cuboid as Cuboid  
