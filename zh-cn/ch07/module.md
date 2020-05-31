@@ -980,11 +980,11 @@ module Geometry
 ```haskell
 module Geometry  
 ( sphereVolume  
-，sphereArea  
-，cubeVolume  
-，cubeArea  
-，cuboidArea  
-，cuboidVolume  
+,sphereArea  
+,cubeVolume  
+,cubeArea  
+,cuboidArea  
+,cuboidVolume  
 ) where  
 
 sphereVolume :: Float -> Float  
@@ -1029,12 +1029,12 @@ import Geometry
 
 如下就是各个文件的内容:
 
-sphere.hs
+Sphere.hs
 
 ```haskell
 module Geometry.Sphere  
 ( volume  
-，area  
+,area  
 ) where  
 
 volume :: Float -> Float  
@@ -1044,12 +1044,12 @@ area :: Float -> Float
 area radius = 4 * pi * (radius ^ 2)
 ```
 
-cuboid.hs
+Cuboid.hs
 
 ```haskell
 module Geometry.Cuboid  
 ( volume  
-，area  
+,area  
 ) where  
 
 volume :: Float -> Float -> Float -> Float  
@@ -1062,12 +1062,12 @@ rectangleArea :: Float -> Float -> Float
 rectangleArea a b = a * b
 ```
 
-cube.hs
+Cube.hs
 
 ```haskell
 module Geometry.Cube  
 ( volume  
-，area  
+,area  
 ) where  
 
 import qualified Geometry.Cuboid as Cuboid  

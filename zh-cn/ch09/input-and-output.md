@@ -1153,8 +1153,8 @@ threeCoins :: StdGen -> (Bool, Bool, Bool)
 threeCoins gen =
     let (firstCoin, newGen) = random gen
     (secondCoin, newGen') = random newGen
-    (thirdCoin, newGen') = random newGen'
-    in  (firstCoin, secondCoin, thirdCoin)  )
+    (thirdCoin, newGen'') = random newGen'
+    in  (firstCoin, secondCoin, thirdCoin)
 ```
 
 我们用我们拿来当参数的 generator 调用 `random` 并得到一个掷铜板的结果跟一个新的 generator。然后我们再用新的 generator 调用他一遍，来得到第二个掷铜板的结果。对于第三个掷铜板的结果也是如法炮制。如果我们一直都用同样的 generator，那所有的结果都会是相同的值。也就是不是 `(False, False, False)` 就是 `(True, True, True)`。
