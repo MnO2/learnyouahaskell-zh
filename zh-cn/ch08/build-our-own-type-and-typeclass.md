@@ -607,7 +607,7 @@ type Name = String
 type PhoneBook = [(Name,PhoneNumber)]
 ```
 
-Haskell 进程员给 String 加别名是为了让函数中字符串的表达方式及用途更加明确。
+Haskell 程序员们给 String 加别名是为了让函数中字符串的表达方式及用途更加明确。
 
 好的，我们实现了一个函数，它可以取一名字和号码检查它是否存在于电话本。现在可以给它加一个相当好看明了的型别声明：
 
