@@ -465,7 +465,7 @@ ghci> insert 3 [1,2,4,3,2,1]
 假如有個記錄某函數在每秒的值的 List，而我們要按照它小於零或者大於零的交界處將其分為一組子 List。如果用 `group`，它只能將相鄰並相等的元素組到一起，而在這裡我們的標準是它們是否互爲相反數。`groupBy` 登場! 它取一個含兩個參數的函數作為參數來判定相等性.
 
 ```haskell
-ghci> let values = [-4.3，-2.4，-1.2，0.4，2.3，5.9，10.5，29.1，5.3，-2.4，-14.5，2.9，2.3]  
+ghci> let values = [-4.3,-2.4,-1.2,0.4,2.3,5.9,10.5,29.1,5.3,-2.4,-14.5,2.9,2.3]
 ghci> groupBy (\x y -> (x > 0) == (y > 0)) values  
 [[-4.3,-2.4,-1.2],[0.4,2.3,5.9,10.5,29.1,5.3],[-2.4,-14.5],[2.9,2.3]]
 ```
@@ -695,7 +695,7 @@ fromList [(1,2),(3,2),(5,5)]
 若其中存在重複的鍵,就將其忽略。如下即 `fromList` 的型別聲明。
 
 ```haskell
-Map.fromList :: (Ord k) => [(k，v)] -> Map.Map k v
+Map.fromList :: (Ord k) => [(k,v)] -> Map.Map k v
 ```
 
 這表示它取一組鍵值對的 List，並返回一個將 `k` 映射為 `v` 的 `map`。注意一下，當使用普通的關聯列表時，只需要鍵的可判斷相等性就行了。而在這裡，它還必須得是可排序的。這在 `Data.Map` 模組中是強制的。因為它會按照某順序將其組織在一棵樹中.在處理鍵值對時，只要鍵的型別屬於 `Ord` 型別類，就應該儘量使用`Data.Map`.`empty` 返回一個空 `map`.
@@ -811,13 +811,13 @@ ghci> Map.lookup "patsy" $ phoneBookToMap phoneBook
 ghci> Map.lookup "wendy" $ phoneBookToMap phoneBook
 "939-8282" 
 ghci> Map.lookup "betty" $ phoneBookToMap phoneBook 
-"342-2492，555-2938"
+"342-2492,555-2938"
 ```
 
 一旦出現重複鍵，這個函數會將不同的值組在一起，同樣，也可以預設地將每個值放到一個單元素的 List 中，再用 `++` 將他們都連接在一起。
 
 ```haskell
-phoneBookToMap :: (Ord k) => [(k，a)] -> Map.Map k [a] 
+phoneBookToMap :: (Ord k) => [(k,a)] -> Map.Map k [a] 
 phoneBookToMap xs = Map.fromListWith (++) $ map (\(k,v) -> (k,[v])) xs 
 ghci> Map.lookup "patsy" $ phoneBookToMap phoneBook 
 ["827-9162","943-2929","493-2928"]
