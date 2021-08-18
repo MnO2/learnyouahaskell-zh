@@ -422,7 +422,7 @@ ghci> delete 'h' . delete 'h' . delete 'h' $ "hey there ghang!"
 "ey tere gang!"
 ```
 
-**\** 表示 List 的差集操作，这与集合的差集很相似，它会从左边 List 中的元素扣除存在于右边 List 中的元素一次.
+**\\** 表示 List 的差集操作，这与集合的差集很相似，它会从左边 List 中的元素扣除存在于右边 List 中的元素一次.
 
 ```haskell
 ghci> [1..10] \\ [2,5,9]  
@@ -440,7 +440,7 @@ ghci> [1..7] `union` [5..10]
 [1,2,3,4,5,6,7,8,9,10]
 ```
 
-**intersection** 相当于集合的交集。它返回两个 List 的相同部分.
+**intersect** 相当于集合的交集。它返回两个 List 的相同部分.
 
 ```haskell
 ghci> [1..7] `intersect` [5..10]  
@@ -465,7 +465,7 @@ ghci> insert 3 [1,2,4,3,2,1]
 假如有个记录某函数在每秒的值的 List，而我们要按照它小于零或者大于零的交界处将其分为一组子 List。如果用 `group`，它只能将相邻并相等的元素组到一起，而在这里我们的标准是它们是否互为相反数。`groupBy` 登场! 它取一个含两个参数的函数作为参数来判定相等性.
 
 ```haskell
-ghci> let values = [-4.3，-2.4，-1.2，0.4，2.3，5.9，10.5，29.1，5.3，-2.4，-14.5，2.9，2.3]  
+ghci> let values = [-4.3,-2.4,-1.2,0.4,2.3,5.9,10.5,29.1,5.3,-2.4,-14.5,2.9,2.3]  
 ghci> groupBy (\x y -> (x > 0) == (y > 0)) values  
 [[-4.3,-2.4,-1.2],[0.4,2.3,5.9,10.5,29.1,5.3],[-2.4,-14.5],[2.9,2.3]]
 ```
@@ -695,7 +695,7 @@ fromList [(1,2),(3,2),(5,5)]
 若其中存在重复的键,就将其忽略。如下即 `fromList` 的型别声明。
 
 ```haskell
-Map.fromList :: (Ord k) => [(k，v)] -> Map.Map k v
+Map.fromList :: (Ord k) => [(k,v)] -> Map.Map k v
 ```
 
 这表示它取一组键值对的 List，并返回一个将 `k` 映射为 `v` 的 `map`。注意一下，当使用普通的关联列表时，只需要键的可判断相等性就行了。而在这里，它还必须得是可排序的。这在 `Data.Map` 模块中是强制的。因为它会按照某顺序将其组织在一棵树中.在处理键值对时，只要键的型别属于 `Ord` 型别类，就应该尽量使用`Data.Map`.`empty` 返回一个空 `map`.
@@ -811,13 +811,13 @@ ghci> Map.lookup "patsy" $ phoneBookToMap phoneBook
 ghci> Map.lookup "wendy" $ phoneBookToMap phoneBook
 "939-8282" 
 ghci> Map.lookup "betty" $ phoneBookToMap phoneBook 
-"342-2492，555-2938"
+"342-2492,555-2938"
 ```
 
 一旦出现重复键，这个函数会将不同的值组在一起，同样，也可以缺省地将每个值放到一个单元素的 List 中，再用 `++` 将他们都连接在一起。
 
 ```haskell
-phoneBookToMap :: (Ord k) => [(k，a)] -> Map.Map k [a] 
+phoneBookToMap :: (Ord k) => [(k,a)] -> Map.Map k [a] 
 phoneBookToMap xs = Map.fromListWith (++) $ map (\(k,v) -> (k,[v])) xs 
 ghci> Map.lookup "patsy" $ phoneBookToMap phoneBook 
 ["827-9162","943-2929","493-2928"]
