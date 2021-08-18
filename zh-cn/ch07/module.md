@@ -440,7 +440,7 @@ ghci> [1..7] `union` [5..10]
 [1,2,3,4,5,6,7,8,9,10]
 ```
 
-**intersection** 相当于集合的交集。它返回两个 List 的相同部分.
+**intersect** 相当于集合的交集。它返回两个 List 的相同部分.
 
 ```haskell
 ghci> [1..7] `intersect` [5..10]  
