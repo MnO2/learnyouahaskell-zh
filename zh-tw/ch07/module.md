@@ -422,7 +422,7 @@ ghci> delete 'h' . delete 'h' . delete 'h' $ "hey there ghang!"
 "ey tere gang!"
 ```
 
-**\** 表示 List 的差集操作，這與集合的差集很相似，它會從左邊 List 中的元素扣除存在於右邊 List 中的元素一次.
+**\\** 表示 List 的差集操作，這與集合的差集很相似，它會從左邊 List 中的元素扣除存在於右邊 List 中的元素一次.
 
 ```haskell
 ghci> [1..10] \\ [2,5,9]  
