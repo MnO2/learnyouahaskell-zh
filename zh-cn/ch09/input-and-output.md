@@ -1095,7 +1095,7 @@ randomNumber = 4
 
 所以说在 Haskell 中，假如我们能作一个函数，他会接受一个具随机性的参数，然后根据那些信息还传一个数值。
 
-在 `System.Random` 模块中。他包含所有满足我们需求的函数。让我们先来看其中一个，就是 **random**。他的型态是 `random :: (RandomGen g, Random a) => g -> (a, g)`。哇，出现了新的 typeclass。**RandomGen** typeclass 是指那些可以当作乱源的型态。而**Random** typeclass 则是可以装乱数的型态。一个布林值可以是随机值，不是 `True` 就是 `False`。一个整数可以是随机的好多不同值。那你会问，函数可以是一个随机值吗？我不这么认为。如果我们试着翻译 `random` 的型态宣告，大概会是这样：他接受一个 random generator \(乱源所在\)，然后回传一个随机值以及一个新的 random generator。为什么他要回传一个新的 random generator 呢？就是下面我们要讲的。
+在 `System.Random` 模块中。他包含所有满足我们需求的函数。让我们先来看其中一个，就是 **random**。他的型态是 `random :: (RandomGen g, Random a) => g -> (a, g)`。哇，出现了新的 typeclass。**RandomGen** typeclass 是指那些可以当作乱源的型态。而**Random** typeclass 则是可以装乱数的型态。一个布尔值可以是随机值，不是 `True` 就是 `False`。一个整数可以是随机的好多不同值。那你会问，函数可以是一个随机值吗？我不这么认为。如果我们试着翻译 `random` 的型态宣告，大概会是这样：他接受一个 random generator \(乱源所在\)，然后回传一个随机值以及一个新的 random generator。为什么他要回传一个新的 random generator 呢？就是下面我们要讲的。
 
 要使用 `random` 函数， 我们必须要了解 random generator。 在 `System.Random` 中有一个很酷的型态，叫做 **StdGen**， 他是 `RandomGen` 的一个 instance。 我们可以自己手动作一个 `StdGen` 也可以告诉系统给我们一个现成的。
 
@@ -1170,7 +1170,7 @@ ghci> threeCoins (mkStdGen 944)
 (True,True,True)
 ```
 
-留意我们不需要写 `random gen :: (Bool, StdGen)`。那是因为我们已经在函数的型态宣告那边就表明我们要的是布林。而 Haskell 可以推敲出我们要的是布林值。
+留意我们不需要写 `random gen :: (Bool, StdGen)`。那是因为我们已经在函数的型态宣告那边就表明我们要的是布林。而 Haskell 可以推敲出我们要的是布尔值。
 
 假如我们要的是掷四次？甚至五次呢？有一个函数叫 **randoms**，他接受一个 generator 并回传一个无穷串行。
 
@@ -1512,7 +1512,7 @@ main = do (fileName:_) <- getArgs
                 else do putStrLn "The file doesn't exist!"
 ```
 
-由于 `doesFileExist` 的型态是 `doesFileExist :: FilePath -> IO Bool`，所以我们要写成 `fileExists <- doesFileExist fileName`。那代表他回传含有一个布林值告诉我们文件存不存在的 I/O action。`doesFileExist` 是不能直接在 if expression 中使用的。
+由于 `doesFileExist` 的型态是 `doesFileExist :: FilePath -> IO Bool`，所以我们要写成 `fileExists <- doesFileExist fileName`。那代表他回传含有一个布尔值告诉我们文件存不存在的 I/O action。`doesFileExist` 是不能直接在 if expression 中使用的。
 
 另一个解法是使用 Exception。在这个情境下使用 Exception 是没问题的。文件不存在这个 Exception 是在 I/O 中被丢出，所以在 I/O 中接起来也没什么不对。
 

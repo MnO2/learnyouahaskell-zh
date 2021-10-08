@@ -30,7 +30,7 @@ isBigGang :: Int -> (Bool, String)
 isBigGang x = (x > 9, "Compared gang size to 9.")
 ```
 
-我们现在回传了一个 Tuple，第一个元素是原来的布林值，第二个元素是一个 String。现在我们的值有了一个 context。
+我们现在回传了一个 Tuple，第一个元素是原来的布尔值，第二个元素是一个 String。现在我们的值有了一个 context。
 
 ```haskell
 ghci> isBigGang 3  
@@ -1077,7 +1077,7 @@ joinedMaybes = do
 filter :: (a -> Bool) -> [a] -> [a]
 ```
 
-predicate 能接 list 中的一个元素并回传一个 `Bool` 型态的值。但如果 `Bool` 型态其实是一个 monadic value 呢？也就是他有一个 context。例如说除了 `True` 跟 `False` 之外还伴随一个 monoid，像是 `["Accepted the number 5"]`，或 `["3 is too small"]`。照前面所学的听起来是没问题，而且产出的 list 也会跟随 context，在这个例子中就是 log。所以如果 `Bool` 会回传伴随 context 的布林值，我们会认为最终的结果也会具有 context。要不然这些 context 都会在处理过程中遗失。
+predicate 能接 list 中的一个元素并回传一个 `Bool` 型态的值。但如果 `Bool` 型态其实是一个 monadic value 呢？也就是他有一个 context。例如说除了 `True` 跟 `False` 之外还伴随一个 monoid，像是 `["Accepted the number 5"]`，或 `["3 is too small"]`。照前面所学的听起来是没问题，而且产出的 list 也会跟随 context，在这个例子中就是 log。所以如果 `Bool` 会回传伴随 context 的布尔值，我们会认为最终的结果也会具有 context。要不然这些 context 都会在处理过程中遗失。
 
 在 `Control.Monad` 中的 `filterM` 函数正是我们所需要的，他的型态如下：
 
