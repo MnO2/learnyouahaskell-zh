@@ -681,7 +681,7 @@ ghci> and $ map (\f -> f 7) [(>4),(<10),odd]
 True
 ```
 
-记住 `and` 接受一串布林值，并只有在全部都是 `True` 的时候才回传 `True`。 另一种实作方式是用 `sequenceA`：
+记住 `and` 接受一串布尔值，并只有在全部都是 `True` 的时候才回传 `True`。 另一种实作方式是用 `sequenceA`：
 
 ```haskell
 ghci> sequenceA [(>4),(<10),odd] 7  
@@ -690,7 +690,7 @@ ghci> and $ sequenceA [(>4),(<10),odd] 7
 True
 ```
 
-`sequenceA [(>4),(<10),odd]` 接受一个函数，他接受一个数值并将他喂给所有的 predicate，包含 `[(>4),(<10),odd]`。然后回传一串布林值。他将一个型别为 `(Num a) => [a -> Bool]` 的 list 变成一个型别为 `(Num a) => a -> [Bool]` 的函数，很酷吧。
+`sequenceA [(>4),(<10),odd]` 接受一个函数，他接受一个数值并将他喂给所有的 predicate，包含 `[(>4),(<10),odd]`。然后回传一串布尔值。他将一个型别为 `(Num a) => [a -> Bool]` 的 list 变成一个型别为 `(Num a) => a -> [Bool]` 的函数，很酷吧。
 
 由于 list 要求里面元素的型别要一致，所以包含在 list 中的所有函数都是同样型别。你不能创造一个像是 `[ord, (+3)]` 这样的 list，因为 `ord` 接受一个字符并回传一个数值，然而 `(+3)` 接受一个数值并回传一个数值。
 
@@ -1235,7 +1235,7 @@ ghci> 3 `compare` 2
 GT
 ```
 
-针对 list，数值跟布林值而言，要找出 monoid 的行为只要去查看已经定义的函数，然后看看有没有展现出 monoid 的特性就可以了，但对于 `Ordering`，我们就必须要更仔细一点才能看出来是否是一个 monoid，但其实他的 `Monoid` instance 还蛮直觉的：
+针对 list，数值跟布尔值而言，要找出 monoid 的行为只要去查看已经定义的函数，然后看看有没有展现出 monoid 的特性就可以了，但对于 `Ordering`，我们就必须要更仔细一点才能看出来是否是一个 monoid，但其实他的 `Monoid` instance 还蛮直觉的：
 
 ```haskell
 instance Monoid Ordering where  

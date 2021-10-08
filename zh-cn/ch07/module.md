@@ -125,7 +125,7 @@ ghci> concatMap (replicate 4) [1..3]
 [1,1,1,1,2,2,2,2,3,3,3,3]
 ```
 
-**and** 取一组布林值 List 作参数。只有其中的值全为 `True` 的情况下才会返回 `True`。
+**and** 取一组布尔值 List 作参数。只有其中的值全为 `True` 的情况下才会返回 `True`。
 
 ```haskell
 ghci> and $ map (>4) [5,6,7,8]  
@@ -134,7 +134,7 @@ ghci> and $ map (==4) [4,4,4,3,4]
 False
 ```
 
-**or** 与 `and` 相似，一组布林值 List 中若存在一个 `True` 它就返回 `True`.
+**or** 与 `and` 相似，一组布尔值 List 中若存在一个 `True` 它就返回 `True`.
 
 ```haskell
 ghci> or $ map (==4) [2,3,4,5,6,1]  
@@ -143,7 +143,7 @@ ghci> or $ map (>4) [1,2,3]
 False
 ```
 
-**any** 和 **all** 取一个限制条件和一组布林值 List 作参数，检查是否该 List 的某个元素或每个元素都符合该条件。通常较 `map` 一个 List 到 `and` 或 `or` 而言，使用 `any` 或 `all` 会更多些。
+**any** 和 **all** 取一个限制条件和一组布尔值 List 作参数，检查是否该 List 的某个元素或每个元素都符合该条件。通常较 `map` 一个 List 到 `and` 或 `or` 而言，使用 `any` 或 `all` 会更多些。
 
 ```haskell
 ghci> any (==4) [2,3,5,6,1,4]  
@@ -335,7 +335,7 @@ find :: (a -> Bool) -> [a] -> Maybe a
 
 想想前面那段找股票的代码，`head (dropWhile (\(val,y,m,d) -> val < 1000) stock)` 。但 `head` 并不安全! 如果我们的股票没涨过 $1000 会怎样? `dropWhile` 会返回一个空 List，而对空 List 取 `head` 就会引发一个错误。把它改成 `find (\(val,y,m,d) -> val > 1000) stock` 就安全多啦，若存在合适的结果就得到它, 像 `Just (1001.4,2008,9,4)`，若不存在合适的元素\(即我们的股票没有涨到过 $1000\)，就会得到一个 `Nothing`.
 
-**elemIndex** 与 `elem` 相似，只是它返回的不是布林值，它只是'可能' \(Maybe\)返回我们找的元素的索引，若这一元素不存在，就返回 `Nothing`。
+**elemIndex** 与 `elem` 相似，只是它返回的不是布尔值，它只是'可能' \(Maybe\)返回我们找的元素的索引，若这一元素不存在，就返回 `Nothing`。
 
 ```haskell
 ghci> :t elemIndex  
