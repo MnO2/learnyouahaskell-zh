@@ -121,7 +121,7 @@ fst :: (a, b) -> a
 
 ![](../../.gitbook/assets/classes%20%281%29.png)
 
-型别定义行为的接口，如果一个型别属于某 Typeclass，那它必实现了该 Typeclass 所描述的行为。很多从 OOP 走过来的人们往往会把 Typeclass 当成面向对象语言中的 `class` 而感到疑惑，厄，它们不是一回事。易于理解起见，你可以把它看做是 Java 的 interface。
+型别定义行为的接口，如果一个型别属于某 Typeclass，那它必实现了该 Typeclass 所描述的行为。很多从 OOP 走过来的人们往往会把 Typeclass 当成面向对象语言中的 `class` 而感到疑惑，呃，它们不是一回事。易于理解起见，你可以把它看做是 Java 的 interface。
 
 `==` 函数的型别声明是怎样的？
 
