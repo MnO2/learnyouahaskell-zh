@@ -36,7 +36,7 @@ ghci> :m Data.List Data.Map Data.Set
 如果你只用得到某模块的两个函数，大可仅包含它俩。若仅装载 `Data.List` 模块 `nub` 和 `sort`，就这样:
 
 ```haskell
-import Data.List (nub，sort)
+import Data.List (nub, sort)
 ```
 
 也可以只包含除去某函数之外的其它函数，这在避免多个模块中函数的命名冲突很有用。假设我们的代码中已经有了一个叫做 `nub` 的函数，而装入 `Data.List` 模块时就要把它里面的 `nub` 除掉.
@@ -94,7 +94,7 @@ ghci> transpose ["hey","there","guys"]
 ["htg","ehu","yey","rs","e"]
 ```
 
-假如有两个多项式 `3x<sup>2</sup> + 5x + 9`，`10x<sup>3</sup> + 9` 和 `8x<sup>3</sup> + 5x<sup>2</sup> + x - 1`，将其相加，我们可以列三个 List: `[0,3,5,9]`，`[10,0,0,9]` 和 `[8,5,1,-1]` 来表示。再用如下的方法取得结果.
+假如有两个多项式 3x<sup>2</sup> + 5x + 9，10x<sup>3</sup> + 9 和 8x<sup>3</sup> + 5x<sup>2</sup> + x - 1，将其相加，我们可以列三个 List: `[0,3,5,9]`，`[10,0,0,9]` 和 `[8,5,1,-1]` 来表示。再用如下的方法取得结果.
 
 ```haskell
 ghci> map sum $ transpose [[0,3,5,9],[10,0,0,9],[8,5,1,-1]]  
@@ -216,8 +216,8 @@ ghci> head (dropWhile (\(val,y,m,d) -> val < 1000) stock)
 **span** 与 `takeWhile` 有点像，只是它返回两个 List。第一个 List 与同参数调用 `takeWhile` 所得的结果相同，第二个 List 就是原 List 中余下的部分。
 
 ```haskell
-ghci> let (fw，rest) = span (/=' ') "This is a sentence" in "First word:" ++ fw ++ "，the rest:" ++ rest  
-"First word: This，the rest: is a sentence"
+ghci> let (fw, rest) = span (/=' ') "This is a sentence" in "First word:" ++ fw ++ ", the rest:" ++ rest  
+"First word: This, the rest: is a sentence"
 ```
 
 **span** 是在条件首次为 `False` 时断开 List，而 `break` 则是在条件首次为 `True` 时断开 `List`。`break p` 与 `span (not . p)` 是等价的.
@@ -387,7 +387,7 @@ ghci> lines "first line\nsecond line\nthird line"
 **unlines** 是 `lines` 的反函数，它取一组字串的 List，并将其通过 `'\n'`合并到一块.
 
 ```haskell
-ghci> unlines ["first line"，"second line"，"third line"]  
+ghci> unlines ["first line", "second line", "third line"]  
 "first line\nsecond line\nthird line\n"
 ```
 
