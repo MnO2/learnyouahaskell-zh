@@ -389,7 +389,7 @@ Vector 148 666 222
 
 ![](../../.gitbook/assets/gob.png)
 
-在 \[types-and-type-classes.html\#Typeclasses入门 Typeclass 101\] 那一节里面，我们了解了 Typeclass 的基础内容。里面提到，型别类就是定义了某些行为的接口。例如，Int 型别是 `Eq` 型别类的一个 instance，`Eq` 类就定义了判定相等性的行为。Int 值可以判断相等性，所以 Int 就是 `Eq` 型别类的成员。它的真正威力体现在作为 `Eq` 接口的函数中，即 `==` 和 `/=`。只要一个型别是 `Eq` 型别类的成员，我们就可以使用 `==` 函数来处理这一型别。这便是为何 `4==4` 和 `"foo"/="bar"` 这样的表达式都需要作型别检查。
+在 [Typeclass 101](/zh-cn/ch03/type-and-typeclass#typeclasses-ru-men) 那一节里面，我们了解了 Typeclass 的基础内容。里面提到，型别类就是定义了某些行为的接口。例如，Int 型别是 `Eq` 型别类的一个 instance，`Eq` 类就定义了判定相等性的行为。Int 值可以判断相等性，所以 Int 就是 `Eq` 型别类的成员。它的真正威力体现在作为 `Eq` 接口的函数中，即 `==` 和 `/=`。只要一个型别是 `Eq` 型别类的成员，我们就可以使用 `==` 函数来处理这一型别。这便是为何 `4==4` 和 `"foo"/="bar"` 这样的表达式都需要作型别检查。
 
 我们也曾提到，人们很容易把型别类与 Java，Python，C++ 等语言的类混淆。很多人对此都倍感不解，在原先那些语言中，类就像是蓝图，我们可以根据它来创造对象、保存状态并执行操作。而型别类更像是接口，我们不是靠它构造数据，而是给既有的数据型别描述行为。什么东西若可以判定相等性，我们就可以让它成为 `Eq` 型别类的 instance。什么东西若可以比较大小，那就可以让它成为 `Ord` 型别类的 instance。
 
@@ -626,7 +626,7 @@ inPhoneBook name pnumber pbook = (name,pnumber) `elem` pbook
 type AssocList k v = [(k,v)]
 ```
 
-好的，现在一个从关联 List 中按键索值的函数型别可以定义为 `(Eq k) => k -> AssocList k v -> Maybe v. AssocList i`。`AssocList` 是个取两个型别做参数生成一个具体型别的型别构造子，如 `Assoc Int String` 等等。
+好的，现在一个从关联 List 中按键索值的函数型别可以定义为 `(Eq k) => k -> AssocList k v -> Maybe`。`AssocList` 是个取两个型别做参数生成一个具体型别的型别构造子，如 `Assoc Int String` 等等。
 
 ```text
 *Fronzie 说*：Hey！当我提到具体型别，那我就是说它是完全调用的，就像 ``Map Int String``。要不就是多态函数中的 ``[a]`` 或 ``(Ord a) => Maybe a`` 之类。有时我和孩子们会说 "Maybe 型别"，但我们的意思并不是按字面来，傻瓜都知道 ``Maybe`` 是型别构造子嘛。只要用一个明确的型别调用 ``Maybe``，如 ``Maybe String`` 可得一个具体型别。你知道，只有具体型别才可以保存值。
