@@ -868,19 +868,19 @@ $ cat todo.txt
 Take salad out of the oven
 ```
 
-## 命令行引数
+## 命令行参数
 
 ![](../../.gitbook/assets/arguments.png)
 
-如果你想要写一个在终端里运行的程序，处理命令行引数是不可或缺的。幸运的是，利用 Haskell 的 Standard Libary 能让我们有效地处理命令行引数。
+如果你想要写一个在终端里运行的程序，处理命令行参数是不可或缺的。幸运的是，利用 Haskell 的 Standard Libary 能让我们有效地处理命令行参数。
 
 在之前的章节中，我们写了一个能将 to-do item 加进或移除 to-do list 的一个程序。但我们的写法有两个问题。第一个是我们把放 to-do list 的文件名称给写死了。我们擅自决定用户不会有很多个 to-do lists，就把文件命名为 todo.txt。
 
 一种解决的方法是每次都询问用户他们想将他们的 to-do list 放进哪个文件。我们在用户要删除的时候也采用这种方式。这是一种可以运作的方式，但不太能被接受，因为他需要用户运行程序，等待程序询问才能回答。这被称为交互式的程序，但讨厌的地方在当你想要自动化执行程序的时候，好比说写成 script，这会让你的 script 写起来比较困难。
 
-这也是为什么有时候让用户在执行的时候就告诉程序他们要什么会比较好，而不是让程序去问用户要什么。比较好的方式是让用户透过命令行引数告诉程序他们想要什么。
+这也是为什么有时候让用户在执行的时候就告诉程序他们要什么会比较好，而不是让程序去问用户要什么。比较好的方式是让用户透过命令行参数告诉程序他们想要什么。
 
-在 `System.Environment` 模块当中有两个很酷的 I/O actions，一个是 **getArgs**，他的 type 是 `getArgs :: IO [String]`，他是一个拿取命令行引数的 I/O action，并把结果放在包含的一个串列中。**getProgName** 的型态是 `getProgName :: IO String`，他则是一个 I/O action 包含了程序的名称。
+在 `System.Environment` 模块当中有两个很酷的 I/O actions，一个是 **getArgs**，他的 type 是 `getArgs :: IO [String]`，他是一个拿取命令行参数的 I/O action，并把结果放在包含的一个串列中。**getProgName** 的型态是 `getProgName :: IO String`，他则是一个 I/O action 包含了程序的名称。
 
 我们来看一个展现他们功能的程序。
 
@@ -897,7 +897,7 @@ main = do
     putStrLn progName
 ```
 
-我们将 `getArgs` 跟 `progName` 分别绑定到 `args` 跟 `progName`。我们打印出 `The arguments are:` 以及在 `args` 中的每个引数。最后，我们打印出程序的名字。我们把程序编译成 `arg-test`。
+我们将 `getArgs` 跟 `progName` 分别绑定到 `args` 跟 `progName`。我们打印出 `The arguments are:` 以及在 `args` 中的每个参数。最后，我们打印出程序的名字。我们把程序编译成 `arg-test`。
 
 ```haskell
 $ ./arg-test first second w00t "multi word arg"
@@ -910,7 +910,7 @@ The program name is:
 arg-test
 ```
 
-知道了这些函数现在你能写几个很酷的命令行程序。在之前的章节，我们写了一个程序来加入待作事项，也写了另一个程序删除事项。现在我们要把两个程序合起来，他会根据命令行引数来决定该做的事情。我们也会让程序可以处理不同的文件，而不是只有 todo.txt
+知道了这些函数现在你能写几个很酷的命令行程序。在之前的章节，我们写了一个程序来加入待作事项，也写了另一个程序删除事项。现在我们要把两个程序合起来，他会根据命令行参数来决定该做的事情。我们也会让程序可以处理不同的文件，而不是只有 todo.txt
 
 我们叫这程序 todo，他会作三件事：
 
@@ -924,7 +924,7 @@ arg-test
 
 我们的程序要像这样运作：假如我们要加入 `Find the magic sword of power`，则我们会打 `todo add todo.txt "Find the magic sword of power"`。要查看事项我们则会打 `todo view todo.txt`，如果要移除事项二则会打 `todo remove todo.txt 2`
 
-我们先作一个分发的 association list。他会把命令行引数当作 key，而对应的处理函数当作 value。这些函数的型态都是 `[String] -> IO ()`。他们会接受命令行引数的串列并回传对应的查看，加入以及删除的 I/O action。
+我们先作一个分发的 association list。他会把命令行参数当作 key，而对应的处理函数当作 value。这些函数的型态都是 `[String] -> IO ()`。他们会接受命令行参数的串列并回传对应的查看，加入以及删除的 I/O action。
 
 ```haskell
 import System.Environment
@@ -948,11 +948,11 @@ main = do
     action args
 ```
 
-首先，我们取出引数并把他们绑定到 `(command:args)`。如果你还记得 pattern matching，这么做会把第一个引数绑定到 `command`，把其他的绑定到 `args`。如果我们像这样执行程序 `todo add todo.txt "Spank the monkey"`，`command` 会变成 `"add"`，而 `args` 会变成 `["todo.txt", "Spank the monkey"]`。
+首先，我们取出参数并把他们绑定到 `(command:args)`。如果你还记得 pattern matching，这么做会把第一个参数绑定到 `command`，把其他的绑定到 `args`。如果我们像这样执行程序 `todo add todo.txt "Spank the monkey"`，`command` 会变成 `"add"`，而 `args` 会变成 `["todo.txt", "Spank the monkey"]`。
 
 在下一行，我们在一个分派的串列中寻到我们的指令是哪个。由于 `"add"` 指向 `add`，我们的结果便是 `Just add`。我们再度使用了 pattern matching 来把我们的函数从 `Maybe` 中取出。但如果我们想要的指令不在分派的串列中呢？那样 lookup 就会回传 `Nothing`，但我们这边并不特别处理失败的情况，所以 pattern matching 会失败然后我们的程序就会当掉。
 
-最后，我们用剩下的引数调用 `action` 这个函数。他会还传一个加入 item，显示所有 items 或者删除 item 的 I/O action。由于这个 I/O action 是在 `main` 的 do block 中，他最后会被执行。如果我们的 `action` 函数是 `add`，他就会被喂 `args` 然后回传一个加入 `Spank the monkey` 到 todo.txt 中的 I/O action。
+最后，我们用剩下的参数调用 `action` 这个函数。他会还传一个加入 item，显示所有 items 或者删除 item 的 I/O action。由于这个 I/O action 是在 `main` 的 do block 中，他最后会被执行。如果我们的 `action` 函数是 `add`，他就会被喂 `args` 然后回传一个加入 `Spank the monkey` 到 todo.txt 中的 I/O action。
 
 我们剩下要做的就是实作 `add`，`view` 跟 `remove`，我们从 `add` 开始：
 
@@ -1044,7 +1044,7 @@ remove [fileName, numberString] = do
 
 ![](../../.gitbook/assets/salad%20%281%29.png)
 
-总结我们的程序：我们做了一个 dispatch association，将指令对应到一些会接受命令行引数并回传 I/O action 的函数。我们知道用户下了什么命令，并根据那个命令从 dispatch list 取出对影的函数。我们用剩下的命令行引数调用哪些函数而得到一些作相对应事情的 I/O action。然后便执行那些 I/O action。
+总结我们的程序：我们做了一个 dispatch association，将指令对应到一些会接受命令行参数并回传 I/O action 的函数。我们知道用户下了什么命令，并根据那个命令从 dispatch list 取出对影的函数。我们用剩下的命令行参数调用哪些函数而得到一些作相对应事情的 I/O action。然后便执行那些 I/O action。
 
 在其他编程语言，我们可能会用一个大的 switch case 来实作，但使用高端函数让我们可以要 dispatch list 给我们要的函数，并要那些函数给我们适当的 I/O action。
 
@@ -1444,7 +1444,7 @@ copyFile source dest = do
     B.writeFile dest contents
 ```
 
-我们写了自己的函数，他接受两个 `FilePath`（记住 `FilePath` 不过是 `String` 的同义词。）并回传一个 I/O action，他会用 bytestring 拷贝第一个文件至另一个。在 `main` 函数中，我们做的只是拿到命令行引数然后调用那个函数来拿到一个 I/O action。
+我们写了自己的函数，他接受两个 `FilePath`（记住 `FilePath` 不过是 `String` 的同义词。）并回传一个 I/O action，他会用 bytestring 拷贝第一个文件至另一个。在 `main` 函数中，我们做的只是拿到命令行参数然后调用那个函数来拿到一个 I/O action。
 
 ```haskell
 $ runhaskell bytestringcopy.hs something.txt ../../something.txt
@@ -1479,7 +1479,7 @@ pure code 能丢出 Exception，但 Exception 只能在 I/O section 中被接到
 
 先前我们谈过为什么在 I/O 部份的程序要越少越好。程序的逻辑部份尽量都放在 pure 的部份，因为 pure 的特性就是他们的结果只会根据函数的参数不同而改变。当思考 pure function 的时候，你只需要考虑他回传什么，因为除此之外他不会有任何副作用。这会让事情简单许多。尽管 I/O 的部份是难以避免的（像是打开文件之类），但最好是把 I/O 部份降到最低。Pure functions 缺省是 lazy，那代表我们不知道他什么时候会被 evaluate，不过我们也不该知道。然而，一旦 pure functions 需要丢出 Exception，他们何时被 evaluate 就很重要了。那是因为我们只有在 I/O 的部份才能接到 Exception。这很糟糕，因为我们说过希望 I/O 的部份越少越好。但如果我们不接 Exception，我们的程序就会当掉。这问题有解决办法吗？答案是不要在 pure code 里面使用 Exception。利用 Haskell 的型态系统，尽量使用 `Either` 或 `Maybe` 之类的型态来表示可能失败的计算。
 
-这也是为什么我们要来看看怎么使用 I/O Excetion。I/O Exception 是当我们在 `main` 里面跟外界沟通失败而丢出的 Exception。例如我们尝试打开一个文件，结果发现他已经被删掉或是其他状况。来看看一个尝试打开命令行引数所指定文件名称，并计算里面有多少行的程序。
+这也是为什么我们要来看看怎么使用 I/O Excetion。I/O Exception 是当我们在 `main` 里面跟外界沟通失败而丢出的 Exception。例如我们尝试打开一个文件，结果发现他已经被删掉或是其他状况。来看看一个尝试打开命令行参数所指定文件名称，并计算里面有多少行的程序。
 
 ```haskell
 import System.Environment
